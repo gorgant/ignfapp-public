@@ -1,0 +1,21 @@
+@import "./variables";
+
+.logo {
+  width: 40%;
+}
+
+.message {
+  font-size: 80px;
+}
+
+@media screen and (max-width: $mobile-cutoff-width) {
+
+  .logo {
+    width: 80%;
+  }
+  .message {
+    text-align: center;
+    font-size: 50px;
+    line-height: 50px;
+  }
+}

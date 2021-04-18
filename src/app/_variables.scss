@@ -1,0 +1,253 @@
+// Import material theming functions
+@import '~@angular/material/theming';
+
+// Copied from theme.scss
+$ignflp-public-primary: (
+  50 : #fde4e5,
+  100 : #fabbbd,
+  200 : #f68e92,
+  300 : #f26066,
+  400 : #f03e45,
+  500 : #ed1c24,
+  600 : #eb1920,
+  700 : #e8141b,
+  800 : #e51116,
+  900 : #e0090d,
+  A100 : #ffffff,
+  A200 : #ffd7d7,
+  A400 : #ffa4a5,
+  A700 : #ff8b8c,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #ffffff,
+      500 : #ffffff,
+      600 : #ffffff,
+      700 : #ffffff,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+
+$ignflp-public-accent: (
+  50 : #fff2e0,
+  100 : #ffdfb3,
+  200 : #ffca80,
+  300 : #ffb54d,
+  400 : #ffa526,
+  500 : #ff9500,
+  600 : #ff8d00,
+  700 : #ff8200,
+  800 : #ff7800,
+  900 : #ff6700,
+  A100 : #ffffff,
+  A200 : #fff7f2,
+  A400 : #ffd5bf,
+  A700 : #ffc4a6,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #000000,
+      500 : #000000,
+      600 : #000000,
+      700 : #000000,
+      800 : #000000,
+      900 : #000000,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+// Consider swapping this for something more distinct
+$ignflp-public-warn: (
+  50 : #fdece4,
+  100 : #fbcfbd,
+  200 : #f8b091,
+  300 : #f59064,
+  400 : #f37843,
+  500 : #f16022,
+  600 : #ef581e,
+  700 : #ed4e19,
+  800 : #eb4414,
+  900 : #e7330c,
+  A100 : #ffffff,
+  A200 : #ffe3de,
+  A400 : #ffb7ab,
+  A700 : #ffa191,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #000000,
+      500 : #000000,
+      600 : #ffffff,
+      700 : #ffffff,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+$theme-primary: mat-palette($ignflp-public-primary);
+$theme-accent:  mat-palette($ignflp-public-accent);
+$theme-warn:    mat-palette($mat-red);
+
+// Create your Sass color vars (will be available in all the project)
+$primary: mat-color($theme-primary);
+$accent: mat-color($theme-accent);
+$warn: mat-color($theme-warn);
+
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+$font-subheader-color: #707070;
+
+$logo-font-family: "Mulish";
+$logo-font-default-size: 30px;
+$logo-font-mobile-size: 20px;
+// Color from here: https://blog.union.io/code/2017/08/10/img-svg-fill/ && https://codepen.io/sosuke/pen/Pjoqqp
+$svg-color-filter: brightness(0) saturate(100%) invert(83%) sepia(63%) saturate(2447%) hue-rotate(330deg) brightness(101%) contrast(101%);
+
+$max-screen-width: 2500px;
+$min-screen-width: 320px;
+$mobile-cutoff-width: 959px;
+
+$mobile-button-width: 100%;
+$desktop-button-width: 200px;
+$desktop-buy-button-width: 400px;
+$mobile-buy-button-height: 3em;
+$desktop-buy-button-height: 2em;
+
+$mobile-form-width: 100%;
+$desktop-form-width: 300px;
+$form-border-color: #EEEEEE;
+
+$text-block-font-weight: $font-weight-regular;
+$text-block-font-size: 22px;
+$text-block-mobile-font-size: 20px;
+$text-block-max-width: 670px;
+$text-block-padding: 16px 24px 16px 24px;
+
+
+$inactive-item-opacity: 0.8;
+$active-item-opacity: 1;
+
+$opacity-full: 1;
+$opacity-high: 0.87;
+$opacity-medium: 0.60;
+$opacity-light: 0.38;
+$opacity-faded: 0.3;
+$opacity-minimal: 0.1;
+
+
+// $hex-opacity-high-emphasis: DE;
+// $hex-opacity-medium-emphasis: 99;
+// $hex-opacity-light-emphasis: 61;
+// $hex-opacity-faded-emphasis: 4D;
+
+// From https://stackoverflow.com/a/10939797/6572208
+// Sets the background to the stated color and transparency
+@mixin background-opacity($color, $opacity) {
+    background: $color; /* The Fallback */
+    background: rgba($color, $opacity);
+}
+
+@mixin collection-container-bounds {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 16px;
+    margin-bottom: 32px;
+}
+
+// Courtesty of https://stackoverflow.com/a/26634773/6572208
+@mixin line-clamp($numLines : 1, $lineHeight: 1.412) {
+    overflow: hidden;
+    text-overflow: -o-ellipsis-lastline;
+    text-overflow: ellipsis;
+    display: block;
+    /* autoprefixer: off */
+    display: -webkit-box;
+    -webkit-line-clamp: $numLines;
+    -webkit-box-orient: vertical;
+    max-height: $numLines * $lineHeight + unquote('em');
+}
+
+@mixin tooltiptext() {
+    .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 150%;
+        left: 50%;
+        margin-left: -60px;
+        }
+        
+    .tooltiptext::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: black transparent transparent transparent;
+        }
+}
+
+@mixin textBlockBullets() {
+    ul {
+        list-style: none;
+        padding: 0px;
+        margin: 1em 0;
+        font-size: 1em;
+    }
+      
+    ul li {
+        list-style-type: none;
+        background-image: url('/assets/icons/text/bullet_icon.png');
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position: 0px 8px;
+        padding-left: 40px;
+        margin: 1em;
+    }
+
+    @media screen and (max-width: $mobile-cutoff-width) {
+        ul li {
+            background-size: 12px;
+            background-position: 0px 5px;
+            padding-left: 30px;
+        }
+    }
+}
+
+@mixin md-icon-size($size: 24px) {
+  font-size: $size;
+  height: $size;
+//   width: $size;
+  line-height: $size;
+}
