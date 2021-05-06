@@ -1,0 +1,33 @@
+<form 
+      class="subscribe-form" 
+      [formGroup]="subscribeForm" 
+      (ngSubmit)="onSubmit()" 
+      fxLayout="column" 
+      fxLayoutAlign="center center"
+      fxLayout.gt-sm="row"
+      fxLayoutAlign.gt-sm="start center"
+      fxLayoutGap="16px">
+    <mat-form-field color="accent">
+      <input color="accent" class="first-name-input" matInput formControlName="firstName">
+      <mat-placeholder class="input-placeholder">{{ firstNameFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.firstName">
+        <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field color="accent">
+      <input color="accent" class="email-input" matInput formControlName="email" type="email">
+      <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.email">
+        <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+    <!-- <mat-progress-spinner *ngIf="isSubscribingUser$ | async" diameter=40 color="accent" mode="indeterminate"></mat-progress-spinner> -->
+    <button 
+      [disabled]="(email.invalid && (email.dirty || email.touched))"
+      class="submit-button" 
+      type="submit" 
+      mat-raised-button 
+      color="accent">
+        {{ submitButtonValue }}
+    </button>
+  </form>

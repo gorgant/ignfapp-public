@@ -1,0 +1,37 @@
+@import "../../../../../variables";
+
+.component-container {
+  padding: 16px;
+}
+
+.logo {
+  width: 20%;
+}
+
+.lead-statement {
+  font-size: 60px;
+}
+
+.call-to-action {
+  font-size: 32px;
+  color: $font-subheader-color;
+}
+
+@media screen and (max-width: $mobile-cutoff-width) {
+
+  .logo {
+    width: 50%;
+  }
+
+  .lead-statement {
+    text-align: center;
+    font-size: 40px;
+    line-height: 48px;
+  }
+
+  .call-to-action {
+    text-align: center;
+    font-size: 24px;
+    line-height: 24px;
+  }
+}
