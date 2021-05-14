@@ -1,5 +1,22 @@
 {
   "projects": {
-    "default": "ignfapp-public"
+    "default": "ignfapp-public",
+    "sandbox-public": "ignfapp-sandbox-public"
+  },
+  "targets": {
+    "ignfapp-public": {
+      "hosting": {
+        "ignfapp-public": [
+          "ignfapp-public"
+        ]
+      }
+    },
+    "ignfapp-sandbox-public": {
+      "hosting": {
+        "ignfapp-public": [
+          "ignfapp-sandbox-public"
+        ]
+      }
+    }
   }
 }

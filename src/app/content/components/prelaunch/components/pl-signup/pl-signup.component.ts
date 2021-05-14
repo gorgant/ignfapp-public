@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SubscribeFormFieldValues, SubscribeFormFieldKeys, SubscribeFormButtonValues } from 'shared-models/forms/subscribe-form.model';
 import { SubscribeFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { PrelaunchUserFormData } from 'shared-models/user/prelaunch-user.model';
+import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
   selector: 'app-pl-signup',
@@ -20,6 +22,7 @@ export class PlSignupComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -34,8 +37,23 @@ export class PlSignupComponent implements OnInit {
   }
 
   onSubmit(): void {
+
     console.log('Submitted these values', this.subscribeForm.value);
+
+    const prelaunchUserFormData: PrelaunchUserFormData = {
+      firstName: this.firstName.value,
+      email: this.email.value
+    }
+
+    this.userService.registerPrelaunchUser(prelaunchUserFormData)
+      .subscribe(registeredUser => {
+        console.log('Received registered user to component');
+      }, err => {
+        console.log('Received error message to component', err);
+      });
   }
+
+  
 
 
   // These getters are used for easy access in the HTML template
