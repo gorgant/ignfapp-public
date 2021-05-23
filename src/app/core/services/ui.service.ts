@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { AngularFirestore } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'

@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SubConfirmationComponent } from './sub-confirmation.component';
+import { EmailVerificationComponent } from './email-verification.component';
 
-describe('SubConfirmationComponent', () => {
-  let component: SubConfirmationComponent;
-  let fixture: ComponentFixture<SubConfirmationComponent>;
+describe('EmailVerificationComponent', () => {
+  let component: EmailVerificationComponent;
+  let fixture: ComponentFixture<EmailVerificationComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubConfirmationComponent ]
+      declarations: [ EmailVerificationComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubConfirmationComponent);
+    fixture = TestBed.createComponent(EmailVerificationComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

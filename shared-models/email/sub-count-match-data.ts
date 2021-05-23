@@ -1,4 +1,4 @@
-export interface SubCountData {
+export interface SubCountMatchData {
   databaseSubCount: number;
   sendGridSubCount: number;
   databaseUnsubCount: number;

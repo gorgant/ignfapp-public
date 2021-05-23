@@ -1,0 +1,22 @@
+@import "../../../../../variables";
+
+.verify-email {
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.verify-text {
+  color: $primary;
+}
+
+.processing-spinner {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
+}
+
+.processing-message {
+  color: $primary;
+  text-align: center;
+}

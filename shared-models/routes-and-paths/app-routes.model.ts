@@ -1,8 +1,9 @@
 export enum PublicAppRoutes {
   DASHBOARD = '',
-  LOGIN = 'login',
-  SIGNUP = 'signup',
-  PRELAUNCH = 'prelaunch',
+  EMAIL_VERIFICATION = '/email-verification',
+  LOGIN = '/login',
+  PRELAUNCH = '/prelaunch',
   PRIVACY_POLICY = '/legal/privacy-policy',
+  SIGNUP = '/signup',
   TERMS_AND_CONDITIONS = '/legal/terms-and-conditions',
 }

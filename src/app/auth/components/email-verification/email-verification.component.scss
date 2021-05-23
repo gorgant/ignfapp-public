@@ -1,0 +1,56 @@
+@import '../../../variables';
+
+.page-container {
+  padding: 32px;
+}
+
+.success-container {
+  margin-top: 10%;
+}
+
+.success-icon {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
+}
+
+.success-message {
+  color: $primary;
+  text-align: center;
+}
+
+.failure-icon {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $warn;
+}
+
+.failure-message {
+  color: $warn;
+  text-align: center;
+}
+
+.processing-spinner {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
+}
+
+.processing-message {
+  color: $primary;
+  text-align: center;
+}
+
+.subscribe-widget {
+  background-color: $primary;
+  padding: 16px;
+}
+
+@media screen and (max-width: $mobile-cutoff-width) {
+  .page-container {
+    padding: 16px;
+  }
+}

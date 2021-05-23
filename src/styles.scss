@@ -9,29 +9,31 @@
 // Be sure that you only ever include this mixin once!
 @include mat-core();
 
-// Define the palettes for your theme using the Material Design palettes available in palette.scss
-// (imported above). For each palette, you can optionally specify a default, lighter, and darker
-// hue. Available color palettes: https://material.io/design/color/
-$ignfapp-public-primary: mat-palette($mat-indigo);
-$ignfapp-public-accent: mat-palette($mat-pink, A200, A100, A400);
+// Courtesy of https://indepth.dev/posts/1320/custom-theme-for-angular-material-components-series-part-1-create-a-theme
 
-// The warn palette is optional (defaults to red).
-$ignfapp-public-warn: mat-palette($mat-red);
+// import our custom theme
+@import "./theme.scss";
 
-// Create the theme object. A theme consists of configurations for individual
-// theming systems such as "color" or "typography".
-$ignfapp-public-theme: mat-light-theme((
-  color: (
-    primary: $ignfapp-public-primary,
-    accent: $ignfapp-public-accent,
-    warn: $ignfapp-public-warn,
-  )
-));
+// import custom component themes
+@import "./custom-component-themes.scss";
+
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
 @include angular-material-theme($ignfapp-public-theme);
+@include custom-components-theme($ignfapp-public-theme);
+
+// Include the dark color styles inside of a block with a CSS class. You can make this
+// CSS class whatever you want. In this example, any component inside of an element with
+// `.dark-theme` will be affected by this alternate dark theme instead of the default theme.
+
+.dark-theme {
+  @include angular-material-color($dark-theme);
+}
+
+// Override typography for all Angular Material, including mat-base-typography and all components.
+@include angular-material-typography($typography);
 
 /* You can add global styles to this file, and also import other style files */
 

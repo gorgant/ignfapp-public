@@ -1,3 +1,3 @@
-export enum SubscriberReportVars {
+export enum ExportReportVars {
   SUB_REPORT_EXPIRATION = 1000 * 60 * 60 * 24 * 1, // 1 Days
 }

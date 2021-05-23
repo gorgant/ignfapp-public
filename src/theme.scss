@@ -1,0 +1,168 @@
+// Courtesy of https://indepth.dev/posts/1320/custom-theme-for-angular-material-components-series-part-1-create-a-theme
+
+// Import any custom fonts
+@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@200..900&display=swap");
+
+// 1. Default theme
+$ignfapp-public-primary: (
+  50 : #fde4e5,
+  100 : #fabbbd,
+  200 : #f68e92,
+  300 : #f26066,
+  400 : #f03e45,
+  500 : #ed1c24,
+  600 : #eb1920,
+  700 : #e8141b,
+  800 : #e51116,
+  900 : #e0090d,
+  A100 : #ffffff,
+  A200 : #ffd7d7,
+  A400 : #ffa4a5,
+  A700 : #ff8b8c,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #ffffff,
+      500 : #ffffff,
+      600 : #ffffff,
+      700 : #ffffff,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+
+$ignfapp-public-accent: (
+  50 : #fff2e0,
+  100 : #ffdfb3,
+  200 : #ffca80,
+  300 : #ffb54d,
+  400 : #ffa526,
+  500 : #ff9500,
+  600 : #ff8d00,
+  700 : #ff8200,
+  800 : #ff7800,
+  900 : #ff6700,
+  A100 : #ffffff,
+  A200 : #fff7f2,
+  A400 : #ffd5bf,
+  A700 : #ffc4a6,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #000000,
+      500 : #000000,
+      600 : #000000,
+      700 : #000000,
+      800 : #000000,
+      900 : #000000,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+// Consider swapping this for something more distinct
+$ignfapp-public-warn: (
+  50 : #fdece4,
+  100 : #fbcfbd,
+  200 : #f8b091,
+  300 : #f59064,
+  400 : #f37843,
+  500 : #f16022,
+  600 : #ef581e,
+  700 : #ed4e19,
+  800 : #eb4414,
+  900 : #e7330c,
+  A100 : #ffffff,
+  A200 : #ffe3de,
+  A400 : #ffb7ab,
+  A700 : #ffa191,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #000000,
+      500 : #000000,
+      600 : #ffffff,
+      700 : #ffffff,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+
+$ignfapp-public-palette-primary: mat-palette($ignfapp-public-primary);
+$ignfapp-public-palette-accent: mat-palette($ignfapp-public-accent);
+$ignfapp-public-palette-warn: mat-palette($ignfapp-public-warn);
+
+
+
+$ignfapp-public-theme: mat-light-theme(
+  $ignfapp-public-palette-primary,
+  $ignfapp-public-palette-accent,
+  $ignfapp-public-palette-warn
+);
+
+// 2. Define an alternate dark theme.
+$dark-primary: mat-palette($mat-blue-grey);
+$dark-accent: mat-palette($mat-amber, A200, A100, A400);
+$dark-warn: mat-palette($mat-deep-orange);
+$dark-theme: mat-dark-theme(
+  (
+    color: (
+      primary: $dark-primary,
+      accent: $dark-accent,
+      warn: $dark-warn,
+    ),
+  )
+);
+
+// Generate specific values here: https://material.io/design/typography/the-type-system.html#type-scale
+// 3. Define a custom heading typography config
+$heading-font-family: "Mulish, sans-serif";
+$body-font-family: "Roboto, sans-serif";
+// $typography: mat-typography-config(
+//   $display-4: mat-typography-level(101px, $font-family: $heading-font-family),
+//   $display-3: mat-typography-level(63px, $font-family: $heading-font-family),
+//   $display-2: mat-typography-level(50px, $font-family: $heading-font-family),
+//   $display-1: mat-typography-level(36px, $font-family: $heading-font-family),
+//   $headline: mat-typography-level(25px, $font-family: $heading-font-family),
+//   $title: mat-typography-level(21px, $font-family: $heading-font-family),
+//   $subheading-2: mat-typography-level(17px, $font-family: $heading-font-family),
+//   $subheading-1: mat-typography-level(15px, $font-family: $heading-font-family),
+//   $body-1: mat-typography-level(16px, $font-family: $body-font-family),
+//   $body-2: mat-typography-level(14px, $font-family: $body-font-family),
+//   $caption: mat-typography-level(12px, $font-family: $body-font-family),
+//   $button: mat-typography-level(14px, $font-family: $body-font-family),
+//   $input: mat-typography-level(16px, $font-family: $body-font-family),
+// );
+
+// The input typeset in the above version triggers an error
+$typography: mat-typography-config(
+  $display-4: mat-typography-level(101px, $font-family: $heading-font-family),
+  $display-3: mat-typography-level(63px, $font-family: $heading-font-family),
+  $display-2: mat-typography-level(50px, $font-family: $heading-font-family),
+  $display-1: mat-typography-level(36px, $font-family: $heading-font-family),
+  $headline: mat-typography-level(25px, $font-family: $heading-font-family),
+  $title: mat-typography-level(21px, $font-family: $heading-font-family),
+  $subheading-2: mat-typography-level(17px, $font-family: $heading-font-family),
+  $subheading-1: mat-typography-level(15px, $font-family: $heading-font-family),
+  $body-1: mat-typography-level(16px, $font-family: $body-font-family),
+  $body-2: mat-typography-level(14px, $font-family: $body-font-family),
+  $caption: mat-typography-level(12px, $font-family: $body-font-family),
+  $button: mat-typography-level(14px, $font-family: $body-font-family),
+);

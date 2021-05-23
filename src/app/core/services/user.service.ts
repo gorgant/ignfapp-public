@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { now } from 'moment';
-import { from, Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, take, takeUntil } from 'rxjs/operators';
+import { from, Observable, throwError } from 'rxjs';
+import { catchError, map, take, takeUntil } from 'rxjs/operators';
+import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { PrelaunchUser, PrelaunchUserFormData, PrelaunchUserKeys } from 'shared-models/user/prelaunch-user.model';
+import { PrelaunchUser } from 'shared-models/user/prelaunch-user.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
@@ -23,7 +23,7 @@ export class UserService {
     private uiService: UiService
   ) { }
 
-  // TODO: CONSIDER DOING THESE IN THE CLOUD TO SECURE THE DATA
+  // TODO: CONSIDER DOING THESE IN THE CLOUD TO SECURE THE DATA SIMILAR TO REGISTER PRELAUNCH USER
 
   fetchUserData(userId: string): Observable<PublicUser> {
     const userDoc = this.getPublicUserDoc(userId);
@@ -63,12 +63,12 @@ export class UserService {
     );
   }
 
-  registerPrelaunchUser(prelaunchUserFormData: PrelaunchUserFormData): Observable<PrelaunchUser> {
+  registerPrelaunchUser(userData: EmailUserData): Observable<PrelaunchUser> {
     
-    const registerUserHttpCall: (prelaunchUserFormData: PrelaunchUserFormData) => 
-      Observable<PrelaunchUser> = this.fns.httpsCallable(PublicFunctionNames.REGISTER_PRELAUNCH_USER);
+    const registerUserHttpCall: (userData: EmailUserData) => 
+      Observable<PrelaunchUser> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_REGISTER_PRELAUNCH_USER);
 
-    return registerUserHttpCall(prelaunchUserFormData)
+    return registerUserHttpCall(userData)
       .pipe(
         take(1),
         map( registeredUser => {

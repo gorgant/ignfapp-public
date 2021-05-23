@@ -1,0 +1,22 @@
+<div class="page-container" fxLayout="column" fxLayoutAlign="center center">
+  <div class="content-body-container" fxLayout="column" fxLayoutAlign="center center">
+    <div *ngIf="verificationProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+      <mat-spinner class="processing-spinner"></mat-spinner>
+      <h2 class="processing-message">
+        Confirming your email, please wait...
+      </h2>
+    </div>
+    <div *ngIf="!verificationProcessing && !(emailVerified$ | async)" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+      <mat-icon class="failure-icon">cancel</mat-icon>
+      <h2 class="failure-message">
+        Failed to verify your email. If you continue to receive this message, try registering again. If all else fails, contact <b>{{supportEmail}}</b>.
+      </h2>
+    </div>
+    <div *ngIf="emailVerified$ | async" class="success-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+      <mat-icon class="success-icon">check_circle_outline</mat-icon>
+      <h2 class="success-message">
+        Success! Your email has been confirmed.
+      </h2>
+    </div>
+  </div>
+</div>

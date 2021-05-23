@@ -7,11 +7,17 @@ export enum AdminTopicNames {
 }
 
 export enum PublicFunctionNames {
-  REGISTER_PRELAUNCH_USER = 'registerPrelaunchUser',
-  TRIGGER_EMAIL_SEND = 'triggerEmailSend',
+  ON_CALL_REGISTER_PRELAUNCH_USER = 'onCallRegisterPrelaunchUser',
+  ON_CALL_VERIFY_EMAIL = 'onCallVerifyEmail',
+  ON_PUB_CREATE_OR_UPDATE_SG_CONTACT = 'onPubCreateOrUpdateSgContact',
+  ON_PUB_DELETE_SG_CONTACT = 'onPubDeleteSgContact',
+  ON_PUB_DISPATCH_EMAIL = 'onPubDispatchEmail',
+  ON_REQ_SG_EMAIL_WEBHOOK_ENDPOINT = 'onReqSgEmailWebhookEndpoint',
 }
 
 export enum PublicTopicNames {
+  CREATE_OR_UPDATE_SG_CONTACT_TOPIC = 'create-or-update-sg-contact-topic',
+  DELETE_SG_CONTACT_TOPIC = 'delete-sg-contact-topic',
+  DISPATCH_EMAIL_TOPIC = 'dispatch-email-topic',
   SAVE_WEBPAGE_TO_CACHE_TOPIC = 'save-webpage-to-cache-topic',
-  TRIGGER_EMAIL_SEND_TOPIC = 'trigger-email-send-topic'
 }

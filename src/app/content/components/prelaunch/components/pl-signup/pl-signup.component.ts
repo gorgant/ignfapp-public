@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { EmailUserData } from 'shared-models/email/email-user-data.model';
+import { EmailSenderAddresses, SendgridContactListIds } from 'shared-models/email/email-vars.model';
 import { SubscribeFormFieldValues, SubscribeFormFieldKeys, SubscribeFormButtonValues } from 'shared-models/forms/subscribe-form.model';
 import { SubscribeFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { PrelaunchUserFormData } from 'shared-models/user/prelaunch-user.model';
 import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
@@ -19,10 +21,15 @@ export class PlSignupComponent implements OnInit {
   emailFieldValue = SubscribeFormFieldValues.EMAIL;
   submitButtonValue = SubscribeFormButtonValues.REQUEST_INVITE;
 
+  userRegistered: boolean = false;
+  registrationProcessing: boolean = false;
+
+  trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService
+    private userService: UserService,
+    private afs: AngularFirestore
   ) { }
 
   ngOnInit(): void {
@@ -38,18 +45,28 @@ export class PlSignupComponent implements OnInit {
 
   onSubmit(): void {
 
+    this.registrationProcessing = true;
+
     console.log('Submitted these values', this.subscribeForm.value);
 
-    const prelaunchUserFormData: PrelaunchUserFormData = {
+    const emailUserData: EmailUserData = {
+      email: this.email.value,
       firstName: this.firstName.value,
-      email: this.email.value
+      id: this.afs.createId(),
+      emailSendgridContactListArray: [
+        SendgridContactListIds.IGNFAPP_PRELAUNCH_WAIT_LIST,
+      ],
+      isPrelaunchUser: true
     }
 
-    this.userService.registerPrelaunchUser(prelaunchUserFormData)
+    this.userService.registerPrelaunchUser(emailUserData)
       .subscribe(registeredUser => {
         console.log('Received registered user to component');
+        this.userRegistered = true;
+        this.registrationProcessing = false;
       }, err => {
         console.log('Received error message to component', err);
+        this.registrationProcessing = false;
       });
   }
 

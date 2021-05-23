@@ -1,19 +1,6 @@
-export enum PrelaunchUserKeys {
-  EMAIL = 'email'
-}
+import { PublicUser } from "./public-user.model";
 
-
-export interface PrelaunchUser {
-  id: string;
-  [PrelaunchUserKeys.EMAIL]: string;
-  lastModifiedTimestamp: number;
-  firstName: string;
-  createdTimestamp: number;
-  emailVerified?: boolean;
-  prelaunchEmailSent?: boolean;
-}
-
-export interface PrelaunchUserFormData {
-  firstName: string;
-  email: string;
+export interface PrelaunchUser extends PublicUser {
+  isPrelaunchUser: boolean;
+  emailPrelaunchWelcomeSent?: boolean;
 }

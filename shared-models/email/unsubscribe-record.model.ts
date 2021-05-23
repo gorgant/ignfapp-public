@@ -5,6 +5,6 @@ export interface UnsubscribeRecord {
 }
 
 // The object containing any number of base pairs
-export interface GroupUnsubscribeRecordList {
+export interface UnsubscribeRecordList {
   [key: number]: UnsubscribeRecord;
 }

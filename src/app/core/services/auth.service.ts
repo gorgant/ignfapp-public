@@ -10,6 +10,9 @@ import { take, map, catchError, switchMap, tap } from 'rxjs/operators';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
+import { EmailVerificationData } from 'shared-models/email/email-verification-data';
+import { AngularFireFunctions } from '@angular/fire/functions';
+import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +25,7 @@ export class AuthService {
   constructor(
     private router: Router,
     private afAuth: AngularFireAuth,
+    private fns: AngularFireFunctions,
     private uiService: UiService,
     private route: ActivatedRoute,
   ) { }
@@ -210,6 +214,32 @@ export class AuthService {
         return throwError(error);
       })
     );
+  }
+
+  verifyEmail(emailVerificationData: EmailVerificationData): Observable<boolean> {
+
+    console.log('Submitting email to server for verification');
+
+    const verifyEmailHttpCall: (data: EmailVerificationData) => Observable<boolean> = this.fns.httpsCallable(
+      PublicFunctionNames.ON_CALL_VERIFY_EMAIL
+    );
+    const res = verifyEmailHttpCall(emailVerificationData)
+      .pipe(
+        take(1),
+        map(emailVerified => {
+          console.log('Email verification outcome:', emailVerified);
+          if (!emailVerified) {
+            throw new Error(`Error confirming subscriber: ${emailVerified}`);
+          }
+          return emailVerified;
+        }),
+        catchError(error => {
+          console.log('Error confirming subscriber', error);
+          return throwError(error);
+        })
+      );
+
+    return res;
   }
 
   get unsubTrigger$() {

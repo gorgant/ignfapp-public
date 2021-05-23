@@ -6,14 +6,14 @@ import { LoginComponent } from '../components/login/login.component';
 import { SignupComponent } from '../components/signup/signup.component';
 import { StoreModule } from '@ngrx/store';
 import * as fromAuth from '../reducers';
-import { SubConfirmationComponent } from '../components/sub-confirmation/sub-confirmation.component';
+import { EmailVerificationComponent } from '../components/email-verification/email-verification.component';
 
 
 @NgModule({
   declarations: [
     LoginComponent,
     SignupComponent,
-    SubConfirmationComponent
+    EmailVerificationComponent
   ],
   imports: [
     SharedModule,

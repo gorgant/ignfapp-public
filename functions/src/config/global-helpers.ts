@@ -1,5 +1,9 @@
 import * as functions from 'firebase-functions';
-import * as request from 'request';
+import * as Axios from 'axios';
+import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
+import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
+
+
 
 // Firebase can't handle back slashes
 export const createOrReverseFirebaseSafeUrl = (url: string, reverse?: boolean): string => {
@@ -94,44 +98,50 @@ export const generateRoundedNumber = (number: number, digitsToRoundTo: number) =
 
 /**
  * Submits an HTTP request
- * @param number Number to round
- * @param digitsToRoundTo Number of digits desired
+ * @param requestOptions Request options to include
  */
 
-export const submitHttpRequest = async (requestOptions: request.Options): Promise<{}> => {
-  // Wrap the request in a promise
-  const responseBody: Promise<string> = new Promise<string> ( async(resolve, reject) => {
-    
-    // Submit the request using the options and body set above
-    request(requestOptions, (error, response, body) => {
+export const submitHttpRequest = async (config: Axios.AxiosRequestConfig): Promise<{}>  => {
+
+  const axios = Axios.default;
+
+  const response = await axios(config)
+    .catch(err => {
+      const error = err as Axios.AxiosError; 
+      functions.logger.log(`Error with request: ${error.code} ${error.message}`, err); 
+      throw new functions.https.HttpsError('internal', `Error with request: ${error.code} ${error.message}`);}
+  );
+
+  const reponseData = response.data;
+
+  functions.logger.log('Body from request', reponseData);
+
+  let parsedBody = reponseData;
       
-      if (error) {
-        reject(`Error with request: ${error}`);
-        return error;
-      }
+  // Convert body to JSON object if it is a string
+  if (typeof parsedBody === 'string' || parsedBody instanceof String) {
+    parsedBody = JSON.parse(parsedBody as string);
+  }
 
-      if (response.statusCode >= 400) {
-        reject(`400 status detected from request: ${response.statusCode} ${response.statusMessage}`);
-        functions.logger.log(`Error with request: ${response.statusCode} ${response.statusMessage}`);
-        return new functions.https.HttpsError('internal', `Error with request: ${response.statusCode} ${response.statusMessage}`);        
-      }
 
-      functions.logger.log('Body from request', body);
 
-      functions.logger.log('Response in string form', JSON.stringify(response));
+  return parsedBody;
+}
 
-      let parsedBody = body;
-      
-      // Convert body to JSON object if it is a string
-      if (typeof body === 'string' || body instanceof String) {
-        parsedBody = JSON.parse(parsedBody);
-      }
+export const fetchUserByEmail = async (email: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PrelaunchUser | PublicUser | undefined> => {
 
-      resolve(parsedBody);
+  const userCollectionRef = await userCollection
+  .where(PublicUserKeys.EMAIL, '==', email)
+  .get()
+  .catch(err => {functions.logger.log(`Failed to fetch prelaunchUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
 
-    });
+  // Return empty if user doesn't exist
+  if (userCollectionRef.empty) {
+    functions.logger.log(`prelaunchUser with email '${email}' doesn't exist in database`);
+    return undefined;
+  }
 
-  });
+  const existingUser = userCollectionRef.docs[0].data() as PrelaunchUser | PublicUser;
 
-  return responseBody;
+  return existingUser;
 }
