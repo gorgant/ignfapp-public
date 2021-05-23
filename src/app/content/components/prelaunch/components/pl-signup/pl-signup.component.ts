@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
-import { EmailSenderAddresses, SendgridContactListIds } from 'shared-models/email/email-vars.model';
+import { EmailSenderAddresses, SendgridContactListId } from 'shared-models/email/email-vars.model';
 import { SubscribeFormFieldValues, SubscribeFormFieldKeys, SubscribeFormButtonValues } from 'shared-models/forms/subscribe-form.model';
 import { SubscribeFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { UserService } from 'src/app/core/services/user.service';
@@ -54,7 +54,7 @@ export class PlSignupComponent implements OnInit {
       firstName: this.firstName.value,
       id: this.afs.createId(),
       emailSendgridContactListArray: [
-        SendgridContactListIds.IGNFAPP_PRELAUNCH_WAIT_LIST,
+        SendgridContactListId.IGNFAPP_PRELAUNCH_WAIT_LIST,
       ],
       isPrelaunchUser: true
     }

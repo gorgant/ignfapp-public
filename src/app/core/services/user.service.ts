@@ -4,6 +4,7 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
+import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-removal-data';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { PrelaunchUser } from 'shared-models/user/prelaunch-user.model';
@@ -77,6 +78,25 @@ export class UserService {
           }
           console.log('PrelaunchUser registered', registeredUser)
           return registeredUser;
+        }),
+        catchError(error => {
+          console.log('Error registering prelaunchUser', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
+          return throwError(error);
+        })
+      );
+  }
+
+  removeUserFromSgContactList(sgContactListRemovalData: SgContactListRemovalData): Observable<string> {
+    const removeUserFromListHttpCall: (sgContactListRemovalData: SgContactListRemovalData) => 
+      Observable<string> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_REMOVE_USER_FROM_SG_CONTACT_LIST);
+
+    return removeUserFromListHttpCall(sgContactListRemovalData)
+      .pipe(
+        take(1),
+        map( requestPublished => {
+          console.log('User removed from SG contact lists', sgContactListRemovalData.listsToUpdate)
+          return requestPublished;
         }),
         catchError(error => {
           console.log('Error registering prelaunchUser', error);

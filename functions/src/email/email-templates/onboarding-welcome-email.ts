@@ -8,6 +8,7 @@ import * as functions from 'firebase-functions';
 import { EmailUserData } from "../../../../shared-models/email/email-user-data.model";
 import { PublicCollectionPaths } from "../../../../shared-models/routes-and-paths/fb-collection-paths.model";
 import { publicFirestore } from "../../config/db-config";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 const db = publicFirestore;
 
@@ -31,40 +32,42 @@ export const sendOnboardingWelcomeEmail = async (userData: EmailUserData) => {
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
   const fromName: string = EmailSenderNames.IGNFAPP_DEFAULT;
   const toFirstName: string = userData.firstName as string;
-  let toEmail: string;
-  let bccEmail: string;
+  let recipientData: EmailData | EmailData[];
+  let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_ONBOARDING_WELCOME_EMAIL;
   const unsubscribeGroupId: number = SendgridEmailUnsubscribeGroupIds.IGNFAPP_ONBOARDING_GUIDE;
   let categories: string[];
 
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
-      toEmail = userData.email;
+      recipientData = [
+        {
+          email: userData.email,
+          name: userData.firstName
+        }
+      ];
       categories = [EmailCategories.ONBOARDING_GUIDE];
-      bccEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.ONBOARDING_GUIDE, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
     default:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.ONBOARDING_GUIDE, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
   }
 
   const msg: MailDataRequired = {
-    to: {
-      email: toEmail,
-      name: toFirstName
-    },
+    to: recipientData,
     from: {
       email: fromEmail,
       name: fromName,
     },
-    bcc: bccEmail,
+    bcc: bccData,
     templateId,
     dynamicTemplateData: {
       firstName: toFirstName, // Will populate first name greeting if name exists

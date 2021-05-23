@@ -1,4 +1,4 @@
-import { sendgridContactsApiUrl, sendgridSecret } from '../config';
+import { sendgridMarketingContactsApiUrl, sendgridSecret } from '../config';
 import * as functions from 'firebase-functions';
 import { SendgridGetContactCountResponse } from '../../../../shared-models/email/sendgrid-job-response.model';
 import { submitHttpRequest } from '../../config/global-helpers';
@@ -9,7 +9,7 @@ import * as Axios from 'axios';
  */
 export const getSgContactCount = async (): Promise<number> => {
 
-  const requestUrl = `${sendgridContactsApiUrl}/count`;
+  const requestUrl = `${sendgridMarketingContactsApiUrl}/count`;
   const requestOptions: Axios.AxiosRequestConfig = {
     method: 'GET',
     url: requestUrl,

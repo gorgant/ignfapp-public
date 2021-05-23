@@ -13,18 +13,18 @@ export class EmailService {
     private fns: AngularFireFunctions,
   ) { }
 
-  sendSendgridTest(emailContent: string): Observable<string> {
-    const sendgridHttpCall = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_SEND_SENDGRID_TEST);
+  // sendSendgridTest(emailContent: string): Observable<string> {
+  //   const sendgridHttpCall = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_SEND_SENDGRID_TEST);
 
-    return sendgridHttpCall(emailContent)
-      .pipe(
-        take(1),
-        tap(response => console.log('Sendgrid test sent', response)),
-        catchError(error => {
-          console.log('Error with sendgrid test', error);
-          return throwError(error);
-        })
-      );
-  }
+  //   return sendgridHttpCall(emailContent)
+  //     .pipe(
+  //       take(1),
+  //       tap(response => console.log('Sendgrid test sent', response)),
+  //       catchError(error => {
+  //         console.log('Error with sendgrid test', error);
+  //         return throwError(error);
+  //       })
+  //     );
+  // }
 
 }

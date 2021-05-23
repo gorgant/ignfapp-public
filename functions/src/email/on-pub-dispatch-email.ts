@@ -7,6 +7,7 @@ import { sendEmailVerificationEmail } from './email-templates/email-verification
 import { sendContactFormConfirmationEmail } from './email-templates/contact-form-email';
 import { sendWebpageDataLoadFailureEmail } from './email-templates/webpage-data-load-failure-email';
 import { sendPrelaunchWelcomeEmail } from './email-templates/prelaunch-welcome-email';
+import { sendNewUserDetectedEmail } from './email-templates/new-user-detected-email';
 
 const executeActions = async (emailData: EmailPubMessage) => {
 
@@ -32,6 +33,7 @@ const executeActions = async (emailData: EmailPubMessage) => {
         functions.logger.log(errMsg);
         throw new functions.https.HttpsError('internal', errMsg);
       }
+      await sendNewUserDetectedEmail(emailData.userData);
       return sendPrelaunchWelcomeEmail(emailData.userData);
     case EmailCategories.ONBOARDING_GUIDE:
       if (!emailData.userData) {
@@ -39,6 +41,7 @@ const executeActions = async (emailData: EmailPubMessage) => {
         functions.logger.log(errMsg);
         throw new functions.https.HttpsError('internal', errMsg);
       }
+      await sendNewUserDetectedEmail(emailData.userData);
       return sendOnboardingWelcomeEmail(emailData.userData);
     case EmailCategories.CONTACT_FORM_CONFIRMATION:
       if (!emailData.contactForm) {

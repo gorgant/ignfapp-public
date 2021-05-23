@@ -1,15 +1,21 @@
 import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
-import { sendgridContactsApiUrl, sendgridSecret } from "../config";
+import { sendgridMarketingContactsApiUrl, sendgridSecret } from "../config";
 import { SendgridSearchContactsResponse } from '../../../../shared-models/email/sendgrid-job-response.model';
 import { submitHttpRequest } from '../../config/global-helpers';
+import { EmailUserData } from '../../../../shared-models/email/email-user-data.model';
 
 // Queries sendgrid for a specific email address and returns the user ID
-export const getSgContactIdByEmail = async (email: string): Promise<string | null> => {
+export const getSgContactId = async (userData: EmailUserData): Promise<string | undefined> => {
 
-  const requestUrl = `${sendgridContactsApiUrl}/search`;
+  // First check if contact ID data already exists
+  if (userData.emailSendgridContactId) {
+    return userData.emailSendgridContactId;
+  }
+
+  const requestUrl = `${sendgridMarketingContactsApiUrl}/search`;
   const requestBody = { 
-    query: `email LIKE '${email}'` // accepts most SQL queries such as AND CONTAINS...
+    query: `email LIKE '${userData.email}'` // accepts most SQL queries such as AND CONTAINS...
   };
   const requestOptions: Axios.AxiosRequestConfig = {
     method: 'POST',
@@ -28,7 +34,7 @@ export const getSgContactIdByEmail = async (email: string): Promise<string | nul
   
   if (searchResponse.contact_count < 1) {
     functions.logger.log('No contacts found, aborting getSendgridContactId with null value');
-    return null;
+    return undefined;
   }
 
   const subId = searchResponse.result[0].id;

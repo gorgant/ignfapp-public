@@ -11,6 +11,7 @@ export enum EmailCategories {
   SUBSCRIBER_COUNT_MISMATCH = 'subscriber-count-mismatch',
   TEST_SEND = 'test-send',
   WEBPAGE_DATA_LOAD_FAILURE = 'webpage-data-load-failure',
+  AUTOMATIC_USER_SIGNUP_NOTICE = 'automatic-user-signup-notice'
 }
 
 // Ids sourced from Sendgrid template system
@@ -21,8 +22,8 @@ export enum SendgridEmailTemplateIds {
   IGNFAPP_CONTACT_FORM_CONFIRMATION = 'tbd',
 }
 
-export enum SendgridContactListIds {
-  IGNFAPP_ANNOUNCEMENTS_NEWSLETTER = '0f27347d-7c8e-4ca1-a587-3ca45da3f0b8',
+export enum SendgridContactListId {
+  IGNFAPP_FEATURES_AND_NEWS = '0f27347d-7c8e-4ca1-a587-3ca45da3f0b8',
   IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER = '0c035799-fbd6-44e8-9a6b-fc4ffa621a89',
   IGNFAPP_ONBOARDING_GUIDE = 'f4cf7b97-ac80-4109-8017-a64042da4b81',
   IGNFAPP_PRELAUNCH_WAIT_LIST = 'd9d4bbee-cc84-4989-b387-a1f3ee6ae241',
@@ -50,19 +51,19 @@ export interface UnsubIdContactListPairingList {
 export const SendgridUnsubGroupIdContactListPairings: UnsubIdContactListPairingList = {
   [SendgridEmailUnsubscribeGroupIds.IGNFAPP_ANNOUNCEMENTS_NEWSLETTER]: {
     unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_ANNOUNCEMENTS_NEWSLETTER,
-    contactListId: SendgridContactListIds.IGNFAPP_ANNOUNCEMENTS_NEWSLETTER
+    contactListId: SendgridContactListId.IGNFAPP_FEATURES_AND_NEWS
   },
   [SendgridEmailUnsubscribeGroupIds.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER]: {
     unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER,
-    contactListId: SendgridContactListIds.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER
+    contactListId: SendgridContactListId.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER
   },
   [SendgridEmailUnsubscribeGroupIds.IGNFAPP_ONBOARDING_GUIDE]: {
     unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_ONBOARDING_GUIDE,
-    contactListId: SendgridContactListIds.IGNFAPP_ONBOARDING_GUIDE
+    contactListId: SendgridContactListId.IGNFAPP_ONBOARDING_GUIDE
   },
   [SendgridEmailUnsubscribeGroupIds.IGNFAPP_PRELAUNCH_WAIT_LIST]: {
     unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_PRELAUNCH_WAIT_LIST,
-    contactListId: SendgridContactListIds.IGNFAPP_PRELAUNCH_WAIT_LIST
+    contactListId: SendgridContactListId.IGNFAPP_PRELAUNCH_WAIT_LIST
   },
 }
 
@@ -81,8 +82,8 @@ export const EmailSenderNames = {
 }
 
 export const AdminEmailAddresses = {
-  IGNFAPP_GREG_ONLY: `greg@${WebDomains.IGNFAPP_EMAIL}`,
-  IGNFAPP_GREG_AND_MD: [`greg@${WebDomains.IGNFAPP_EMAIL}, md@${WebDomains.IGNFAPP_EMAIL}`],
+  IGNFAPP_GREG: `greg@${WebDomains.IGNFAPP_EMAIL}`,
+  IGNFAPP_MD: `md@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_DEFAULT: `hello@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_ADMIN: `greg@${WebDomains.IGNFAPP_EMAIL}`
 };

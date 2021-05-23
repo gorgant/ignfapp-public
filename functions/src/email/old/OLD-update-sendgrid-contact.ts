@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
-import { sendgridContactsApiUrl, sendgridSecret } from '../config';
+import { sendgridMarketingContactsApiUrl, sendgridSecret } from '../config';
 import { currentEnvironmentType } from '../../config/environments-config';
 import { SendgridStandardJobResponse, SendgridImportStatusResponse, SendgridSearchContactsResponse } from '../../../../shared-models/email/sendgrid-job-response.model';
 import { now } from 'moment';
@@ -21,7 +21,7 @@ const getImportStatus = async (jobId: string): Promise<SendgridImportStatusRespo
     return '%' + c.charCodeAt(0).toString(16);
   });
 
-  const requestUrl = `${sendgridContactsApiUrl}/imports/${safeUrl}`;
+  const requestUrl = `${sendgridMarketingContactsApiUrl}/imports/${safeUrl}`;
 
   const requestOptions: Axios.AxiosRequestConfig = {
     method: 'GET',
@@ -88,7 +88,7 @@ const checkUpdateComplete = async (jobId: string): Promise<boolean> => {
 // Queries sendgrid for a specific email address and returns the user ID
 const getSendgridContactId = async (email: string): Promise<string | null> => {
 
-  const requestUrl = `${sendgridContactsApiUrl}/search`;
+  const requestUrl = `${sendgridMarketingContactsApiUrl}/search`;
   const requestBody = { 
     query: `email LIKE '${email}'` // accepts most SQL queries such as AND CONTAINS...
   };
@@ -139,7 +139,7 @@ const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridS
     ids: contactId 
   };
 
-  const requestUrl = sendgridContactsApiUrl;
+  const requestUrl = sendgridMarketingContactsApiUrl;
 
   const requestOptions: Axios.AxiosRequestConfig = {
     method: 'DELETE',
@@ -163,7 +163,7 @@ const createOrUpdateSendgridContact = async (userData: EmailUserData): Promise <
   const firstName = userData.firstName;
   const lastName = userData.lastName;
   const email = userData.id;
-  const requestUrl = sendgridContactsApiUrl;
+  const requestUrl = sendgridMarketingContactsApiUrl;
 
   const listIds = userData.emailSendgridContactListArray
 
@@ -293,7 +293,6 @@ const executeActions = async (newUserData: EmailUserData | null, oldUserData: Em
 
   if (optInRequest || optOutRequest || contactListUpdate || nameChange) {
     functions.logger.log('Updating Sendgrid user profile');
-    // TODO: Confirm if lists can bulk add/remove using the array in EmailUserData, otherwise use the specific delete list function that is currently commented out
     await createOrUpdateSendgridContact(newUserData as EmailUserData);
   }
 

@@ -2,21 +2,14 @@ import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-job-response.model';
-import { getSgContactIdByEmail } from './helpers/get-sg-contact-id';
-import { sendgridContactsApiUrl, sendgridSecret } from './config';
+import { getSgContactId } from './helpers/get-sg-contact-id';
+import { sendgridMarketingContactsApiUrl, sendgridSecret } from './config';
 import { submitHttpRequest } from '../config/global-helpers';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 
 const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridStandardJobResponse | null> => {
 
-  let contactId: string;
-
-  if (userData.emailSendgridContactId) {
-    contactId = userData.emailSendgridContactId;
-  } else {
-    contactId = await getSgContactIdByEmail(userData.email) as string;
-  }
-
+  const contactId = getSgContactId(userData);
 
   if (!contactId) {
     functions.logger.log('No contact id available, aborting deleteSendgridContact with null value');
@@ -27,7 +20,7 @@ const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridS
     ids: contactId 
   };
 
-  const requestUrl = sendgridContactsApiUrl;
+  const requestUrl = sendgridMarketingContactsApiUrl;
 
   const requestOptions: Axios.AxiosRequestConfig = {
     method: 'DELETE',

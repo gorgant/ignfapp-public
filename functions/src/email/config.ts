@@ -31,5 +31,5 @@ export const EmailWebsiteLinks = {
 };
 
 const sendgridBaseApiUrl = 'https://api.sendgrid.com/v3';
-export const sendgridContactsApiUrl = `${sendgridBaseApiUrl}/marketing/contacts`;
-export const sendgridContactDatabaseApiUrl = `${sendgridBaseApiUrl}/contactdb`;
+export const sendgridMarketingContactsApiUrl = `${sendgridBaseApiUrl}/marketing/contacts`;
+export const sendgridMarketingListsApiUrl = `${sendgridBaseApiUrl}/marketing/lists`;

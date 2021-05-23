@@ -5,6 +5,7 @@ import { EnvironmentTypes } from "../../../../shared-models/environments/env-var
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 import { WebpageLoadFailureData } from '../../../../shared-models/diagnostics/webpage-load-failure-data.model';
 import * as functions from 'firebase-functions';
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: WebpageLoadFailureData ) => {
@@ -14,9 +15,7 @@ export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: We
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
   const fromName: string = EmailSenderNames.IGNFAPP_ADMIN;
-  const toFirstName: string = 'Administrator';
-  let toEmail: string;
-  const subject: string = '[Automated Error Service] Webpage Data Load Failure';
+  let recipientData: EmailData | EmailData[];  const subject: string = '[Automated Error Service] Webpage Data Load Failure';
   let categories: string[];
   const emailString: string = `Administrators, An error occurred when attempting to load a webpage. Domain: ${webpageLoadFailureData.domain}. Url Path: ${webpageLoadFailureData.urlPath}. Error Message: ${webpageLoadFailureData.errorMessage}. To fix the issue, consider deleting the webpageCache for that route in the public database and then manually loading the webpage. Good luck! Automated Error Service.`
   const emailHtml: string = `<p>Administrators,</p>\
@@ -33,24 +32,21 @@ export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: We
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
-      toEmail = AdminEmailAddresses.IGNFAPP_GREG_ONLY;
+      recipientData = AdminEmailAddresses.IGNFAPP_GREG;
       categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE];
       break;
     case EnvironmentTypes.SANDBOX:
-      toEmail = AdminEmailAddresses.IGNFAPP_GREG_ONLY;
+      recipientData = AdminEmailAddresses.IGNFAPP_GREG;
       categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
       break;
     default:
-      toEmail = AdminEmailAddresses.IGNFAPP_GREG_ONLY;
+      recipientData = AdminEmailAddresses.IGNFAPP_GREG;
       categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
       break;
   }
 
   const msg: MailDataRequired = {
-    to: {
-      email: toEmail,
-      name: toFirstName
-    },
+    to: recipientData,
     from: {
       email: fromEmail,
       name: fromName,

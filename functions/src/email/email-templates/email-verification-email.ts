@@ -5,6 +5,7 @@ import { EnvironmentTypes } from "../../../../shared-models/environments/env-var
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 import * as functions from 'firebase-functions';
 import { EmailUserData } from "../../../../shared-models/email/email-user-data.model";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
@@ -14,9 +15,8 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
   const fromName: string = EmailSenderNames.IGNFAPP_DEFAULT;
-  const toFirstName: string = userData.firstName as string;
-  let toEmail: string;
-  let bccEmail: string;
+  let recipientData: EmailData | EmailData[];
+  let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_EMAIL_VERIFICATION;
   let categories: string[];
   // Add email, user ID, and prelaunchUser status for verification purposes
@@ -24,35 +24,37 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
-      toEmail = userData.email;
+      recipientData = [
+        {
+          email: userData.email,
+          name: userData.firstName
+        }
+      ];
       categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER];
-      bccEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
     default:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
   }
 
   const msg: MailDataRequired = {
-    to: {
-      email: toEmail,
-      name: toFirstName
-    },
+    to: recipientData,
     from: {
       email: fromEmail,
       name: fromName,
     },
-    bcc: bccEmail,
+    bcc: bccData,
     templateId,
     dynamicTemplateData: {
-      firstName: toFirstName, // Will populate first name greeting if name exists
+      firstName: userData.firstName, // Will populate first name greeting if name exists
       optInConfirmationUrl // Unique to subscriber
     },
     categories

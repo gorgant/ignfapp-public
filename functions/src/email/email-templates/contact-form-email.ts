@@ -5,6 +5,7 @@ import { EnvironmentTypes } from "../../../../shared-models/environments/env-var
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 import * as functions from 'firebase-functions';
 import { ContactForm } from "../../../../shared-models/user/contact-form.model";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendContactFormConfirmationEmail = async (contactForm: ContactForm) => {
@@ -14,44 +15,45 @@ export const sendContactFormConfirmationEmail = async (contactForm: ContactForm)
   const sgMail = getSgMail();
   const fromEmail = EmailSenderAddresses.IGNFAPP_DEFAULT;
   const fromName = EmailSenderNames.IGNFAPP_DEFAULT;
-  const toFirstName = contactForm.userData.firstName;
-  let toEmail: string;
-  let bccEmail: string;
+  let recipientData: EmailData | EmailData[];
+  let bccData: EmailData | EmailData[];
   const templateId = SendgridEmailTemplateIds.IGNFAPP_CONTACT_FORM_CONFIRMATION;
   let categories: string[];
 
   // Prevents test emails from going to the actual address used
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
-      toEmail = contactForm.userData.email;
+      recipientData = [
+        {
+          email: contactForm.userData.email,
+          name: contactForm.userData.firstName
+        }
+      ];
       categories = [EmailCategories.CONTACT_FORM_CONFIRMATION];
-      bccEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      bccData = AdminEmailAddresses.IGNFAPP_ADMIN;
       break;
     case EnvironmentTypes.SANDBOX:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.CONTACT_FORM_CONFIRMATION, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
     default:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.CONTACT_FORM_CONFIRMATION, EmailCategories.TEST_SEND];
-      bccEmail = '';
+      bccData = '';
       break;
   }
 
   const msg: MailDataRequired = {
-    to: {
-      email: toEmail,
-      name: toFirstName
-    },
+    to: recipientData,
     from: {
       email: fromEmail,
       name: fromName,
     },
-    bcc: bccEmail,
+    bcc: bccData,
     templateId,
     dynamicTemplateData: {
-      firstName: toFirstName, // Will populate first name greeting if name exists
+      firstName: contactForm.userData.firstName, // Will populate first name greeting if name exists
       contactFormMessage: contactForm.message, // Message sent by the user,
       replyEmailAddress: fromEmail
     },

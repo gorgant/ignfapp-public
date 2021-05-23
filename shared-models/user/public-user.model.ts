@@ -1,5 +1,5 @@
 import { EmailSubSource } from "../email/email-sub-source.model";
-import { SendgridContactListIds } from "../email/email-vars.model";
+import { SendgridContactListId } from "../email/email-vars.model";
 import { BillingDetails } from "../billing/billing-details.model";
 import { OrderHistory } from "../orders/order-history.model";
 import { UnsubscribeRecordList, UnsubscribeRecord } from "../email/unsubscribe-record.model";
@@ -40,7 +40,7 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]?: number;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]?: number;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]?: string;
-  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]?: SendgridContactListIds[];
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]?: SendgridContactListId[];
   [PublicUserKeys.EMAIL_VERIFIED]?: boolean;
   gender?: 'male' | 'female' | 'nonbinary'
   isNewUser?: boolean;

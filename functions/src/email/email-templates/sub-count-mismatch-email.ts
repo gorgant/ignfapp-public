@@ -5,6 +5,7 @@ import { EnvironmentTypes } from "../../../../shared-models/environments/env-var
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 import * as functions from 'firebase-functions';
 import { SubCountMatchData } from "../../../../shared-models/email/sub-count-match-data";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchData ) => {
@@ -14,8 +15,7 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
   const fromName: string = EmailSenderNames.IGNFAPP_ADMIN;
-  const toFirstName: string = 'Administrator';
-  let toEmail: string;
+  let recipientData: EmailData | EmailData[];
   const subject: string = '[Automated Error Service] Subscriber Count Mismatch';
   let categories: string[];
   const emailString: string = `Administrators, There is a mismatch between contacts on Sendgrid and subscribed users in the app database. Sendgrid Count: ${countMatchData.sendGridSubCount}. Database Count: ${countMatchData.databaseSubCount}. Database OptOut Count: ${countMatchData.databaseUnsubCount}. To fix the issue, consider exporting both databases and reconciling the difference.`
@@ -33,24 +33,21 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH];
       break;
     case EnvironmentTypes.SANDBOX:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
       break;
     default:
-      toEmail = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
       categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
       break;
   }
 
   const msg: MailDataRequired = {
-    to: {
-      email: toEmail,
-      name: toFirstName
-    },
+    to: recipientData,
     from: {
       email: fromEmail,
       name: fromName,
