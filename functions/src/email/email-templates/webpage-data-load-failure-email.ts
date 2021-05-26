@@ -33,15 +33,15 @@ export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: We
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE];
+      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
       break;
   }
 

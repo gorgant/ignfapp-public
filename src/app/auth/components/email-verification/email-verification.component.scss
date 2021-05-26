@@ -15,16 +15,6 @@
   color: $primary;
 }
 
-.success-message {
-  color: $primary;
-  text-align: center;
-}
-
-.check-your-inbox {
-  font-weight: $font-weight-light;
-  text-align: center;
-  line-height: 1.2em;
-}
 
 .failure-icon {
   font-size: 96px;
@@ -33,9 +23,23 @@
   color: $warn;
 }
 
+.success-message {
+  color: $primary;
+}
+
+.processing-message {
+  color: $primary;
+}
+
 .failure-message {
   color: $warn;
+}
+
+.failure-message, .success-message, .processing-message {
   text-align: center;
+  font-weight: $font-weight-light;
+  font-size: 1.2em;
+  line-height: 1.2em;
 }
 
 .processing-spinner {
@@ -45,14 +49,10 @@
   color: $primary;
 }
 
-.processing-message {
-  color: $primary;
+.check-your-inbox {
+  font-weight: $font-weight-light;
   text-align: center;
-}
-
-.subscribe-widget {
-  background-color: $primary;
-  padding: 16px;
+  line-height: 1.2em;
 }
 
 @media screen and (max-width: $mobile-cutoff-width) {

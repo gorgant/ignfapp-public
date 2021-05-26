@@ -22,6 +22,7 @@ export enum PublicUserKeys {
 }
 
 export interface PublicUser {
+  createdTimestamp: number;
   [PublicUserKeys.EMAIL]: string;
   [PublicUserKeys.ID]: string;
   lastAuthenticated: number;
@@ -29,12 +30,10 @@ export interface PublicUser {
   [PublicUserKeys.FIRST_NAME]?: string;
   avatarUrl?: string;
   billingDetails?: BillingDetails | Partial<BillingDetails>;
-  createdTimestamp?: number;
   displayName?: string;
   dob?: number;
   [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]?: UnsubscribeRecordList;
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]?: UnsubscribeRecord;
-  [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]?: boolean;
   [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]?: EmailSubSource,
   [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]?: boolean;
   [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]?: number;
@@ -42,9 +41,9 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]?: string;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]?: SendgridContactListId[];
   [PublicUserKeys.EMAIL_VERIFIED]?: boolean;
+  [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]?: boolean;
   gender?: 'male' | 'female' | 'nonbinary'
-  isNewUser?: boolean;
-  [PublicUserKeys.LAST_NAME]?: boolean;
+  [PublicUserKeys.LAST_NAME]?: string;
   orderHistory?: OrderHistory;
   stripeCustomerId?: string;
 }

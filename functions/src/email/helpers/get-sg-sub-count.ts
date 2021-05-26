@@ -1,6 +1,6 @@
 import { sendgridMarketingContactsApiUrl, sendgridSecret } from '../config';
 import * as functions from 'firebase-functions';
-import { SendgridGetContactCountResponse } from '../../../../shared-models/email/sendgrid-job-response.model';
+import { SendgridGetContactCountResponse } from '../../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../../config/global-helpers';
 import * as Axios from 'axios';
 

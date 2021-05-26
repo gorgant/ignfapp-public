@@ -1,45 +1,49 @@
-<form 
-    class="subscribe-form" 
-    [formGroup]="subscribeForm" 
-    (ngSubmit)="onSubmit()" 
-    fxLayout="column" 
-    fxLayoutAlign="center center"
-    fxLayout.gt-sm="row"
-    fxLayoutAlign.gt-sm="start center"
-    fxLayoutGap="16px"
-    [fxHide]="registrationProcessing || userRegistered"
-    >
-  <mat-form-field color="accent">
-    <input color="accent" class="first-name-input" matInput formControlName="firstName">
-    <mat-placeholder class="input-placeholder">{{ firstNameFieldValue }}</mat-placeholder>
-    <mat-error *ngFor="let validation of formValidationMessages.firstName">
-      <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
-    </mat-error>
-  </mat-form-field>
-  <mat-form-field color="accent">
-    <input color="accent" class="email-input" matInput formControlName="email" type="email">
-    <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
-    <mat-error *ngFor="let validation of formValidationMessages.email">
-      <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
-    </mat-error>
-  </mat-form-field>
-  <!-- <mat-progress-spinner *ngIf="isSubscribingUser$ | async" diameter=40 color="accent" mode="indeterminate"></mat-progress-spinner> -->
-  <button 
-    [disabled]="(email.invalid && (email.dirty || email.touched)) || userRegistered"
-    class="submit-button" 
-    type="submit" 
-    mat-raised-button 
-    color="primary">
-      {{ submitButtonValue }}
-  </button>
-</form>
-<div *ngIf="registrationProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <mat-spinner class="processing-spinner"></mat-spinner>
-  <h2 class="processing-message">
-    Processing your submission, please wait...
-  </h2>
-</div>
-<div class="verify-email" *ngIf="userRegistered" fxLayout="column" fxLayoutGap="32px">
-  <p>Now check your inbox to <b class="verify-text">verify your email</b>.</p>
-  <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <b>{{ trustedEmailSender }}</b> to your trusted contacts.</p>
+<div class="component-container">
+  <form 
+      class="subscribe-form" 
+      [formGroup]="registerUserForm" 
+      (ngSubmit)="onSubmit()" 
+      fxLayout="column" 
+      fxLayoutAlign="center center"
+      fxLayout.gt-sm="row"
+      fxLayoutAlign.gt-sm="start center"
+      fxLayoutGap="16px"
+      [fxHide]="registrationProcessing || userDataSubmitted"
+      >
+    <mat-form-field color="accent">
+      <input color="accent" class="first-name-input" matInput formControlName="firstName">
+      <mat-placeholder class="input-placeholder">{{ firstNameFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.firstName">
+        <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field color="accent">
+      <input color="accent" class="email-input" matInput formControlName="email" type="email">
+      <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.email">
+        <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+    <button 
+      [disabled]="(email.invalid && (email.dirty || email.touched)) || userDataSubmitted"
+      class="submit-button" 
+      type="submit" 
+      mat-raised-button 
+      color="primary">
+        {{ submitButtonValue }}
+    </button>
+  </form>
+  <div *ngIf="registrationProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <mat-spinner class="processing-spinner"></mat-spinner>
+    <h2 class="processing-message">
+      Processing your submission, please wait...
+    </h2>
+  </div>
+  <div class="verify-email" *ngIf="userDataSubmitted && !userAlreadyRegistered" fxLayout="column" fxLayoutGap="32px">
+    <p>Now check your inbox to <span class="verify-text">verify your email</span>.</p>
+    <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <span class="trusted-sender-text">{{ trustedEmailSender }}</span> to your trusted contacts.</p>
+  </div>
+  <div *ngIf="userAlreadyRegistered">
+    <p class="already-registered">You're already registered!</p>
+  </div>
 </div>

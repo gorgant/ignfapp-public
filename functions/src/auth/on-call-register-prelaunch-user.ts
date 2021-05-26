@@ -60,7 +60,7 @@ const executeActions = async (userData: EmailUserData): Promise<PrelaunchUser> =
 
   prelaunchUser = await createOrUpdatePrelaunchUser(userData, prelaunchUser);
 
-  await dispatchEmailVerificationEmail(userData);
+  await dispatchEmailVerificationEmail(prelaunchUser);
 
   return prelaunchUser;
 }

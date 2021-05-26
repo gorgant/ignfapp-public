@@ -57,7 +57,6 @@ export class AuthService {
           lastAuthenticated: now(),
           lastModifiedTimestamp: now(),
           createdTimestamp: now(),
-          isNewUser: this.checkForNewUser(creds)
         };
         console.log('Public user registered', publicUser);
         // TODO: Also update user in publicUsers FB collection (separate action)
@@ -72,7 +71,7 @@ export class AuthService {
     );
   }
 
-  loginWithGoogle(): Observable<PublicUser> {
+  loginWithGoogle(): Observable<Partial<PublicUser>> {
 
     const authResponse = from(this.afAuth.signInWithPopup(
       new firebase.default.auth.GoogleAuthProvider()
@@ -84,15 +83,16 @@ export class AuthService {
         if (!creds.user) {
           throw new Error('No user found with those credentials.');
         }
-        const publicUser: PublicUser = {
+        const publicUser: Partial<PublicUser> = {
           displayName: creds.user?.displayName as string,
           email: creds.user?.email as string,
           avatarUrl: creds.user?.photoURL as string,
           id: creds.user?.uid,
-          isNewUser: this.checkForNewUser(creds),
           lastAuthenticated: now(),
           lastModifiedTimestamp: now()
         };
+
+        // Only set created timestamp if this is a new user
         if (this.checkForNewUser(creds)) {
           publicUser.createdTimestamp = now();
         }

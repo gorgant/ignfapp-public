@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
-import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-job-response.model';
+import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { getSgContactId } from './helpers/get-sg-contact-id';
 import { sendgridMarketingContactsApiUrl, sendgridSecret } from './config';
 import { submitHttpRequest } from '../config/global-helpers';

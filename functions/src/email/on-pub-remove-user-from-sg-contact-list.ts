@@ -6,7 +6,7 @@ import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-fun
 import { SgContactListRemovalData } from '../../../shared-models/email/sg-contact-list-removal-data';
 import { SendgridContactListId } from '../../../shared-models/email/email-vars.model';
 import { sendgridMarketingListsApiUrl, sendgridSecret } from './config';
-import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-job-response.model';
+import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../config/global-helpers';
 import { getSgContactId } from './helpers/get-sg-contact-id';
 import { PublicUser } from '../../../shared-models/user/public-user.model';

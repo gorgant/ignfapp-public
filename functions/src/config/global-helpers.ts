@@ -142,6 +142,7 @@ export const fetchUserByEmail = async (email: string, userCollection: FirebaseFi
   }
 
   const existingUser = userCollectionRef.docs[0].data() as PrelaunchUser | PublicUser;
+  functions.logger.log(`Found user with this data`, existingUser);
 
   return existingUser;
 }

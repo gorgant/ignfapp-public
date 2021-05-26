@@ -18,12 +18,13 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
   let recipientData: EmailData | EmailData[];
   const subject: string = 'We Got a New User!';
   let categories: string[];
-  const emailString: string = `Hey Team, Guess what? A new user just signed up! First Name: ${newUserData.firstName}. Email: ${newUserData.email}. Keep up the good work! Automated Notification Service`
+  const emailString: string = `Hey Team, Guess what? A new user just signed up! First Name: ${newUserData.firstName}. Email: ${newUserData.email}. Uid: ${newUserData.id}. Keep up the good work! Automated Notification Service`
   const emailHtml: string = `<p>Hey Team,</p>\
     <p>Guess what? A new user just signed up!</p>\
     <ul>\
       <li>Name: ${newUserData.firstName}</li>\
       <li>Email: ${newUserData.email}</li>\
+      <li>Uid: ${newUserData.id}</li>\
     </ul>\
     <p>Keep up the good work!</p>\
     <p>Automated Notification Service</p>\
@@ -41,7 +42,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'MD'
         }
       ];
-      categories = [EmailCategories.AUTOMATIC_USER_SIGNUP_NOTICE];
+      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = [
@@ -50,7 +51,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'Greg'
         }
       ]
-      categories = [EmailCategories.AUTOMATIC_USER_SIGNUP_NOTICE, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP, EmailCategories.TEST_SEND];
       break;
     default:
       recipientData = [
@@ -59,7 +60,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'Greg'
         }
       ]
-      categories = [EmailCategories.AUTOMATIC_USER_SIGNUP_NOTICE, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP, EmailCategories.TEST_SEND];
       break;
   }
 

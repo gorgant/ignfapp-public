@@ -16,7 +16,8 @@ import { dispatchEmail } from '../email/helpers/dispatch-email';
 // Trigger email send
 const dispatchWelcomeEmail = async(userData: EmailUserData, emailVerificationData: EmailVerificationData) => {
   const emailCategory = emailVerificationData.isPrelaunchUser ? EmailCategories.PRELAUNCH_WELCOME : EmailCategories.ONBOARDING_GUIDE;
-  await dispatchEmail(userData, emailCategory);
+  await dispatchEmail(userData, emailCategory); // Dispatch the welcome email to the user
+  await dispatchEmail(userData, EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP); // Alert the team that a user has signed up!
 }
 
 const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerificationData): Promise<boolean> => {

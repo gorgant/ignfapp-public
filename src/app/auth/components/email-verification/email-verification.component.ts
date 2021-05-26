@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map, take } from 'rxjs/operators';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
 import { AuthService } from 'src/app/core/services/auth.service';
@@ -56,20 +56,23 @@ export class EmailVerificationComponent implements OnInit {
           isPrelaunchUser: false
         };
       }
-
       
-
+      // TODO: Remove service call above, instead dispatch store action and listen for result
       console.log('marking subscriber confirmed with this id data', emailVerificationData);
       this.emailVerified$ = this.authService.verifyEmail(emailVerificationData)
         .pipe(
           take(1),
           map(emailVerificationOutcome => {
-            this.verificationProcessing = false
+            this.verificationProcessing = false;
             return emailVerificationOutcome
+          }),
+          catchError(err => {
+            console.log('Error detected in verification process', err);
+            this.verificationProcessing = false;
+            return of(false);
           })
         )
-
-      // TODO: Remove service call above, instead dispatch store action and listen for result
+      
       this.reactToEmailVerificationOutcome();
     }
   }

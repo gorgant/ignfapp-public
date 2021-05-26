@@ -1,10 +1,10 @@
-import { SubscribeFormFieldKeys } from "./subscribe-form.model";
+import { UserRegistrationFormFieldKeys } from "./subscribe-form.model";
 
 export const SubscribeFormValidationMessages = {
-  [SubscribeFormFieldKeys.FIRST_NAME]: [
+  [UserRegistrationFormFieldKeys.FIRST_NAME]: [
     { type: 'required', message: 'First name is required.'},
   ],
-  [SubscribeFormFieldKeys.EMAIL]: [
+  [UserRegistrationFormFieldKeys.EMAIL]: [
     { type: 'required', message: 'Email is required.'},
     { type: 'email', message: 'Not a valid email.'},
   ],

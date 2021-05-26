@@ -1,13 +1,13 @@
-export enum SubscribeFormFieldValues {
+export enum UserRegistrationFormFieldValues {
   FIRST_NAME = 'First Name',
   EMAIL = 'Email'
 }
 
-export enum SubscribeFormFieldKeys {
+export enum UserRegistrationFormFieldKeys {
   FIRST_NAME = 'firstName',
   EMAIL = 'email'
 }
 
-export enum SubscribeFormButtonValues {
+export enum RegisterPrelaunchUserButtonValues {
   REQUEST_INVITE = 'Request Invite'
 }

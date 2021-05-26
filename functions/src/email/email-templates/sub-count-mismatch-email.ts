@@ -34,15 +34,15 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH];
+      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
+      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
       break;
   }
 

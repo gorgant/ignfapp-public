@@ -7,6 +7,11 @@
 
 .verify-text {
   color: $primary;
+  font-weight: $font-weight-medium;
+}
+
+.trusted-sender-text {
+  font-weight: $font-weight-medium
 }
 
 .processing-spinner {
@@ -21,7 +26,17 @@
   text-align: center;
 }
 
+// .already-registered {
+
+// }
+
 p {
   line-height: 1.2em;
   font-weight: $font-weight-light;
+}
+
+@media screen and (max-width: $mobile-cutoff-width) {
+  .component-container {
+    padding: 16px;
+  }
 }

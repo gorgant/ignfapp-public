@@ -3,7 +3,7 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { EmailSenderAddresses, SendgridContactListId } from 'shared-models/email/email-vars.model';
-import { SubscribeFormFieldValues, SubscribeFormFieldKeys, SubscribeFormButtonValues } from 'shared-models/forms/subscribe-form.model';
+import { UserRegistrationFormFieldValues, UserRegistrationFormFieldKeys, RegisterPrelaunchUserButtonValues } from 'shared-models/forms/subscribe-form.model';
 import { SubscribeFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { UserService } from 'src/app/core/services/user.service';
 
@@ -14,15 +14,16 @@ import { UserService } from 'src/app/core/services/user.service';
 })
 export class PlSignupComponent implements OnInit {
 
-  subscribeForm!: FormGroup;
-  formFieldKeys = SubscribeFormFieldKeys;
+  registerUserForm!: FormGroup;
+  formFieldKeys = UserRegistrationFormFieldKeys;
   formValidationMessages = SubscribeFormValidationMessages;
-  firstNameFieldValue = SubscribeFormFieldValues.FIRST_NAME;
-  emailFieldValue = SubscribeFormFieldValues.EMAIL;
-  submitButtonValue = SubscribeFormButtonValues.REQUEST_INVITE;
+  firstNameFieldValue = UserRegistrationFormFieldValues.FIRST_NAME;
+  emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
+  submitButtonValue = RegisterPrelaunchUserButtonValues.REQUEST_INVITE;
 
-  userRegistered: boolean = false;
+  userDataSubmitted: boolean = false;
   registrationProcessing: boolean = false;
+  userAlreadyRegistered: boolean = false;
 
   trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
@@ -37,9 +38,9 @@ export class PlSignupComponent implements OnInit {
   }
 
   initForm(): void {
-    this.subscribeForm = this.fb.group({
-      [SubscribeFormFieldKeys.FIRST_NAME]: ['', [Validators.required]],
-      [SubscribeFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]]
+    this.registerUserForm = this.fb.group({
+      [UserRegistrationFormFieldKeys.FIRST_NAME]: ['', [Validators.required]],
+      [UserRegistrationFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]]
     });
   }
 
@@ -47,7 +48,7 @@ export class PlSignupComponent implements OnInit {
 
     this.registrationProcessing = true;
 
-    console.log('Submitted these values', this.subscribeForm.value);
+    console.log('Submitted these values', this.registerUserForm.value);
 
     const emailUserData: EmailUserData = {
       email: this.email.value,
@@ -62,8 +63,11 @@ export class PlSignupComponent implements OnInit {
     this.userService.registerPrelaunchUser(emailUserData)
       .subscribe(registeredUser => {
         console.log('Received registered user to component');
-        this.userRegistered = true;
+        this.userDataSubmitted = true;
         this.registrationProcessing = false;
+        if (registeredUser.emailVerified) {
+          this.userAlreadyRegistered = true;
+        }
       }, err => {
         console.log('Received error message to component', err);
         this.registrationProcessing = false;
@@ -74,7 +78,7 @@ export class PlSignupComponent implements OnInit {
 
 
   // These getters are used for easy access in the HTML template
-  get firstName() { return this.subscribeForm.get(SubscribeFormFieldKeys.FIRST_NAME) as AbstractControl; }
-  get email() { return this.subscribeForm.get(SubscribeFormFieldKeys.EMAIL) as AbstractControl; }
+  get firstName() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.FIRST_NAME) as AbstractControl; }
+  get email() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
 
 }

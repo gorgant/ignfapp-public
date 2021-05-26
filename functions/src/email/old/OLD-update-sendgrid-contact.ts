@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
 import { sendgridMarketingContactsApiUrl, sendgridSecret } from '../config';
 import { currentEnvironmentType } from '../../config/environments-config';
-import { SendgridStandardJobResponse, SendgridImportStatusResponse, SendgridSearchContactsResponse } from '../../../../shared-models/email/sendgrid-job-response.model';
+import { SendgridStandardJobResponse, SendgridImportStatusResponse, SendgridSearchContactsResponse } from '../../../../shared-models/email/sendgrid-objects.model';
 import { now } from 'moment';
 import { submitHttpRequest } from '../../config/global-helpers';
 import { publicFirestore } from '../../config/db-config';
@@ -112,7 +112,7 @@ const getSendgridContactId = async (email: string): Promise<string | null> => {
     return null;
   }
 
-  const subId = searchResponse.result[0].id;
+  const subId = searchResponse.result[0].id as string;
   functions.logger.log('Found contact with this id:', subId);
   
   return subId;
