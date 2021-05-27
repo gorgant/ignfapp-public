@@ -1,3 +1,4 @@
+export { onCallCreateOrUpdatePublicUser } from './auth/on-call-create-or-update-public-user';
 export { onCallRegisterPrelaunchUser } from './auth/on-call-register-prelaunch-user';
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
 export { onCallVerifyEmail } from './auth/on-call-verify-email';

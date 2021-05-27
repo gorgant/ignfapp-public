@@ -7,6 +7,7 @@ export enum AdminTopicNames {
 }
 
 export enum PublicFunctionNames {
+  ON_CALL_CREATE_OR_UPDATE_PUBLIC_USER = 'onCallCreateOrUpdatePublicUser',
   ON_CALL_REGISTER_PRELAUNCH_USER = 'onCallRegisterPrelaunchUser',
   ON_CALL_REMOVE_USER_FROM_SG_CONTACT_LIST = 'onCallRemoveUserFromSgContactList',
   ON_CALL_VERIFY_EMAIL = 'onCallVerifyEmail',

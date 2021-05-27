@@ -41,7 +41,7 @@ export class AuthService {
     });
   }
 
-  registerUserWithEmailAndPassword(authData: AuthData): Observable<PublicUser> {
+  registerUserWithEmailAndPassword(authData: AuthData): Observable<Partial<PublicUser>> {
 
     const authResponse = from(this.afAuth.createUserWithEmailAndPassword(
       authData.email,
@@ -51,20 +51,15 @@ export class AuthService {
     return authResponse.pipe(
       take(1),
       map(creds => {
-        const publicUser: PublicUser = {
+        const publicUser: Partial<PublicUser> = {
           id: creds.user!.uid,
           email: authData.email,
-          lastAuthenticated: now(),
-          lastModifiedTimestamp: now(),
-          createdTimestamp: now(),
         };
         console.log('Public user registered', publicUser);
-        // TODO: Also update user in publicUsers FB collection (separate action)
-        // TODO: Send email verification (separate action)
         return publicUser;
       }),
       catchError(error => {
-        this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
+        this.uiService.showSnackBar(`${error}`, 10000);
         console.log('Error registering user', error);
         return throwError(error);
       })
@@ -84,20 +79,11 @@ export class AuthService {
           throw new Error('No user found with those credentials.');
         }
         const publicUser: Partial<PublicUser> = {
+          avatarUrl: creds.user?.photoURL as string,
           displayName: creds.user?.displayName as string,
           email: creds.user?.email as string,
-          avatarUrl: creds.user?.photoURL as string,
           id: creds.user?.uid,
-          lastAuthenticated: now(),
-          lastModifiedTimestamp: now()
         };
-
-        // Only set created timestamp if this is a new user
-        if (this.checkForNewUser(creds)) {
-          publicUser.createdTimestamp = now();
-        }
-        // TODO: Also update user in publicUsers FB collection (separate action)
-        // TODO: Send email verification if new user (separate action)
         return publicUser;
       }),
       catchError(error => {
@@ -121,9 +107,7 @@ export class AuthService {
         // Create a partial user object to log last authenticated
         const partialUser: Partial<PublicUser> = {
           id: creds.user?.uid,
-          lastAuthenticated: now()
         };
-        // TODO: Also update user in publicUsers FB collection (separate action)
         return partialUser;
       }),
       catchError(error => {

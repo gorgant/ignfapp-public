@@ -3,8 +3,8 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { EmailSenderAddresses, SendgridContactListId } from 'shared-models/email/email-vars.model';
-import { UserRegistrationFormFieldValues, UserRegistrationFormFieldKeys, RegisterPrelaunchUserButtonValues } from 'shared-models/forms/subscribe-form.model';
-import { SubscribeFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { UserRegistrationFormFieldValues, UserRegistrationFormFieldKeys, UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
+import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { UserService } from 'src/app/core/services/user.service';
 
 @Component({
@@ -16,10 +16,10 @@ export class PlSignupComponent implements OnInit {
 
   registerUserForm!: FormGroup;
   formFieldKeys = UserRegistrationFormFieldKeys;
-  formValidationMessages = SubscribeFormValidationMessages;
+  formValidationMessages = UserRegistrationFormValidationMessages;
   firstNameFieldValue = UserRegistrationFormFieldValues.FIRST_NAME;
   emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
-  submitButtonValue = RegisterPrelaunchUserButtonValues.REQUEST_INVITE;
+  submitButtonValue = UserRegistrationButtonValues.REQUEST_INVITE;
 
   userDataSubmitted: boolean = false;
   registrationProcessing: boolean = false;

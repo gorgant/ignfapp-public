@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { from, Observable, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-removal-data';
@@ -24,8 +24,6 @@ export class UserService {
     private uiService: UiService
   ) { }
 
-  // TODO: CONSIDER DOING THESE IN THE CLOUD TO SECURE THE DATA SIMILAR TO REGISTER PRELAUNCH USER
-
   fetchUserData(userId: string): Observable<PublicUser> {
     const userDoc = this.getPublicUserDoc(userId);
     return userDoc.valueChanges()
@@ -46,22 +44,24 @@ export class UserService {
       );
   }
 
-  storeUserData(user: PublicUser | Partial<PublicUser>): Observable<string> {
-    const userDoc = this.getPublicUserDoc(user.id!) as AngularFirestoreDocument<PublicUser | Partial<PublicUser>>;
-    // Use set here because may be generating a new user or updating existing user
-    const fbResponse = from(userDoc.set(user, {merge: true}));
-    return fbResponse.pipe(
-      take(1),
-      map(empty => {
-        console.log('User data stored in database');
-        return user.id!;
-      }),
-      catchError(error => {
-        this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
-        console.log('Error storing user data', error);
-        return throwError(error);
-      })
-    );
+
+  createOrUpdatePublicUser(userData: PublicUser | Partial<PublicUser>): Observable<PublicUser> {
+    const createOrUpdateUserHttpCall: (userData: Partial<PublicUser>) => 
+      Observable<PublicUser> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_CREATE_OR_UPDATE_PUBLIC_USER);
+
+    return createOrUpdateUserHttpCall(userData)
+      .pipe(
+        take(1),
+        map( updatedUser => {
+          console.log('Public user created or updated', updatedUser)
+          return updatedUser;
+        }),
+        catchError(error => {
+          console.log('Error updating user', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
+          return throwError(error);
+        })
+      );
   }
 
   registerPrelaunchUser(userData: EmailUserData): Observable<PrelaunchUser> {

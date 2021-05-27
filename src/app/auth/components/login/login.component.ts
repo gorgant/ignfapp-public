@@ -19,34 +19,6 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  // onRemoveUserFromSgContactLists() {
 
-  //   const fakeUserData: EmailUserData = {
-  //     id: 'kib2OZjlaM5HPVl5hdsV',
-  //     email: 'root.gregory@gmail.com',
-  //     isPrelaunchUser: true
-  //   }
-
-  //   const listsToUpdate: SendgridContactListId[] = [
-  //     SendgridContactListId.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER,
-  //     SendgridContactListId.IGNFAPP_ONBOARDING_GUIDE,
-  //     SendgridContactListId.IGNFAPP_FEATURES_AND_NEWS
-  //   ]
-
-  //   const removalData: SgContactListRemovalData = {
-  //     emailUserData: fakeUserData,
-  //     listsToUpdate
-  //   }
-
-  //   console.log('Requesting removal of this data from user and SG', removalData);
-
-  //   this.userService.removeUserFromSgContactList(removalData)
-  //     .pipe(
-  //       take(1)
-  //     )
-  //     .subscribe(response => {
-  //       console.log('Recieved removal response to component', response);
-  //     })
-  // }
 
 }
