@@ -13,5 +13,6 @@ export enum UserRegistrationFormFieldKeys {
 export enum UserRegistrationButtonValues {
   REQUEST_INVITE = 'Request Invite',
   CREATE_ACCOUNT = 'Create Account',
-  LOGIN = 'Login'
+  LOGIN = 'Login',
+  LOGOUT = 'Logout'
 }

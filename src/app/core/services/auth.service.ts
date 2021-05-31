@@ -5,8 +5,7 @@ import { UiService } from 'src/app/core/services/ui.service';
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import { from, Observable, Subject, throwError, combineLatest, of } from 'rxjs';
-import { now } from 'moment';
-import { take, map, catchError, switchMap, tap } from 'rxjs/operators';
+import { take, map, catchError, switchMap } from 'rxjs/operators';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
@@ -19,7 +18,7 @@ import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-
 })
 export class AuthService {
 
-  authStatus = new Subject<string>();
+  private authStatus$ = new Subject<boolean>();
   private ngUnsubscribe$: Subject<void> = new Subject();
 
   constructor(
@@ -28,7 +27,9 @@ export class AuthService {
     private fns: AngularFireFunctions,
     private uiService: UiService,
     private route: ActivatedRoute,
-  ) { }
+  ) { 
+    this.initAuthListener();
+  }
 
   // Listen for user, if exists, initiatle auth success actions, otherwise initiate logout actions
   initAuthListener(): void {
@@ -54,6 +55,7 @@ export class AuthService {
         const publicUser: Partial<PublicUser> = {
           id: creds.user!.uid,
           email: authData.email,
+          firstName: authData.firstName
         };
         console.log('Public user registered', publicUser);
         return publicUser;
@@ -101,6 +103,8 @@ export class AuthService {
       authData.password
     ));
 
+    console.log('Submitting auth request to FB');
+
     return authResponse.pipe(
       take(1),
       map(creds => {
@@ -108,6 +112,7 @@ export class AuthService {
         const partialUser: Partial<PublicUser> = {
           id: creds.user?.uid,
         };
+        console.log('User authorized, returning partial user data', partialUser);
         return partialUser;
       }),
       catchError(error => {
@@ -226,6 +231,10 @@ export class AuthService {
     return res;
   }
 
+  get userAuthStatus$() {
+    return this.authStatus$;
+  }
+
   get unsubTrigger$() {
     return this.ngUnsubscribe$;
   }
@@ -245,13 +254,13 @@ export class AuthService {
   }
 
   private authSuccessActions(user: firebase.default.User): void {
-    this.authStatus.next(user.uid);
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
-    if (returnUrl && returnUrl !== '/') {
-      this.router.navigate([returnUrl]);
-    } else {
-      this.router.navigate([PublicAppRoutes.DASHBOARD]);
-    }
+    this.authStatus$.next(true);
+    // const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+    // if (returnUrl && returnUrl !== '/') {
+    //   this.router.navigate([returnUrl]);
+    // } else {
+    //   this.router.navigate([PublicAppRoutes.DASHBOARD]);
+    // }
   }
 
   private preLogoutActions(): void {
@@ -263,6 +272,6 @@ export class AuthService {
   }
 
   private postLogoutActions(): void {
-    this.authStatus.next(undefined);
+    this.authStatus$.next(undefined);
   }
 }

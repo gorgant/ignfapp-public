@@ -1,5 +1,21 @@
 @import "../../../../../variables";
 
+mat-form-field {
+  width: 100%;
+  max-width: 300px;
+}
+
+.input-icon {
+  vertical-align: bottom;
+  padding-right: 8px;
+}
+
+.submit-button {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 300px;
+}
+
 .verify-email {
   text-align: center;
   font-size: 1.2em;
@@ -25,10 +41,6 @@
   color: $primary;
   text-align: center;
 }
-
-// .already-registered {
-
-// }
 
 p {
   line-height: 1.2em;

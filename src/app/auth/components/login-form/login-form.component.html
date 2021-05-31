@@ -1,1 +1,48 @@
-<p>login-form works!</p>
+<div class="component-container">
+  <form 
+      class="auth-user-form" 
+      [formGroup]="authUserForm" 
+      (ngSubmit)="onSubmit()" 
+      fxLayout="column" 
+      fxLayoutAlign="center center"
+      fxLayoutGap="16px"
+      [fxHide]="loginProcessing || (authStatus$ | async) || (newUser$ | async)"
+      >
+    <mat-form-field color="accent">
+      <input color="accent" class="email-input" matInput formControlName="email" type="email">
+      <mat-icon class="input-icon" matPrefix>email</mat-icon>
+      <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.email">
+        <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field color="accent">
+      <input formControlName="password" matInput type="password">
+      <mat-icon class="input-icon" matPrefix>lock</mat-icon>
+      <mat-placeholder class="input-placeholder">{{ passwordFieldValue }}</mat-placeholder>
+      <mat-error *ngFor="let validation of formValidationMessages.password">
+        <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 6</span> </mat-error>
+      </mat-error>
+    </mat-form-field>
+    <button 
+      [disabled]="(email.invalid && (email.dirty || email.touched)) || loginProcessing"
+      class="submit-button" 
+      type="submit" 
+      mat-raised-button 
+      color="primary">
+        {{ submitButtonValue }}
+    </button>
+  </form>
+  <div *ngIf="loginProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <mat-spinner class="processing-spinner"></mat-spinner>
+    <h2 class="processing-message">
+      Authentication in progress, please wait...
+    </h2>
+  </div>
+  <div class="verify-email" *ngIf="(newUser$ | async) as user" fxLayout="column" fxLayoutAlign="center center">
+    <p>Login successful! Welcome {{user.firstName}}</p>
+  </div>
+  <div fxLayout="column" fxLayoutAlign="center center">
+    <button *ngIf="authStatus$ | async" mat-raised-button color="warn" (click)="onLogout()">{{ logoutButtonValue }}</button>
+  </div>
+</div>

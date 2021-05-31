@@ -5,13 +5,12 @@
       (ngSubmit)="onSubmit()" 
       fxLayout="column" 
       fxLayoutAlign="center center"
-      fxLayout.gt-sm="row"
-      fxLayoutAlign.gt-sm="start center"
       fxLayoutGap="16px"
       [fxHide]="registrationProcessing || userDataSubmitted"
       >
     <mat-form-field color="accent">
       <input color="accent" class="first-name-input" matInput formControlName="firstName">
+      <mat-icon class="input-icon" matPrefix>face</mat-icon>
       <mat-placeholder class="input-placeholder">{{ firstNameFieldValue }}</mat-placeholder>
       <mat-error *ngFor="let validation of formValidationMessages.firstName">
         <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
@@ -19,6 +18,7 @@
     </mat-form-field>
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
+      <mat-icon class="input-icon" matPrefix>email</mat-icon>
       <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
       <mat-error *ngFor="let validation of formValidationMessages.email">
         <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>

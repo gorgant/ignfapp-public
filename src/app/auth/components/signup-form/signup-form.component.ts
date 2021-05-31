@@ -64,33 +64,16 @@ export class SignupFormComponent implements OnInit {
       .pipe(
         take(1),
         switchMap(partialPublicUser => {
-          if (partialPublicUser) {
-            return this.userService.createOrUpdatePublicUser(partialPublicUser)
-              .pipe(
-                take(1),
-                map(publicUser => {
-                  if (publicUser) {
-                    this.registrationProcessing = false;
-                    console.log('No user data returned while registering user in database')
-                    return publicUser;
-                  }
-                    this.registrationProcessing = false;
-                    return undefined;
-                }),
-                catchError(err => {
-                  this.registrationProcessing = false;
-                  console.log('Error detected while creating Firestore user account', err);
-                  return of(undefined);
-                })
-              )
-          }
+          return this.userService.createOrUpdatePublicUser(partialPublicUser);
+        }),
+        map(publicUser => {
           this.registrationProcessing = false;
-          console.log('No auth data returned while authenticating user');
-          return of(undefined);
+          console.log('Public user created and available in component', publicUser);
+          return publicUser;
         }),
         catchError(err => {
           this.registrationProcessing = false;
-          console.log('Error detected while authenticating user', err);
+          console.log('Error detected while creating user', err);
           return of(undefined);
         })
       )
