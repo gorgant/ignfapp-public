@@ -6,7 +6,7 @@
       fxLayout="column" 
       fxLayoutAlign="center center"
       fxLayoutGap="16px"
-      [fxHide]="loginProcessing || (authStatus$ | async) || (newUser$ | async)"
+      [fxHide]="(loginProcessing$ | async) || (authStatus$ | async)"
       >
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
@@ -25,7 +25,7 @@
       </mat-error>
     </mat-form-field>
     <button 
-      [disabled]="(email.invalid && (email.dirty || email.touched)) || loginProcessing"
+      [disabled]="(email.invalid && (email.dirty || email.touched)) || (loginProcessing$ | async)"
       class="submit-button" 
       type="submit" 
       mat-raised-button 
@@ -33,16 +33,10 @@
         {{ submitButtonValue }}
     </button>
   </form>
-  <div *ngIf="loginProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <div *ngIf="loginProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <mat-spinner class="processing-spinner"></mat-spinner>
     <h2 class="processing-message">
       Authentication in progress, please wait...
     </h2>
-  </div>
-  <div class="verify-email" *ngIf="(newUser$ | async) as user" fxLayout="column" fxLayoutAlign="center center">
-    <p>Login successful! Welcome {{user.firstName}}</p>
-  </div>
-  <div fxLayout="column" fxLayoutAlign="center center">
-    <button *ngIf="authStatus$ | async" mat-raised-button color="warn" (click)="onLogout()">{{ logoutButtonValue }}</button>
   </div>
 </div>

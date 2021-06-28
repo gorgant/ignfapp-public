@@ -7,7 +7,7 @@ import 'firebase/auth';
 import { from, Observable, Subject, throwError, combineLatest, of } from 'rxjs';
 import { take, map, catchError, switchMap } from 'rxjs/operators';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthData } from 'shared-models/auth/auth-data.model';
+import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
 import { AngularFireFunctions } from '@angular/fire/functions';
@@ -42,23 +42,22 @@ export class AuthService {
     });
   }
 
-  registerUserWithEmailAndPassword(authData: AuthData): Observable<Partial<PublicUser>> {
+  signupUserWithEmailAndPassword(authFormData: AuthFormData): Observable<AuthResultsData> {
 
     const authResponse = from(this.afAuth.createUserWithEmailAndPassword(
-      authData.email,
-      authData.password
+      authFormData.email,
+      authFormData.password
     ));
 
     return authResponse.pipe(
       take(1),
       map(creds => {
-        const publicUser: Partial<PublicUser> = {
+        const authResultsData: AuthResultsData = {
           id: creds.user!.uid,
-          email: authData.email,
-          firstName: authData.firstName
+          email: authFormData.email,
         };
-        console.log('Public user registered', publicUser);
-        return publicUser;
+        console.log('Public user registered', authResultsData);
+        return authResultsData;
       }),
       catchError(error => {
         this.uiService.showSnackBar(`${error}`, 10000);
@@ -66,7 +65,7 @@ export class AuthService {
         return throwError(error);
       })
     );
-  }
+  };
 
   loginWithGoogle(): Observable<Partial<PublicUser>> {
 
@@ -96,7 +95,7 @@ export class AuthService {
     );
   }
 
-  loginWithEmail(authData: AuthData): Observable<Partial<PublicUser>> {
+  loginWithEmail(authData: AuthFormData): Observable<AuthResultsData> {
 
     const authResponse = from(this.afAuth.signInWithEmailAndPassword(
       authData.email,
@@ -109,14 +108,15 @@ export class AuthService {
       take(1),
       map(creds => {
         // Create a partial user object to log last authenticated
-        const partialUser: Partial<PublicUser> = {
-          id: creds.user?.uid,
+        const authResultsData: AuthResultsData = {
+          email: creds.user?.email as string,
+          id: creds.user?.uid as string,
         };
-        console.log('User authorized, returning partial user data', partialUser);
-        return partialUser;
+        console.log('User authorized, returning partial user data', authResultsData);
+        return authResultsData;
       }),
       catchError(error => {
-        this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
+        this.uiService.showSnackBar(`Hmm, that didn't work. Double check your entry and confirm that CAPSLOCK is off.`, 10000);
         console.log('Error registering user', error);
         return throwError(error);
       })
@@ -268,7 +268,7 @@ export class AuthService {
     this.ngUnsubscribe$.complete(); // Send signal to Firebase subscriptions to unsubscribe
     // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
     this.ngUnsubscribe$ = new Subject<void>();
-    this.router.navigate([PublicAppRoutes.DASHBOARD]);
+    this.router.navigate([PublicAppRoutes.LOGIN]);
   }
 
   private postLogoutActions(): void {

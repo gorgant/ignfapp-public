@@ -1,5 +1,5 @@
 export enum PublicAppRoutes {
-  DASHBOARD = '',
+  DASHBOARD = '/dashboard',
   EMAIL_VERIFICATION = '/email-verification',
   LOGIN = '/login',
   PRELAUNCH = '/prelaunch',

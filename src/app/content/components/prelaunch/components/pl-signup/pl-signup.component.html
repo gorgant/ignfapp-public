@@ -43,7 +43,7 @@
     <p>Now check your inbox to <span class="verify-text">verify your email</span>.</p>
     <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <span class="trusted-sender-text">{{ trustedEmailSender }}</span> to your trusted contacts.</p>
   </div>
-  <div *ngIf="userAlreadyRegistered">
+  <div *ngIf="userAlreadyRegistered" fxLayout="column" fxLayoutAlign="center center">
     <p class="already-registered">You're already registered!</p>
   </div>
 </div>

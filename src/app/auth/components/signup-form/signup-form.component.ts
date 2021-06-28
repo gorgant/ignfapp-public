@@ -1,21 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms';
-import { Observable, of } from 'rxjs';
-import { take, switchMap, map, catchError } from 'rxjs/operators';
-import { AuthData } from 'shared-models/auth/auth-data.model';
+import { Router } from '@angular/router';
+import { select, Store } from '@ngrx/store';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { map, withLatestFrom } from 'rxjs/operators';
+import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues, UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthService } from 'src/app/core/services/auth.service';
-import { UserService } from 'src/app/core/services/user.service';
+import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-signup-form',
   templateUrl: './signup-form.component.html',
   styleUrls: ['./signup-form.component.scss']
 })
-export class SignupFormComponent implements OnInit {
+export class SignupFormComponent implements OnInit, OnDestroy {
 
   registerUserForm!: FormGroup;
   formFieldKeys = UserRegistrationFormFieldKeys;
@@ -26,18 +28,42 @@ export class SignupFormComponent implements OnInit {
   submitButtonValue = UserRegistrationButtonValues.CREATE_ACCOUNT;
   trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
-  registrationProcessing: boolean = false;
-
-  newUser$!: Observable<PublicUser | undefined>;
+  authStatus$!: Observable<boolean>;
+  signupProcessing$!: Observable<boolean>;
+  authResultsData$!: Observable<AuthResultsData>;
+  authSubscription!: Subscription;
+  newUser$!: Observable<PublicUser>;
+  newUserSubscription!: Subscription;
+  userFetched = false;
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
-    private userService: UserService,
+    private store: Store<RootStoreState.AppState>,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
     this.initForm();
+    this.checkAuthStatus();
+  }
+
+  private checkAuthStatus() {
+    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.signupProcessing$ = combineLatest(
+      [
+        this.store.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
+        this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser))
+      ]
+    ).pipe(
+        map(([signingUp, creatingUser]) => {
+          if (signingUp || creatingUser) {
+            return true
+          }
+          return false
+        })
+    );
+    this.authResultsData$ = this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.newUser$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
   initForm(): void {
@@ -50,33 +76,69 @@ export class SignupFormComponent implements OnInit {
 
   onSubmit(): void {
 
-    this.registrationProcessing = true;
-
     console.log('Submitted these values', this.registerUserForm.value);
 
-    const authData: AuthData = {
+    const authFormData: AuthFormData = {
       email: this.email.value,
       firstName: this.firstName.value,
       password: this.password.value
     }
 
-    this.newUser$ = this.authService.registerUserWithEmailAndPassword(authData)
+    this.store.dispatch(AuthStoreActions.emailSignupRequested({authFormData}));
+    this.postAuthActions();
+  }
+
+  // Update user data and navigate to dashboard
+  postAuthActions() {
+    this.authSubscription = this.authStatus$
       .pipe(
-        take(1),
-        switchMap(partialPublicUser => {
-          return this.userService.createOrUpdatePublicUser(partialPublicUser);
-        }),
-        map(publicUser => {
-          this.registrationProcessing = false;
-          console.log('Public user created and available in component', publicUser);
-          return publicUser;
-        }),
-        catchError(err => {
-          this.registrationProcessing = false;
-          console.log('Error detected while creating user', err);
-          return of(undefined);
-        })
+        withLatestFrom(
+          this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)),
+          this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser))
+        )
       )
+      .subscribe(([isAuth, authResultsData, isCreatingUser]) => {
+      if(isAuth && authResultsData && !isCreatingUser) {
+        console.log('User registered in FB Auth');
+        const partialNewUserData: Partial<PublicUser> = {
+          email: authResultsData.email,
+          firstName: this.firstName.value,
+          id: authResultsData.id
+        }
+        this.store.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
+        this.postUserCreationActions(partialNewUserData.id as string);
+      }
+    })
+  };
+
+  // If user email is verified, route to dashboard
+  postUserCreationActions(userId: string) {
+    this.newUserSubscription = this.newUser$
+      .pipe(
+        withLatestFrom(this.signupProcessing$)
+      )
+      .subscribe(([user, signupProcessing]) => {
+        // Need to check for user here bc there's a short gap in signupProcessing btw auth and user creation
+        if (user && !signupProcessing && !this.userFetched) {
+          this.store.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
+          this.userFetched = true;
+        }
+
+        if (user?.emailVerified) {
+            console.log('Email verified, routing user to dashboard');
+            this.router.navigate([PublicAppRoutes.DASHBOARD]);
+          }
+        }
+      )
+  }
+
+  ngOnDestroy(): void {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+    if (this.newUserSubscription) {
+      this.newUserSubscription.unsubscribe();
+    }
   }
 
   // These getters are used for easy access in the HTML template

@@ -1,6 +1,7 @@
-export { onCallCreateOrUpdatePublicUser } from './auth/on-call-create-or-update-public-user';
+export { onCallCreatePublicUser } from './user/on-call-create-public-user';
 export { onCallRegisterPrelaunchUser } from './auth/on-call-register-prelaunch-user';
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
+export { onCallUpdatePublicUser } from './user/on-call-update-public-user';
 export { onCallVerifyEmail } from './auth/on-call-verify-email';
 export { onPubCreateOrUpdateSgContact } from './email/on-pub-create-or-update-sg-contact';
 export { onPubDeleteSgContact } from './email/on-pub-delete-sg-contact';

@@ -146,3 +146,9 @@ export const fetchUserByEmail = async (email: string, userCollection: FirebaseFi
 
   return existingUser;
 }
+
+export const fetchUserById = async (id: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PublicUser> => {
+  const userDoc = await userCollection.doc(id).get()
+    .catch(err => {functions.logger.log(`Failed to fetch publicUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+  return userDoc.data() as PublicUser; // Will return undefined if doesn't exist
+}

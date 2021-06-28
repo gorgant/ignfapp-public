@@ -4,5 +4,17 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    match /publicUsers/{userId} {
+      // Users can only see their profile if it belongs to them
+      allow read: if isOwner(userId);
+    }
+
+    /// FUNCTIONS ///
+    
+    // Confirm ID of requester matches ID in database
+    function isOwner(userId) {
+    	return request.auth.uid == userId;
+    }
   }
 }

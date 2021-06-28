@@ -9,6 +9,7 @@ import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collect
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { PrelaunchUser } from 'shared-models/user/prelaunch-user.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
+import { UserUpdateData } from 'shared-models/user/user-update.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
 
@@ -44,16 +45,34 @@ export class UserService {
       );
   }
 
+  createPublicUser(partialNewUserData: Partial<PublicUser>): Observable<PublicUser> {
+    const createUserHttpCall: (partialNewUserData: Partial<PublicUser>) => 
+      Observable<PublicUser> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_CREATE_PUBLIC_USER);
 
-  createOrUpdatePublicUser(userData: PublicUser | Partial<PublicUser>): Observable<PublicUser> {
-    const createOrUpdateUserHttpCall: (userData: Partial<PublicUser>) => 
-      Observable<PublicUser> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_CREATE_OR_UPDATE_PUBLIC_USER);
+    return createUserHttpCall(partialNewUserData)
+      .pipe(
+        take(1),
+        map( newUser => {
+          console.log('Public user created', newUser)
+          return newUser;
+        }),
+        catchError(error => {
+          console.log('Error creating user', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
+          return throwError(error);
+        })
+      );
+  }
 
-    return createOrUpdateUserHttpCall(userData)
+  updatePublicUser(userUpdateData: UserUpdateData): Observable<PublicUser> {
+    const updateUserHttpCall: (userUpdateData: UserUpdateData) => 
+      Observable<PublicUser> = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_UPDATE_PUBLIC_USER);
+
+    return updateUserHttpCall(userUpdateData)
       .pipe(
         take(1),
         map( updatedUser => {
-          console.log('Public user created or updated', updatedUser)
+          console.log('Public user updated', updatedUser)
           return updatedUser;
         }),
         catchError(error => {

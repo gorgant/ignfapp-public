@@ -1,21 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable, of, Subject } from 'rxjs';
-import { catchError, map, switchMap, take } from 'rxjs/operators';
-import { AuthData } from 'shared-models/auth/auth-data.model';
+import { Router } from '@angular/router';
+import { select, Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { AuthFormData } from 'shared-models/auth/auth-data.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { UserRegistrationButtonValues, UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthService } from 'src/app/core/services/auth.service';
-import { UserService } from 'src/app/core/services/user.service';
+import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
 
 @Component({
   selector: 'app-login-form',
   templateUrl: './login-form.component.html',
   styleUrls: ['./login-form.component.scss']
 })
-export class LoginFormComponent implements OnInit {
+export class LoginFormComponent implements OnInit, OnDestroy {
 
   authUserForm!: FormGroup;
   formFieldKeys = UserRegistrationFormFieldKeys;
@@ -23,26 +24,30 @@ export class LoginFormComponent implements OnInit {
   emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
   passwordFieldValue = UserRegistrationFormFieldValues.CREATE_PASSWORD;
   submitButtonValue = UserRegistrationButtonValues.LOGIN;
-  logoutButtonValue = UserRegistrationButtonValues.LOGOUT;
-  trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
-  loginProcessing: boolean = false;
-
-  newUser$: Subject<PublicUser> = new Subject();
   authStatus$!: Observable<boolean>;
+  loginProcessing$!: Observable<boolean>;
+  authData$!: Observable<PublicUser | Partial<PublicUser> | undefined>;
+  authSubscription!: Subscription;
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
-    private userService: UserService,
+    private store: Store<RootStoreState.AppState>,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
     this.initForm();
-    this.authStatus$ = this.authService.userAuthStatus$;
+    this.checkAuthStatus();
   }
 
-  initForm(): void {
+  private checkAuthStatus() {
+    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.loginProcessing$ = this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser));
+    this.authData$ = this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData));
+  }
+
+  private initForm(): void {
     this.authUserForm = this.fb.group({
       [UserRegistrationFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]],
       [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(6)]],
@@ -51,42 +56,34 @@ export class LoginFormComponent implements OnInit {
 
   onSubmit(): void {
 
-    this.loginProcessing = true;
-
     console.log('Submitted these values', this.authUserForm.value);
 
-    const authData: AuthData = {
+    const authFormData: AuthFormData = {
       email: this.email.value,
       password: this.password.value
     }
 
-    this.authService.loginWithEmail(authData)
-      .pipe(
-        switchMap(partialPublicUser => {
-          return this.userService.createOrUpdatePublicUser(partialPublicUser);
-        }),
-        map(publicUser => {
-          this.loginProcessing = false;
-          return publicUser
-        }),
-        catchError(err => {
-          this.loginProcessing = false;
-          console.log('Error detected while authenticating user', err);
-          return of(err);
-        })
-      ).subscribe(publicUser => {
-        this.newUser$.next(publicUser);
-      })
+    this.store.dispatch(AuthStoreActions.emailAuthRequested({authData: authFormData}));
+    this.postAuthActions();
   }
 
-  onLogout() {
-    console.log('Logging out user');
-    this.newUser$.next(undefined);
-    this.authService.logout();
+  // Update user data and navigate to dashboard
+  postAuthActions() {
+    this.authSubscription = this.authStatus$.subscribe(isAuth => {
+      if(isAuth) {
+        this.router.navigate([PublicAppRoutes.DASHBOARD]);
+      }
+    });
   }
 
   // These getters are used for easy access in the HTML template
   get email() { return this.authUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
   get password() { return this.authUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+  }
 
 }

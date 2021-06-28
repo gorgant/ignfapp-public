@@ -7,7 +7,7 @@
       fxLayoutAlign="center center"
 
       fxLayoutGap="16px"
-      [fxHide]="registrationProcessing || (newUser$ | async)"
+      [fxHide]="(signupProcessing$ | async) || (newUser$ | async)"
       >
     <mat-form-field color="accent">
       <input color="accent" class="first-name-input" matInput formControlName="firstName">
@@ -35,7 +35,7 @@
       </mat-error>
     </mat-form-field>
     <button 
-      [disabled]="(email.invalid && (email.dirty || email.touched)) || registrationProcessing"
+      [disabled]="(email.invalid && (email.dirty || email.touched)) || (signupProcessing$ | async)"
       class="submit-button" 
       type="submit" 
       mat-raised-button 
@@ -43,14 +43,14 @@
         {{ submitButtonValue }}
     </button>
   </form>
-  <div *ngIf="registrationProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <div *ngIf="signupProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <mat-spinner class="processing-spinner"></mat-spinner>
     <h2 class="processing-message">
       Processing your submission, please wait...
     </h2>
   </div>
-  <div class="verify-email" *ngIf="newUser$ | async" fxLayout="column" fxLayoutGap="32px">
-    <p>Now check your inbox to <span class="verify-text">verify your email</span>.</p>
+  <div class="verify-email" *ngIf="(newUser$ | async) as newUser" fxLayout="column" fxLayoutGap="32px">
+    <p>Thanks, {{newUser.firstName}}. Now check your inbox to <span class="verify-text">verify your email</span>.</p>
     <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <span class="trusted-sender-text">{{ trustedEmailSender }}</span> to your trusted contacts.</p>
   </div>
 </div>

@@ -1,4 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
+import { AuthStoreActions, RootStoreState } from 'src/app/root-store';
+import { selectUserData } from 'src/app/root-store/user-store/selectors';
 
 @Component({
   selector: 'app-dashboard',
@@ -7,9 +13,24 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
-  constructor() { }
+  logoutButtonValue = UserRegistrationButtonValues.LOGOUT;
+  
+  userData$!: Observable<PublicUser>;
+
+  constructor(
+    private store: Store<RootStoreState.AppState>
+  ) { }
 
   ngOnInit(): void {
+  }
+
+  fetchUserData(): void {
+    this.userData$ = this.store.pipe(select(selectUserData)) as Observable<PublicUser>;
+  }
+
+  onLogout(): void {
+    console.log('Logging out user');
+    this.store.dispatch(AuthStoreActions.logout());
   }
 
 }
