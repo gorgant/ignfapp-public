@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'ignfapp-public';
-  appVersion = '0.0.1'
+  appVersion = '0.0.2'
 }

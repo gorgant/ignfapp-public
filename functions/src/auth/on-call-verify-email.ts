@@ -66,9 +66,8 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
 
   await dispatchWelcomeEmail(emailUserData, emailVerificationData);
   
-  // TODO: SWITCH ENVIRONMENTTYPES BACK TO PRODUCTION!
   // Only run SG contact update in production
-  if (currentEnvironmentType === EnvironmentTypes.SANDBOX) {
+  if (currentEnvironmentType === EnvironmentTypes.PRODUCTION) {
     functions.logger.log('Production detected, creating SG contact from email verification');
     await createOrUpdateSgContact(emailUserData);
   }
