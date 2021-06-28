@@ -114,7 +114,7 @@ export const submitHttpRequest = async (config: Axios.AxiosRequestConfig): Promi
 
   const reponseData = response.data;
 
-  functions.logger.log('Body from request', reponseData);
+  functions.logger.log('Body from response', reponseData);
 
   let parsedBody = reponseData;
       

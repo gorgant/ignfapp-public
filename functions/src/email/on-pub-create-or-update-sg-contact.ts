@@ -8,7 +8,7 @@ import { submitHttpRequest } from '../config/global-helpers';
 import { publicFirestore } from '../config/db-config';
 import { now } from 'moment';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-import { SgContactCustomFieldData } from '../../../shared-models/email/sg-contact-custom-field-data.model';
+import { SgContactCustomFieldData, SgContactCustomFieldIds } from '../../../shared-models/email/sg-contact-custom-field-data.model';
 import { getSgContactId } from './helpers/get-sg-contact-id';
 import { SendgridContactListId } from '../../../shared-models/email/email-vars.model';
 
@@ -46,9 +46,9 @@ const createOrUpdateSendgridContact = async (userData: EmailUserData): Promise <
   const email = userData.email;
   const requestUrl = sendgridMarketingContactsApiUrl;
   const customData: SgContactCustomFieldData = {
-    appUid: userData.id,
-    createdTimestamp: userData.createdTimestamp as number
-  }
+    [SgContactCustomFieldIds.APP_UID]: userData.id,
+    [SgContactCustomFieldIds.CREATED_TIMESTAMP]: userData.createdTimestamp as number
+  };
 
   const listIds = userData.emailSendgridContactListArray as SendgridContactListId[];
 
