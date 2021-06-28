@@ -1,15 +1,15 @@
 <div class="page-container" fxLayout="column" fxLayoutAlign="center center">
   <div class="content-body-container" fxLayout="column" fxLayoutAlign="center center">
-    <div *ngIf="verificationProcessing" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <div *ngIf="emailVerificationProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-spinner class="processing-spinner"></mat-spinner>
       <p class="processing-message">
         Confirming your email, please wait...
       </p>
     </div>
-    <div *ngIf="!verificationProcessing && !(emailVerified$ | async)" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <div *ngIf="dispatchedEmailVerificationRequest && !(emailVerificationProcessing$ | async) && !(emailVerified$ | async)" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-icon class="failure-icon">cancel</mat-icon>
       <p class="failure-message">
-        Failed to verify your email. If you continue to receive this message, try registering again. If all else fails, contact <b>{{supportEmail}}</b>.
+        Failed to verify your email. If you continue to receive this message, try registering again. If all else fails, contact <span class="support-text">{{supportEmail}}</span>.
       </p>
     </div>
     <div *ngIf="emailVerified$ | async" class="success-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">

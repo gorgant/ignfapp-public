@@ -8,6 +8,11 @@ import * as AuthStoreActions from "./actions";
 @Injectable()
 export class AuthStoreEffects {
 
+  constructor(
+    private actions$: Actions,
+    private authService: AuthService,
+  ) { }
+
   emailAuthEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.emailAuthRequested),
@@ -60,13 +65,24 @@ export class AuthStoreEffects {
     {dispatch: false}
   );
 
-  constructor(
-    private actions$: Actions,
-    private authService: AuthService,
-  ) {
-
-
-  }
-
+  verifyEmailEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.verifyEmailRequested),
+      switchMap(action => 
+        this.authService.verifyEmail(action.emailVerificationData).pipe(
+          map(emailVerified => {
+            return AuthStoreActions.verifyEmailCompleted({emailVerified});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.verifyEmailFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
 }
-

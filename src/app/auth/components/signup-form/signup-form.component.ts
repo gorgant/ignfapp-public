@@ -66,7 +66,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
     this.newUser$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
-  initForm(): void {
+  private initForm(): void {
     this.registerUserForm = this.fb.group({
       [UserRegistrationFormFieldKeys.FIRST_NAME]: ['', [Validators.required]],
       [UserRegistrationFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]],
@@ -89,7 +89,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   }
 
   // Update user data and navigate to dashboard
-  postAuthActions() {
+  private postAuthActions() {
     this.authSubscription = this.authStatus$
       .pipe(
         withLatestFrom(
@@ -112,7 +112,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   };
 
   // If user email is verified, route to dashboard
-  postUserCreationActions(userId: string) {
+  private postUserCreationActions(userId: string) {
     this.newUserSubscription = this.newUser$
       .pipe(
         withLatestFrom(this.signupProcessing$)

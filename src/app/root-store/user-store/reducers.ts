@@ -13,6 +13,7 @@ export const userStoreReducer = createReducer(
   initialUserState,
 
   // Create User
+
   on(UserStoreActions.createUserRequested, (state, action) => {
     return {
       ...state,
@@ -36,6 +37,7 @@ export const userStoreReducer = createReducer(
   }),
 
   // Fetch User
+
   on(UserStoreActions.fetchUserRequested, (state, action) => {
     return {
       ...state,
@@ -57,8 +59,33 @@ export const userStoreReducer = createReducer(
       userFetchError: action.error
     }
   }),
+
+  // Register Prelaunch User
+
+  on(UserStoreActions.registerPrelaunchUserRequested, (state, action) => {
+    return {
+      ...state,
+      userUpdateProcessing: true,
+      userUpdateError: false
+    }
+  }),
+  on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
+    return {
+      ...state,
+      userUpdateProcessing: false,
+      userData: action.prelaunchUser
+    }
+  }),
+  on(UserStoreActions.registerPrelaunchUserFailed, (state, action) => {
+    return {
+      ...state,
+      userUpdateProcessing: false,
+      userUpdateError: action.error
+    }
+  }),
   
   // Update User
+  
   on(UserStoreActions.updateUserRequested, (state, action) => {
     return {
       ...state,

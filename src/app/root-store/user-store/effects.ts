@@ -11,10 +11,7 @@ export class UserStoreEffects {
   constructor(
     private actions$: Actions,
     private userService: UserService,
-  ) {
-
-
-  }
+  ) { }
 
   createUserEffect$ = createEffect(() => this.actions$
     .pipe(
@@ -52,6 +49,27 @@ export class UserStoreEffects {
               name: error.name
             };
             return of(UserStoreActions.fetchUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  registerPrelaunchUserEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.registerPrelaunchUserRequested),
+      switchMap(action => 
+        this.userService.registerPrelaunchUser(action.emailUserData).pipe(
+          map(prelaunchUser => {
+            return UserStoreActions.registerPrelaunchUserCompleted({prelaunchUser});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.registerPrelaunchUserFailed({error: fbError}));
           })
         )
       ),

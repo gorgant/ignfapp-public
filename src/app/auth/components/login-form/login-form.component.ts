@@ -68,7 +68,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   // Update user data and navigate to dashboard
-  postAuthActions() {
+  private postAuthActions() {
     this.authSubscription = this.authStatus$.subscribe(isAuth => {
       if(isAuth) {
         this.router.navigate([PublicAppRoutes.DASHBOARD]);
@@ -76,14 +76,14 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  // These getters are used for easy access in the HTML template
-  get email() { return this.authUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
-  get password() { return this.authUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
-
   ngOnDestroy() {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
   }
+
+  // These getters are used for easy access in the HTML template
+  get email() { return this.authUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
+  get password() { return this.authUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
 
 }

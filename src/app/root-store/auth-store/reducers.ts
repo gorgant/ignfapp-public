@@ -12,57 +12,88 @@ import { AuthState, initialAuthState } from './state';
 export const authStoreReducer = createReducer(
   initialAuthState,
 
+  // Email Auth
 
   on(AuthStoreActions.emailAuthRequested, (state, action) => {
     return {
       ...state,
-      authProcessesing: true,
+      authProcessing: true,
       authError: undefined
     }
   }),
   on(AuthStoreActions.emailAuthCompleted, (state, action) => {
     return {
       ...state,
-      authProcessesing: false,
+      authProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.emailAuthFailed, (state, action) => {
     return {
       ...state,
-      authProcessesing: false,
+      authProcessing: false,
       authError: action.error
     }
   }),
   
+  // Email Signup
+
   on(AuthStoreActions.emailSignupRequested, (state, action) => {
     return {
       ...state,
-      signupProcessesing: true,
+      signupProcessing: true,
       signupError: undefined
     }
   }),
   on(AuthStoreActions.emailSignupCompleted, (state, action) => {
     return {
       ...state,
-      signupProcessesing: false,
+      signupProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.emailSignupFailed, (state, action) => {
     return {
       ...state,
-      signupProcessesing: false,
+      signupProcessing: false,
       signupError: action.error
     }
   }),
   
+  // Logout
+
   on(AuthStoreActions.logout, (state, action) => {
     return {
       ...state,
       authResultsData: undefined
     }
-  })
+  }),
+
+  // Verify Email
+
+  on(AuthStoreActions.verifyEmailRequested, (state, action) => {
+    return {
+      ...state,
+      emailVerificationProcessing: true,
+      emailVerificationError: undefined
+    }
+  }),
+  on(AuthStoreActions.verifyEmailCompleted, (state, action) => {
+    return {
+      ...state,
+      emailVerificationProcessing: false,
+      emailVerified: action.emailVerified,
+    }
+  }),
+  on(AuthStoreActions.verifyEmailFailed, (state, action) => {
+    return {
+      ...state,
+      emailVerificationProcessing: false,
+      emailVerificationError: action.error
+    }
+  }),
+
+
 );
 
 export const authMetaReducers: MetaReducer<AuthState>[] = !environment.production ? [] : [];

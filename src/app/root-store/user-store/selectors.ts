@@ -4,6 +4,7 @@ import { UserState } from "./state";
 
 const getIsCreatingUser = (state: UserState) => state.userUpdateProcessing;
 const getIsFetchingUser = (state: UserState) => state.userFetchProcessing;
+const getIsRegisteringPrelaunchUser = (state: UserState) => state.userUpdateProcessing;
 const getIsUpdatingUser = (state: UserState) => state.userUpdateProcessing;
 const getUserData = (state: UserState) => state.userData;
 const getUserFetchError = (state: UserState) => state.userFetchError;
@@ -19,6 +20,11 @@ export const selectIsCreatingUser = createSelector(
 export const selectIsFetchingUser = createSelector(
   selectUserState,
   getIsFetchingUser
+);
+
+export const selectIsRegisteringPrelaunchUser = createSelector(
+  selectUserState,
+  getIsRegisteringPrelaunchUser
 );
 
 export const selectIsUpdatingUser = createSelector(

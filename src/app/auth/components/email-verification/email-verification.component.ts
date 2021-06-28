@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { catchError, map, take } from 'rxjs/operators';
+import { select, Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { withLatestFrom } from 'rxjs/operators';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
-import { AuthService } from 'src/app/core/services/auth.service';
+import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
 
 @Component({
   selector: 'app-email-verification',
@@ -16,15 +17,23 @@ export class EmailVerificationComponent implements OnInit {
   supportEmail = EmailSenderAddresses.IGNFAPP_SUPPORT;
 
   emailVerified$!: Observable<boolean>;
-  verificationProcessing: boolean = true;
+  emailVerificationProcessing$!: Observable<boolean>;
+  emailVerficationSubscription!: Subscription;
+  dispatchedEmailVerificationRequest = false;
 
   constructor(
     private route: ActivatedRoute,
-    private authService: AuthService
+    private store: Store<RootStoreState.AppState>
   ) { }
 
   ngOnInit() {
+    this.monitorStoreState();
     this.verifyUserEmail();
+  }
+
+  private monitorStoreState() {
+    this.emailVerified$ = this.store.pipe(select(AuthStoreSelectors.selectEmailVerified));
+    this.emailVerificationProcessing$ = this.store.pipe(select(AuthStoreSelectors.selectIsVerifyingEmail));
   }
 
   private verifyUserEmail() {
@@ -56,33 +65,30 @@ export class EmailVerificationComponent implements OnInit {
           isPrelaunchUser: false
         };
       }
-      
-      // TODO: Remove service call above, instead dispatch store action and listen for result
+
       console.log('marking subscriber confirmed with this id data', emailVerificationData);
-      this.emailVerified$ = this.authService.verifyEmail(emailVerificationData)
-        .pipe(
-          take(1),
-          map(emailVerificationOutcome => {
-            this.verificationProcessing = false;
-            return emailVerificationOutcome
-          }),
-          catchError(err => {
-            console.log('Error detected in verification process', err);
-            this.verificationProcessing = false;
-            return of(false);
-          })
-        )
+      this.store.dispatch(AuthStoreActions.verifyEmailRequested({emailVerificationData}));
       
-      this.reactToEmailVerificationOutcome();
+      this.postVerificationActions();
     }
   }
 
-  private reactToEmailVerificationOutcome() {
-    // TODO: inform the user of the verification outcome
+  private postVerificationActions() {
+    this.emailVerficationSubscription = this.emailVerified$
+      .pipe(
+        withLatestFrom(this.emailVerificationProcessing$)
+      )
+      .subscribe(([emailVerified, isProcessing]) => {
+        if (isProcessing) {
+          this.dispatchedEmailVerificationRequest = true; // Prevents the error icon from popping prematurely
+        }
+      });
   }
 
   ngOnDestroy() {
-
+    if (this.emailVerficationSubscription) {
+      this.emailVerficationSubscription.unsubscribe();
+    }
   }
 
 }
