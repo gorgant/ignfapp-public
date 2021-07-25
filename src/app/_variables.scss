@@ -1,5 +1,5 @@
+@use '~@angular/material' as mat;
 // Import material theming functions
-@import '~@angular/material/theming';
 
 // Copied from theme.scss
 $ignflp-public-primary: (
@@ -103,14 +103,14 @@ $ignflp-public-warn: (
   )
 );
 
-$theme-primary: mat-palette($ignflp-public-primary);
-$theme-accent:  mat-palette($ignflp-public-accent);
-$theme-warn:    mat-palette($mat-red);
+$theme-primary: mat.define-palette($ignflp-public-primary);
+$theme-accent:  mat.define-palette($ignflp-public-accent);
+$theme-warn:    mat.define-palette(mat.$red-palette);
 
 // Create your Sass color vars (will be available in all the project)
-$primary: mat-color($theme-primary);
-$accent: mat-color($theme-accent);
-$warn: mat-color($theme-warn);
+$primary: mat.get-color-from-palette($theme-primary);
+$accent: mat.get-color-from-palette($theme-accent);
+$warn: mat.get-color-from-palette($theme-warn);
 
 $font-weight-light: 300;
 $font-weight-regular: 400;

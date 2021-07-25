@@ -1,3 +1,4 @@
+@use '~@angular/material' as mat;
 // Courtesy of https://indepth.dev/posts/1320/custom-theme-for-angular-material-components-series-part-1-create-a-theme
 
 // Import any custom fonts
@@ -105,23 +106,23 @@ $ignfapp-public-warn: (
   )
 );
 
-$ignfapp-public-palette-primary: mat-palette($ignfapp-public-primary);
-$ignfapp-public-palette-accent: mat-palette($ignfapp-public-accent);
-$ignfapp-public-palette-warn: mat-palette($ignfapp-public-warn);
+$ignfapp-public-palette-primary: mat.define-palette($ignfapp-public-primary);
+$ignfapp-public-palette-accent: mat.define-palette($ignfapp-public-accent);
+$ignfapp-public-palette-warn: mat.define-palette($ignfapp-public-warn);
 
 
 
-$ignfapp-public-theme: mat-light-theme(
+$ignfapp-public-theme: mat.define-light-theme(
   $ignfapp-public-palette-primary,
   $ignfapp-public-palette-accent,
   $ignfapp-public-palette-warn
 );
 
 // 2. Define an alternate dark theme.
-$dark-primary: mat-palette($mat-blue-grey);
-$dark-accent: mat-palette($mat-amber, A200, A100, A400);
-$dark-warn: mat-palette($mat-deep-orange);
-$dark-theme: mat-dark-theme(
+$dark-primary: mat.define-palette(mat.$blue-grey-palette);
+$dark-accent: mat.define-palette(mat.$amber-palette, A200, A100, A400);
+$dark-warn: mat.define-palette(mat.$deep-orange-palette);
+$dark-theme: mat.define-dark-theme(
   (
     color: (
       primary: $dark-primary,
@@ -135,34 +136,34 @@ $dark-theme: mat-dark-theme(
 // 3. Define a custom heading typography config
 $heading-font-family: "Mulish, sans-serif";
 $body-font-family: "Roboto, sans-serif";
-// $typography: mat-typography-config(
-//   $display-4: mat-typography-level(101px, $font-family: $heading-font-family),
-//   $display-3: mat-typography-level(63px, $font-family: $heading-font-family),
-//   $display-2: mat-typography-level(50px, $font-family: $heading-font-family),
-//   $display-1: mat-typography-level(36px, $font-family: $heading-font-family),
-//   $headline: mat-typography-level(25px, $font-family: $heading-font-family),
-//   $title: mat-typography-level(21px, $font-family: $heading-font-family),
-//   $subheading-2: mat-typography-level(17px, $font-family: $heading-font-family),
-//   $subheading-1: mat-typography-level(15px, $font-family: $heading-font-family),
-//   $body-1: mat-typography-level(16px, $font-family: $body-font-family),
-//   $body-2: mat-typography-level(14px, $font-family: $body-font-family),
-//   $caption: mat-typography-level(12px, $font-family: $body-font-family),
-//   $button: mat-typography-level(14px, $font-family: $body-font-family),
-//   $input: mat-typography-level(16px, $font-family: $body-font-family),
+// $typography: mat.define-typography-config(
+//   $display-4: mat.define-typography-level(101px, $font-family: $heading-font-family),
+//   $display-3: mat.define-typography-level(63px, $font-family: $heading-font-family),
+//   $display-2: mat.define-typography-level(50px, $font-family: $heading-font-family),
+//   $display-1: mat.define-typography-level(36px, $font-family: $heading-font-family),
+//   $headline: mat.define-typography-level(25px, $font-family: $heading-font-family),
+//   $title: mat.define-typography-level(21px, $font-family: $heading-font-family),
+//   $subheading-2: mat.define-typography-level(17px, $font-family: $heading-font-family),
+//   $subheading-1: mat.define-typography-level(15px, $font-family: $heading-font-family),
+//   $body-1: mat.define-typography-level(16px, $font-family: $body-font-family),
+//   $body-2: mat.define-typography-level(14px, $font-family: $body-font-family),
+//   $caption: mat.define-typography-level(12px, $font-family: $body-font-family),
+//   $button: mat.define-typography-level(14px, $font-family: $body-font-family),
+//   $input: mat.define-typography-level(16px, $font-family: $body-font-family),
 // );
 
 // The input typeset in the above version triggers an error
-$typography: mat-typography-config(
-  $display-4: mat-typography-level(101px, $font-family: $heading-font-family),
-  $display-3: mat-typography-level(63px, $font-family: $heading-font-family),
-  $display-2: mat-typography-level(50px, $font-family: $heading-font-family),
-  $display-1: mat-typography-level(36px, $font-family: $heading-font-family),
-  $headline: mat-typography-level(25px, $font-family: $heading-font-family),
-  $title: mat-typography-level(21px, $font-family: $heading-font-family),
-  $subheading-2: mat-typography-level(17px, $font-family: $heading-font-family),
-  $subheading-1: mat-typography-level(15px, $font-family: $heading-font-family),
-  $body-1: mat-typography-level(16px, $font-family: $body-font-family),
-  $body-2: mat-typography-level(14px, $font-family: $body-font-family),
-  $caption: mat-typography-level(12px, $font-family: $body-font-family),
-  $button: mat-typography-level(14px, $font-family: $body-font-family),
+$typography: mat.define-typography-config(
+  $display-4: mat.define-typography-level(101px, $font-family: $heading-font-family),
+  $display-3: mat.define-typography-level(63px, $font-family: $heading-font-family),
+  $display-2: mat.define-typography-level(50px, $font-family: $heading-font-family),
+  $display-1: mat.define-typography-level(36px, $font-family: $heading-font-family),
+  $headline: mat.define-typography-level(25px, $font-family: $heading-font-family),
+  $title: mat.define-typography-level(21px, $font-family: $heading-font-family),
+  $subheading-2: mat.define-typography-level(17px, $font-family: $heading-font-family),
+  $subheading-1: mat.define-typography-level(15px, $font-family: $heading-font-family),
+  $body-1: mat.define-typography-level(16px, $font-family: $body-font-family),
+  $body-2: mat.define-typography-level(14px, $font-family: $body-font-family),
+  $caption: mat.define-typography-level(12px, $font-family: $body-font-family),
+  $button: mat.define-typography-level(14px, $font-family: $body-font-family),
 );
