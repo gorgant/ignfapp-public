@@ -65,6 +65,27 @@ export class AuthStoreEffects {
     {dispatch: false}
   );
 
+  resetPasswordEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.resetPasswordRequested),
+      switchMap(action => 
+        this.authService.sendResetPasswordEmail(action.email).pipe(
+          map(resetSubmitted => {
+            return AuthStoreActions.resetPasswordCompleted({resetSubmitted});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.resetPasswordFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   verifyEmailEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.verifyEmailRequested),
@@ -85,4 +106,6 @@ export class AuthStoreEffects {
       ),
     ),
   );
+
+
 }

@@ -8,6 +8,7 @@ import { SignupFormComponent } from '../components/signup-form/signup-form.compo
 import { AuthHeaderComponent } from '../components/auth-header/auth-header.component';
 import { SignupComponent } from '../components/signup/signup.component';
 import { LoginFormComponent } from '../components/login-form/login-form.component';
+import { ResetPasswordDialogueComponent } from '../components/reset-password-dialogue/reset-password-dialogue.component';
 
 
 @NgModule({
@@ -18,6 +19,7 @@ import { LoginFormComponent } from '../components/login-form/login-form.componen
     SignupFormComponent,
     EmailVerificationComponent,
     AuthHeaderComponent,
+    ResetPasswordDialogueComponent
   ],
   imports: [
     SharedModule,

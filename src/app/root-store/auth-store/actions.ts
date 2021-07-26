@@ -57,3 +57,19 @@ export const verifyEmailFailed = createAction(
   '[User Service] Verify Email Failed',
   props<{error: firebase.default.FirebaseError}>()
 );
+
+// Reset Password
+export const resetPasswordRequested = createAction(
+  '[Login Form] Reset Password Requested',
+  props<{email: string}>()
+);
+
+export const resetPasswordCompleted = createAction(
+  '[Auth Service] Reset Password Completed',
+  props<{resetSubmitted: boolean}>()
+);
+
+export const resetPasswordFailed = createAction(
+  '[Auth Service] Reset Password Failed',
+  props<{error: firebase.default.FirebaseError}>()
+);

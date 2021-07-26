@@ -185,7 +185,7 @@ export class AuthService {
       );
   }
 
-  sendResetPasswordEmail(email: string): Observable<string> {
+  sendResetPasswordEmail(email: string): Observable<boolean> {
 
     const authResponse = from(this.afAuth.sendPasswordResetEmail(email));
 
@@ -195,10 +195,10 @@ export class AuthService {
         this.uiService.showSnackBar(
           `Password reset link sent to ${email}. Please check your email for instructions.`, 10000
         );
-        return 'success';
+        return true;
       }),
       catchError(error => {
-        this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
+        this.uiService.showSnackBar(error.message, 10000);
         console.log('Error sending reset password email', error);
         return throwError(error);
       })

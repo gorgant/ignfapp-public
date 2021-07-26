@@ -6,7 +6,7 @@
       fxLayout="column" 
       fxLayoutAlign="center center"
       fxLayoutGap="16px"
-      [fxHide]="(loginProcessing$ | async) || (authStatus$ | async)"
+      [fxHide]="(loginProcessing$ | async) || (authStatus$ | async) || showResetMessage"
       >
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
@@ -24,6 +24,11 @@
         <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 6</span> </mat-error>
       </mat-error>
     </mat-form-field>
+    <div class="forgot-password-container" fxLayout="row" fxLayoutAlign="start center">
+      <button class="reset-password-button" type="button" (click)="onResetPassword()"> 
+        Forgot password?
+      </button>
+    </div>
     <button 
       [disabled]="(email.invalid && (email.dirty || email.touched)) || (loginProcessing$ | async)"
       class="submit-button" 
@@ -37,6 +42,11 @@
     <mat-spinner class="processing-spinner"></mat-spinner>
     <h2 class="processing-message">
       Authentication in progress, please wait...
+    </h2>
+  </div>
+  <div *ngIf="showResetMessage" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <h2 class="processing-message">
+      Check your inbox for an email to reset your password.
     </h2>
   </div>
 </div>

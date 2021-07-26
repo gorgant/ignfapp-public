@@ -1,15 +1,16 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { AuthFormData } from 'shared-models/auth/auth-data.model';
-import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { UserRegistrationButtonValues, UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
+import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset-password-dialogue.component';
 
 @Component({
   selector: 'app-login-form',
@@ -29,11 +30,14 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   loginProcessing$!: Observable<boolean>;
   authData$!: Observable<PublicUser | Partial<PublicUser> | undefined>;
   authSubscription!: Subscription;
+  
+  showResetMessage: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private store: Store<RootStoreState.AppState>,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -74,6 +78,27 @@ export class LoginFormComponent implements OnInit, OnDestroy {
         this.router.navigate([PublicAppRoutes.DASHBOARD]);
       }
     });
+  }
+
+  onResetPassword() {
+    
+    const dialogConfig = new MatDialogConfig();
+
+    dialogConfig.autoFocus = true;
+    dialogConfig.width = '300px';
+
+    dialogConfig.data = this.email.value;
+    
+    console.log('Reset password requested with this config', dialogConfig);
+
+    const dialogRef = this.dialog.open(ResetPasswordDialogueComponent, dialogConfig);
+
+    dialogRef.afterClosed().subscribe(submitted => {
+      if (submitted) {
+        this.showResetMessage = true;
+      }
+    })
+
   }
 
   ngOnDestroy() {

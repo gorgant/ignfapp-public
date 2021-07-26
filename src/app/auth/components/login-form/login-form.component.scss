@@ -28,6 +28,25 @@ mat-form-field {
   max-width: 300px;
 }
 
+.forgot-password-container {
+
+  // Remove button styling: https://stackoverflow.com/a/45890842/6572208
+  button, input[type="submit"], input[type="reset"] {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+  }
+  color: $primary;
+  font-weight: $font-weight-light;
+  margin-top: -8px;
+  width: 100%;
+  max-width: 300px;
+}
+
 p {
   line-height: 1.2em;
   font-weight: $font-weight-light;

@@ -30,21 +30,6 @@ import { RootStoreModule } from './root-store';
     AngularFireFunctionsModule,
     AuthModule,
     AppRoutingModule,
-    // StoreModule.forRoot(reducers, { 
-    //   metaReducers,
-    //   runtimeChecks: {
-    //     strictStateSerializability: true,
-    //     strictActionSerializability: true,
-    //     strictActionTypeUniqueness: true,
-    //   }
-
-    // }),
-    // StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
-    // EffectsModule.forRoot([]),
-    // StoreRouterConnectingModule.forRoot({
-    //   stateKey: 'router',
-    //   routerState: RouterState.Minimal
-    // })
     RootStoreModule,
   ],
   providers: [],

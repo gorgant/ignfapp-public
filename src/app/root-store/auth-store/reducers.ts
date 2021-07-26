@@ -69,6 +69,32 @@ export const authStoreReducer = createReducer(
     }
   }),
 
+  // Reset Password
+
+  on(AuthStoreActions.resetPasswordRequested, (state, action) => {
+    return {
+      ...state,
+      resetPasswordProcessing: true,
+      resetPasswordError: undefined,
+      resetPasswordSubmitted: false
+    }
+  }),
+  on(AuthStoreActions.resetPasswordCompleted, (state, action) => {
+    return {
+      ...state,
+      resetPasswordProcessing: false,
+      resetPasswordSubmitted: action.resetSubmitted
+    }
+  }),
+  on(AuthStoreActions.resetPasswordFailed, (state, action) => {
+    return {
+      ...state,
+      resetPasswordProcessing: false,
+      resetPasswordError: action.error,
+      resetPasswordSubmitted: false
+    }
+  }),
+
   // Verify Email
 
   on(AuthStoreActions.verifyEmailRequested, (state, action) => {
@@ -92,7 +118,6 @@ export const authStoreReducer = createReducer(
       emailVerificationError: action.error
     }
   }),
-
 
 );
 
