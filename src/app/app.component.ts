@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { RootStoreState, UiStoreActions } from './root-store';
 
 @Component({
   selector: 'app-root',
@@ -8,4 +10,17 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'ignfapp-public';
   appVersion = '0.0.3'
+
+  constructor(
+    private store: Store<RootStoreState.AppState>,
+  ) { }
+
+  ngOnInit(): void {
+    this.initializeEnvironmentType();
+  }
+
+  private initializeEnvironmentType() {
+    this.store.dispatch(UiStoreActions.environmentTypeRequested());
+  }
+
 }

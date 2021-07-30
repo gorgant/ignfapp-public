@@ -5,6 +5,8 @@ import { OrderHistory } from "../orders/order-history.model";
 import { UnsubscribeRecordList, UnsubscribeRecord } from "../email/unsubscribe-record.model";
 
 export enum PublicUserKeys {
+  AVATAR_URL = 'avatarUrl',
+  DISPLAY_NAME = 'displayName',
   EMAIL = 'email',
   EMAIL_GROUP_UNSUBSCRIBES = 'emailGroupUnsubscribes',
   EMAIL_GLOBAL_UNSUBSCRIBE = 'emailGlobalUnsubscribe',
@@ -28,9 +30,9 @@ export interface PublicUser {
   lastAuthenticated: number;
   lastModifiedTimestamp: number;
   [PublicUserKeys.FIRST_NAME]?: string;
-  avatarUrl?: string;
+  [PublicUserKeys.AVATAR_URL]?: string;
   billingDetails?: BillingDetails | Partial<BillingDetails>;
-  displayName?: string;
+  [PublicUserKeys.DISPLAY_NAME]?: string;
   dob?: number;
   [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]?: UnsubscribeRecordList;
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]?: UnsubscribeRecord;

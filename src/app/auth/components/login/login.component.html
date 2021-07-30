@@ -1,4 +1,25 @@
 <div class="page-container" fxLayout="column" fxLayoutGap.gt-sm="32px">
   <app-auth-header></app-auth-header>
-  <app-login-form></app-login-form>
+  <div fxHide [fxShow]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async)" class="login-options" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+    <app-login-with-third-party></app-login-with-third-party>
+    <div class="or-divider">OR</div>
+    <button *ngIf="!useEmailLogin" type="button" class="email-button" mat-raised-button (click)="onUseEmail()">
+      <mat-icon class="email-button-icon">email</mat-icon>
+      Sign In with Email
+    </button>
+    <app-login-form *ngIf="useEmailLogin"></app-login-form>
+    <div *ngIf="useEmailLogin" class="toggle-login-signup" fxLayout="column" fxLayoutAlign="center center">
+      <a [routerLink]="signupPath">Create a New Account</a>
+    </div>
+  </div>
+  <div *ngIf="authOrUserUpdateProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <mat-spinner class="processing-spinner"></mat-spinner>
+    <h2 class="processing-message">
+      Authentication in progress, please wait...
+    </h2>
+  </div>
+  <div class="verify-email" *ngIf="(userData$ | async) && !(userData$ | async)?.emailVerified" fxLayout="column" fxLayoutGap="32px">
+    <p>Thanks, {{(userData$ | async)?.firstName}}. Now check your inbox to <span class="verify-text">verify your email</span>.</p>
+    <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <span class="trusted-sender-text">{{ trustedEmailSender }}</span> to your trusted contacts.</p>
+  </div>
 </div>

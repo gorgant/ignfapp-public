@@ -10,12 +10,14 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { StoreRouterConnectingModule, RouterStateSerializer, RouterState } from '@ngrx/router-store';
 import { CustomSerializer } from '../core/utils/custom-route-serializer';
 import { reducers } from './root-store.state';
+import { UiStoreModule } from './ui-store';
 
 @NgModule({
   declarations: [],
   imports: [
     CommonModule,
     AuthStoreModule,
+    UiStoreModule,
     UserStoreModule,
     StoreModule.forRoot(
         reducers, 

@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, of, Observable } from 'rxjs';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
+import { environment } from 'src/environments/environment';
+import { EnvironmentTypes } from 'shared-models/environments/env-vars.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UiService {
 
-  sideNavSignal$ = new Subject<void>();
-  screenIsMobile$ = new BehaviorSubject(true);
+  private sideNavSignal$ = new Subject<void>();
+  private screenIsMobile$ = new BehaviorSubject(true);
+  private productionEnvironment: boolean = environment.production;
 
   constructor(
     private snackbar: MatSnackBar,
@@ -46,6 +49,12 @@ export class UiService {
         }
       });
 
+  }
+
+  getEnvironmentType(): Observable<EnvironmentTypes> {
+    const envType = this.productionEnvironment ? EnvironmentTypes.PRODUCTION : EnvironmentTypes.SANDBOX;
+    console.log('Environment Type: ', envType);
+    return of(envType);
   }
 
   // Remove spaces from url string

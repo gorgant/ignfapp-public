@@ -3,13 +3,15 @@ import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/fo
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData } from 'shared-models/auth/auth-data.model';
 import { UserRegistrationButtonValues, UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
+import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
+import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset-password-dialogue.component';
 
 @Component({
@@ -23,14 +25,19 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   formFieldKeys = UserRegistrationFormFieldKeys;
   formValidationMessages = UserRegistrationFormValidationMessages;
   emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
-  passwordFieldValue = UserRegistrationFormFieldValues.CREATE_PASSWORD;
+  passwordFieldValue = UserRegistrationFormFieldValues.PASSWORD;
   submitButtonValue = UserRegistrationButtonValues.LOGIN;
 
   authStatus$!: Observable<boolean>;
-  loginProcessing$!: Observable<boolean>;
-  authData$!: Observable<PublicUser | Partial<PublicUser> | undefined>;
-  authSubscription!: Subscription;
+  authOrUserUpdateProcessing$!: Observable<boolean>;
+  userFetched: boolean = false;
   
+  userData$!: Observable<PublicUser>;
+  
+  authSubscription!: Subscription;
+  userSubscription!: Subscription;
+  
+  useEmailLogin: boolean = false;
   showResetMessage: boolean = false;
 
   constructor(
@@ -47,8 +54,20 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   private checkAuthStatus() {
     this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
-    this.loginProcessing$ = this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser));
-    this.authData$ = this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData));
+    this.authOrUserUpdateProcessing$ = combineLatest(
+      [
+        this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
+        this.store.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+      ]
+    ).pipe(
+        map(([authenticating, updatingUser]) => {
+          if (authenticating || updatingUser) {
+            return true
+          }
+          return false
+        })
+    );
+    this.userData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
   private initForm(): void {
@@ -58,9 +77,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSubmit(): void {
+  onUseEmail() {
+    this.useEmailLogin = true;
+  }
 
-    console.log('Submitted these values', this.authUserForm.value);
+  onSubmit(): void {
 
     const authFormData: AuthFormData = {
       email: this.email.value,
@@ -73,11 +94,50 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   // Update user data and navigate to dashboard
   private postAuthActions() {
-    this.authSubscription = this.authStatus$.subscribe(isAuth => {
-      if(isAuth) {
-        this.router.navigate([PublicAppRoutes.DASHBOARD]);
-      }
-    });
+    this.authSubscription = this.authStatus$
+      .pipe(
+        withLatestFrom(this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)))
+      )
+    
+      .subscribe(([isAuth, authResultsData]) => {
+        if(isAuth) {
+          const userData: Partial<PublicUser> = {
+            id: authResultsData?.id,
+            email: authResultsData?.email
+          }
+          const userUpdateData: UserUpdateData = {
+            userData,
+            updateType: UserUpdateType.AUTHENTICATION
+          }
+          this.store.dispatch(UserStoreActions.updateUserRequested({userUpdateData}))
+          this.postUserUpdateActions(userData.id as string);
+        }
+      });
+  }
+
+  private postUserUpdateActions(userId: string) {
+    this.userSubscription = this.userData$
+      .pipe(
+        withLatestFrom(this.authOrUserUpdateProcessing$)
+      )
+      .subscribe(([user, authProcessing]) => {
+        // Need to check for user here bc there's a short gap in signupProcessing btw auth and user creation
+        if (user && !authProcessing && !this.userFetched) {
+          this.store.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
+          this.userFetched = true;
+        }
+        
+        // If email is verified, proceed to dashboard (otherwise email verification request is provided)
+        if (user?.emailVerified) {
+          console.log('Email verified, routing user to dashboard');
+          this.router.navigate([PublicAppRoutes.DASHBOARD]);
+        }
+
+        if (user && !user?.emailVerified) {
+          // FYI Prompt is shown in parent container
+          console.log(`User has not verified email. Requesting verification for ${user.email}`);
+        }
+      })
   }
 
   onResetPassword() {
@@ -105,6 +165,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
+
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+
   }
 
   // These getters are used for easy access in the HTML template

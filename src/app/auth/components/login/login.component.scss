@@ -1,1 +1,42 @@
 @import '../../../variables';
+
+app-login-with-third-party {
+  width: 100%;
+}
+
+.or-divider {
+  text-align: center;
+}
+
+.email-button {
+  width: 300px;
+  color: #737373;
+}
+
+.email-button-icon {
+  margin-right: 16px;
+}
+
+app-login-form {
+  width: 100%;
+}
+
+.toggle-login-signup {
+  color: $primary;
+  font-weight: $font-weight-light;
+}
+
+.verify-email {
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.verify-text {
+  color: $primary;
+  font-weight: $font-weight-medium;
+}
+
+.trusted-sender-text {
+  font-weight: $font-weight-medium
+}
+

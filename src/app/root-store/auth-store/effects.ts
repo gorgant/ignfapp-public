@@ -55,6 +55,48 @@ export class AuthStoreEffects {
     ),
   );
 
+  facebookAuthEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.facebookAuthRequested),
+      switchMap(action => 
+        this.authService.loginWithFacebook().pipe(
+          map(authResultsData => {
+            return AuthStoreActions.facebookAuthCompleted({authResultsData});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.facebookAuthFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  googleAuthEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.googleAuthRequested),
+      switchMap(action => 
+        this.authService.loginWithGoogle().pipe(
+          map(authResultsData => {
+            return AuthStoreActions.googleAuthCompleted({authResultsData});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.googleAuthFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   logoutEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.logout),

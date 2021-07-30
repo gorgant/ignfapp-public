@@ -2,6 +2,7 @@ export enum UserRegistrationFormFieldValues {
   FIRST_NAME = 'First Name',
   EMAIL = 'Email',
   CREATE_PASSWORD = 'Create Password',
+  PASSWORD = 'Password'
 }
 
 export enum UserRegistrationFormFieldKeys {

@@ -98,16 +98,16 @@ export class SignupFormComponent implements OnInit, OnDestroy {
         )
       )
       .subscribe(([isAuth, authResultsData, isCreatingUser]) => {
-      if(isAuth && authResultsData && !isCreatingUser) {
-        console.log('User registered in FB Auth');
-        const partialNewUserData: Partial<PublicUser> = {
-          email: authResultsData.email,
-          firstName: this.firstName.value,
-          id: authResultsData.id
+        if (isAuth && authResultsData && !isCreatingUser) {
+          console.log('User registered in FB Auth');
+          const partialNewUserData: Partial<PublicUser> = {
+            email: authResultsData.email,
+            firstName: this.firstName.value,
+            id: authResultsData.id
+          }
+          this.store.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
+          this.postUserCreationActions(partialNewUserData.id as string);
         }
-        this.store.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
-        this.postUserCreationActions(partialNewUserData.id as string);
-      }
     })
   };
 

@@ -59,6 +59,54 @@ export const authStoreReducer = createReducer(
       signupError: action.error
     }
   }),
+
+  // Facebook Auth
+
+  on(AuthStoreActions.facebookAuthRequested, (state, action) => {
+    return {
+      ...state,
+      authProcessing: true,
+      authError: undefined
+    }
+  }),
+  on(AuthStoreActions.facebookAuthCompleted, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authResultsData: action.authResultsData
+    }
+  }),
+  on(AuthStoreActions.facebookAuthFailed, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authError: action.error
+    }
+  }),
+
+  // Google Auth
+
+  on(AuthStoreActions.googleAuthRequested, (state, action) => {
+    return {
+      ...state,
+      authProcessing: true,
+      authError: undefined
+    }
+  }),
+  on(AuthStoreActions.googleAuthCompleted, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authResultsData: action.authResultsData
+    }
+  }),
+  on(AuthStoreActions.googleAuthFailed, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authError: action.error
+    }
+  }),
   
   // Logout
 

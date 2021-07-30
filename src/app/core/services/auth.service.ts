@@ -60,14 +60,14 @@ export class AuthService {
         return authResultsData;
       }),
       catchError(error => {
-        this.uiService.showSnackBar(`${error}`, 10000);
+        this.uiService.showSnackBar(error.message, 10000);
         console.log('Error registering user', error);
         return throwError(error);
       })
     );
   };
 
-  loginWithGoogle(): Observable<Partial<PublicUser>> {
+  loginWithGoogle(): Observable<AuthResultsData> {
 
     const authResponse = from(this.afAuth.signInWithPopup(
       new firebase.default.auth.GoogleAuthProvider()
@@ -79,17 +79,49 @@ export class AuthService {
         if (!creds.user) {
           throw new Error('No user found with those credentials.');
         }
-        const publicUser: Partial<PublicUser> = {
+        const authResultsData: AuthResultsData = {
           avatarUrl: creds.user?.photoURL as string,
-          displayName: creds.user?.displayName as string,
+          displayName: creds.user?.displayName?.split(' ')[0] as string,
           email: creds.user?.email as string,
           id: creds.user?.uid,
+          isNewUser: creds.additionalUserInfo?.isNewUser
         };
-        return publicUser;
+        return authResultsData;
       }),
       catchError(error => {
-        this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
-        console.log('Error registering user', error);
+        this.uiService.showSnackBar(error.message, 10000);
+        console.log('Error authenticating user', error);
+        return throwError(error);
+      })
+    );
+  }
+
+  loginWithFacebook(): Observable<AuthResultsData> {
+
+    const authResponse = from(this.afAuth.signInWithPopup(
+      new firebase.default.auth.FacebookAuthProvider()
+    ));
+
+    return authResponse.pipe(
+      take(1),
+      map(creds => {
+        console.log('Retrieved these FB creds', creds);
+        if (!creds.user) {
+          throw new Error('No user found with those credentials.');
+        }
+        const authResultsData: AuthResultsData = {
+          avatarUrl: creds.user?.photoURL as string,
+          displayName: creds.user?.displayName?.split(' ')[0] as string,
+          email: creds.user?.email as string,
+          id: creds.user?.uid,
+          isNewUser: creds.additionalUserInfo?.isNewUser
+        };
+        console.log('Constructed this authResultsData', authResultsData);
+        return authResultsData;
+      }),
+      catchError(error => {
+        this.uiService.showSnackBar(error.message, 10000);
+        console.log('Error authenticating user', error);
         return throwError(error);
       })
     );
@@ -116,8 +148,8 @@ export class AuthService {
         return authResultsData;
       }),
       catchError(error => {
-        this.uiService.showSnackBar(`Hmm, that didn't work. Double check your entry and confirm that CAPSLOCK is off.`, 10000);
-        console.log('Error registering user', error);
+        this.uiService.showSnackBar(error.message, 10000);
+        console.log('Error authenticating user', error);
         return throwError(error);
       })
     );
@@ -153,7 +185,7 @@ export class AuthService {
           return {userData: newUserData, userId: publicUser.id};
         }),
         catchError(error => {
-          this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error updating email', error);
           return throwError(error);
         })
@@ -178,7 +210,7 @@ export class AuthService {
           return 'success';
         }),
         catchError(error => {
-          this.uiService.showSnackBar('Error performing action. Changes not saved.', 10000);
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error updating password', error);
           return throwError(error);
         })

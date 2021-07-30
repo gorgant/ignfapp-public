@@ -107,6 +107,14 @@ export const userStoreReducer = createReducer(
       userUpdateError: action.error
     }
   }),
+
+  // Purge User Data
+  on(UserStoreActions.purgeUserData, (state, action) => {
+    return {
+      ...state,
+      userData: undefined
+    }
+  }),
   
 );
 

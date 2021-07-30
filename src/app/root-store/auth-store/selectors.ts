@@ -14,7 +14,7 @@ const getResetPasswordError = (state: AuthState) => state.resetPasswordError;
 const getResetPasswordSubmitted = (state: AuthState) => state.resetPasswordSubmitted;
 const getSignUpError = (state: AuthState) => state.signupError;
 
-export const selectAuthState = createFeatureSelector<AuthState>(PublicStoreFeatureKeys.AUTH);
+const selectAuthState = createFeatureSelector<AuthState>(PublicStoreFeatureKeys.AUTH);
 
 
 export const selectAuthError = createSelector(

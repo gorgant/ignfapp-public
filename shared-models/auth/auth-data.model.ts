@@ -2,8 +2,8 @@ import { PublicUserKeys } from "../user/public-user.model";
 
 export enum AuthFormKeys {
   EMAIL = 'email',
+  FIRST_NAME = 'firstName',
   PASSWORD = 'password',
-  FIRST_NAME = 'firstName'
 }
 
 export interface AuthFormData {
@@ -15,4 +15,7 @@ export interface AuthFormData {
 export interface AuthResultsData {
   [PublicUserKeys.ID]: string;
   [PublicUserKeys.EMAIL]: string;
+  [PublicUserKeys.AVATAR_URL]?: string;
+  [PublicUserKeys.DISPLAY_NAME]?: string;
+  isNewUser?: boolean;
 }

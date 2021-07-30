@@ -71,3 +71,7 @@ export const updateUserFailed = createAction(
   '[User Service] Update User Failed',
   props<{error: firebase.default.FirebaseError}>()
 );
+
+export const purgeUserData = createAction(
+  '[AppWide] Purge User Data'
+);

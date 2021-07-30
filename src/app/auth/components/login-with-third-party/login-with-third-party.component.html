@@ -1,0 +1,24 @@
+<section fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <button 
+    type="button" 
+    mat-raised-button
+    class="google-button"
+    (click)="onGoogleLogin()"
+    >
+      <mat-icon class="button-icon">
+        <img class="logo" [src]="googleLogoSvg" alt="">
+      </mat-icon>
+      Continue with Google
+  </button>
+  <button 
+    type="button" 
+    mat-raised-button
+    class="facebook-button"
+    (click)="onFacebookLogin()"
+    >
+      <mat-icon class="button-icon">
+        <img class="logo" [src]="facebookLogoSvg" alt="">
+      </mat-icon>
+      Continue with Facebook
+  </button>
+</section>

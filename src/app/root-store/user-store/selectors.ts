@@ -10,7 +10,7 @@ const getUserData = (state: UserState) => state.userData;
 const getUserFetchError = (state: UserState) => state.userFetchError;
 const getUserUpdateError = (state: UserState) => state.userUpdateError;
 
-export const selectUserState = createFeatureSelector<UserState>(PublicStoreFeatureKeys.USER);
+const selectUserState = createFeatureSelector<UserState>(PublicStoreFeatureKeys.USER);
 
 export const selectIsCreatingUser = createSelector(
   selectUserState,

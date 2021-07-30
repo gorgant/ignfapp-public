@@ -36,6 +36,38 @@ export const emailSignupFailed = createAction(
   props<{error: firebase.default.FirebaseError}>()
 );
 
+// Facebook Auth
+
+export const facebookAuthRequested = createAction(
+  '[Login Form] Facebook Auth Requested',
+);
+
+export const facebookAuthCompleted = createAction(
+  '[Auth Service] Facebook Auth Completed',
+  props<{authResultsData: AuthResultsData}>()
+);
+
+export const facebookAuthFailed = createAction(
+  '[Auth Service] Facebook Auth Failed',
+  props<{error: firebase.default.FirebaseError}>()
+);
+
+// Google Auth
+
+export const googleAuthRequested = createAction(
+  '[Login Form] Google Auth Requested',
+);
+
+export const googleAuthCompleted = createAction(
+  '[Auth Service] Google Auth Completed',
+  props<{authResultsData: AuthResultsData}>()
+);
+
+export const googleAuthFailed = createAction(
+  '[Auth Service] Google Auth Failed',
+  props<{error: firebase.default.FirebaseError}>()
+);
+
 // Logout
 
 export const logout = createAction(

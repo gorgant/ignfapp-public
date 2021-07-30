@@ -1,4 +1,5 @@
 <div class="component-container">
+
   <form 
       class="auth-user-form" 
       [formGroup]="authUserForm" 
@@ -6,7 +7,7 @@
       fxLayout="column" 
       fxLayoutAlign="center center"
       fxLayoutGap="16px"
-      [fxHide]="(loginProcessing$ | async) || (authStatus$ | async) || showResetMessage"
+      [fxHide]="(userData$ | async) || showResetMessage"
       >
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
@@ -30,7 +31,7 @@
       </button>
     </div>
     <button 
-      [disabled]="(email.invalid && (email.dirty || email.touched)) || (loginProcessing$ | async)"
+      [disabled]="(email.invalid && (email.dirty || email.touched))"
       class="submit-button" 
       type="submit" 
       mat-raised-button 
@@ -38,12 +39,6 @@
         {{ submitButtonValue }}
     </button>
   </form>
-  <div *ngIf="loginProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-    <mat-spinner class="processing-spinner"></mat-spinner>
-    <h2 class="processing-message">
-      Authentication in progress, please wait...
-    </h2>
-  </div>
   <div *ngIf="showResetMessage" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <h2 class="processing-message">
       Check your inbox for an email to reset your password.
