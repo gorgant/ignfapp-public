@@ -9,7 +9,7 @@ import { RootStoreState, UiStoreActions } from './root-store';
 })
 export class AppComponent {
   title = 'ignfapp-public';
-  appVersion = '0.0.3'
+  appVersion = '0.0.4'
 
   constructor(
     private store: Store<RootStoreState.AppState>,

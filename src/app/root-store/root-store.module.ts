@@ -30,7 +30,7 @@ import { UiStoreModule } from './ui-store';
         }
       }),
       EffectsModule.forRoot([]),
-      !environment.production ? StoreDevtoolsModule.instrument() : [],
+      !environment.production ? StoreDevtoolsModule.instrument() : [], // TODO: Figure out why this doesn't work when deployed to server
       StoreRouterConnectingModule.forRoot(
         { 
           stateKey: 'router',
