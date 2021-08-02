@@ -2,6 +2,18 @@ import { createAction, props } from "@ngrx/store";
 import { AuthFormData, AuthResultsData } from "shared-models/auth/auth-data.model";
 import { EmailVerificationData } from "shared-models/email/email-verification-data";
 
+// Auth Guard
+
+export const authGuardValidated = createAction(
+  '[Auth Guard] Auth Guard Validated'
+);
+
+
+export const authGuardFailed = createAction(
+  '[Auth Guard] Auth Guard Failed',
+  props<{error: firebase.default.FirebaseError}>()
+);
+
 // Email Auth
 
 export const emailAuthRequested = createAction(

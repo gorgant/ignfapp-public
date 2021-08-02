@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginGuard } from 'src/app/core/route-guards/login.guard';
 import { EmailVerificationComponent } from '../components/email-verification/email-verification.component';
 import { LoginComponent } from '../components/login/login.component';
 import { SignupComponent } from '../components/signup/signup.component';
@@ -7,15 +8,17 @@ import { SignupComponent } from '../components/signup/signup.component';
 const routes: Routes = [
   {
     path: 'signup',
-    component: SignupComponent, // TODO: Add a canActivate Login Guard (see Zentimer)
+    component: SignupComponent,
+    canActivate: [LoginGuard]
    },
   {
     path: 'login',
-    component: LoginComponent, // TODO: Add a canActivate Login Guard (see Zentimer)
+    component: LoginComponent,
+    canActivate: [LoginGuard]
    },
    {
     path: 'email-verification/:uId/:eId/:isPl',
-    component: EmailVerificationComponent, // TODO: Add a canActivate Login Guard (see Zentimer)
+    component: EmailVerificationComponent,
    },
 ];
 

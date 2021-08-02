@@ -12,6 +12,22 @@ import { AuthState, initialAuthState } from './state';
 export const authStoreReducer = createReducer(
   initialAuthState,
 
+  // Auth Guard Failure
+
+  on(AuthStoreActions.authGuardValidated, (state, action) => {
+    return {
+      ...state,
+      authGuardError: undefined
+    }
+  }),
+
+  on(AuthStoreActions.authGuardFailed, (state, action) => {
+    return {
+      ...state,
+      authGuardError: action.error
+    }
+  }),
+
   // Email Auth
 
   on(AuthStoreActions.emailAuthRequested, (state, action) => {

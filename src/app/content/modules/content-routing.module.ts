@@ -4,18 +4,17 @@ import { Routes, RouterModule } from '@angular/router';
 const routes: Routes = [
   {
     path: 'dashboard',
-    loadChildren: () => import('../components/dashboard/modules/dashboard/dashboard.module').then(m => m.DashboardModule)
+    loadChildren: () => import('../components/dashboard/modules/dashboard.module').then(m => m.DashboardModule)
   },
   {
-    path: 'prelaunch',
-    loadChildren: () => import('../components/prelaunch/modules/prelaunch.module').then(m => m.PrelaunchModule)
+    path: 'profile',
+    loadChildren: () => import('../components/profile/modules/profile.module').then(m => m.ProfileModule)
   },
   {
     path: '',
-    redirectTo: 'prelaunch', // TODO: Change default landing page to dashboard once app is live
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   },
-
 ];
 
 @NgModule({

@@ -2,6 +2,7 @@ import { AuthResultsData } from "shared-models/auth/auth-data.model";
 
 export interface AuthState {
   authError: {} | undefined,
+  authGuardError: {} | undefined,
   authProcessing: boolean,
   emailVerified: boolean,
   emailVerificationError: {} | undefined,
@@ -16,6 +17,7 @@ export interface AuthState {
 
 export const initialAuthState: AuthState = {
   authError: undefined,
+  authGuardError: undefined,
   authProcessing: false,
   emailVerified: false,
   emailVerificationError: undefined,
