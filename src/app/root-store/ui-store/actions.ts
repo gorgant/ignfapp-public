@@ -16,3 +16,13 @@ export const environmentTypeFailed = createAction(
   '[Ui Service] Environment Type Failed',
   props<{error: firebase.default.FirebaseError}>()
 );
+
+// Nav Bar Visibility
+
+export const showNavBar = createAction(
+  '[Ui Service] Show Nav Bar',
+);
+
+export const hideNavBar = createAction(
+  '[Ui Service] Hide Nav Bar',
+);

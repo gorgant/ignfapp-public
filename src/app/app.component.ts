@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { RootStoreState, UiStoreActions } from './root-store';
+import { select, Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { RootStoreState, UiStoreActions, UiStoreSelectors } from './root-store';
 
 @Component({
   selector: 'app-root',
@@ -11,16 +12,23 @@ export class AppComponent {
   title = 'ignfapp-public';
   appVersion = '0.0.4'
 
+  showNavBar$!: Observable<boolean>;
+
   constructor(
     private store: Store<RootStoreState.AppState>,
   ) { }
 
   ngOnInit(): void {
     this.initializeEnvironmentType();
+    this.initializeNavBarVisibility();
   }
 
   private initializeEnvironmentType() {
     this.store.dispatch(UiStoreActions.environmentTypeRequested());
+  }
+
+  private initializeNavBarVisibility() {
+    this.showNavBar$ = this.store.pipe(select(UiStoreSelectors.selectShowNavBar));
   }
 
 }

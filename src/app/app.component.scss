@@ -1,21 +1,26 @@
 @import "./variables";
 
-.logo {
-  width: 40%;
+
+.app-content {
+  padding-bottom: 72px;
 }
 
-.message {
-  font-size: 80px;
+// router-outlet {
+//   padding-bottom: 200px;
+// }
+
+.footer-container {
+  width: 100%;
 }
 
-@media screen and (max-width: $mobile-cutoff-width) {
+app-nav-bar {
+  // background-color: #333;
+  overflow: hidden;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
 
-  .logo {
-    width: 80%;
-  }
-  .message {
-    text-align: center;
-    font-size: 50px;
-    line-height: 50px;
-  }
+@media screen and (min-width: $mobile-cutoff-width) {
+
 }

@@ -5,6 +5,7 @@ import { UiState } from "./state";
 const getEnvironmentType = (state: UiState) => state.environmentType;
 const getEnvironmentTypeError = (state: UiState) => state.evironmentTypeError;
 const getIsFetchingEnvironmentType = (state: UiState) => state.environmentTypeProcessing;
+const getShowNavBar = (state: UiState) => state.showNavBar;
 
 const selectUiState = createFeatureSelector<UiState>(PublicStoreFeatureKeys.UI);
 
@@ -21,6 +22,11 @@ export const selectEnvironmentTypeError = createSelector(
 export const selectIsFetchingEnvironmentType = createSelector(
   selectUiState,
   getIsFetchingEnvironmentType
+);
+
+export const selectShowNavBar = createSelector(
+  selectUiState,
+  getShowNavBar
 );
 
 

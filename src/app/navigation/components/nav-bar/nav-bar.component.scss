@@ -1,0 +1,61 @@
+@import "../../../variables";
+
+.footer-container {
+  margin-bottom: 16px;
+}
+
+mat-icon {
+  color: $primary;
+}
+
+.menu-fab {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(228, 41, 41, 0.4);
+  line-height: 50px;
+}
+
+.browse-fab, .profile-fab {
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  font-size: 30px;
+  
+  &::ng-deep .mat-button-wrapper{
+    line-height: 40px;
+    padding: 0;
+
+     .mat-icon {
+         font-size: 30px;
+         padding-right: 7px;
+         padding-bottom: 10px;
+     }
+  }
+
+}
+
+.workout-fab {
+  width: 64px;
+  height: 64px;
+  line-height: 60px;
+  font-size: 60px;
+  
+  &::ng-deep .mat-button-wrapper{
+      line-height: 40px;
+      padding: 0;
+
+       .mat-icon {
+           font-size: 40px;
+           padding-right: 15px;
+           padding-top: 0px;
+           padding-bottom: 20px;
+       }
+  }
+}
+
+@media screen and (min-width: $mobile-cutoff-width) {
+  .footer-container {
+    margin-bottom: 64px;
+  }
+}

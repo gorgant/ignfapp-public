@@ -14,6 +14,7 @@ import { AngularFireStorageModule } from '@angular/fire/storage';
 import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFireFunctionsModule } from '@angular/fire/functions';
 import { RootStoreModule } from './root-store';
+import { NavigationModule } from './navigation/modules/navigation.module';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { RootStoreModule } from './root-store';
     AngularFireAuthModule,
     AngularFireFunctionsModule,
     AuthModule,
+    NavigationModule,
     AppRoutingModule,
     RootStoreModule,
   ],

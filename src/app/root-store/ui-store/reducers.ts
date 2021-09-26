@@ -29,6 +29,21 @@ export const uiStoreReducer = createReducer(
       evironmentTypeError: action.error
     }
   }),
+
+  // Nav Bar Visibility
+  on(UiStoreActions.showNavBar, (state, action) => {
+    return {
+      ...state,
+      showNavBar: true,
+    }
+  }),
+  on(UiStoreActions.hideNavBar, (state, action) => {
+    return {
+      ...state,
+      showNavBar: false,
+    }
+  }),
+
   
 );
 

@@ -4,10 +4,12 @@ export interface UiState {
   environmentType: EnvironmentTypes | undefined
   evironmentTypeError: {} | undefined,
   environmentTypeProcessing: boolean,
+  showNavBar: boolean
 }
 
 export const initialUiState: UiState = {
   environmentType: undefined,
   evironmentTypeError: undefined,
-  environmentTypeProcessing: false
+  environmentTypeProcessing: false,
+  showNavBar: false
 }
