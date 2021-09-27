@@ -1,0 +1,35 @@
+<div class="component-container" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  
+  <div fxLayoutAlign="center center" *ngIf="loading$ | async">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+  </div>
+
+  <div class="avatar-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <img [src]="defaultProfileImage" class="avatar">
+    <div id="email" class="mat-subheading-1">
+      {{ user.email }}
+    </div>
+  </div>
+
+  <button mat-icon-button color="accent" aria-label="Example icon button with a menu icon">
+    <mat-icon>insights</mat-icon>
+  </button>
+
+  <button mat-icon-button color="accent" aria-label="Example icon button with a menu icon">
+    <mat-icon>insights</mat-icon>
+    My Stats
+  </button>
+
+  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
+    My Stats
+  </button>
+
+  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
+    My Profile
+  </button>
+
+  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
+    App Settings
+  </button>
+
+</div>

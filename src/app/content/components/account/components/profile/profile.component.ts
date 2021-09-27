@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthStoreActions, RootStoreState, UserStoreActions } from 'src/app/root-store';
+import { RootStoreState, AuthStoreActions, UserStoreActions } from 'src/app/root-store';
 import { selectUserData } from 'src/app/root-store/user-store/selectors';
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class ProfileComponent implements OnInit {
 
   logoutButtonValue = UserRegistrationButtonValues.LOGOUT;
   

@@ -15,7 +15,7 @@ export class AppComponent {
   showNavBar$!: Observable<boolean>;
 
   constructor(
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
   ) { }
 
   ngOnInit(): void {
@@ -24,11 +24,11 @@ export class AppComponent {
   }
 
   private initializeEnvironmentType() {
-    this.store.dispatch(UiStoreActions.environmentTypeRequested());
+    this.store$.dispatch(UiStoreActions.environmentTypeRequested());
   }
 
   private initializeNavBarVisibility() {
-    this.showNavBar$ = this.store.pipe(select(UiStoreSelectors.selectShowNavBar));
+    this.showNavBar$ = this.store$.pipe(select(UiStoreSelectors.selectShowNavBar));
   }
 
 }

@@ -8,9 +8,24 @@ export const authGuardValidated = createAction(
   '[Auth Guard] Auth Guard Validated'
 );
 
-
 export const authGuardFailed = createAction(
   '[Auth Guard] Auth Guard Failed',
+  props<{error: firebase.default.FirebaseError}>()
+);
+
+// Detect Cached User
+
+export const detectCachedUserRequested = createAction(
+  '[App Component] Detected Cached User Requested'
+);
+
+export const detectCachedUserCompleted = createAction(
+  '[App Component] Detected Cached User Completed',
+  props<{authResultsData: AuthResultsData | undefined}>()
+);
+
+export const detectCachedUserFailed = createAction(
+  '[App Component] Detected Cached User Failed',
   props<{error: firebase.default.FirebaseError}>()
 );
 

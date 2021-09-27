@@ -1,11 +1,11 @@
 export enum PublicAppRoutes {
+  ACCOUNT = '/account',
   BROWSE = '/browse',
-  DASHBOARD = '/dashboard',
   EMAIL_VERIFICATION = '/email-verification',
   LOGIN = '/login',
   PRELAUNCH = '/prelaunch',
   PRIVACY_POLICY = '/legal/privacy-policy',
-  PROFILE = '/profile',
+  PROFILE = '/account/profile',
   SIGNUP = '/signup',
   TERMS_AND_CONDITIONS = '/legal/terms-and-conditions',
   WORKOUT = '/workout'

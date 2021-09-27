@@ -25,7 +25,7 @@ export class LoginComponent implements OnInit {
   useEmailLogin: boolean = false;
 
   constructor(
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
   ) { }
 
   ngOnInit(): void {
@@ -37,13 +37,13 @@ export class LoginComponent implements OnInit {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
-        this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+        this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
+        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
       ]
     ).pipe(
         map(([signingUp, authenticating, creatingUser, updatingUser]) => {
@@ -54,7 +54,7 @@ export class LoginComponent implements OnInit {
         })
     );
     
-    this.userData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
 

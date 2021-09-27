@@ -13,6 +13,28 @@ export class AuthStoreEffects {
     private authService: AuthService,
   ) { }
 
+
+  detectCachedUser$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.detectCachedUserRequested),
+      switchMap(action => 
+        this.authService.fetchCachedUserData().pipe(
+          map(authResultsData => {
+            return AuthStoreActions.detectCachedUserCompleted({authResultsData});
+          }),
+          catchError(error => {
+            const fbError: firebase.default.FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.detectCachedUserFailed({error: fbError}));
+          })
+        )
+      )
+    )
+  );
+
   emailAuthEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.emailAuthRequested),

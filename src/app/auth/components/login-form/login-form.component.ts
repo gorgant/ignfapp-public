@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
@@ -42,9 +42,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
@@ -53,11 +54,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
       ]
     ).pipe(
         map(([authenticating, updatingUser]) => {
@@ -67,7 +68,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
           return false
         })
     );
-    this.userData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
   private initForm(): void {
@@ -88,7 +89,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       password: this.password.value
     }
 
-    this.store.dispatch(AuthStoreActions.emailAuthRequested({authData: authFormData}));
+    this.store$.dispatch(AuthStoreActions.emailAuthRequested({authData: authFormData}));
     this.postAuthActions();
   }
 
@@ -96,7 +97,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   private postAuthActions() {
     this.authSubscription = this.authStatus$
       .pipe(
-        withLatestFrom(this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)))
+        withLatestFrom(this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)))
       )
     
       .subscribe(([isAuth, authResultsData]) => {
@@ -109,7 +110,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
             userData,
             updateType: UserUpdateType.AUTHENTICATION
           }
-          this.store.dispatch(UserStoreActions.updateUserRequested({userUpdateData}))
+          this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}))
           this.postUserUpdateActions(userData.id as string);
         }
       });
@@ -123,14 +124,14 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       .subscribe(([user, authProcessing]) => {
         // Need to check for user here bc there's a short gap in signupProcessing btw auth and user creation
         if (user && !authProcessing && !this.userFetched) {
-          this.store.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
+          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
           this.userFetched = true;
         }
         
         // If email is verified, proceed to dashboard (otherwise email verification request is provided)
         if (user?.emailVerified) {
-          console.log('Email verified, routing user to dashboard');
-          this.router.navigate([PublicAppRoutes.DASHBOARD]);
+          console.log('Email verified.');
+          this.redirectUserToRequestedRoute();
         }
 
         if (user && !user?.emailVerified) {
@@ -138,6 +139,18 @@ export class LoginFormComponent implements OnInit, OnDestroy {
           console.log(`User has not verified email. Requesting verification for ${user.email}`);
         }
       })
+  }
+
+  // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
+  private redirectUserToRequestedRoute(): void {
+
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+
+    if (returnUrl && returnUrl !== '/') {
+      this.router.navigate([returnUrl]);
+    } else {
+      this.router.navigate([PublicAppRoutes.WORKOUT]);
+    }
   }
 
   onResetPassword() {

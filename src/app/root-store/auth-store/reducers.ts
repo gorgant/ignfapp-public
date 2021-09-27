@@ -28,6 +28,30 @@ export const authStoreReducer = createReducer(
     }
   }),
 
+  // Detect Cached User
+
+  on(AuthStoreActions.detectCachedUserRequested, (state, action) => {
+    return {
+      ...state,
+      authProcessing: true,
+      authError: undefined
+    }
+  }),
+  on(AuthStoreActions.detectCachedUserCompleted, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authResultsData: action.authResultsData
+    }
+  }),
+  on(AuthStoreActions.detectCachedUserFailed, (state, action) => {
+    return {
+      ...state,
+      authProcessing: false,
+      authError: action.error
+    }
+  }),
+
   // Email Auth
 
   on(AuthStoreActions.emailAuthRequested, (state, action) => {

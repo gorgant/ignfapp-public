@@ -1,4 +1,4 @@
-<div class="page-container" fxLayout="column" fxLayoutGap.gt-sm="32px">
+<div class="page-container" fxLayout="column" fxLayoutGap="0px" fxLayoutGap.gt-sm="32px">
   <app-auth-header></app-auth-header>
   <div fxHide [fxShow]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async)" class="login-options" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <app-login-with-third-party></app-login-with-third-party>

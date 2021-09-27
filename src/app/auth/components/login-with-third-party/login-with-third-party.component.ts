@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
@@ -33,8 +33,9 @@ export class LoginWithThirdPartyComponent implements OnInit {
   userSubscription!: Subscription;
 
   constructor(
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
     private router: Router,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
@@ -42,13 +43,13 @@ export class LoginWithThirdPartyComponent implements OnInit {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
-        this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+        this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
+        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
       ]
     ).pipe(
         map(([signingUp, authenticating, creatingUser, updatingUser]) => {
@@ -58,18 +59,18 @@ export class LoginWithThirdPartyComponent implements OnInit {
           return false
         })
     );
-    this.authResultsData$ = this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
-    this.userData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.authResultsData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
   onGoogleLogin() {
-    this.store.dispatch(AuthStoreActions.googleAuthRequested());
+    this.store$.dispatch(AuthStoreActions.googleAuthRequested());
     this.postAuthActions();
   }
 
   onFacebookLogin() {
     console.log('Dispatching facebook login');
-    this.store.dispatch(AuthStoreActions.facebookAuthRequested());
+    this.store$.dispatch(AuthStoreActions.facebookAuthRequested());
     this.postAuthActions();
   }
 
@@ -79,8 +80,8 @@ export class LoginWithThirdPartyComponent implements OnInit {
     this.authSubscription = this.authStatus$
       .pipe(
         withLatestFrom(
-          this.store.pipe(select(AuthStoreSelectors.selectAuthResultsData)),
-          this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser))
+          this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)),
+          this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser))
         )
       )
       .subscribe(([isAuth, authResultsData, isCreatingUser]) => {
@@ -105,7 +106,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       id: authResultsData.id,
       avatarUrl: authResultsData.avatarUrl
     }
-    this.store.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
+    this.store$.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
     this.postUserUpdateActions(partialNewUserData.id as string);
   }
 
@@ -118,7 +119,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       userData,
       updateType: UserUpdateType.AUTHENTICATION
     }
-    this.store.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
+    this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
     this.postUserUpdateActions(userData.id as string);
   }
 
@@ -131,14 +132,14 @@ export class LoginWithThirdPartyComponent implements OnInit {
       .subscribe(([user, authProcessing]) => {
         // Need to check for user here bc there's a short gap in signupProcessing btw auth and user creation
         if (user && !authProcessing && !this.userFetched) {
-          this.store.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
+          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
           this.userFetched = true;
         }
         
         // If email is verified, proceed to dashboard (otherwise email verification request is provided)
         if (user?.emailVerified) {
-          console.log('Email verified, routing user to dashboard');
-          this.router.navigate([PublicAppRoutes.DASHBOARD]);
+          console.log('Email verified');
+          this.redirectUserToRequestedRoute();
         }
 
         if (user && !user?.emailVerified) {
@@ -147,6 +148,18 @@ export class LoginWithThirdPartyComponent implements OnInit {
         }
       })
   }
+
+    // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
+    private redirectUserToRequestedRoute(): void {
+
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+  
+      if (returnUrl && returnUrl !== '/') {
+        this.router.navigate([returnUrl]);
+      } else {
+        this.router.navigate([PublicAppRoutes.WORKOUT]);
+      }
+    }
 
   ngOnDestroy(): void {
     if (this.authSubscription) {

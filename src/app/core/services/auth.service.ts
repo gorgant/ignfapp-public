@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { UiService } from 'src/app/core/services/ui.service';
 import * as firebase from 'firebase/app';
@@ -18,7 +18,6 @@ import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-
 })
 export class AuthService {
 
-  private authStatus$ = new Subject<boolean>();
   private ngUnsubscribe$: Subject<void> = new Subject();
 
   constructor(
@@ -26,20 +25,26 @@ export class AuthService {
     private afAuth: AngularFireAuth,
     private fns: AngularFireFunctions,
     private uiService: UiService,
-    private route: ActivatedRoute,
-  ) { 
-    this.initAuthListener();
-  }
+  ) { }
 
-  // Listen for user, if exists, initiatle auth success actions, otherwise initiate logout actions
-  initAuthListener(): void {
-    this.afAuth.authState.subscribe(user => {
-      if (user) {
-        this.authSuccessActions(user);
-      } else {
-        this.postLogoutActions();
-      }
-    });
+ 
+
+  // Detect cached user data
+  fetchCachedUserData(): Observable<AuthResultsData | undefined> {
+    return this.afAuth.authState
+      .pipe(
+        take(1),
+        map(creds => {
+          if (creds) {
+            const authResultsData: AuthResultsData = {
+              id: creds.uid,
+              email: creds.email as string
+            }
+            return authResultsData;
+          }
+          return undefined;
+        })
+      );
   }
 
   signupUserWithEmailAndPassword(authFormData: AuthFormData): Observable<AuthResultsData> {
@@ -159,7 +164,6 @@ export class AuthService {
   logout(): void {
     this.preLogoutActions();
     this.afAuth.signOut();
-    // Post logout actions carried out by auth listener once logout detected
   }
 
   updateEmail(publicUser: PublicUser, password: string, newEmail: string): Observable<{userData: PublicUser, userId: string}> {
@@ -263,18 +267,8 @@ export class AuthService {
     return res;
   }
 
-  get userAuthStatus$() {
-    return this.authStatus$;
-  }
-
   get unsubTrigger$() {
     return this.ngUnsubscribe$;
-  }
-
-  // Check if this is a new user
-  private checkForNewUser(creds: firebase.default.auth.UserCredential): boolean {
-    const isNewUser = creds.additionalUserInfo?.isNewUser as boolean; 
-    return isNewUser;
   }
 
   private getUserCredentials(email: string, password: string): firebase.default.auth.AuthCredential {
@@ -285,16 +279,6 @@ export class AuthService {
     return credentials;
   }
 
-  private authSuccessActions(user: firebase.default.User): void {
-    this.authStatus$.next(true);
-    // const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
-    // if (returnUrl && returnUrl !== '/') {
-    //   this.router.navigate([returnUrl]);
-    // } else {
-    //   this.router.navigate([PublicAppRoutes.DASHBOARD]);
-    // }
-  }
-
   private preLogoutActions(): void {
     this.ngUnsubscribe$.next(); // Send signal to Firebase subscriptions to unsubscribe
     this.ngUnsubscribe$.complete(); // Send signal to Firebase subscriptions to unsubscribe
@@ -303,7 +287,4 @@ export class AuthService {
     this.router.navigate([PublicAppRoutes.LOGIN]);
   }
 
-  private postLogoutActions(): void {
-    this.authStatus$.next(undefined);
-  }
 }
