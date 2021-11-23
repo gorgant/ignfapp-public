@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate, CanLoad {
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean|Observable<boolean> {
 
-    console.log('canActivate triggered');
+    console.log('Authguard canActivate triggered');
 
     return this.authService.fetchCachedUserData()
       .pipe(
@@ -64,7 +64,7 @@ export class AuthGuard implements CanActivate, CanLoad {
 
   canLoad(route: Route, segments: UrlSegment[]): boolean | Observable<boolean> {
 
-    console.log('canLoad triggered');
+    console.log('Authguard canLoad triggered');
 
     return this.authService.fetchCachedUserData()
       .pipe(
@@ -104,7 +104,7 @@ export class AuthGuard implements CanActivate, CanLoad {
 
     );
 
-}
+  }
 
   // Collect segments and convert to a return url string
   private covertSegmentsToReturnUrl(segments: UrlSegment[]) {

@@ -25,9 +25,15 @@ export class AuthService {
     private afAuth: AngularFireAuth,
     private fns: AngularFireFunctions,
     private uiService: UiService,
-  ) { }
-
- 
+  ) {
+    
+    // If auth credentials are ever removed, immediately route user to login
+    this.afAuth.authState.subscribe(authState => {
+      if (!authState) {
+        this.router.navigate([PublicAppRoutes.LOGIN]);
+      }
+    })
+  }
 
   // Detect cached user data
   fetchCachedUserData(): Observable<AuthResultsData | undefined> {
@@ -284,7 +290,7 @@ export class AuthService {
     this.ngUnsubscribe$.complete(); // Send signal to Firebase subscriptions to unsubscribe
     // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
     this.ngUnsubscribe$ = new Subject<void>();
-    this.router.navigate([PublicAppRoutes.LOGIN]);
+    
   }
 
 }

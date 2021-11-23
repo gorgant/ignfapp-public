@@ -126,7 +126,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
 
         if (user?.emailVerified) {
             console.log('Email verified, routing user to dashboard');
-            this.router.navigate([PublicAppRoutes.DASHBOARD]);
+            this.router.navigate([PublicAppRoutes.WORKOUT]);
           }
         }
       )

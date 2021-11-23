@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { map, take } from 'rxjs/operators';
-import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, Route, UrlSegment } from '@angular/router';
 import { Observable } from 'rxjs';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AuthService } from '../services/auth.service';
@@ -17,12 +17,13 @@ export class LoginGuard {
 
   // Prevents user from getting to login screen if already logged in
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    console.log('Login guard activated');
+    console.log('Loginguard canActivate activated');
     return this.authService.fetchCachedUserData()
       .pipe(
         take(1),
         map(authResultsData => {
           if (authResultsData) {
+            console.log('Auth credentials present', authResultsData);
             if (state.url === PublicAppRoutes.LOGIN || state.url === PublicAppRoutes.SIGNUP) {
               // This prevents an infinite loop if coming directly from clean login path
               this.router.navigate([PublicAppRoutes.WORKOUT]);
@@ -37,4 +38,7 @@ export class LoginGuard {
         }),
       );
   }
+
 }
+
+
