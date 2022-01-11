@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { AngularFireAuth } from '@angular/fire/auth';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { UiService } from 'src/app/core/services/ui.service';
-import * as firebase from 'firebase/app';
-import 'firebase/auth';
+import * as firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { from, Observable, Subject, throwError, combineLatest, of } from 'rxjs';
 import { take, map, catchError, switchMap } from 'rxjs/operators';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
-import { AngularFireFunctions } from '@angular/fire/functions';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 
 @Injectable({
@@ -26,8 +26,8 @@ export class AuthService {
     private fns: AngularFireFunctions,
     private uiService: UiService,
   ) {
-    
-    // If auth credentials are ever removed, immediately route user to login
+
+    // If auth credentials are ever removed, immediately route user to login (disable for prod prelaunch mode)
     this.afAuth.authState.subscribe(authState => {
       if (!authState) {
         this.router.navigate([PublicAppRoutes.LOGIN]);

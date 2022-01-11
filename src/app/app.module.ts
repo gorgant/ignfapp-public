@@ -8,11 +8,11 @@ import { SharedModule } from './shared/shared.module';
 import { environment } from '../environments/environment';
 import { AuthModule } from './auth/modules/auth.module';
 
-import { AngularFireModule } from '@angular/fire';
-import { AngularFirestoreModule } from '@angular/fire/firestore';
-import { AngularFireStorageModule } from '@angular/fire/storage';
-import { AngularFireAuthModule } from '@angular/fire/auth';
-import { AngularFireFunctionsModule } from '@angular/fire/functions';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { RootStoreModule } from './root-store';
 import { NavigationModule } from './navigation/modules/navigation.module';
 

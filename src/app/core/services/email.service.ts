@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFireFunctions } from '@angular/fire/functions';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { Observable, throwError } from 'rxjs';
 import { catchError, take, tap } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
