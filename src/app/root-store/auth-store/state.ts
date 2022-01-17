@@ -9,7 +9,6 @@ export interface AuthState {
   emailVerificationProcessing: boolean,
   resetPasswordError: {} | undefined,
   resetPasswordProcessing: boolean,
-  resetPasswordSubmitted: boolean;
   signupError: {} | undefined, 
   signupProcessing: boolean,
   authResultsData: AuthResultsData | undefined,
@@ -24,7 +23,6 @@ export const initialAuthState: AuthState = {
   emailVerificationProcessing: false,
   resetPasswordError: undefined,
   resetPasswordProcessing: false,
-  resetPasswordSubmitted: false,
   signupError: undefined,
   signupProcessing: false,
   authResultsData: undefined,

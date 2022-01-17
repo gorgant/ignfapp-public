@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
 
@@ -17,8 +18,12 @@ export class ResetPasswordDialogueComponent implements OnInit {
   resetPasswordForm!: FormGroup;
   formValidationMessages = UserRegistrationFormValidationMessages;
 
+  resetPasswordTitle = GlobalFieldValues.RP_RESET_PASSWORD;
+  submitButtonValue = GlobalFieldValues.SUBMIT;
+  cancelButtonValue = GlobalFieldValues.CANCEL;
+
   resetPasswordProcessing$!: Observable<boolean>;
-  resetPasswordSubmitted$!: Observable<boolean>;
+  resetPasswordSubmitted!: boolean;
   resetPasswordError$!: Observable<{} | undefined>;
   resetPasswordSubscription!: Subscription;
 
@@ -26,7 +31,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ResetPasswordDialogueComponent>,
     @Inject(MAT_DIALOG_DATA) private emailString: string,
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
   ) { }
 
   ngOnInit() {
@@ -47,30 +52,36 @@ export class ResetPasswordDialogueComponent implements OnInit {
   }
 
   monitorResetRequests() {
-    this.resetPasswordProcessing$ = this.store.pipe(select(AuthStoreSelectors.selectIsResettingPassword));
-    this.resetPasswordSubmitted$ = this.store.pipe(select(AuthStoreSelectors.selectResetPasswordSubmitted));
-    this.resetPasswordError$ = this.store.pipe(select(AuthStoreSelectors.selectResetPasswordError));
+    this.resetPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsResettingPassword));
+    this.resetPasswordError$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordError));
   }
 
   onSubmit() {
     const email = this.email.value;
-    this.store.dispatch(AuthStoreActions.resetPasswordRequested({email}));
+    this.store$.dispatch(AuthStoreActions.resetPasswordRequested({email}));
+
+    this.resetPasswordSubmitted = true;
+    
     this.postResetActions();
   }
 
   postResetActions() {
     this.resetPasswordSubscription = this.resetPasswordProcessing$
       .pipe(
-        withLatestFrom(this.resetPasswordSubmitted$, this.resetPasswordError$)
+        withLatestFrom(this.resetPasswordError$)
       )
-      .subscribe(([resetProcessing, resetSubmitted, resetError]) => {
-        if (!resetProcessing && resetSubmitted) {
-          this.dialogRef.close(true);
-        }
+      .subscribe(([resetProcessing, resetError]) => {
         if (resetError) {
           console.log('Error resetting password, resetting form');
           this.resetPasswordSubscription.unsubscribe();
+          this.resetPasswordSubmitted = false;
+          return;
         }
+
+        if (!resetProcessing && this.resetPasswordSubmitted) {
+          this.dialogRef.close(true);
+        }
+
       })
   }
 

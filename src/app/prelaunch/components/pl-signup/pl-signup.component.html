@@ -36,14 +36,14 @@
   <div *ngIf="registrationProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <mat-spinner class="processing-spinner"></mat-spinner>
     <h2 class="processing-message">
-      Processing your submission, please wait...
+      {{ processingSubmissionValue }}
     </h2>
   </div>
   <div class="verify-email" *ngIf="(prelaunchUserData$ | async) && !userAlreadyRegistered" fxLayout="column" fxLayoutGap="32px">
-    <p>Now check your inbox to <span class="verify-text">verify your email</span>.</p>
-    <p>If you don't see it, be sure to check your Promotions Tab and Spam. Also be sure to add <span class="trusted-sender-text">{{ trustedEmailSender }}</span> to your trusted contacts.</p>
+    <p>{{ checkInboxBlurb1 }}, {{(prelaunchUserData$ | async)?.firstName}}. {{ checkInboxBlurb2 }} <span class="verify-text">{{ checkInboxBlurb3 }}</span>.</p>
+    <p>{{ checkSpamBlurb1 }} <span class="trusted-sender-text">{{ trustedEmailSender }}</span> {{ checkSpamBlurb2 }}.</p>
   </div>
   <div *ngIf="userAlreadyRegistered" fxLayout="column" fxLayoutAlign="center center">
-    <p class="already-registered">You're already registered!</p>
+    <p class="already-registered">{{ alreadyRegisteredBlurb }}</p>
   </div>
 </div>

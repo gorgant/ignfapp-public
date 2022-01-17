@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -16,6 +17,16 @@ export class SignupComponent implements OnInit {
 
   loginPath = PublicAppRoutes.LOGIN;
   trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
+
+  authProcessingBlurb = GlobalFieldValues.LI_AUTH_PROCESSING;
+  alreadyHaveAccountButtonValue = GlobalFieldValues.LI_ALREADY_HAVE_ACCOUNT;
+  orBlurb = GlobalFieldValues.OR_CAPS;
+  signUpWithEmailButtonValue = GlobalFieldValues.LI_SIGN_UP_WITH_EMAIL;
+  checkInboxBlurb1 = GlobalFieldValues.CHECK_INBOX_1;
+  checkInboxBlurb2 = GlobalFieldValues.CHECK_INBOX_2;
+  checkInboxBlurb3 = GlobalFieldValues.CHECK_INBOX_3;
+  checkSpamBlurb1 = GlobalFieldValues.CHECK_SPAM_1;
+  checkSpamBlurb2 = GlobalFieldValues.CHECK_SPAM_2;
 
   authStatus$!: Observable<boolean>;
   authOrUserUpdateProcessing$!: Observable<boolean>;

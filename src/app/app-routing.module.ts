@@ -8,15 +8,15 @@ const routes: Routes = [
     loadChildren: () => import('./prelaunch/modules/prelaunch.module').then(m => m.PrelaunchModule)
   },
   {
-    path: '**',
-    redirectTo: 'prelaunch',
-    pathMatch: 'full'
-  },
-  {
     path: '',
     loadChildren: () => import('./content/modules/content.module').then(m => m.ContentModule),
     canLoad: [AuthGuard],
     canActivate: [AuthGuard]
+  },
+  {
+    path: '**',
+    redirectTo: 'prelaunch',
+    pathMatch: 'full'
   },
 
 ];

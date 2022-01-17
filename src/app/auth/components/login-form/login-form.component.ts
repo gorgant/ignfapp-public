@@ -6,10 +6,11 @@ import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData } from 'shared-models/auth/auth-data.model';
-import { UserRegistrationButtonValues, UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues } from 'shared-models/forms/user-registration-form-vals.model';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
+import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PublicUser } from 'shared-models/user/public-user.model';
+import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset-password-dialogue.component';
@@ -22,11 +23,13 @@ import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset
 export class LoginFormComponent implements OnInit, OnDestroy {
 
   authUserForm!: FormGroup;
-  formFieldKeys = UserRegistrationFormFieldKeys;
   formValidationMessages = UserRegistrationFormValidationMessages;
-  emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
-  passwordFieldValue = UserRegistrationFormFieldValues.PASSWORD;
-  submitButtonValue = UserRegistrationButtonValues.LOGIN;
+  
+  emailFieldValue = GlobalFieldValues.EMAIL;
+  passwordFieldValue = GlobalFieldValues.PASSWORD;
+  forgotPasswordBlurb = GlobalFieldValues.RP_FORGOT_PASSWORD;
+  checkInboxBlurb = GlobalFieldValues.RP_CHECK_INBOX;
+  logInButtonValue = GlobalFieldValues.LOGIN;
 
   authStatus$!: Observable<boolean>;
   authOrUserUpdateProcessing$!: Observable<boolean>;
@@ -73,7 +76,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.authUserForm = this.fb.group({
-      [UserRegistrationFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]],
+      [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
       [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
@@ -174,6 +177,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   }
 
+  // Makes login screen visible again after completing a password reset
+  onRestoreLoginScreen() {
+    this.showResetMessage = false;
+  }
+
   ngOnDestroy() {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
@@ -186,7 +194,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get email() { return this.authUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
+  get email() { return this.authUserForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
   get password() { return this.authUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
 
 }

@@ -11,7 +11,6 @@ const getIsResettingPassword = (state: AuthState) => state.resetPasswordProcessi
 const getIsSigningUpUser = (state: AuthState) => state.signupProcessing;
 const getIsVerifyingEmail = (state: AuthState) => state.emailVerificationProcessing;
 const getResetPasswordError = (state: AuthState) => state.resetPasswordError;
-const getResetPasswordSubmitted = (state: AuthState) => state.resetPasswordSubmitted;
 const getSignUpError = (state: AuthState) => state.signupError;
 
 const selectAuthState = createFeatureSelector<AuthState>(PublicStoreFeatureKeys.AUTH);
@@ -65,12 +64,6 @@ export const selectIsSigningUpUser = createSelector(
 export const selectResetPasswordError = createSelector(
   selectAuthState,
   getResetPasswordError
-);
-
-
-export const selectResetPasswordSubmitted = createSelector(
-  selectAuthState,
-  getResetPasswordSubmitted
 );
 
 export const selectSignUpError = createSelector(

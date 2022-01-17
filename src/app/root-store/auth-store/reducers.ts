@@ -164,14 +164,12 @@ export const authStoreReducer = createReducer(
       ...state,
       resetPasswordProcessing: true,
       resetPasswordError: undefined,
-      resetPasswordSubmitted: false
     }
   }),
   on(AuthStoreActions.resetPasswordCompleted, (state, action) => {
     return {
       ...state,
       resetPasswordProcessing: false,
-      resetPasswordSubmitted: action.resetSubmitted
     }
   }),
   on(AuthStoreActions.resetPasswordFailed, (state, action) => {
@@ -179,7 +177,6 @@ export const authStoreReducer = createReducer(
       ...state,
       resetPasswordProcessing: false,
       resetPasswordError: action.error,
-      resetPasswordSubmitted: false
     }
   }),
 

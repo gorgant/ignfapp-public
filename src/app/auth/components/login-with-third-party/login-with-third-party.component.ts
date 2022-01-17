@@ -4,6 +4,7 @@ import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { AuthResultsData } from 'shared-models/auth/auth-data.model';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
@@ -21,6 +22,9 @@ export class LoginWithThirdPartyComponent implements OnInit {
   trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
   googleLogoSvg = PublicImagePaths.GOOGLE_ICON;
   facebookLogoSvg = PublicImagePaths.FACEBOOK_ICON;
+
+  continueWithGoogleButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_GOOGLE;
+  continueWithFacebookButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_FACEBOOK;
   
   authStatus$!: Observable<boolean>;
   authOrUserUpdateProcessing$!: Observable<boolean>;

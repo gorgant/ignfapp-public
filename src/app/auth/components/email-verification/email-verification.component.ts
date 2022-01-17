@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
@@ -14,6 +15,11 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/ro
 })
 export class EmailVerificationComponent implements OnInit {
 
+  confirmingEmailBlurb = GlobalFieldValues.EC_CONFIRMING_EMAIL;
+  verificationFailedBlurb = GlobalFieldValues.EC_VERIFICATION_FAILED;
+  emailConfirmedBlurb = GlobalFieldValues.EC_EMAIL_CONFIRMED;
+  checkYourInboxBlurb = GlobalFieldValues.EC_CHECK_INBOX;
+  
   supportEmail = EmailSenderAddresses.IGNFAPP_SUPPORT;
 
   emailVerified$!: Observable<boolean>;

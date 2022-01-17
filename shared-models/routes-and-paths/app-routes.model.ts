@@ -7,6 +7,8 @@ export enum PublicAppRoutes {
   PRIVACY_POLICY = '/legal/privacy-policy',
   PROFILE = '/account/profile',
   SIGNUP = '/signup',
+  SETTINGS = '/account/settings',
+  STATS = '/account/stats',
   TERMS_AND_CONDITIONS = '/legal/terms-and-conditions',
   WORKOUT = '/workout'
 }

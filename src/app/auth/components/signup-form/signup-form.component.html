@@ -29,7 +29,7 @@
       <input formControlName="password" matInput type="password">
       <mat-icon class="input-icon" matPrefix>lock</mat-icon>
       <mat-placeholder class="input-placeholder">{{ passwordFieldValue }}</mat-placeholder>
-      <mat-hint>Must be at least 6 characters</mat-hint>
+      <mat-hint>{{ passwordHint }}</mat-hint>
       <mat-error *ngFor="let validation of formValidationMessages.password">
         <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 6</span> </mat-error>
       </mat-error>

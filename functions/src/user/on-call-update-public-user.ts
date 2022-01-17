@@ -43,6 +43,7 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
 
   // If authentication update, just update that field
   if (updateType === UserUpdateType.AUTHENTICATION) {
+    functions.logger.log(`Auth timestamp update detected`);
     updatedUser.lastAuthenticated = now();
   }
 

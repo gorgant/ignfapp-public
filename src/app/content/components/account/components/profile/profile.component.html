@@ -1,9 +1,28 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32 px">
-  <p>Profile works!</p>
-  <div class="verify-email" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center">
-    <p>Login successful! Welcome {{user.firstName}}</p>
+<div class="component-container" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  
+  <div fxLayoutAlign="center center" *ngIf="loading$ | async">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
   </div>
-  <div fxLayout="column" fxLayoutAlign="center center">
-    <button mat-raised-button color="warn" (click)="onLogout()">{{ logoutButtonValue }}</button>
+
+  <div fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+
+    <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
+      <img [src]="user.avatarUrl ? user.avatarUrl : defaultProfileImage" class="avatar">
+      <button class="edit-button" mat-button color="primary" (click)="onEditAvatar()">{{ editButtonValue }}</button>
+    </div>
+    <div fxLayout="row" fxLayoutAlign="center center" >
+      <mat-icon>face</mat-icon>
+      <span>{{ user.firstName }} {{ user.lastName }}</span>
+      <button class="edit-button" mat-button color="primary" (click)="onEditName()">{{ editButtonValue }}</button>
+    </div>
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <mat-icon>mail</mat-icon>
+      <span>{{ user.email }}</span>
+      <button class="edit-button" mat-button color="primary" (click)="onEditEmail()">{{ editButtonValue }}</button>
+    </div>
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <mat-icon>lock</mat-icon>
+      <a class="password-button" (click)="onEditPassword()">{{ changePasswordButtonValue }}</a>
+    </div>
   </div>
 </div>

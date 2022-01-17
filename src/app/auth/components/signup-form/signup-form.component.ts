@@ -5,11 +5,12 @@ import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
-import { UserRegistrationFormFieldKeys, UserRegistrationFormFieldValues, UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
+import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PublicUser } from 'shared-models/user/public-user.model';
+import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -22,10 +23,13 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   registerUserForm!: FormGroup;
   formFieldKeys = UserRegistrationFormFieldKeys;
   formValidationMessages = UserRegistrationFormValidationMessages;
-  firstNameFieldValue = UserRegistrationFormFieldValues.FIRST_NAME;
-  emailFieldValue = UserRegistrationFormFieldValues.EMAIL;
-  passwordFieldValue = UserRegistrationFormFieldValues.CREATE_PASSWORD;
-  submitButtonValue = UserRegistrationButtonValues.CREATE_ACCOUNT;
+  
+  firstNameFieldValue = GlobalFieldValues.FIRST_NAME;
+  emailFieldValue = GlobalFieldValues.EMAIL;
+  passwordFieldValue = GlobalFieldValues.CREATE_PASSWORD;
+  submitButtonValue = GlobalFieldValues.CREATE_ACCOUNT;
+  passwordHint = GlobalFieldValues.LI_PASSWORD_HINT;
+  
   trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
   authStatus$!: Observable<boolean>;
@@ -68,9 +72,9 @@ export class SignupFormComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.registerUserForm = this.fb.group({
-      [UserRegistrationFormFieldKeys.FIRST_NAME]: ['', [Validators.required]],
-      [UserRegistrationFormFieldKeys.EMAIL]: ['', [Validators.required, Validators.email]],
-      [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(6)]],
+      [PublicUserKeys.FIRST_NAME]: ['', [Validators.required]],
+      [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
+      [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(8)]],
     });
   }
 
@@ -142,8 +146,8 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get firstName() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.FIRST_NAME) as AbstractControl; }
-  get email() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.EMAIL) as AbstractControl; }
+  get firstName() { return this.registerUserForm.get(PublicUserKeys.FIRST_NAME) as AbstractControl; }
+  get email() { return this.registerUserForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
   get password() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
 
 }

@@ -3,21 +3,21 @@
     <div *ngIf="emailVerificationProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-spinner class="processing-spinner"></mat-spinner>
       <p class="processing-message">
-        Confirming your email, please wait...
+        {{ confirmingEmailBlurb }}
       </p>
     </div>
     <div *ngIf="dispatchedEmailVerificationRequest && !(emailVerificationProcessing$ | async) && !(emailVerified$ | async)" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-icon class="failure-icon">cancel</mat-icon>
       <p class="failure-message">
-        Failed to verify your email. If you continue to receive this message, try registering again. If all else fails, contact <span class="support-text">{{supportEmail}}</span>.
+        {{ verificationFailedBlurb }}<span class="support-text">{{ supportEmail }}</span>.
       </p>
     </div>
     <div *ngIf="emailVerified$ | async" class="success-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-icon class="success-icon">check_circle_outline</mat-icon>
       <p class="success-message">
-        Success! Your email has been confirmed.
+        {{ emailConfirmedBlurb }}
       </p>
-      <p class="check-your-inbox">Check your inbox for a little hello from the IgnyteFit Team!</p>
+      <p class="check-your-inbox">{{ checkYourInboxBlurb }}</p>
     </div>
   </div>
 </div>

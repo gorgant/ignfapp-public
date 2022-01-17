@@ -5,31 +5,29 @@
   </div>
 
   <div class="avatar-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-    <img [src]="defaultProfileImage" class="avatar">
+    <img [src]="user.avatarUrl ? user.avatarUrl : defaultProfileImage" class="avatar">
     <div id="email" class="mat-subheading-1">
       {{ user.email }}
     </div>
   </div>
 
-  <button mat-icon-button color="accent" aria-label="Example icon button with a menu icon">
-    <mat-icon>insights</mat-icon>
-  </button>
+  <div fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
 
-  <button mat-icon-button color="accent" aria-label="Example icon button with a menu icon">
-    <mat-icon>insights</mat-icon>
-    My Stats
-  </button>
+    <a class="account-item-button" mat-button [routerLink]="statsUrl" color="primary">
+      <mat-icon>insights</mat-icon>
+      <span class="button-text">{{ statsButtonValue }}</span>
+    </a>
+  
+    <a class="account-item-button" mat-button [routerLink]="profileUrl" color="primary">
+      <mat-icon>badge</mat-icon>
+      <span class="button-text">{{ profileButtonValue }}</span>
+    </a>
+  
+    <a class="account-item-button" mat-button [routerLink]="settingsUrl" color="primary">
+      <mat-icon>settings</mat-icon>
+      <span class="button-text">{{ settingsButtonValue }}</span>
+    </a>
 
-  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
-    My Stats
-  </button>
-
-  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
-    My Profile
-  </button>
-
-  <button [routerLink]="profileUrl" class="action-button" type="button" mat-stroked-button color="primary">
-    App Settings
-  </button>
+  </div>
 
 </div>

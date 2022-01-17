@@ -27,7 +27,7 @@
     </mat-form-field>
     <div class="forgot-password-container" fxLayout="row" fxLayoutAlign="start center">
       <button class="reset-password-button" type="button" (click)="onResetPassword()"> 
-        Forgot password?
+        {{ forgotPasswordBlurb }}
       </button>
     </div>
     <button 
@@ -36,12 +36,13 @@
       type="submit" 
       mat-raised-button 
       color="primary">
-        {{ submitButtonValue }}
+        {{ logInButtonValue }}
     </button>
   </form>
   <div *ngIf="showResetMessage" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <h2 class="processing-message">
-      Check your inbox for an email to reset your password.
+      {{ checkInboxBlurb }}
     </h2>
+    <button mat-raised-button color="primary" (click)="onRestoreLoginScreen()">{{ logInButtonValue }}</button>
   </div>
 </div>

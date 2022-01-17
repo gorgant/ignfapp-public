@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PlLandingPageStrings } from 'shared-models/content/pl-signup-strings.model';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 
 @Component({
   selector: 'app-pl-landing-page',
@@ -8,8 +8,8 @@ import { PlLandingPageStrings } from 'shared-models/content/pl-signup-strings.mo
 })
 export class PlLandingPageComponent implements OnInit {
 
-  leadStatement = PlLandingPageStrings.LEAD_STATEMENT;
-  callToAction = PlLandingPageStrings.CALL_TO_ACTION;
+  leadStatement = GlobalFieldValues.LP_COMING_SOON;
+  callToAction = GlobalFieldValues.LP_JOIN_WAITLIST;
 
   constructor() { }
 
