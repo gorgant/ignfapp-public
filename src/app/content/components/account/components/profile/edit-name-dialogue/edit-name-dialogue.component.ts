@@ -38,8 +38,6 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
     private store$: Store<RootStoreState.AppState>,
   ) { }
 
-  // TODO: Update buttons (and all other strings in the app) to use variables for future translation purposes
-
   ngOnInit() {
     this.initForm();
     this.monitorUpdateRequests();
@@ -80,9 +78,6 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
     };
 
     this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
-
-    this.updateSubmitted = true;
-    
     this.postSubmitActions();
   }
 
@@ -92,6 +87,11 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
         withLatestFrom(this.userUpdateError$)
       )
       .subscribe(([updateProcessing, updateError]) => {
+
+        if (updateProcessing) {
+          this.updateSubmitted = true;
+        }
+
         if (updateError) {
           console.log('Error resetting password, resetting form');
           this.userUpdateSubscription.unsubscribe();

@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updateEmail, User } from '@angular/fire/auth';
+import { Functions, httpsCallableData }  from '@angular/fire/functions';
 import { UiService } from 'src/app/core/services/ui.service';
-import * as firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import { from, Observable, Subject, throwError, combineLatest, of } from 'rxjs';
+import { from, Observable, Subject, throwError, of, forkJoin } from 'rxjs';
 import { take, map, catchError, switchMap } from 'rxjs/operators';
-import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
-import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
+import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, getAdditionalUserInfo } from 'firebase/auth';
+import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,13 +21,13 @@ export class AuthService {
 
   constructor(
     private router: Router,
-    private afAuth: AngularFireAuth,
-    private fns: AngularFireFunctions,
+    private fns: Functions,
     private uiService: UiService,
+    private newAuth: Auth
   ) {
 
     // If auth credentials are ever removed, immediately route user to login (disable for prod prelaunch mode)
-    this.afAuth.authState.subscribe(authState => {
+    authState(this.newAuth).subscribe(authState => {
       if (!authState) {
         this.router.navigate([PublicAppRoutes.LOGIN]);
       }
@@ -37,7 +36,7 @@ export class AuthService {
 
   // Detect cached user data
   fetchCachedUserData(): Observable<AuthResultsData | undefined> {
-    return this.afAuth.authState
+    return authState(this.newAuth)
       .pipe(
         take(1),
         map(creds => {
@@ -55,10 +54,9 @@ export class AuthService {
 
   signupUserWithEmailAndPassword(authFormData: AuthFormData): Observable<AuthResultsData> {
 
-    const authResponse = from(this.afAuth.createUserWithEmailAndPassword(
-      authFormData.email,
-      authFormData.password
-    ));
+    const authResponse = from(
+      createUserWithEmailAndPassword(this.newAuth, authFormData.email, authFormData.password)
+    );
 
     return authResponse.pipe(
       take(1),
@@ -73,16 +71,16 @@ export class AuthService {
       catchError(error => {
         this.uiService.showSnackBar(error.message, 10000);
         console.log('Error registering user', error);
-        return throwError(error);
+        return throwError(() => new Error(error));
       })
     );
   };
 
   loginWithGoogle(): Observable<AuthResultsData> {
 
-    const authResponse = from(this.afAuth.signInWithPopup(
-      new firebase.default.auth.GoogleAuthProvider()
-    ));
+    const authResponse = from(
+      signInWithPopup(this.newAuth, new GoogleAuthProvider())
+    );
 
     return authResponse.pipe(
       take(1),
@@ -95,23 +93,23 @@ export class AuthService {
           displayName: creds.user?.displayName?.split(' ')[0] as string,
           email: creds.user?.email as string,
           id: creds.user?.uid,
-          isNewUser: creds.additionalUserInfo?.isNewUser
+          isNewUser: getAdditionalUserInfo(creds)?.isNewUser
         };
         return authResultsData;
       }),
       catchError(error => {
         this.uiService.showSnackBar(error.message, 10000);
         console.log('Error authenticating user', error);
-        return throwError(error);
+        return throwError(() => new Error(error));
       })
     );
   }
 
   loginWithFacebook(): Observable<AuthResultsData> {
 
-    const authResponse = from(this.afAuth.signInWithPopup(
-      new firebase.default.auth.FacebookAuthProvider()
-    ));
+    const authResponse = from(
+      signInWithPopup(this.newAuth, new FacebookAuthProvider())
+    );
 
     return authResponse.pipe(
       take(1),
@@ -125,7 +123,7 @@ export class AuthService {
           displayName: creds.user?.displayName?.split(' ')[0] as string,
           email: creds.user?.email as string,
           id: creds.user?.uid,
-          isNewUser: creds.additionalUserInfo?.isNewUser
+          isNewUser: getAdditionalUserInfo(creds)?.isNewUser
         };
         console.log('Constructed this authResultsData', authResultsData);
         return authResultsData;
@@ -133,17 +131,16 @@ export class AuthService {
       catchError(error => {
         this.uiService.showSnackBar(error.message, 10000);
         console.log('Error authenticating user', error);
-        return throwError(error);
+        return throwError(() => new Error(error));
       })
     );
   }
 
   loginWithEmail(authData: AuthFormData): Observable<AuthResultsData> {
 
-    const authResponse = from(this.afAuth.signInWithEmailAndPassword(
-      authData.email,
-      authData.password
-    ));
+    const authResponse = from(
+      signInWithEmailAndPassword(this.newAuth, authData.email, authData.password)
+    );
 
     console.log('Submitting auth request to FB');
 
@@ -161,7 +158,7 @@ export class AuthService {
       catchError(error => {
         this.uiService.showSnackBar(error.message, 10000);
         console.log('Error authenticating user', error);
-        return throwError(error);
+        return throwError(() => new Error(error));
       })
     );
 
@@ -169,67 +166,44 @@ export class AuthService {
 
   logout(): void {
     this.preLogoutActions();
-    this.afAuth.signOut();
+    signOut(this.newAuth);
   }
 
-  updateEmail(publicUser: PublicUser, password: string, newEmail: string): Observable<{userData: PublicUser, userId: string}> {
-    
-    return from(this.afAuth.currentUser)
-      .pipe(
+  // Note email must also be updated separately in the Firestore database via the User Auth service
+  updateEmail(emailUpdateData: EmailUpdateData): Observable<boolean> {
+
+    const authResponse = from(
+      authState(this.newAuth).pipe(
         take(1),
         switchMap(user => {
-          const credentials = this.getUserCredentials(publicUser.email, password);
-          const reauthResults = (user?.reauthenticateWithCredential(credentials) as Promise<firebase.default.auth.UserCredential>);
-          return combineLatest([of(user), from(reauthResults)])
+          const credentials = this.getUserCredentials(emailUpdateData.oldEmail, emailUpdateData.password);
+          const reauthResults = reauthenticateWithCredential(user!, credentials); // This seems to trigger some sort of POST error in client, likely do to refreshed credentials, doesn't seem to be an issue
+          console.log('User credentials approved');
+          return forkJoin(
+            [of(user as User), from(reauthResults)]
+          )
         }),
-        switchMap(([user, userCreds]) => {
-          return user!.updateEmail(newEmail);
-        }),
-        map(empt => {
-          const newUserData: PublicUser = {
-            ...publicUser,
-            email: newEmail
-          };
-          this.uiService.showSnackBar(`Email successfully updated: ${newEmail}`, 5000);
-          // TODO: Also update user in publicUsers FB collection (separate action)
-          return {userData: newUserData, userId: publicUser.id};
+        map(([user, userCreds]) => {
+          updateEmail(user, emailUpdateData.newEmail);
+          console.log('Email updated in Auth');
+          return true;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating email', error);
-          return throwError(error);
+          console.log('Error updating user email in auth', error);
+          return throwError(() => new Error(error));
         })
-      );
-  }
+      )
+    );
 
-  updatePassword(publicUser: PublicUser, oldPassword: string, newPassword: string): Observable<string> {
-
-    return from(this.afAuth.currentUser)
-      .pipe(
-        take(1),
-        switchMap(user => {
-          const credentials = this.getUserCredentials(publicUser.email, oldPassword);
-          const reauthResults = (user?.reauthenticateWithCredential(credentials) as Promise<firebase.default.auth.UserCredential>);
-          return combineLatest([of(user), from(reauthResults)])
-        }),
-        switchMap(([user, userCreds]) => {
-          return user!.updatePassword(newPassword);
-        }),
-        map(empt => {
-          this.uiService.showSnackBar(`Password successfully updated`, 5000);
-          return 'success';
-        }),
-        catchError(error => {
-          this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating password', error);
-          return throwError(error);
-        })
-      );
+    return authResponse;
   }
 
   sendResetPasswordEmail(email: string): Observable<boolean> {
 
-    const authResponse = from(this.afAuth.sendPasswordResetEmail(email));
+    const authResponse = from(
+      sendPasswordResetEmail(this.newAuth, email)
+    );
 
     return authResponse.pipe(
       take(1),
@@ -242,7 +216,7 @@ export class AuthService {
       catchError(error => {
         this.uiService.showSnackBar(error.message, 10000);
         console.log('Error sending reset password email', error);
-        return throwError(error);
+        return throwError(() => new Error(error));
       })
     );
   }
@@ -251,7 +225,8 @@ export class AuthService {
 
     console.log('Submitting email to server for verification');
 
-    const verifyEmailHttpCall: (data: EmailVerificationData) => Observable<boolean> = this.fns.httpsCallable(
+    const verifyEmailHttpCall: (data: EmailVerificationData) => Observable<boolean> = httpsCallableData(
+      this.fns,
       PublicFunctionNames.ON_CALL_VERIFY_EMAIL
     );
     const res = verifyEmailHttpCall(emailVerificationData)
@@ -266,7 +241,7 @@ export class AuthService {
         }),
         catchError(error => {
           console.log('Error confirming subscriber', error);
-          return throwError(error);
+          return throwError(() => new Error(error));
         })
       );
 
@@ -277,11 +252,14 @@ export class AuthService {
     return this.ngUnsubscribe$;
   }
 
-  private getUserCredentials(email: string, password: string): firebase.default.auth.AuthCredential {
-    const credentials = firebase.default.auth.EmailAuthProvider.credential(
+  
+  private getUserCredentials(email: string, password: string): AuthCredential {
+
+    const credentials = EmailAuthProvider.credential(
       email,
       password
     );
+    
     return credentials;
   }
 

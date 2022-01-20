@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { UserRegistrationButtonValues } from 'shared-models/forms/user-registration-form-vals.model';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthStoreActions, RootStoreState, UserStoreActions } from 'src/app/root-store';
 import { selectUserData } from 'src/app/root-store/user-store/selectors';
@@ -13,7 +13,7 @@ import { selectUserData } from 'src/app/root-store/user-store/selectors';
 })
 export class SettingsComponent implements OnInit {
 
-  logoutButtonValue = UserRegistrationButtonValues.LOGOUT;
+  logoutButtonValue = GlobalFieldValues.LOGOUT;
   
   userData$!: Observable<PublicUser>;
 

@@ -1,15 +1,11 @@
 @import "../../../variables";
 
-.processing-spinner {
-  font-size: 96px;
-  height: 96px;
-  width: 96px;
-  color: $primary;
-}
-
-.processing-message {
-  color: $primary;
+.check-inbox-message {
+  margin-top: 32px;
   text-align: center;
+  font-size: 1.2em;
+  font-weight: $font-weight-light;
+  line-height: 1.2em;
 }
 
 mat-form-field {
@@ -45,11 +41,6 @@ mat-form-field {
   margin-top: -8px;
   width: 100%;
   max-width: 300px;
-}
-
-p {
-  line-height: 1.2em;
-  font-weight: $font-weight-light;
 }
 
 @media screen and (max-width: $mobile-cutoff-width) {

@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
@@ -22,7 +23,7 @@ export class UserStoreEffects {
             return UserStoreActions.createUserCompleted({newUser});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -43,7 +44,7 @@ export class UserStoreEffects {
             return UserStoreActions.fetchUserCompleted({publicUser});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -64,7 +65,7 @@ export class UserStoreEffects {
             return UserStoreActions.registerPrelaunchUserCompleted({prelaunchUser});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -85,7 +86,7 @@ export class UserStoreEffects {
             return UserStoreActions.updateUserCompleted({updatedUser});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name

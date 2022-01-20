@@ -96,7 +96,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.postAuthActions();
   }
 
-  // Update user data and navigate to dashboard
+  // Update user data
   private postAuthActions() {
     this.authSubscription = this.authStatus$
       .pipe(
@@ -119,6 +119,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       });
   }
 
+  // Fetch user and navigate to requested route
   private postUserUpdateActions(userId: string) {
     this.userSubscription = this.userData$
       .pipe(

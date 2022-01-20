@@ -180,6 +180,29 @@ export const authStoreReducer = createReducer(
     }
   }),
 
+  // Update Email
+
+  on(AuthStoreActions.updateEmailRequested, (state, action) => {
+    return {
+      ...state,
+      updateEmailProcessing: true,
+      updateEmailError: undefined
+    }
+  }),
+  on(AuthStoreActions.updateEmailCompleted, (state, action) => {
+    return {
+      ...state,
+      updateEmailProcessing: false,
+    }
+  }),
+  on(AuthStoreActions.updateEmailFailed, (state, action) => {
+    return {
+      ...state,
+      updateEmailProcessing: false,
+      updateEmailError: action.error
+    }
+  }),
+
   // Verify Email
 
   on(AuthStoreActions.verifyEmailRequested, (state, action) => {

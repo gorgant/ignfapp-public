@@ -1,3 +1,4 @@
+import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
 import { EmailUserData } from "shared-models/email/email-user-data.model";
 import { PrelaunchUser } from "shared-models/user/prelaunch-user.model";
@@ -18,7 +19,7 @@ export const createUserCompleted = createAction(
 
 export const createUserFailed = createAction(
   '[User Service] Create User Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Fetch User
@@ -35,7 +36,7 @@ export const fetchUserCompleted = createAction(
 
 export const fetchUserFailed = createAction(
   '[User Service] Fetch User Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Register Prelaunch User
@@ -52,7 +53,7 @@ export const registerPrelaunchUserCompleted = createAction(
 
 export const registerPrelaunchUserFailed = createAction(
   '[User Service] Register Prelaunch User Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Update User
@@ -69,7 +70,7 @@ export const updateUserCompleted = createAction(
 
 export const updateUserFailed = createAction(
   '[User Service] Update User Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 export const purgeUserData = createAction(

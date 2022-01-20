@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
@@ -22,7 +23,7 @@ export class UiStoreEffects {
             return UiStoreActions.environmentTypeRetrieved({environmentType});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name

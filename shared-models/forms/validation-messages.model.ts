@@ -11,7 +11,7 @@ export const UserRegistrationFormValidationMessages = {
   ],
   [UserRegistrationFormFieldKeys.PASSWORD]: [
     { type: 'required', message: 'Password is required.'},
-    { type: 'minlength', message: 'Password must be at least six characters.' }
+    { type: 'minlength', message: 'Password must be at least eight characters.' }
   ],
 };
 
@@ -24,5 +24,11 @@ export const UserProfileFormValidationMessages = {
   ],
   [PublicUserKeys.DISPLAY_NAME]: [
     { type: 'required', message: 'Display name is required.'},
+  ],
+  [PublicUserKeys.EMAIL]: [
+    { type: 'required', message: 'Email is required.'},
+  ],
+  [UserRegistrationFormFieldKeys.PASSWORD]: [
+    { type: 'required', message: 'Password is required.'},
   ],
 }

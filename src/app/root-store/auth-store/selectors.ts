@@ -9,9 +9,11 @@ const getEmailVerificationError = (state: AuthState) => state.emailVerificationE
 const getIsAuthenticatingUser = (state: AuthState) => state.authProcessing;
 const getIsResettingPassword = (state: AuthState) => state.resetPasswordProcessing;
 const getIsSigningUpUser = (state: AuthState) => state.signupProcessing;
+const getIsUpdatingEmail = (state: AuthState) => state.updateEmailProcessing;
 const getIsVerifyingEmail = (state: AuthState) => state.emailVerificationProcessing;
 const getResetPasswordError = (state: AuthState) => state.resetPasswordError;
 const getSignUpError = (state: AuthState) => state.signupError;
+const getUpdateEmailError = (state: AuthState) => state.updateEmailError;
 
 const selectAuthState = createFeatureSelector<AuthState>(PublicStoreFeatureKeys.AUTH);
 
@@ -46,11 +48,6 @@ export const selectIsLoggedIn = createSelector(
   auth => !!auth.authResultsData
 );
 
-export const selectIsVerifyingEmail = createSelector(
-  selectAuthState,
-  getIsVerifyingEmail
-);
-
 export const selectIsResettingPassword = createSelector(
   selectAuthState,
   getIsResettingPassword
@@ -61,6 +58,16 @@ export const selectIsSigningUpUser = createSelector(
   getIsSigningUpUser
 );
 
+export const selectIsUpdatingEmail = createSelector(
+  selectAuthState,
+  getIsUpdatingEmail
+);
+
+export const selectIsVerifyingEmail = createSelector(
+  selectAuthState,
+  getIsVerifyingEmail
+);
+
 export const selectResetPasswordError = createSelector(
   selectAuthState,
   getResetPasswordError
@@ -69,6 +76,11 @@ export const selectResetPasswordError = createSelector(
 export const selectSignUpError = createSelector(
   selectAuthState,
   getSignUpError
+);
+
+export const selectUpdateEmailError = createSelector(
+  selectAuthState,
+  getUpdateEmailError
 );
 
 

@@ -1,1 +1,45 @@
-<p>edit-email-dialogue works!</p>
+<section fxLayout="column" fxLayoutAlign="center center">
+
+  <form [formGroup]="emailForm" (ngSubmit)="onSubmit()">
+
+    <mat-dialog-content fxLayout="column" fxLayoutAlign="center center">
+      
+      <h2 class="section-header" mat-dialog-title>{{ titleFiledValue }}</h2>
+      
+      <!-- Email -->
+      <mat-form-field>
+        <input formControlName="email" matInput type="text" placeholder="First Name">
+        <mat-error *ngFor="let validation of formValidationMessages.email">
+          <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field>
+        <input formControlName="password" matInput type="password" placeholder="Confirm Password">
+        <mat-error *ngFor="let validation of formValidationMessages.password">
+          <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }}</mat-error>
+        </mat-error>
+      </mat-form-field>
+    
+    </mat-dialog-content>
+
+    <mat-dialog-actions fxLayout="row" fxLayoutAlign="center center">
+      
+      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="emailForm.invalid" mat-raised-button color="primary" type="submit">{{ saveButtonValue }}</button>
+      <div *ngIf="(userUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
+        <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+      </div>
+
+      <button 
+        mat-raised-button
+        [mat-dialog-close]
+        type="button"
+        >
+          {{ cancelButtonValue }}
+      </button>
+
+    </mat-dialog-actions>
+  </form>
+
+</section>

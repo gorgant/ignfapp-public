@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { FirebaseError } from "@angular/fire/app";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
@@ -23,7 +24,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.detectCachedUserCompleted({authResultsData});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -44,7 +45,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.emailAuthCompleted({authResultsData});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -65,7 +66,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.emailSignupCompleted({authResultsData});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -86,7 +87,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.facebookAuthCompleted({authResultsData});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -107,7 +108,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.googleAuthCompleted({authResultsData});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
@@ -138,12 +139,33 @@ export class AuthStoreEffects {
             return AuthStoreActions.resetPasswordCompleted({resetSubmitted});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name
             };
             return of(AuthStoreActions.resetPasswordFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  updateEmailEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.updateEmailRequested),
+      switchMap(action => 
+        this.authService.updateEmail(action.emailUpdateData).pipe(
+          map(emailUpdated => {
+            return AuthStoreActions.updateEmailCompleted({emailUpdated});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.updateEmailFailed({error: fbError}));
           })
         )
       ),
@@ -159,7 +181,7 @@ export class AuthStoreEffects {
             return AuthStoreActions.verifyEmailCompleted({emailVerified});
           }),
           catchError(error => {
-            const fbError: firebase.default.FirebaseError = {
+            const fbError: FirebaseError = {
               code: error.code,
               message: error.message,
               name: error.name

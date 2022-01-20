@@ -1,5 +1,7 @@
+import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
 import { AuthFormData, AuthResultsData } from "shared-models/auth/auth-data.model";
+import { EmailUpdateData } from "shared-models/auth/email-update-data.model";
 import { EmailVerificationData } from "shared-models/email/email-verification-data";
 
 // Auth Guard
@@ -10,7 +12,7 @@ export const authGuardValidated = createAction(
 
 export const authGuardFailed = createAction(
   '[Auth Guard] Auth Guard Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Detect Cached User
@@ -26,7 +28,7 @@ export const detectCachedUserCompleted = createAction(
 
 export const detectCachedUserFailed = createAction(
   '[App Component] Detected Cached User Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Email Auth
@@ -43,7 +45,7 @@ export const emailAuthCompleted = createAction(
 
 export const emailAuthFailed = createAction(
   '[Auth Service] Email Auth Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Email Signup
@@ -60,7 +62,7 @@ export const emailSignupCompleted = createAction(
 
 export const emailSignupFailed = createAction(
   '[Auth Service] Email Signup Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Facebook Auth
@@ -76,7 +78,7 @@ export const facebookAuthCompleted = createAction(
 
 export const facebookAuthFailed = createAction(
   '[Auth Service] Facebook Auth Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Google Auth
@@ -92,7 +94,7 @@ export const googleAuthCompleted = createAction(
 
 export const googleAuthFailed = createAction(
   '[Auth Service] Google Auth Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Logout
@@ -114,7 +116,7 @@ export const verifyEmailCompleted = createAction(
 
 export const verifyEmailFailed = createAction(
   '[User Service] Verify Email Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Reset Password
@@ -130,5 +132,21 @@ export const resetPasswordCompleted = createAction(
 
 export const resetPasswordFailed = createAction(
   '[Auth Service] Reset Password Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
+);
+
+// Update Email
+export const updateEmailRequested = createAction(
+  '[Edit Email Dialogue] Update Email Requested',
+  props<{emailUpdateData: EmailUpdateData}>()
+);
+
+export const updateEmailCompleted = createAction(
+  '[Auth Service] Update Email Completed',
+  props<{emailUpdated: boolean}>()
+);
+
+export const updateEmailFailed = createAction(
+  '[Auth Service] Update Email Failed',
+  props<{error: FirebaseError}>()
 );

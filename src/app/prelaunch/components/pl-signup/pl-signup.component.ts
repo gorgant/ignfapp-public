@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { collection, doc, Firestore } from '@angular/fire/firestore';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
@@ -8,6 +8,7 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { EmailSenderAddresses, SendgridContactListId } from 'shared-models/email/email-vars.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PrelaunchUser } from 'shared-models/user/prelaunch-user.model';
 import { PublicUserKeys } from 'shared-models/user/public-user.model';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
@@ -41,7 +42,7 @@ export class PlSignupComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private afs: AngularFirestore,
+    private afs: Firestore,
     private store: Store<RootStoreState.AppState>
   ) { }
 
@@ -69,7 +70,7 @@ export class PlSignupComponent implements OnInit {
     const emailUserData: EmailUserData = {
       email: this.email.value,
       firstName: this.firstName.value,
-      id: this.afs.createId(),
+      id: doc(collection(this.afs, PublicCollectionPaths.PRELAUNCH_USERS)).id,
       emailSendgridContactListArray: [
         SendgridContactListId.IGNFAPP_PRELAUNCH_WAIT_LIST,
       ],

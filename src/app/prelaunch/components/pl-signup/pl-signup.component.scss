@@ -1,5 +1,9 @@
 @import "../../../variables";
 
+.page-container {
+  padding: 16px;
+}
+
 mat-form-field {
   width: 100%;
   max-width: 300px;
@@ -17,8 +21,11 @@ mat-form-field {
 }
 
 .verify-email {
+  margin-top: 32px;
   text-align: center;
   font-size: 1.2em;
+  font-weight: $font-weight-light;
+  line-height: 1.2em;
 }
 
 .verify-text {
@@ -38,8 +45,8 @@ mat-form-field {
 }
 
 .processing-message {
-  color: $primary;
   text-align: center;
+  font-weight: $font-weight-light;
 }
 
 p {

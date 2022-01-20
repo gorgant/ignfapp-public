@@ -8,13 +8,14 @@ import { SharedModule } from './shared/shared.module';
 import { environment } from '../environments/environment';
 import { AuthModule } from './auth/modules/auth.module';
 
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { AngularFireStorageModule } from '@angular/fire/compat/storage';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
-import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { RootStoreModule } from './root-store';
 import { NavigationModule } from './navigation/modules/navigation.module';
+
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { getFunctions, provideFunctions } from '@angular/fire/functions';
+
 
 @NgModule({
   declarations: [
@@ -24,11 +25,12 @@ import { NavigationModule } from './navigation/modules/navigation.module';
     BrowserModule,
     BrowserAnimationsModule,
     SharedModule,
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule,
-    AngularFireStorageModule,
-    AngularFireAuthModule,
-    AngularFireFunctionsModule,
+    
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideFirestore(() => getFirestore()),
+    provideAuth(() => getAuth()),
+    provideFunctions(() => getFunctions()),
+    
     AuthModule,
     NavigationModule,
     AppRoutingModule,

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { Functions, httpsCallableData }  from '@angular/fire/functions';
 import { Observable, throwError } from 'rxjs';
 import { catchError, take, tap } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
@@ -10,11 +10,11 @@ import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-
 export class EmailService {
 
   constructor(
-    private fns: AngularFireFunctions,
+    private fns: Functions,
   ) { }
 
   // sendSendgridTest(emailContent: string): Observable<string> {
-  //   const sendgridHttpCall = this.fns.httpsCallable(PublicFunctionNames.ON_CALL_SEND_SENDGRID_TEST);
+  //   const sendgridHttpCall = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_SEND_SENDGRID_TEST);
 
   //   return sendgridHttpCall(emailContent)
   //     .pipe(
@@ -22,7 +22,7 @@ export class EmailService {
   //       tap(response => console.log('Sendgrid test sent', response)),
   //       catchError(error => {
   //         console.log('Error with sendgrid test', error);
-  //         return throwError(error);
+  //         return throwError(() => new Error(error));
   //       })
   //     );
   // }

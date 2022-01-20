@@ -1,5 +1,9 @@
 @import '../../../variables';
 
+.page-container {
+  padding: 16px;
+}
+
 app-login-with-third-party {
   width: 100%;
 }
@@ -27,8 +31,11 @@ app-signup-form {
 }
 
 .verify-email {
+  margin-top: 32px;
   text-align: center;
   font-size: 1.2em;
+  font-weight: $font-weight-light;
+  line-height: 1.2em;
 }
 
 .verify-text {
@@ -38,4 +45,16 @@ app-signup-form {
 
 .trusted-sender-text {
   font-weight: $font-weight-medium
+}
+
+.processing-message {
+  text-align: center;
+  font-weight: $font-weight-light;
+}
+
+.processing-spinner {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
 }

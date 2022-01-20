@@ -1,3 +1,4 @@
+import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
 import { EnvironmentTypes } from "shared-models/environments/env-vars.model";
 
@@ -14,7 +15,7 @@ export const environmentTypeRetrieved = createAction(
 
 export const environmentTypeFailed = createAction(
   '[Ui Service] Environment Type Failed',
-  props<{error: firebase.default.FirebaseError}>()
+  props<{error: FirebaseError}>()
 );
 
 // Nav Bar Visibility
