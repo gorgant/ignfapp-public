@@ -20,7 +20,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
-
+import {MatStepperModule} from '@angular/material/stepper';
 
 @NgModule({
   imports: [
@@ -44,7 +44,8 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
     MatPaginatorModule,
     MatSnackBarModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatStepperModule
   ],
   exports: [
     MatButtonModule,
@@ -66,7 +67,8 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
     MatPaginatorModule,
     MatSnackBarModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatStepperModule
   ]
 })
 export class MaterialModule { }

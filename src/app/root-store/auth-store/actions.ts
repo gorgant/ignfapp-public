@@ -2,6 +2,7 @@ import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
 import { AuthFormData, AuthResultsData } from "shared-models/auth/auth-data.model";
 import { EmailUpdateData } from "shared-models/auth/email-update-data.model";
+import { PasswordConfirmationData } from "shared-models/auth/password-confirmation-data.model";
 import { EmailVerificationData } from "shared-models/email/email-verification-data";
 
 // Auth Guard
@@ -12,6 +13,23 @@ export const authGuardValidated = createAction(
 
 export const authGuardFailed = createAction(
   '[Auth Guard] Auth Guard Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Confirm Password
+
+export const confirmPasswordRequested = createAction(
+  '[Edit Email Component] Confirm Password Requested',
+  props<{passwordConfirmationData: PasswordConfirmationData}>()
+);
+
+export const confirmPasswordCompleted = createAction(
+  '[Auth Service] Confirm Password Complete',
+  props<{passwordConfirmed: boolean}>()
+);
+
+export const confirmPasswordFailed = createAction(
+  '[Auth Service] Confirm Password Failed',
   props<{error: FirebaseError}>()
 );
 

@@ -14,8 +14,28 @@ export class AuthStoreEffects {
     private authService: AuthService,
   ) { }
 
+  confirmPasswordEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.confirmPasswordRequested),
+      switchMap(action => 
+        this.authService.confirmPassword(action.passwordConfirmationData).pipe(
+          map(passwordConfirmed => {
+            return AuthStoreActions.confirmPasswordCompleted({passwordConfirmed});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.confirmPasswordFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
 
-  detectCachedUser$ = createEffect(() => this.actions$
+  detectCachedUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.detectCachedUserRequested),
       switchMap(action => 

@@ -1,45 +1,75 @@
-<section fxLayout="column" fxLayoutAlign="center center">
+<div fxLayout="column" fxLayoutAlign="center center">
 
-  <form [formGroup]="emailForm" (ngSubmit)="onSubmit()">
+  <h2 class="section-header" mat-dialog-title>{{ updateEmailTitleValue }}</h2>
 
-    <mat-dialog-content fxLayout="column" fxLayoutAlign="center center">
+  <mat-stepper [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #updateEmailStepper>
+
+    <!-- Step 1 -->
+    <mat-step [stepControl]="passwordForm" errorMessage="Error verifying password." [editable]="false">
+      <form [formGroup]="passwordForm">
+        
+        <ng-template matStepLabel>{{ verifyPasswordStepLabel }}</ng-template>
       
-      <h2 class="section-header" mat-dialog-title>{{ titleFiledValue }}</h2>
-      
-      <!-- Email -->
-      <mat-form-field>
-        <input formControlName="email" matInput type="text" placeholder="First Name">
-        <mat-error *ngFor="let validation of formValidationMessages.email">
-          <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
-        </mat-error>
-      </mat-form-field>
+        <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
+          <mat-form-field>
+            <input formControlName="password" matInput type="password" placeholder="Current Password">
+            <mat-error *ngFor="let validation of formValidationMessages.password">
+              <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+          </mat-form-field>
+          
+          <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+            
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [disabled]="emailForm.invalid" color="primary" (click)="onConfirmPasswordInAuth()">
+              {{ verifyPasswordButtonValue }}
+            </button>
+            <div *ngIf="(authOrUserUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
+              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+            </div>
+            
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">
+              {{ cancelButtonValue }}
+            </button>
+          
+          </div>
+        </div>
 
-      <!-- Password -->
-      <mat-form-field>
-        <input formControlName="password" matInput type="password" placeholder="Confirm Password">
-        <mat-error *ngFor="let validation of formValidationMessages.password">
-          <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }}</mat-error>
-        </mat-error>
-      </mat-form-field>
-    
-    </mat-dialog-content>
+      </form>
+    </mat-step>
+  
+    <!-- Step 2 -->
+    <mat-step [stepControl]="emailForm" errorMessage="Error updating email.">
+      <form [formGroup]="emailForm" fxLayout="column" fxLayoutAlign="center center">
 
-    <mat-dialog-actions fxLayout="row" fxLayoutAlign="center center">
-      
-      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="emailForm.invalid" mat-raised-button color="primary" type="submit">{{ saveButtonValue }}</button>
-      <div *ngIf="(userUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
-        <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-      </div>
+        <ng-template matStepLabel>{{ updateEmailStepLabel }}</ng-template>
+        
+        <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
+          <mat-form-field>
+            <input formControlName="email" matInput type="text" placeholder="Email">
+            <mat-error *ngFor="let validation of formValidationMessages.email">
+              <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+          </mat-form-field>
+          
+          <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
+            
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" (click)="onUpdateEmail()">
+              {{ updateEmailButtonValue }}
+            </button>
+            <div *ngIf="(authOrUserUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
+              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+            </div>
+  
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">
+              {{ cancelButtonValue }}
+            </button>
+  
+          </div>
+        </div>
 
-      <button 
-        mat-raised-button
-        [mat-dialog-close]
-        type="button"
-        >
-          {{ cancelButtonValue }}
-      </button>
+      </form>
+    </mat-step>
+  
+  </mat-stepper>
 
-    </mat-dialog-actions>
-  </form>
-
-</section>
+</div>

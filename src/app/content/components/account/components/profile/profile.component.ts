@@ -68,6 +68,8 @@ export class ProfileComponent implements OnInit {
 
         dialogConfig.data = user;
 
+        dialogConfig.autoFocus = false;
+
         const dialogRef = this.dialog.open(EditEmailDialogueComponent, dialogConfig);
       });
   }

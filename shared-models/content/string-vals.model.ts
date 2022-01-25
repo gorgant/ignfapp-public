@@ -46,4 +46,7 @@ export enum GlobalFieldValues {
   SETTINGS = `Settings`,
   STATS = `Stats`,
   SUBMIT = `Submit`,
+  UPDATE_EMAIL = `Update Email`,
+  VERIFY_PASSWORD = `Verify Password`,
+  
 }

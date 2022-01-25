@@ -1,0 +1,22 @@
+@import '../../../../../../variables';
+
+mat-form-field {
+  width: 100%;
+  max-width: 225px;
+  margin-top: 16px;
+}
+
+.stepper-buttons {
+  margin-top: 16px;
+}
+
+
+@media screen and (max-width: $mobile-cutoff-width) {
+  .stepper-buttons {
+    margin-top: 8px;
+  }
+
+  mat-form-field {
+    margin-top: 8px;
+  }
+}

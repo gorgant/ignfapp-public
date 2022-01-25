@@ -4,6 +4,8 @@ export interface AuthState {
   authError: {} | undefined,
   authGuardError: {} | undefined,
   authProcessing: boolean,
+  confirmPasswordError: {} | undefined;
+  confirmPasswordProcessing: boolean;
   emailVerified: boolean,
   emailVerificationError: {} | undefined,
   emailVerificationProcessing: boolean,
@@ -20,6 +22,8 @@ export const initialAuthState: AuthState = {
   authError: undefined,
   authGuardError: undefined,
   authProcessing: false,
+  confirmPasswordError: undefined,
+  confirmPasswordProcessing: false,
   emailVerified: false,
   emailVerificationError: undefined,
   emailVerificationProcessing: false,

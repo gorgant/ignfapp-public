@@ -11,6 +11,7 @@ import { EmailVerificationData } from 'shared-models/email/email-verification-da
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, getAdditionalUserInfo } from 'firebase/auth';
 import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
+import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,20 +24,51 @@ export class AuthService {
     private router: Router,
     private fns: Functions,
     private uiService: UiService,
-    private newAuth: Auth
+    private auth: Auth
   ) {
 
     // If auth credentials are ever removed, immediately route user to login (disable for prod prelaunch mode)
-    authState(this.newAuth).subscribe(authState => {
+    authState(this.auth).subscribe(authState => {
       if (!authState) {
         this.router.navigate([PublicAppRoutes.LOGIN]);
       }
     })
   }
 
+  // Confirm User Password
+  confirmPassword(passwordConfirmationData: PasswordConfirmationData): Observable<boolean> {
+
+    const userCredentials = this.getUserCredentials(passwordConfirmationData.email, passwordConfirmationData.password);
+
+    const authResponse = from(
+      authState(this.auth).pipe(
+        take(1),
+        switchMap(fbUser => {
+          const reauthResults = reauthenticateWithCredential(fbUser!, userCredentials); // This seems to trigger some sort of POST error in client, likely do to refreshed credentials, doesn't seem to be an issue
+          return reauthResults;
+        }),
+        map(reauthResults => {
+          if (!reauthResults) {
+            console.log('Password confirmation failed');
+            throw new Error('Password confirmation failed');
+          }
+          console.log('Password confirmed');
+          return true;
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error confirming password in auth', error);
+          return throwError(() => new Error(error));
+        })
+      )
+    );
+
+    return authResponse;
+  }
+
   // Detect cached user data
   fetchCachedUserData(): Observable<AuthResultsData | undefined> {
-    return authState(this.newAuth)
+    return authState(this.auth)
       .pipe(
         take(1),
         map(creds => {
@@ -55,7 +87,7 @@ export class AuthService {
   signupUserWithEmailAndPassword(authFormData: AuthFormData): Observable<AuthResultsData> {
 
     const authResponse = from(
-      createUserWithEmailAndPassword(this.newAuth, authFormData.email, authFormData.password)
+      createUserWithEmailAndPassword(this.auth, authFormData.email, authFormData.password)
     );
 
     return authResponse.pipe(
@@ -79,7 +111,7 @@ export class AuthService {
   loginWithGoogle(): Observable<AuthResultsData> {
 
     const authResponse = from(
-      signInWithPopup(this.newAuth, new GoogleAuthProvider())
+      signInWithPopup(this.auth, new GoogleAuthProvider())
     );
 
     return authResponse.pipe(
@@ -108,7 +140,7 @@ export class AuthService {
   loginWithFacebook(): Observable<AuthResultsData> {
 
     const authResponse = from(
-      signInWithPopup(this.newAuth, new FacebookAuthProvider())
+      signInWithPopup(this.auth, new FacebookAuthProvider())
     );
 
     return authResponse.pipe(
@@ -139,7 +171,7 @@ export class AuthService {
   loginWithEmail(authData: AuthFormData): Observable<AuthResultsData> {
 
     const authResponse = from(
-      signInWithEmailAndPassword(this.newAuth, authData.email, authData.password)
+      signInWithEmailAndPassword(this.auth, authData.email, authData.password)
     );
 
     console.log('Submitting auth request to FB');
@@ -166,25 +198,18 @@ export class AuthService {
 
   logout(): void {
     this.preLogoutActions();
-    signOut(this.newAuth);
+    signOut(this.auth);
   }
 
   // Note email must also be updated separately in the Firestore database via the User Auth service
+  // Note first confirm password using the separate function before updating email
   updateEmail(emailUpdateData: EmailUpdateData): Observable<boolean> {
 
     const authResponse = from(
-      authState(this.newAuth).pipe(
+      authState(this.auth).pipe(
         take(1),
-        switchMap(user => {
-          const credentials = this.getUserCredentials(emailUpdateData.oldEmail, emailUpdateData.password);
-          const reauthResults = reauthenticateWithCredential(user!, credentials); // This seems to trigger some sort of POST error in client, likely do to refreshed credentials, doesn't seem to be an issue
-          console.log('User credentials approved');
-          return forkJoin(
-            [of(user as User), from(reauthResults)]
-          )
-        }),
-        map(([user, userCreds]) => {
-          updateEmail(user, emailUpdateData.newEmail);
+        map((user) => {
+          updateEmail(user as User, emailUpdateData.newEmail);
           console.log('Email updated in Auth');
           return true;
         }),
@@ -202,7 +227,7 @@ export class AuthService {
   sendResetPasswordEmail(email: string): Observable<boolean> {
 
     const authResponse = from(
-      sendPasswordResetEmail(this.newAuth, email)
+      sendPasswordResetEmail(this.auth, email)
     );
 
     return authResponse.pipe(

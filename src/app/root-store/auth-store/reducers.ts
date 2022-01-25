@@ -28,6 +28,29 @@ export const authStoreReducer = createReducer(
     }
   }),
 
+  // Confirm Password
+
+  on(AuthStoreActions.confirmPasswordRequested, (state, action) => {
+    return {
+      ...state,
+      confirmPasswordProcessing: true,
+      confirmPasswordError: undefined
+    }
+  }),
+  on(AuthStoreActions.confirmPasswordCompleted, (state, action) => {
+    return {
+      ...state,
+      confirmPasswordProcessing: false,
+    }
+  }),
+  on(AuthStoreActions.confirmPasswordFailed, (state, action) => {
+    return {
+      ...state,
+      confirmPasswordProcessing: false,
+      confirmPasswordError: action.error
+    }
+  }),
+
   // Detect Cached User
 
   on(AuthStoreActions.detectCachedUserRequested, (state, action) => {

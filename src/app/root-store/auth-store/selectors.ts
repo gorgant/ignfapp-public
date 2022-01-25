@@ -4,9 +4,11 @@ import { AuthState } from "./state";
 
 const getAuthError = (state: AuthState) => state.authError;
 const getAuthResultsData = (state: AuthState) => state.authResultsData;
+const getConfirmPasswordError = (state: AuthState) => state.confirmPasswordError;
 const getEmailVerified = (state: AuthState) => state.emailVerified;
 const getEmailVerificationError = (state: AuthState) => state.emailVerificationError;
 const getIsAuthenticatingUser = (state: AuthState) => state.authProcessing;
+const getIsConfirmingPassword = (state: AuthState) => state.confirmPasswordProcessing;
 const getIsResettingPassword = (state: AuthState) => state.resetPasswordProcessing;
 const getIsSigningUpUser = (state: AuthState) => state.signupProcessing;
 const getIsUpdatingEmail = (state: AuthState) => state.updateEmailProcessing;
@@ -28,6 +30,11 @@ export const selectAuthResultsData = createSelector(
   getAuthResultsData
 );
 
+export const selectConfirmPasswordError = createSelector(
+  selectAuthState,
+  getConfirmPasswordError
+);
+
 export const selectEmailVerificationError = createSelector(
   selectAuthState,
   getEmailVerificationError
@@ -41,6 +48,11 @@ export const selectEmailVerified = createSelector(
 export const selectIsAuthenticatingUser = createSelector(
   selectAuthState,
   getIsAuthenticatingUser
+);
+
+export const selectIsConfirmingPassword = createSelector(
+  selectAuthState,
+  getIsConfirmingPassword
 );
 
 export const selectIsLoggedIn = createSelector(

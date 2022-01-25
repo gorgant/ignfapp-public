@@ -45,7 +45,7 @@ export class UiService {
     });
   }
 
-  monitorScreenSize() {
+  private monitorScreenSize() {
     this.breakpointObserver.observe(['(max-width: 959px)'])
       .subscribe((state: BreakpointState) => {
         if (state.matches) {
@@ -57,6 +57,10 @@ export class UiService {
         }
       });
 
+  }
+
+  get screenIsMobile(): Observable<boolean> {
+    return this.screenIsMobile$;
   }
 
   private evaluateNavBarVisibility() {
