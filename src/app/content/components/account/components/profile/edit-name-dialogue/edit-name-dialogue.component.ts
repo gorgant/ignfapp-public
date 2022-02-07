@@ -60,7 +60,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
     this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUserUpdateError));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
   }
 
   onSubmit() {

@@ -36,7 +36,7 @@ export class SignupComponent implements OnInit {
   useEmailLogin: boolean = false;
 
   constructor(
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
   ) { }
 
   ngOnInit(): void {
@@ -48,24 +48,25 @@ export class SignupComponent implements OnInit {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
+    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
-        this.store.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+        this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
+        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser))
       ]
     ).pipe(
-        map(([signingUp, authenticating, creatingUser, updatingUser]) => {
-          if (signingUp || authenticating || creatingUser || updatingUser) {
+        map(([signingUp, authenticating, creatingUser, updatingUser, fetchingUser]) => {
+          if (signingUp || authenticating || creatingUser || updatingUser || fetchingUser) {
             return true
           }
           return false
         })
     );
     
-    this.userData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
   }
 
 }

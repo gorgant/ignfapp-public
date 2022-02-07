@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate, CanLoad {
         switchMap(authResults => {
           // Inspired by https://stackoverflow.com/a/46386082/6572208
           return new Observable<boolean>(observer => {
-            if (authResults) {
+            if (authResults && authResults.emailVerified) {
               this.store$.select(UserStoreSelectors.selectUserData)
                 .pipe(
                   take(1),
@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate, CanLoad {
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
-                    console.log('Fetching user data from canActivate');
+                    console.log('AuthGuard canActivate: creds present and email verified, fetching user data');
                     this.store$.dispatch(UserStoreActions.fetchUserRequested({userId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
                   }
                   this.store$.dispatch(AuthStoreActions.authGuardValidated());
@@ -45,9 +45,14 @@ export class AuthGuard implements CanActivate, CanLoad {
                   observer.complete();
                 });
             } else {
-              // If user not authenticated, route to login
+              // If user not authenticated or email not verified, route to login
+              console.log('AuthGuard canActivate: user not authenticated, routing to login screen');
               this.router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl: state.url }});
-              this.uiService.showSnackBar('Please login to continue.', 6000);
+              if (authResults && !authResults.emailVerified) {
+                this.uiService.showSnackBar('Please verify your email to continue.', 6000);  
+              } else {
+                this.uiService.showSnackBar('Please login to continue.', 6000);
+              }
               observer.next(false);
               observer.complete();
             }
@@ -71,7 +76,7 @@ export class AuthGuard implements CanActivate, CanLoad {
         switchMap(authResults => {
           // Inspired by https://stackoverflow.com/a/46386082/6572208
           return new Observable<boolean>(observer => {
-            if (authResults) {
+            if (authResults && authResults.emailVerified) {
               this.store$.select(UserStoreSelectors.selectUserData)
                 .pipe(
                   take(1),
@@ -79,7 +84,7 @@ export class AuthGuard implements CanActivate, CanLoad {
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
-                    console.log('Fetching user data from canLoad');
+                    console.log('AuthGuard canLoad: creds present and email verified, fetching user data');
                     this.store$.dispatch(UserStoreActions.fetchUserRequested({userId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
                   }
                   this.store$.dispatch(AuthStoreActions.authGuardValidated());
@@ -88,9 +93,14 @@ export class AuthGuard implements CanActivate, CanLoad {
                 });
             } else {
               // If user not authenticated, route to login
+              console.log('AuthGuard canLoad: user not authenticated, routing to login screen');
               const returnUrl = this.covertSegmentsToReturnUrl(segments);
               this.router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl }});
-              this.uiService.showSnackBar('Please login to continue.', 6000);
+              if (authResults && !authResults.emailVerified) {
+                this.uiService.showSnackBar('Please verify your email to continue.', 6000);  
+              } else {
+                this.uiService.showSnackBar('Please login to continue.', 6000);
+              }
               observer.next(false);
               observer.complete();
             }

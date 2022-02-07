@@ -35,6 +35,27 @@ export class AuthStoreEffects {
     ),
   );
 
+  deleteAuthUserEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.deleteAuthUserRequested),
+      switchMap(action => 
+        this.authService.deleteAuthUser().pipe(
+          map(userDeleted => {
+            return AuthStoreActions.deleteAuthUserCompleted({userDeleted});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.deleteAuthUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   detectCachedUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.detectCachedUserRequested),
@@ -150,6 +171,27 @@ export class AuthStoreEffects {
     {dispatch: false}
   );
 
+  reloadAuthDataEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(AuthStoreActions.reloadAuthDataRequested),
+      switchMap(action => 
+        this.authService.reloadAuthData().pipe(
+          map(authDataReloaded => {
+            return AuthStoreActions.reloadAuthDataCompleted({authDataReloaded});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(AuthStoreActions.reloadAuthDataFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   resetPasswordEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.resetPasswordRequested),
@@ -175,7 +217,7 @@ export class AuthStoreEffects {
     .pipe(
       ofType(AuthStoreActions.updateEmailRequested),
       switchMap(action => 
-        this.authService.updateEmail(action.emailUpdateData).pipe(
+        this.authService.updateEmailInAuth(action.emailUpdateData).pipe(
           map(emailUpdated => {
             return AuthStoreActions.updateEmailCompleted({emailUpdated});
           }),

@@ -1,10 +1,11 @@
 import * as functions from 'firebase-functions';
+import { UserRecord } from 'firebase-functions/v1/auth';
 import { now } from 'moment';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from '../../../shared-models/user/user-update.model';
 import { publicFirestore } from '../config/db-config';
-import { fetchUserById } from '../config/global-helpers';
+import { fetchUserById, fetchAuthUserById } from '../config/global-helpers';
 
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
@@ -12,8 +13,7 @@ const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.P
 const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> => {
 
   const existingUser = await fetchUserById(userUpdateData.userData.id as string, publicUsersCollection);
-  
-  const newData = userUpdateData.userData;
+  const newDataFromClient = userUpdateData.userData;
   const updateType = userUpdateData.updateType;
 
   let updatedUser: PublicUser = {
@@ -25,14 +25,14 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
     functions.logger.log(`Bio update detected`);
     updatedUser = {
       ...updatedUser,
-      ...newData,
+      ...newDataFromClient,
     };
   }
 
-  // If authentication update, just update that field
+  // If email update, just update that field
   if (updateType === UserUpdateType.EMAIL_UPDATE) {
     functions.logger.log(`Email update detected`);
-    updatedUser.email = newData.email as string;
+    updatedUser.email = newDataFromClient.email as string;
   }
 
   // If authentication update, just update that field
@@ -41,9 +41,10 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
     // No specific actions for this
   }
 
-  // If authentication update, just update that field
+  // If authentication update, just update auth specific fields
   if (updateType === UserUpdateType.AUTHENTICATION) {
-    functions.logger.log(`Auth timestamp update detected`);
+    const userAuthData: UserRecord = await fetchAuthUserById(updatedUser.id); // This is a precaution to ensure the auth DB is the primary record of email verification
+    updatedUser.emailVerified = userAuthData.emailVerified;
     updatedUser.lastAuthenticated = now();
   }
 

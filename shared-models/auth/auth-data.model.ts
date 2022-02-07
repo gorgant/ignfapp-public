@@ -15,6 +15,7 @@ export interface AuthFormData {
 export interface AuthResultsData {
   [PublicUserKeys.ID]: string;
   [PublicUserKeys.EMAIL]: string;
+  [PublicUserKeys.EMAIL_VERIFIED]: boolean;
   [PublicUserKeys.AVATAR_URL]?: string;
   [PublicUserKeys.DISPLAY_NAME]?: string;
   isNewUser?: boolean;

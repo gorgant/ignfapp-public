@@ -4,17 +4,21 @@ import { PublicUser } from "shared-models/user/public-user.model";
 export const userFeatureKey = PublicStoreFeatureKeys.USER;
 
 export interface UserState {
-  userFetchError: {} | undefined,
-  userFetchProcessing: boolean,
-  userUpdateError: {} | undefined,
-  userUpdateProcessing: boolean,
+  createUserError: {} | undefined,
+  createUserProcessing: boolean,
+  fetchUserError: {} | undefined,
+  fetchUserProcessing: boolean,
+  updateUserError: {} | undefined,
+  updateUserProcessing: boolean,
   userData: PublicUser | undefined,
 }
 
 export const initialUserState: UserState = {
-  userFetchError: undefined,
-  userFetchProcessing: false,
-  userUpdateError: undefined,
-  userUpdateProcessing: false,
+  createUserError: undefined,
+  createUserProcessing: false,
+  fetchUserError: undefined,
+  fetchUserProcessing: false,
+  updateUserError: undefined,
+  updateUserProcessing: false,
   userData: undefined,
 }

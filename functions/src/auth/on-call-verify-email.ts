@@ -11,7 +11,9 @@ import { EmailCategories } from '../../../shared-models/email/email-vars.model';
 import { createOrUpdateSgContact } from '../email/helpers/create-or-update-sg-contact';
 import { EnvironmentTypes } from '../../../shared-models/environments/env-vars.model';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
-
+import { ignfappPublicApp } from '../config/app-config';
+import { UserRecord } from 'firebase-functions/v1/auth';
+import { fetchAuthUserById } from '../config/global-helpers';
 
 // Trigger email send
 const dispatchWelcomeEmail = async(userData: EmailUserData, emailVerificationData: EmailVerificationData) => {
@@ -25,7 +27,7 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   const userCollectionPath: string = emailVerificationData.isPrelaunchUser ? PublicCollectionPaths.PRELAUNCH_USERS : PublicCollectionPaths.PUBLIC_USERS;
 
   const userDoc: FirebaseFirestore.DocumentSnapshot = await publicFirestore.collection(userCollectionPath).doc(emailVerificationData.userId).get()
-    .catch(err => {functions.logger.log(`Error fetching subscriber from public database:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {functions.logger.log(`Error fetching user from public database:`, err); throw new functions.https.HttpsError('internal', err);});
   
   if (!userDoc.exists) {
     functions.logger.log('User does not exist');
@@ -39,13 +41,23 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
     return false;
   }
 
-  if (userData.emailVerified) {
+
+  // Fetch auth data from Auth rather than FB database
+  const userAuthData: UserRecord = await fetchAuthUserById(emailVerificationData.userId);
+
+  if (userAuthData.emailVerified && userData.emailVerified) {
     functions.logger.log('User email already verified, no action taken')
     return true;
   }
 
+  // Mark email verified in Firebase auth
+  await ignfappPublicApp.auth().updateUser(userData.id, {emailVerified: true})
+    .catch(err => {functions.logger.log(`Error updating user emailVerified in auth:`, err); throw new functions.https.HttpsError('internal', err);});
+
+  functions.logger.log(`emailVerified marked TRUE in Auth`);
+
   const updateUserData: Partial<PublicUser | PrelaunchUser> = {
-    emailVerified: true,
+    emailVerified: true, // Adding to user record triggers user subscription on client, which provides easy trigger for user auth check
     emailOptInConfirmed: true,
     emailOptInTimestamp: now(),
     lastModifiedTimestamp: now(),
@@ -56,8 +68,8 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   await publicFirestore.collection(userCollectionPath).doc(emailVerificationData.userId).update(updateUserData)
     .catch(err => {functions.logger.log(`Error updating user on public database:`, err); throw new functions.https.HttpsError('internal', err);});
   
-  functions.logger.log(`Marked user "${emailVerificationData.userId}" as opted in`);
-
+  functions.logger.log(`Marked user "${emailVerificationData.userId}" as opted in and email verified`);
+  
   // Provide complete user data to the email
   const emailUserData: EmailUserData = {
     ...userData,

@@ -18,19 +18,19 @@ export class SettingsComponent implements OnInit {
   userData$!: Observable<PublicUser>;
 
   constructor(
-    private store: Store<RootStoreState.AppState>
+    private store$: Store<RootStoreState.AppState>
   ) { }
 
   ngOnInit(): void {
   }
 
   fetchUserData(): void {
-    this.userData$ = this.store.pipe(select(selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(selectUserData)) as Observable<PublicUser>;
   }
 
   onLogout(): void {
     console.log('Logging out user');
-    this.store.dispatch(AuthStoreActions.logout());
-    this.store.dispatch(UserStoreActions.purgeUserData());
+    this.store$.dispatch(AuthStoreActions.logout());
+    // this.store$.dispatch(UserStoreActions.purgeUserData());
   }
 }

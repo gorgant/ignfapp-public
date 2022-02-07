@@ -20,7 +20,7 @@ export class UiService {
   private productionEnvironment: boolean = environment.production;
 
   constructor(
-    private store: Store<RootStoreState.AppState>,
+    private store$: Store<RootStoreState.AppState>,
     private snackbar: MatSnackBar,
     private breakpointObserver: BreakpointObserver,
     private router: Router
@@ -74,10 +74,10 @@ export class UiService {
         const url = this.router.url;
         const hideNavBar = NoNavBarUrls.some(invalidUrl => url.includes(invalidUrl)); // Courtesy of: https://stackoverflow.com/a/43615512/6572208
         if (hideNavBar) {
-          this.store.dispatch(UiStoreActions.hideNavBar());
+          this.store$.dispatch(UiStoreActions.hideNavBar());
           return;
         } 
-        this.store.dispatch(UiStoreActions.showNavBar());
+        this.store$.dispatch(UiStoreActions.showNavBar());
       }),
     ).subscribe();
   }

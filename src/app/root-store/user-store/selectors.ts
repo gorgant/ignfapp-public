@@ -2,13 +2,14 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
 import { UserState } from "./state";
 
-const getIsCreatingUser = (state: UserState) => state.userUpdateProcessing;
-const getIsFetchingUser = (state: UserState) => state.userFetchProcessing;
-const getIsRegisteringPrelaunchUser = (state: UserState) => state.userUpdateProcessing;
-const getIsUpdatingUser = (state: UserState) => state.userUpdateProcessing;
+const getIsCreatingUser = (state: UserState) => state.createUserProcessing;
+const getIsFetchingUser = (state: UserState) => state.fetchUserProcessing;
+const getIsRegisteringPrelaunchUser = (state: UserState) => state.updateUserProcessing;
+const getIsUpdatingUser = (state: UserState) => state.updateUserProcessing;
 const getUserData = (state: UserState) => state.userData;
-const getUserFetchError = (state: UserState) => state.userFetchError;
-const getUserUpdateError = (state: UserState) => state.userUpdateError;
+const getCreateUserError = (state: UserState) => state.createUserError;
+const getFetchUserError = (state: UserState) => state.fetchUserError;
+const getUpdateUserError = (state: UserState) => state.updateUserError;
 
 const selectUserState = createFeatureSelector<UserState>(PublicStoreFeatureKeys.USER);
 
@@ -37,13 +38,18 @@ export const selectUserData = createSelector(
   getUserData
 );
 
-export const selectUserFetchError = createSelector(
+export const selectCreateUserError = createSelector(
   selectUserState,
-  getUserFetchError
+  getCreateUserError
 );
 
-export const selectUserUpdateError = createSelector(
+export const selectFetchUserError = createSelector(
   selectUserState,
-  getUserUpdateError
+  getFetchUserError
+);
+
+export const selectUpdateUserError = createSelector(
+  selectUserState,
+  getUpdateUserError
 );
 

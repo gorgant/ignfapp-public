@@ -2,6 +2,8 @@ import * as functions from 'firebase-functions';
 import * as Axios from 'axios';
 import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
 import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
+import { UserRecord } from 'firebase-functions/v1/auth';
+import { ignfappPublicApp } from './app-config';
 
 
 
@@ -151,4 +153,10 @@ export const fetchUserById = async (id: string, userCollection: FirebaseFirestor
   const userDoc = await userCollection.doc(id).get()
     .catch(err => {functions.logger.log(`Failed to fetch publicUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
   return userDoc.data() as PublicUser; // Will return undefined if doesn't exist
+}
+
+export const fetchAuthUserById = async (userId: string): Promise<UserRecord> => {
+  const userAuthData: UserRecord = await ignfappPublicApp.auth().getUser(userId)
+    .catch(err => {functions.logger.log(`Error fetching user from Auth database:`, err); throw new functions.https.HttpsError('internal', err);});
+  return userAuthData;
 }

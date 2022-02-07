@@ -95,7 +95,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
     this.authEmailUpdateError$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailError));
 
     this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUserUpdateError));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
 
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
@@ -147,9 +147,10 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
         // If error in auth, cancel operation
         if (authError) {
-          console.log('Error updating email in auth, resetting form');
+          console.log('Error confirming password in auth, resetting form');
           this.passwordConfirmationSubscription.unsubscribe();
           this.passwordConfirmationSubmitted = false;
+          this.passwordForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
           return;
         }
         
@@ -157,6 +158,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
         if (this.passwordConfirmationSubmitted && !passwordUpdateProcessing) {
           console.log('Password confirmation successful');
           this.passwordConfirmed = true;
+          this.passwordConfirmationSubscription.unsubscribe(); // Clear subscription no longer needed
           this.proceedToStepTwo();
         }
       })
@@ -211,9 +213,11 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
       
           const userUpdateData: UserUpdateData = {
             userData,
-            updateType: UserUpdateType.BIO_UPDATE
+            updateType: UserUpdateType.EMAIL_UPDATE
           };
       
+          this.authEmailUpdateSubscription.unsubscribe(); // Clear subscription no longer needed
+
           this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
           this.postUserUpdateActions();
         }
@@ -227,8 +231,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
       )
       .subscribe(([updateProcessing, updateError]) => {
 
-        console.log(`updateUserProcessing subscription fired, userUpdateProcessing status: ${updateProcessing}`);
-
         if (updateProcessing) {
           this.userUpdateSubmitted = true;
         }
@@ -238,6 +240,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
           console.log('Error updating email in user database, resetting form');
           this.userUpdateSubscription.unsubscribe();
           this.userUpdateSubmitted = false;
+        
           this.revertAuthToOriginalEmail();
           return;
         }

@@ -54,11 +54,12 @@ export class LoginComponent implements OnInit {
         this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
         this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
         this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
+        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser)),
+        this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser))
       ]
     ).pipe(
-        map(([signingUp, authenticating, creatingUser, updatingUser]) => {
-          if (signingUp || authenticating || creatingUser || updatingUser) {
+        map(([signingUp, authenticating, creatingUser, updatingUser, fetchingUser]) => {
+          if (signingUp || authenticating || creatingUser || updatingUser || fetchingUser) {
             return true
           }
           return false

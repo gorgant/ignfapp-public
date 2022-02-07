@@ -51,6 +51,29 @@ export const authStoreReducer = createReducer(
     }
   }),
 
+  // Delete Auth User
+
+  on(AuthStoreActions.deleteAuthUserRequested, (state, action) => {
+    return {
+      ...state,
+      deleteAuthUserProcessing: true,
+      deleteAuthUserError: undefined
+    }
+  }),
+  on(AuthStoreActions.deleteAuthUserCompleted, (state, action) => {
+    return {
+      ...state,
+      deleteAuthUserProcessing: false,
+    }
+  }),
+  on(AuthStoreActions.deleteAuthUserFailed, (state, action) => {
+    return {
+      ...state,
+      deleteAuthUserProcessing: false,
+      deleteAuthUserError: action.error
+    }
+  }),
+
   // Detect Cached User
 
   on(AuthStoreActions.detectCachedUserRequested, (state, action) => {
@@ -177,6 +200,29 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       authResultsData: undefined
+    }
+  }),
+  
+  // Reload Auth Data
+
+  on(AuthStoreActions.reloadAuthDataRequested, (state, action) => {
+    return {
+      ...state,
+      reloadAuthDataProcessing: true,
+      reloadAuthDataError: undefined,
+    }
+  }),
+  on(AuthStoreActions.reloadAuthDataCompleted, (state, action) => {
+    return {
+      ...state,
+      reloadAuthDataProcessing: false,
+    }
+  }),
+  on(AuthStoreActions.reloadAuthDataFailed, (state, action) => {
+    return {
+      ...state,
+      reloadAuthDataProcessing: false,
+      reloadAuthDataError: action.error,
     }
   }),
 

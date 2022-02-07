@@ -17,22 +17,22 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.createUserRequested, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: true,
-      userUpdateError: false
+      createUserProcessing: true,
+      createUserError: false
     }
   }),
   on(UserStoreActions.createUserCompleted, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
+      createUserProcessing: false,
       userData: action.newUser
     }
   }),
   on(UserStoreActions.createUserFailed, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
-      userUpdateError: action.error
+      createUserProcessing: false,
+      createUserError: action.error
     }
   }),
 
@@ -41,22 +41,22 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.fetchUserRequested, (state, action) => {
     return {
       ...state,
-      userFetchProcessing: true,
-      userFetchError: false
+      fetchUserProcessing: true,
+      fetchUserError: false
     }
   }),
   on(UserStoreActions.fetchUserCompleted, (state, action) => {
     return {
       ...state,
-      userFetchProcessing: false,
+      fetchUserProcessing: false,
       userData: action.publicUser
     }
   }),
   on(UserStoreActions.fetchUserFailed, (state, action) => {
     return {
       ...state,
-      userFetchProcessing: false,
-      userFetchError: action.error
+      fetchUserProcessing: false,
+      fetchUserError: action.error
     }
   }),
 
@@ -65,22 +65,22 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.registerPrelaunchUserRequested, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: true,
-      userUpdateError: false
+      updateUserProcessing: true,
+      updateUserError: false
     }
   }),
   on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
+      updateUserProcessing: false,
       userData: action.prelaunchUser
     }
   }),
   on(UserStoreActions.registerPrelaunchUserFailed, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
-      userUpdateError: action.error
+      updateUserProcessing: false,
+      updateUserError: action.error
     }
   }),
   
@@ -89,22 +89,22 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.updateUserRequested, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: true,
-      userUpdateError: false
+      updateUserProcessing: true,
+      updateUserError: false
     }
   }),
   on(UserStoreActions.updateUserCompleted, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
+      updateUserProcessing: false,
       userData: action.updatedUser
     }
   }),
   on(UserStoreActions.updateUserFailed, (state, action) => {
     return {
       ...state,
-      userUpdateProcessing: false,
-      userUpdateError: action.error
+      updateUserProcessing: false,
+      updateUserError: action.error
     }
   }),
 

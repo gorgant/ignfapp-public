@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
+import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
 
 @Component({
@@ -18,7 +19,6 @@ export class EmailVerificationComponent implements OnInit {
   confirmingEmailBlurb = GlobalFieldValues.EC_CONFIRMING_EMAIL;
   verificationFailedBlurb = GlobalFieldValues.EC_VERIFICATION_FAILED;
   emailConfirmedBlurb = GlobalFieldValues.EC_EMAIL_CONFIRMED;
-  checkYourInboxBlurb = GlobalFieldValues.EC_CHECK_INBOX;
   
   supportEmail = EmailSenderAddresses.IGNFAPP_SUPPORT;
 
@@ -29,7 +29,8 @@ export class EmailVerificationComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private store: Store<RootStoreState.AppState>
+    private store$: Store<RootStoreState.AppState>,
+    private router: Router,
   ) { }
 
   ngOnInit() {
@@ -38,8 +39,8 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   private monitorStoreState() {
-    this.emailVerified$ = this.store.pipe(select(AuthStoreSelectors.selectEmailVerified));
-    this.emailVerificationProcessing$ = this.store.pipe(select(AuthStoreSelectors.selectIsVerifyingEmail));
+    this.emailVerified$ = this.store$.pipe(select(AuthStoreSelectors.selectEmailVerified));
+    this.emailVerificationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsVerifyingEmail));
   }
 
   private verifyUserEmail() {
@@ -73,7 +74,7 @@ export class EmailVerificationComponent implements OnInit {
       }
 
       console.log('marking subscriber confirmed with this id data', emailVerificationData);
-      this.store.dispatch(AuthStoreActions.verifyEmailRequested({emailVerificationData}));
+      this.store$.dispatch(AuthStoreActions.verifyEmailRequested({emailVerificationData}));
       
       this.postVerificationActions();
     }
@@ -89,6 +90,10 @@ export class EmailVerificationComponent implements OnInit {
           this.dispatchedEmailVerificationRequest = true; // Prevents the error icon from popping prematurely
         }
       });
+  }
+
+  onEnterApp() {
+    this.router.navigate([PublicAppRoutes.WORKOUT]);
   }
 
   ngOnDestroy() {

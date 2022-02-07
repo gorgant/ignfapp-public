@@ -17,13 +17,12 @@ export class LoginGuard {
 
   // Prevents user from getting to login screen if already logged in
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    console.log('Loginguard canActivate activated');
+    console.log('LoginGuard canActivate activated');
     return this.authService.fetchCachedUserData()
       .pipe(
-        take(1),
         map(authResultsData => {
-          if (authResultsData) {
-            console.log('Auth credentials present', authResultsData);
+          if (authResultsData && authResultsData.emailVerified) {
+            console.log('Auth credentials present and email verified, routing to requested URL', authResultsData);
             if (state.url === PublicAppRoutes.LOGIN || state.url === PublicAppRoutes.SIGNUP) {
               // This prevents an infinite loop if coming directly from clean login path
               this.router.navigate([PublicAppRoutes.WORKOUT]);
@@ -34,6 +33,7 @@ export class LoginGuard {
             }
             return false;
           }
+          console.log('LoginGuard canActivate: no auth credentials present');
           return true;
         }),
       );

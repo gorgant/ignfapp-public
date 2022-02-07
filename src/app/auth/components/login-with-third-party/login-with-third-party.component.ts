@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { combineLatest, Observable, Subscription } from 'rxjs';
-import { map, withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { withLatestFrom } from 'rxjs/operators';
 import { AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
@@ -26,15 +26,47 @@ export class LoginWithThirdPartyComponent implements OnInit {
   continueWithGoogleButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_GOOGLE;
   continueWithFacebookButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_FACEBOOK;
   
-  authStatus$!: Observable<boolean>;
-  authOrUserUpdateProcessing$!: Observable<boolean>;
-  authResultsData$!: Observable<AuthResultsData>;
-  userFetched: boolean = false;
+  authProcessing$!: Observable<boolean>;
+  authSubscription!: Subscription;
+  authError$!: Observable<{} | undefined>;
+  authSubmitted!: boolean;
+
+  createUserProcessing$!: Observable<boolean>;
+  createUserSubscription!: Subscription;
+  createUserError$!: Observable<{} | undefined>;
+  createUserSubmitted!: boolean;
+
+  userUpdateProcessing$!: Observable<boolean>;
+  userUpdateSubscription!: Subscription;
+  userUpdateError$!: Observable<{} | undefined>;
+  userUpdateSubmitted!: boolean;
+
+  fetchUserProcessing$!: Observable<boolean>;
+  fetchUserSubscription!: Subscription;
+  fetchUserError$!: Observable<{} | undefined>;
+
+  reloadAuthDataProcessing$!: Observable<boolean>;
+  reloadAuthDataSubscription!: Subscription;
+  reloadAuthDataError$!: Observable<{} | undefined>;
+  reloadAuthDataSubmitted!: boolean;
+
+
 
   userData$!: Observable<PublicUser>;
+  userFetched: boolean = false;
 
-  authSubscription!: Subscription;
-  userSubscription!: Subscription;
+
+
+
+
+
+
+  // authStatus$!: Observable<boolean>;
+  // authOrUserUpdateProcessing$!: Observable<boolean>;
+  // authResultsData$!: Observable<AuthResultsData>;
+
+  // authSubscription!: Subscription;
+  // userSubscription!: Subscription;
 
   constructor(
     private store$: Store<RootStoreState.AppState>,
@@ -47,74 +79,90 @@ export class LoginWithThirdPartyComponent implements OnInit {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
-    this.authOrUserUpdateProcessing$ = combineLatest(
-      [
-        this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
-        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser))
-      ]
-    ).pipe(
-        map(([signingUp, authenticating, creatingUser, updatingUser]) => {
-          if (signingUp || authenticating || creatingUser || updatingUser) {
-            return true
-          }
-          return false
-        })
-    );
-    this.authResultsData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    
+    this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser));
+    this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthError));
+
+    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser));
+    this.createUserError$ = this.store$.pipe(select(UserStoreSelectors.selectCreateUserError));
+
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
+
+    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser));
+    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserError));
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+
+    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsReloadingAuthData));
+    this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
+
   }
 
   onGoogleLogin() {
+    console.log('Dispatching Google login');
     this.store$.dispatch(AuthStoreActions.googleAuthRequested());
     this.postAuthActions();
   }
 
   onFacebookLogin() {
-    console.log('Dispatching facebook login');
+    console.log('Dispatching Facebook login');
     this.store$.dispatch(AuthStoreActions.facebookAuthRequested());
     this.postAuthActions();
   }
 
   // Update user data and navigate to dashboard
   private postAuthActions() {
-    console.log('Dispatching post-auth actions');
-    this.authSubscription = this.authStatus$
+
+    this.authSubscription = this.authProcessing$
       .pipe(
         withLatestFrom(
-          this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)),
-          this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser))
+          this.authError$,
+          this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData))
         )
       )
-      .subscribe(([isAuth, authResultsData, isCreatingUser]) => {
-        if (isAuth && authResultsData && !isCreatingUser) {
+      .subscribe(([authProcessing, authError, authData]) => {
 
-          // Either create or update user data
-          if (authResultsData.isNewUser) {
-            console.log('New user detected, creating new user in DB');
-            this.createNewUser(authResultsData);
+        if (authProcessing) {
+          this.authSubmitted = true;
+        }
+
+        // If error in auth, cancel operation
+        if (authError) {
+          console.log('Error authorizing user, resetting form');
+          this.authSubscription.unsubscribe();
+          this.authSubmitted = false;
+          return;
+        }
+
+        // If auth succeeds, proceed to next step
+        if (this.authSubmitted && !authProcessing && authData) {
+          console.log('User auth successful, updating user in database');
+          this.authSubscription.unsubscribe(); // Clear subscription no longer needed
+          
+          if (authData.isNewUser) {
+            console.log('New user detected in auth, creating new user in DB');
+            this.createUserInFirebase(authData);
+            this.postCreateUserActions(authData.id);
           } else {
-            console.log('Existing user detected, updating user in DB');
-            this.updateExistingUser(authResultsData);
+            console.log('Existing user detected in auth, updating user in DB');
+            this.updateUserInFirebase(authData);
+            this.postUpdateUserActions(authData.id);
           }
         }
-    })
+      })
   };
 
-  private createNewUser(authResultsData: AuthResultsData) {
+  private createUserInFirebase(authData: AuthResultsData) {
     const partialNewUserData: Partial<PublicUser> = {
-      email: authResultsData.email,
-      firstName: authResultsData.displayName,
-      id: authResultsData.id,
-      avatarUrl: authResultsData.avatarUrl
+      email: authData.email,
+      firstName: authData.displayName,
+      id: authData.id,
+      avatarUrl: authData.avatarUrl
     }
     this.store$.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
-    this.postUserUpdateActions(partialNewUserData.id as string);
   }
 
-  private updateExistingUser(authResultsData: AuthResultsData) {
+  private updateUserInFirebase(authResultsData: AuthResultsData) {
     const userData: Partial<PublicUser> = {
       id: authResultsData?.id,
       email: authResultsData?.email
@@ -124,54 +172,172 @@ export class LoginWithThirdPartyComponent implements OnInit {
       updateType: UserUpdateType.AUTHENTICATION
     }
     this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
-    this.postUserUpdateActions(userData.id as string);
   }
 
-  private postUserUpdateActions(userId: string) {
-    console.log('Dispatching post-user-update actions with this user id: ', userId);
-    this.userSubscription = this.userData$
+  // Fetch user and navigate to requested route
+  private postCreateUserActions(userId: string) {
+
+    this.createUserSubscription = this.createUserProcessing$
       .pipe(
-        withLatestFrom(this.authOrUserUpdateProcessing$)
+        withLatestFrom(this.createUserError$)
       )
-      .subscribe(([user, authProcessing]) => {
-        // Need to check for user here bc there's a short gap in signupProcessing btw auth and user creation
-        if (user && !authProcessing && !this.userFetched) {
-          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId})); // Establish a realtime link to user data in store to mointor email verification status
-          this.userFetched = true;
-        }
-        
-        // If email is verified, proceed to dashboard (otherwise email verification request is provided)
-        if (user?.emailVerified) {
-          console.log('Email verified');
-          this.redirectUserToRequestedRoute();
+      .subscribe(([creatingUser, creationError]) => {
+
+        if (creatingUser) {
+          this.createUserSubmitted = true;
         }
 
-        if (user && !user?.emailVerified) {
-          // FYI Prompt is shown in parent container
-          console.log(`User has not verified email. Requesting verification for ${user.email}`);
+        // If error creating user in database, cancel operation and delete auth user
+        if (creationError) {
+          console.log('Error creating user in database, deleting auth user');
+          this.createUserSubscription.unsubscribe();
+          this.createUserSubmitted = false;
+          this.store$.dispatch(AuthStoreActions.deleteAuthUserRequested());
+          this.store$.dispatch(AuthStoreActions.logout());
+          return;
+        }
+
+        if (!creatingUser && this.createUserSubmitted) {
+          console.log('User creation successful, fetching user data');
+          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId}));
+          this.createUserSubscription.unsubscribe();
+          this.confirmUserEmailVerified();
         }
       })
   }
 
-    // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
-    private redirectUserToRequestedRoute(): void {
+  // Fetch user and navigate to requested route
+  private postUpdateUserActions(userId: string) {
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
-  
-      if (returnUrl && returnUrl !== '/') {
-        this.router.navigate([returnUrl]);
-      } else {
-        this.router.navigate([PublicAppRoutes.WORKOUT]);
-      }
+    this.userUpdateSubscription = this.userUpdateProcessing$
+      .pipe(
+        withLatestFrom(this.userUpdateError$)
+      )
+      .subscribe(([updateProcessing, updateError]) => {
+
+        if (updateProcessing) {
+          this.userUpdateSubmitted = true;
+        }
+
+        // If error updating user in database, cancel operation and log out user
+        if (updateError) {
+          console.log('Error updating user in database, logging out user');
+          this.userUpdateSubscription.unsubscribe();
+          this.userUpdateSubmitted = false;
+          this.store$.dispatch(AuthStoreActions.logout());
+          return;
+        }
+
+        if (!updateProcessing && this.userUpdateSubmitted) {
+          console.log('User update successful, fetching user data');
+          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId}));
+          this.userUpdateSubscription.unsubscribe();
+          this.confirmUserEmailVerified();
+        }
+      })
+  }
+
+  private confirmUserEmailVerified() {
+    // Keep this subscription open until component destroyed since user needs to take an action in a separate window if not confirmed
+    // Once email is verified, server will update user which will trigger this subscription
+    this.fetchUserSubscription = this.userData$
+      .pipe(
+        withLatestFrom(
+          this.fetchUserProcessing$,
+          this.fetchUserError$,
+        )
+      )
+      .subscribe(([userData, fetchProcessing, fetchError]) => {
+
+        // If error fetching user, cancel operation and log out user
+        if (fetchError) {
+          console.log('Error fetching user in database, logging out user');
+          this.fetchUserSubscription.unsubscribe();
+          this.store$.dispatch(AuthStoreActions.logout());
+          return;
+        }
+
+        if (!fetchProcessing && userData) {
+          
+          console.log('User data fetched, checking for email verification status');
+          
+          // If email is verified, proceed to dashboard (otherwise email verification request is provided)
+          if (userData.emailVerified) {
+            console.log('Email verified, reloading auth data');
+            this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
+            this.reloadAuthData();
+            
+          } else {
+            // FYI Prompt is shown in parent container
+            console.log(`User has not verified email. Requesting verification for ${userData.email}`);
+          }
+
+        }
+
+      })
+  }
+
+  // Auth data needs to be reloaded after email verification is complete in order for user page to update
+  private reloadAuthData(): void {
+    
+    this.reloadAuthDataSubscription = this.reloadAuthDataProcessing$
+      .pipe(
+        withLatestFrom(this.reloadAuthDataError$)
+      )
+      .subscribe(([reloadProcessing, reloadError]) => {
+        
+        if (reloadProcessing) {
+          this.reloadAuthDataSubmitted = true;
+        }
+
+        // If error updating user in database, cancel operation and log out user
+        if (reloadError) {
+          console.log('Error reloading auth data, logging out user');
+          this.reloadAuthDataSubscription.unsubscribe();
+          this.reloadAuthDataSubmitted = false;
+          this.store$.dispatch(AuthStoreActions.logout());
+          return;
+        }
+
+        if (!reloadProcessing && this.reloadAuthDataSubmitted) {
+          console.log('Auth data reloaded, redirecting user to requested route');
+          this.reloadAuthDataSubscription.unsubscribe();
+          this.redirectUserToRequestedRoute();
+        }
+      })
+  }
+
+  // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
+  private redirectUserToRequestedRoute(): void {
+
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+
+    if (returnUrl && returnUrl !== '/') {
+      this.router.navigate([returnUrl]);
+    } else {
+      this.router.navigate([PublicAppRoutes.WORKOUT]);
     }
+  }
 
   ngOnDestroy(): void {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
 
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
+    if (this.userUpdateSubscription) {
+      this.userUpdateSubscription.unsubscribe();
+    }
+
+    if (this.userUpdateSubscription) {
+      this.userUpdateSubscription.unsubscribe();
+    }
+
+    if (this.fetchUserSubscription) {
+      this.fetchUserSubscription.unsubscribe();
+    }
+
+    if (this.reloadAuthDataSubscription) {
+      this.reloadAuthDataSubscription.unsubscribe();
     }
     
   }

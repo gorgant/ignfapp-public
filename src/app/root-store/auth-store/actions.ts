@@ -33,6 +33,22 @@ export const confirmPasswordFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
+// Delete Auth User
+
+export const deleteAuthUserRequested = createAction(
+  '[Signup Form Component] Delete Auth User Requested'
+);
+
+export const deleteAuthUserCompleted = createAction(
+  '[Auth Service] Delete Auth User Complete',
+  props<{userDeleted: boolean}>()
+);
+
+export const deleteAuthUserFailed = createAction(
+  '[Auth Service] Delete Auth User Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Detect Cached User
 
 export const detectCachedUserRequested = createAction(
@@ -121,25 +137,24 @@ export const logout = createAction(
   '[Top Nav] Logout'
 );
 
-// Verify Email
-export const verifyEmailRequested = createAction(
-  '[Email Verification Page] Verify Email Requested',
-  props<{emailVerificationData: EmailVerificationData}>()
+// Reload Auth Data
+export const reloadAuthDataRequested = createAction(
+  '[Login Form | Signup Form] Reload AuthData Requested'
 );
 
-export const verifyEmailCompleted = createAction(
-  '[User Service] Verify Email Completed',
-  props<{emailVerified: boolean}>()
+export const reloadAuthDataCompleted = createAction(
+  '[Auth Service] Reload AuthData Completed',
+  props<{authDataReloaded: boolean}>()
 );
 
-export const verifyEmailFailed = createAction(
-  '[User Service] Verify Email Failed',
+export const reloadAuthDataFailed = createAction(
+  '[Auth Service] Reload AuthData Failed',
   props<{error: FirebaseError}>()
 );
 
 // Reset Password
 export const resetPasswordRequested = createAction(
-  '[Login Form] Reset Password Requested',
+  '[Login Form | Profile Component] Reset Password Requested',
   props<{email: string}>()
 );
 
@@ -166,5 +181,21 @@ export const updateEmailCompleted = createAction(
 
 export const updateEmailFailed = createAction(
   '[Auth Service] Update Email Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Verify Email
+export const verifyEmailRequested = createAction(
+  '[Email Verification Page] Verify Email Requested',
+  props<{emailVerificationData: EmailVerificationData}>()
+);
+
+export const verifyEmailCompleted = createAction(
+  '[User Service] Verify Email Completed',
+  props<{emailVerified: boolean}>()
+);
+
+export const verifyEmailFailed = createAction(
+  '[User Service] Verify Email Failed',
   props<{error: FirebaseError}>()
 );
