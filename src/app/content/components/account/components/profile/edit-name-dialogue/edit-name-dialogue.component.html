@@ -1,15 +1,16 @@
-<section fxLayout="column" fxLayoutAlign="center center">
+<div fxLayout="column" fxLayoutAlign="center center">
+  
+  <h2 class="section-header" mat-dialog-title>{{ TITLE_FIELD_VALUE }}</h2>
 
   <form [formGroup]="nameForm" (ngSubmit)="onSubmit()">
 
     <mat-dialog-content fxLayout="column" fxLayoutAlign="center center">
       
-      <h2 class="section-header" mat-dialog-title>{{ titleFiledValue }}</h2>
       
       <!-- First Name -->
       <mat-form-field>
         <input formControlName="firstName" matInput type="text" placeholder="First Name">
-        <mat-error *ngFor="let validation of formValidationMessages.firstName">
+        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
           <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
         </mat-error>
       </mat-form-field>
@@ -17,7 +18,7 @@
       <!-- Last Name -->
       <mat-form-field>
         <input formControlName="lastName" matInput type="text" placeholder="Last Name">
-        <mat-error *ngFor="let validation of formValidationMessages.lastName">
+        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.lastName">
           <mat-error *ngIf="lastName.hasError(validation.type) && lastName.invalid && (lastName.dirty || lastName.touched)">{{ validation.message }}</mat-error>
         </mat-error>
       </mat-form-field>
@@ -25,7 +26,7 @@
       <!-- Display Name -->
       <mat-form-field>
         <input formControlName="displayName" matInput type="text" placeholder="Display Name">
-        <mat-error *ngFor="let validation of formValidationMessages.displayName">
+        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.displayName">
           <mat-error *ngIf="displayName.hasError(validation.type) && displayName.invalid && (displayName.dirty || displayName.touched)">{{ validation.message }}</mat-error>
         </mat-error>
       </mat-form-field>
@@ -34,7 +35,7 @@
 
     <mat-dialog-actions fxLayout="row" fxLayoutAlign="center center">
       
-      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="nameForm.invalid" mat-raised-button color="primary" type="submit">{{ saveButtonValue }}</button>
+      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="nameForm.invalid" mat-raised-button color="primary" type="submit">{{ SAVE_BUTTON_VALUE }}</button>
       <div *ngIf="(userUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
         <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
       </div>
@@ -44,10 +45,10 @@
         [mat-dialog-close]
         type="button"
         >
-          {{ cancelButtonValue }}
+          {{ CANCEL_BUTTON_VALUE }}
       </button>
 
     </mat-dialog-actions>
   </form>
 
-</section>
+</div>

@@ -12,6 +12,7 @@ export enum GlobalFieldValues {
   CREATE_PASSWORD = `Create Password`,
   DISPLAY_NAME = `Display Name`,
   EDIT = `Edit`,
+  EDIT_AVATAR = `Edit Avatar`,
   EDIT_EMAIL = `Edit Email`,
   EDIT_NAME = `Edit Name`,
   EMAIL = `Email`,

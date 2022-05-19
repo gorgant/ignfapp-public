@@ -17,14 +17,14 @@ import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/ro
 export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
   nameForm!: FormGroup;
-  formValidationMessages = UserProfileFormValidationMessages;
+  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
-  titleFiledValue = GlobalFieldValues.EDIT_NAME;
-  firstNameFieldValue = GlobalFieldValues.FIRST_NAME;
-  lastNameFieldValue = GlobalFieldValues.LAST_NAME;
-  displayNameFieldValue = GlobalFieldValues.DISPLAY_NAME;
-  saveButtonValue = GlobalFieldValues.SAVE;
-  cancelButtonValue = GlobalFieldValues.CANCEL;
+  TITLE_FIELD_VALUE = GlobalFieldValues.EDIT_NAME;
+  FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;
+  LAST_NAME_FIELD_VALUE = GlobalFieldValues.LAST_NAME;
+  DISPLAY_NAME_FIELD_VALUE = GlobalFieldValues.DISPLAY_NAME;
+  SAVE_BUTTON_VALUE = GlobalFieldValues.SAVE;
+  CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   userUpdateProcessing$!: Observable<boolean>;
   userUpdateError$!: Observable<{} | undefined>;

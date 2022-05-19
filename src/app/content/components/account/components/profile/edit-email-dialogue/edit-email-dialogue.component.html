@@ -1,6 +1,6 @@
 <div fxLayout="column" fxLayoutAlign="center center">
 
-  <h2 class="section-header" mat-dialog-title>{{ updateEmailTitleValue }}</h2>
+  <h2 class="section-header" mat-dialog-title>{{ UPDATE_EMAIL_TITLE_VALUE }}</h2>
 
   <mat-stepper [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #updateEmailStepper>
 
@@ -8,12 +8,12 @@
     <mat-step [stepControl]="passwordForm" errorMessage="Error verifying password." [editable]="false">
       <form [formGroup]="passwordForm">
         
-        <ng-template matStepLabel>{{ verifyPasswordStepLabel }}</ng-template>
+        <ng-template matStepLabel>{{ VERIFY_PASSWORD_STEP_LABEL }}</ng-template>
       
         <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
           <mat-form-field>
             <input formControlName="password" matInput type="password" placeholder="Current Password">
-            <mat-error *ngFor="let validation of formValidationMessages.password">
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.password">
               <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }}</mat-error>
             </mat-error>
           </mat-form-field>
@@ -21,14 +21,14 @@
           <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
             
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [disabled]="emailForm.invalid" color="primary" (click)="onConfirmPasswordInAuth()">
-              {{ verifyPasswordButtonValue }}
+              {{ VERIFY_PASSWORD_BUTTON_VALUE }}
             </button>
             <div *ngIf="(authOrUserUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
               <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
             </div>
             
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">
-              {{ cancelButtonValue }}
+              {{ CANCEL_BUTTON_VALUE }}
             </button>
           
           </div>
@@ -41,12 +41,12 @@
     <mat-step [stepControl]="emailForm" errorMessage="Error updating email.">
       <form [formGroup]="emailForm" fxLayout="column" fxLayoutAlign="center center">
 
-        <ng-template matStepLabel>{{ updateEmailStepLabel }}</ng-template>
+        <ng-template matStepLabel>{{ UPDATE_EMAIL_STEP_LABEL }}</ng-template>
         
         <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
           <mat-form-field>
             <input formControlName="email" matInput type="text" placeholder="Email">
-            <mat-error *ngFor="let validation of formValidationMessages.email">
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
               <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
             </mat-error>
           </mat-form-field>
@@ -54,14 +54,14 @@
           <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
             
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" (click)="onUpdateEmail()">
-              {{ updateEmailButtonValue }}
+              {{ UPDATE_EMAIL_BUTTON_VALUE }}
             </button>
             <div *ngIf="(authOrUserUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
               <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
             </div>
   
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">
-              {{ cancelButtonValue }}
+              {{ CANCEL_BUTTON_VALUE }}
             </button>
   
           </div>

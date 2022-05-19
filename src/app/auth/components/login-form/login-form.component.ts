@@ -23,13 +23,13 @@ import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset
 export class LoginFormComponent implements OnInit, OnDestroy {
 
   authUserForm!: FormGroup;
-  formValidationMessages = UserRegistrationFormValidationMessages;
+  FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
   
-  emailFieldValue = GlobalFieldValues.EMAIL;
-  passwordFieldValue = GlobalFieldValues.PASSWORD;
-  forgotPasswordBlurb = GlobalFieldValues.RP_FORGOT_PASSWORD;
-  checkInboxBlurb = GlobalFieldValues.RP_CHECK_INBOX;
-  logInButtonValue = GlobalFieldValues.LOGIN;
+  EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
+  PASSWORD_FIELD_VALUE = GlobalFieldValues.PASSWORD;
+  FORGOT_PASSWORD_BLURB = GlobalFieldValues.RP_FORGOT_PASSWORD;
+  CHECK_INBOX_BLURB = GlobalFieldValues.RP_CHECK_INBOX;
+  LOG_IN_BUTTON_VALUE = GlobalFieldValues.LOGIN;
 
   authProcessing$!: Observable<boolean>;
   authSubscription!: Subscription;

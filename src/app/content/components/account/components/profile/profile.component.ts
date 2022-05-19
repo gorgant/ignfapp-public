@@ -19,8 +19,8 @@ import { EditPasswordDialogueComponent } from './edit-password-dialogue/edit-pas
 })
 export class ProfileComponent implements OnInit {
 
-  editButtonValue = GlobalFieldValues.EDIT;
-  changePasswordButtonValue = GlobalFieldValues.CHANGE_PASSWORD;
+  EDIT_BUTTON_VALUE = GlobalFieldValues.EDIT;
+  CHANGE_PASSWORD_BUTTON_VALUE = GlobalFieldValues.CHANGE_PASSWORD;
 
   userData$!: Observable<PublicUser>;
   loading$!: Observable<boolean>;

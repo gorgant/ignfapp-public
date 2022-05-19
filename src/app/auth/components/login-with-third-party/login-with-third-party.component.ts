@@ -19,12 +19,12 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions,
 })
 export class LoginWithThirdPartyComponent implements OnInit {
 
-  trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
-  googleLogoSvg = PublicImagePaths.GOOGLE_ICON;
-  facebookLogoSvg = PublicImagePaths.FACEBOOK_ICON;
+  TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
+  GOOGLE_LOGO_SVG = PublicImagePaths.GOOGLE_ICON;
+  FACEBOOK_LOGO_SVG = PublicImagePaths.FACEBOOK_ICON;
 
-  continueWithGoogleButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_GOOGLE;
-  continueWithFacebookButtonValue = GlobalFieldValues.LI_CONTINUE_WITH_FACEBOOK;
+  CONTINUE_WITH_GOOGLE_BUTTON_VALUE = GlobalFieldValues.LI_CONTINUE_WITH_GOOGLE;
+  CONTINUE_WITH_FACEBOOK_BUTTON_VALUE = GlobalFieldValues.LI_CONTINUE_WITH_FACEBOOK;
   
   authProcessing$!: Observable<boolean>;
   authSubscription!: Subscription;
@@ -50,23 +50,8 @@ export class LoginWithThirdPartyComponent implements OnInit {
   reloadAuthDataError$!: Observable<{} | undefined>;
   reloadAuthDataSubmitted!: boolean;
 
-
-
   userData$!: Observable<PublicUser>;
   userFetched: boolean = false;
-
-
-
-
-
-
-
-  // authStatus$!: Observable<boolean>;
-  // authOrUserUpdateProcessing$!: Observable<boolean>;
-  // authResultsData$!: Observable<AuthResultsData>;
-
-  // authSubscription!: Subscription;
-  // userSubscription!: Subscription;
 
   constructor(
     private store$: Store<RootStoreState.AppState>,

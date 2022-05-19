@@ -8,7 +8,7 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 })
 export class AuthHeaderComponent implements OnInit {
 
-  authHeader = GlobalFieldValues.AUTH_PERSONALIZED_WORKOUTS;
+  AUTH_HEADER = GlobalFieldValues.AUTH_PERSONALIZED_WORKOUTS;
 
   constructor() { }
 

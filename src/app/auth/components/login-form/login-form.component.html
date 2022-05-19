@@ -12,22 +12,22 @@
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
       <mat-icon class="input-icon" matPrefix>email</mat-icon>
-      <mat-placeholder class="input-placeholder">{{ emailFieldValue }}</mat-placeholder>
-      <mat-error *ngFor="let validation of formValidationMessages.email">
+      <mat-placeholder class="input-placeholder">{{ EMAIL_FIELD_VALUE }}</mat-placeholder>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
         <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
       </mat-error>
     </mat-form-field>
     <mat-form-field color="accent">
       <input formControlName="password" matInput type="password">
       <mat-icon class="input-icon" matPrefix>lock</mat-icon>
-      <mat-placeholder class="input-placeholder">{{ passwordFieldValue }}</mat-placeholder>
-      <mat-error *ngFor="let validation of formValidationMessages.password">
+      <mat-placeholder class="input-placeholder">{{ PASSWORD_FIELD_VALUE }}</mat-placeholder>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.password">
         <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 6</span> </mat-error>
       </mat-error>
     </mat-form-field>
     <div class="forgot-password-container" fxLayout="row" fxLayoutAlign="start center">
       <button class="reset-password-button" type="button" (click)="onResetPassword()"> 
-        {{ forgotPasswordBlurb }}
+        {{ FORGOT_PASSWORD_BLURB }}
       </button>
     </div>
     <button 
@@ -36,13 +36,13 @@
       type="submit" 
       mat-raised-button 
       color="primary">
-        {{ logInButtonValue }}
+        {{ LOG_IN_BUTTON_VALUE }}
     </button>
   </form>
   <div *ngIf="showResetMessage" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <h2 class="check-inbox-message">
-      {{ checkInboxBlurb }}
+      {{ CHECK_INBOX_BLURB }}
     </h2>
-    <button mat-raised-button color="primary" (click)="onRestoreLoginScreen()">{{ logInButtonValue }}</button>
+    <button mat-raised-button color="primary" (click)="onRestoreLoginScreen()">{{ LOG_IN_BUTTON_VALUE }}</button>
   </div>
 </div>

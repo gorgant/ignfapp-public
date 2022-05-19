@@ -16,11 +16,11 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/ro
 })
 export class EmailVerificationComponent implements OnInit {
 
-  confirmingEmailBlurb = GlobalFieldValues.EC_CONFIRMING_EMAIL;
-  verificationFailedBlurb = GlobalFieldValues.EC_VERIFICATION_FAILED;
-  emailConfirmedBlurb = GlobalFieldValues.EC_EMAIL_CONFIRMED;
+  CONFIRMING_EMAIL_BLURB = GlobalFieldValues.EC_CONFIRMING_EMAIL;
+  VERIFICATION_FAILED_BLURB = GlobalFieldValues.EC_VERIFICATION_FAILED;
+  EMAIL_CONFIRMED_BLURB = GlobalFieldValues.EC_EMAIL_CONFIRMED;
   
-  supportEmail = EmailSenderAddresses.IGNFAPP_SUPPORT;
+  SUPPORT_EMAIL = EmailSenderAddresses.IGNFAPP_SUPPORT;
 
   emailVerified$!: Observable<boolean>;
   emailVerificationProcessing$!: Observable<boolean>;

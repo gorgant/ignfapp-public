@@ -3,19 +3,19 @@
     <div *ngIf="emailVerificationProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-spinner class="processing-spinner"></mat-spinner>
       <p class="processing-message">
-        {{ confirmingEmailBlurb }}
+        {{ CONFIRMING_EMAIL_BLURB }}
       </p>
     </div>
     <div *ngIf="dispatchedEmailVerificationRequest && !(emailVerificationProcessing$ | async) && !(emailVerified$ | async)" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-icon class="failure-icon">cancel</mat-icon>
       <p class="failure-message">
-        {{ verificationFailedBlurb }}<span class="support-text">{{ supportEmail }}</span>.
+        {{ VERIFICATION_FAILED_BLURB }}<span class="support-text">{{ SUPPORT_EMAIL }}</span>.
       </p>
     </div>
     <div *ngIf="emailVerified$ | async" class="success-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <mat-icon class="success-icon">check_circle_outline</mat-icon>
       <p class="success-message">
-        {{ emailConfirmedBlurb }}
+        {{ EMAIL_CONFIRMED_BLURB }}
       </p>
       <button mat-raised-button color="primary" (click)="onEnterApp()">Enter App</button>
     </div>

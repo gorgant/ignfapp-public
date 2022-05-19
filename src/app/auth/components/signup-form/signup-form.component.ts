@@ -21,14 +21,14 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions,
 export class SignupFormComponent implements OnInit, OnDestroy {
 
   registerUserForm!: FormGroup;
-  formValidationMessages = UserRegistrationFormValidationMessages;
+  FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
   
-  firstNameFieldValue = GlobalFieldValues.FIRST_NAME;
-  emailFieldValue = GlobalFieldValues.EMAIL;
-  passwordFieldValue = GlobalFieldValues.CREATE_PASSWORD;
-  submitButtonValue = GlobalFieldValues.CREATE_ACCOUNT;
-  passwordHint = GlobalFieldValues.LI_PASSWORD_HINT;
-  trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
+  FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;
+  EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
+  PASSWORD_FIELD_VALUE = GlobalFieldValues.CREATE_PASSWORD;
+  SUBMIT_BUTTON_VALUE = GlobalFieldValues.CREATE_ACCOUNT;
+  PASSWORD_HINT = GlobalFieldValues.LI_PASSWORD_HINT;
+  TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
   authSignUpProcessing$!: Observable<boolean>;
   authSignUpSubscription!: Subscription;

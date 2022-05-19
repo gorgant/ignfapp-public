@@ -28,15 +28,15 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   
   passwordForm!: FormGroup;
   emailForm!: FormGroup;
-  formValidationMessages = UserProfileFormValidationMessages;
+  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
-  cancelButtonValue = GlobalFieldValues.CANCEL;
-  emailFieldValue = GlobalFieldValues.EMAIL;
-  updateEmailButtonValue = GlobalFieldValues.UPDATE_EMAIL;
-  updateEmailStepLabel = GlobalFieldValues.UPDATE_EMAIL;
-  updateEmailTitleValue = GlobalFieldValues.UPDATE_EMAIL;
-  verifyPasswordButtonValue = GlobalFieldValues.VERIFY_PASSWORD;
-  verifyPasswordStepLabel = GlobalFieldValues.VERIFY_PASSWORD;
+  CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
+  EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
+  UPDATE_EMAIL_BUTTON_VALUE = GlobalFieldValues.UPDATE_EMAIL;
+  UPDATE_EMAIL_STEP_LABEL = GlobalFieldValues.UPDATE_EMAIL;
+  UPDATE_EMAIL_TITLE_VALUE = GlobalFieldValues.UPDATE_EMAIL;
+  VERIFY_PASSWORD_BUTTON_VALUE = GlobalFieldValues.VERIFY_PASSWORD;
+  VERIFY_PASSWORD_STEP_LABEL = GlobalFieldValues.VERIFY_PASSWORD;
 
   passwordConfirmationProcessing$!: Observable<boolean>;
   passwordConfirmationSubscription!: Subscription;

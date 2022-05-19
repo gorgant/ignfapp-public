@@ -16,11 +16,11 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/ro
 export class ResetPasswordDialogueComponent implements OnInit {
 
   resetPasswordForm!: FormGroup;
-  formValidationMessages = UserRegistrationFormValidationMessages;
+  FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
 
-  resetPasswordTitle = GlobalFieldValues.RP_RESET_PASSWORD;
-  submitButtonValue = GlobalFieldValues.SUBMIT;
-  cancelButtonValue = GlobalFieldValues.CANCEL;
+  RESET_PASSWORD_TITLE = GlobalFieldValues.RP_RESET_PASSWORD;
+  SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
+  CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   resetPasswordProcessing$!: Observable<boolean>;
   resetPasswordSubmitted!: boolean;

@@ -16,19 +16,19 @@ import { selectIsFetchingUser, selectUserData } from 'src/app/root-store/user-st
 export class AccountComponent implements OnInit {
 
 
-  statsButtonValue = GlobalFieldValues.STATS;
-  profileButtonValue = GlobalFieldValues.PROFILE;
-  settingsButtonValue = GlobalFieldValues.SETTINGS;
+  STATS_BUTTON_VALUE = GlobalFieldValues.STATS;
+  PROFILE_BUTTON_VALUE = GlobalFieldValues.PROFILE;
+  SETTINGS_BUTTON_VALUE = GlobalFieldValues.SETTINGS;
 
-  profileUrl = PublicAppRoutes.PROFILE;
-  settingsUrl = PublicAppRoutes.SETTINGS;
-  statsUrl = PublicAppRoutes.STATS;
+  PROFILE_URL = PublicAppRoutes.PROFILE;
+  SETTINGS_URL = PublicAppRoutes.SETTINGS;
+  STATS_URL = PublicAppRoutes.STATS;
 
 
   userData$!: Observable<PublicUser>;
   loading$!: Observable<boolean>;
 
-  defaultProfileImage = PublicImagePaths.DEFAULT_PROFILE_IMAGE_ICON;
+  DEFAULT_PROFILE_IMAGE = PublicImagePaths.DEFAULT_PROFILE_IMAGE_ICON;
 
   
   constructor(

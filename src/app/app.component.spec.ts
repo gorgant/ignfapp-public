@@ -23,7 +23,7 @@ describe('AppComponent', () => {
   it(`should have as title 'ignfapp-public'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('ignfapp-public');
+    expect(app.TITLE).toEqual('ignfapp-public');
   });
 
   it('should render title', () => {

@@ -15,18 +15,18 @@ import { RootStoreState, AuthStoreSelectors, UserStoreSelectors } from 'src/app/
 })
 export class SignupComponent implements OnInit {
 
-  loginPath = PublicAppRoutes.LOGIN;
-  trustedEmailSender = EmailSenderAddresses.IGNFAPP_DEFAULT;
+  LOGIN_PATH = PublicAppRoutes.LOGIN;
+  TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
-  authProcessingBlurb = GlobalFieldValues.LI_AUTH_PROCESSING;
-  alreadyHaveAccountButtonValue = GlobalFieldValues.LI_ALREADY_HAVE_ACCOUNT;
-  orBlurb = GlobalFieldValues.OR_CAPS;
-  signUpWithEmailButtonValue = GlobalFieldValues.LI_SIGN_UP_WITH_EMAIL;
-  checkInboxBlurb1 = GlobalFieldValues.CHECK_INBOX_1;
-  checkInboxBlurb2 = GlobalFieldValues.CHECK_INBOX_2;
-  checkInboxBlurb3 = GlobalFieldValues.CHECK_INBOX_3;
-  checkSpamBlurb1 = GlobalFieldValues.CHECK_SPAM_1;
-  checkSpamBlurb2 = GlobalFieldValues.CHECK_SPAM_2;
+  AUTH_PROCESSING_BLURB = GlobalFieldValues.LI_AUTH_PROCESSING;
+  ALREADY_HAVE_ACCOUNT_BUTTON_VALUE = GlobalFieldValues.LI_ALREADY_HAVE_ACCOUNT;
+  OR_BLURB = GlobalFieldValues.OR_CAPS;
+  SIGN_UP_WITH_EMAIL_BUTTON_VALUE = GlobalFieldValues.LI_SIGN_UP_WITH_EMAIL;
+  CHECK_INBOX_BLURB_1 = GlobalFieldValues.CHECK_INBOX_1;
+  CHECK_INBOX_BLURB_2 = GlobalFieldValues.CHECK_INBOX_2;
+  CHECK_INBOX_BLURB_3 = GlobalFieldValues.CHECK_INBOX_3;
+  CHECK_SPAM_BLURB_1 = GlobalFieldValues.CHECK_SPAM_1;
+  CHECK_SPAM_BLURB_2 = GlobalFieldValues.CHECK_SPAM_2;
 
   authStatus$!: Observable<boolean>;
   authOrUserUpdateProcessing$!: Observable<boolean>;
