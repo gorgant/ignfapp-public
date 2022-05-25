@@ -13,9 +13,10 @@ export const createOrUpdateSgContact = async(userData: EmailUserData) => {
   const pubsubMsg: EmailUserData = {
     ...userData
   }
-  const topicPublishRes = await topic.publishJSON(pubsubMsg)
+  const bufferedMsg = Buffer.from(JSON.stringify(pubsubMsg));
+  const [publishedMsgId] = await topic.publishMessage({data: bufferedMsg})
     .catch(err => {functions.logger.log(`Failed to publish to topic "${topicName}" on project "${projectId}":`, err); throw new functions.https.HttpsError('internal', err);});
-  functions.logger.log(`Publish to topic "${topicName}" on project "${projectId}" succeeded:`, topicPublishRes);
+  functions.logger.log(`Publish to topic "${topicName}" on project "${projectId}" succeeded:`, publishedMsgId);
 
-  return topicPublishRes;
+  return publishedMsgId;
 }

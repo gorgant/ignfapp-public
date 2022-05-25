@@ -18,7 +18,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       createUserProcessing: true,
-      createUserError: false
+      createUserError: undefined
     }
   }),
   on(UserStoreActions.createUserCompleted, (state, action) => {
@@ -42,7 +42,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       fetchUserProcessing: true,
-      fetchUserError: false
+      fetchUserError: undefined
     }
   }),
   on(UserStoreActions.fetchUserCompleted, (state, action) => {
@@ -60,13 +60,21 @@ export const userStoreReducer = createReducer(
     }
   }),
 
+  // Purge User Data
+  on(UserStoreActions.purgeUserData, (state, action) => {
+    return {
+      ...state,
+      userData: undefined
+    }
+  }),
+
   // Register Prelaunch User
 
   on(UserStoreActions.registerPrelaunchUserRequested, (state, action) => {
     return {
       ...state,
       updateUserProcessing: true,
-      updateUserError: false
+      updateUserError: undefined
     }
   }),
   on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
@@ -83,6 +91,29 @@ export const userStoreReducer = createReducer(
       updateUserError: action.error
     }
   }),
+
+  // Resize Avatar
+
+  on(UserStoreActions.resizeAvatarRequested, (state, action) => {
+    return {
+      ...state,
+      resizeAvatarProcessing: true,
+      resizeAvatarError: undefined
+    }
+  }),
+  on(UserStoreActions.resizeAvatarCompleted, (state, action) => {
+    return {
+      ...state,
+      resizeAvatarProcessing: false,
+    }
+  }),
+  on(UserStoreActions.resizeAvatarFailed, (state, action) => {
+    return {
+      ...state,
+      resizeAvatarProcessing: false,
+      resizeAvatarError: action.error
+    }
+  }),
   
   // Update User
   
@@ -90,7 +121,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       updateUserProcessing: true,
-      updateUserError: false
+      updateUserError: undefined
     }
   }),
   on(UserStoreActions.updateUserCompleted, (state, action) => {
@@ -108,11 +139,27 @@ export const userStoreReducer = createReducer(
     }
   }),
 
-  // Purge User Data
-  on(UserStoreActions.purgeUserData, (state, action) => {
+  // Upload Avatar
+
+  on(UserStoreActions.uploadAvatarRequested, (state, action) => {
     return {
       ...state,
-      userData: undefined
+      uploadAvatarProcessing: true,
+      uploadAvatarError: undefined
+    }
+  }),
+  on(UserStoreActions.uploadAvatarCompleted, (state, action) => {
+    return {
+      ...state,
+      uploadAvatarProcessing: false,
+      avatarDownloadUrl: action.avatarDownloadUrl
+    }
+  }),
+  on(UserStoreActions.uploadAvatarFailed, (state, action) => {
+    return {
+      ...state,
+      uploadAvatarProcessing: false,
+      uploadAvatarError: action.error
     }
   }),
   

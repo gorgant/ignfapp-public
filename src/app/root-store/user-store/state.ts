@@ -8,8 +8,13 @@ export interface UserState {
   createUserProcessing: boolean,
   fetchUserError: {} | undefined,
   fetchUserProcessing: boolean,
+  resizeAvatarError: {} | undefined,
+  resizeAvatarProcessing: boolean;
   updateUserError: {} | undefined,
   updateUserProcessing: boolean,
+  uploadAvatarError: {} | undefined,
+  uploadAvatarProcessing: boolean,
+  avatarDownloadUrl: string | undefined;
   userData: PublicUser | undefined,
 }
 
@@ -18,7 +23,12 @@ export const initialUserState: UserState = {
   createUserProcessing: false,
   fetchUserError: undefined,
   fetchUserProcessing: false,
+  resizeAvatarError: undefined,
+  resizeAvatarProcessing: false,
   updateUserError: undefined,
   updateUserProcessing: false,
+  uploadAvatarError: undefined,
+  uploadAvatarProcessing: false,
+  avatarDownloadUrl: undefined,
   userData: undefined,
 }

@@ -1,6 +1,6 @@
 <div fxLayout="column" fxLayoutAlign="center center">
   
-  <h2 class="section-header" mat-dialog-title>{{ TITLE_FIELD_VALUE }}</h2>
+  <h2 mat-dialog-title>{{ TITLE_FIELD_VALUE }}</h2>
 
   <form [formGroup]="nameForm" (ngSubmit)="onSubmit()">
 
@@ -41,6 +41,7 @@
       </div>
 
       <button 
+        *ngIf="!(userUpdateProcessing$ | async)" 
         mat-raised-button
         [mat-dialog-close]
         type="button"

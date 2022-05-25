@@ -9,6 +9,7 @@ import { filter, map, tap } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { RootStoreState, UiStoreActions } from 'src/app/root-store';
+import { SanitizedFileData } from 'shared-models/utils/sanitized-file-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -133,6 +134,20 @@ export class UiService {
         n = parseFloat((n * -1).toFixed(2));
     }
     return n;
+  }
+
+  sanitizeFileName(file: File): SanitizedFileData {
+    // https://stackoverflow.com/a/4250408/6572208 and https://stackoverflow.com/a/5963202/6572208
+    const fileNameNoExt = file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '_');
+    // https://stackoverflow.com/a/1203361/6572208
+    const fileExt = file.name.split('.').pop() as string;
+    const fullFileName = fileNameNoExt + '.' + fileExt;
+
+    return {
+      fileNameNoExt,
+      fileExt,
+      fullFileName
+    };
   }
 
 

@@ -94,9 +94,9 @@ const executeActions = async (sgContactListRemovalData: SgContactListRemovalData
 /////// DEPLOYABLE FUNCTIONS ///////
 
 // Listen for pubsub message
-export const onPubRemoveUserFromSgContactList = functions.pubsub.topic(PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST).onPublish( async (message, context) => {
+export const onPubRemoveUserFromSgContactList = functions.pubsub.topic(PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC).onPublish( async (message, context) => {
   const sgContactListRemovalData = message.json as SgContactListRemovalData;
-  functions.logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST} request received with this data:`, sgContactListRemovalData);
+  functions.logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC} request received with this data:`, sgContactListRemovalData);
   functions.logger.log('Context from pubsub:', context);
 
   await executeActions(sgContactListRemovalData);

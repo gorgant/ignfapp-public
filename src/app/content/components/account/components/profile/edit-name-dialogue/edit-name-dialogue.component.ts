@@ -93,7 +93,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
         }
 
         if (updateError) {
-          console.log('Error resetting password, resetting form');
+          console.log('Error updating name, resetting form');
           this.userUpdateSubscription.unsubscribe();
           this.updateSubmitted = false;
           return;

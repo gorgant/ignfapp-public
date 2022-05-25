@@ -1,17 +1,17 @@
 import * as functions from 'firebase-functions';
-import { PublicTopicNames } from "../../../shared-models/routes-and-paths/fb-function-names.model";
-import { SgContactListRemovalData } from "../../../shared-models/email/sg-contact-list-removal-data";
 import { publicProjectId } from "../config/environments-config";
 import { PubSub } from '@google-cloud/pubsub';
+import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
+import { AvatarImageMetaData } from '../../../shared-models/images/image-metadata.model';
 const pubSub = new PubSub();
 
 // Publish request to remove user from SG contact list
-const publishRemoveUserFromSgContactList = async(sgContactListRemovalData: SgContactListRemovalData) => {
-  const topicName = PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC;
+const publishResizeAvatar = async(imageMetaData: AvatarImageMetaData) => {
+  const topicName = PublicTopicNames.RESIZE_AVATAR_TOPIC;
   const projectId = publicProjectId;
   const topic = pubSub.topic(`projects/${projectId}/topics/${topicName}`);
-  const pubsubMsg: SgContactListRemovalData = {
-    ...sgContactListRemovalData
+  const pubsubMsg: AvatarImageMetaData = {
+    ...imageMetaData
   };
   const bufferedMsg = Buffer.from(JSON.stringify(pubsubMsg));
   const [publishedMsgId] = await topic.publishMessage({data: bufferedMsg})
@@ -23,9 +23,9 @@ const publishRemoveUserFromSgContactList = async(sgContactListRemovalData: SgCon
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-export const onCallRemoveUserFromSgContactList = functions.https.onCall( async (sgContactListRemovalData: SgContactListRemovalData): Promise<string> => {
+export const onCallResizeAvatar = functions.https.onCall( async (imageMetaData: AvatarImageMetaData): Promise<string> => {
 
-  functions.logger.log(`Remove user ${sgContactListRemovalData.emailUserData.id} from these SG contact lists`, sgContactListRemovalData.listsToUpdate);
+  functions.logger.log(`Resize avatar image for user with id ${imageMetaData.customMetadata.publicUserId}`);
   
-  return publishRemoveUserFromSgContactList(sgContactListRemovalData);
+  return publishResizeAvatar(imageMetaData);
 });

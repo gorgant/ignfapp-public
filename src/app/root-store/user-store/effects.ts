@@ -2,7 +2,8 @@ import { Injectable } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
-import { catchError, map, switchMap } from "rxjs/operators";
+import { catchError, concatMap, map, switchMap } from "rxjs/operators";
+import { ImageService } from "src/app/core/services/image.service";
 import { UserService } from "src/app/core/services/user.service";
 import * as UserStoreActions from './actions';
 
@@ -12,6 +13,7 @@ export class UserStoreEffects {
   constructor(
     private actions$: Actions,
     private userService: UserService,
+    private imageService: ImageService
   ) { }
 
   createUserEffect$ = createEffect(() => this.actions$
@@ -56,6 +58,27 @@ export class UserStoreEffects {
     ),
   );
 
+  // getAvatarDownloadUrlEffect$ = createEffect(() => this.actions$
+  //   .pipe(
+  //     ofType(UserStoreActions.getAvatarDownloadUrlRequested),
+  //     switchMap(action => 
+  //       this.imageService.fetchAvatarDownloadUrl(action.avatarImageData).pipe(
+  //         map(avatarDownloadUrl => {
+  //           return UserStoreActions.getAvatarDownloadUrlCompleted({avatarDownloadUrl});
+  //         }),
+  //         catchError(error => {
+  //           const fbError: FirebaseError = {
+  //             code: error.code,
+  //             message: error.message,
+  //             name: error.name
+  //           };
+  //           return of(UserStoreActions.getAvatarDownloadUrlFailed({error: fbError}));
+  //         })
+  //       )
+  //     ),
+  //   ),
+  // );
+
   registerPrelaunchUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.registerPrelaunchUserRequested),
@@ -77,10 +100,31 @@ export class UserStoreEffects {
     ),
   );
 
+  resizeAvatarEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.resizeAvatarRequested),
+      switchMap(action => 
+        this.imageService.resizeAvatarImage(action.imageMetaData).pipe(
+          map(serverResponse => {
+            return UserStoreActions.resizeAvatarCompleted();
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.resizeAvatarFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   updateUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.updateUserRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.userService.updatePublicUser(action.userUpdateData).pipe(
           map(updatedUser => {
             return UserStoreActions.updateUserCompleted({updatedUser});
@@ -92,6 +136,27 @@ export class UserStoreEffects {
               name: error.name
             };
             return of(UserStoreActions.updateUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  uploadAvatarEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.uploadAvatarRequested),
+      switchMap(action => 
+        this.imageService.uploadAvatarImageAndGetDownloadUrl(action.avatarData).pipe(
+          map(avatarDownloadUrl => {
+            return UserStoreActions.uploadAvatarCompleted({avatarDownloadUrl});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.uploadAvatarFailed({error: fbError}));
           })
         )
       ),

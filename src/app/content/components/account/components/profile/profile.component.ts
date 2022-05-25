@@ -101,6 +101,7 @@ export class ProfileComponent implements OnInit {
         dialogConfig.width = '400px';
 
         dialogConfig.data = user;
+        dialogConfig.autoFocus = false;
 
         const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
       });

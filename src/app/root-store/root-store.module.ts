@@ -25,7 +25,7 @@ import { UiStoreModule } from './ui-store';
           metaReducers,
           runtimeChecks: {
             strictStateSerializability: true,
-            strictActionSerializability: true,
+            strictActionSerializability: false, // Disabled bc need to move files like avatar image through store
             strictActionTypeUniqueness: true,
         }
       }),

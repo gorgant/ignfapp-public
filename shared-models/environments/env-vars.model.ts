@@ -36,25 +36,21 @@ export const SANDBOX_APPS = {
 };
 
 export enum ProductionCloudStorage {
-  IGNFAPP_ADMIN_BLOG_STORAGE_AF_CF = 'ignfapp-admin-blog',
-  IGNFAPP_ADMIN_BLOG_STORAGE_FB = 'gs://ignfapp-admin-blog',
-  IGNFAPP_ADMIN_PRODUCTS_STORAGE_AF_CF = 'ignfapp-admin-products',
-  IGNFAPP_ADMIN_PRODUCTS_STORAGE_FB = 'gs://ignfapp-admin-products',
-  IGNFAPP_ADMIN_BACKUP_STORAGE_AF_CF = 'ignfapp-admin-backup',
-  IGNFAPP_ADMIN_BACKUP_STORAGE_FB = 'gs://ignfapp-admin-backup',
-  IGNFAPP_ADMIN_REPORTS_STORAGE_AF_CF = 'ignfapp-admin-reports',
-  IGNFAPP_ADMIN_REPORTS_STORAGE_FB = 'gs://ignfapp-admin-reports',
+  IGNFAPP_PUBLIC_USERS_STORAGE = 'ignfapp-public-users',
+  IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX = 'gs://ignfapp-public-users',
+  IGNFAPP_ADMIN_BACKUP_STORAGE = 'ignfapp-admin-backup',
+  IGNFAPP_ADMIN_BACKUP_STORAGE_GS_PREFIX = 'gs://ignfapp-admin-backup',
+  IGNFAPP_ADMIN_REPORTS_STORAGE = 'ignfapp-admin-reports',
+  IGNFAPP_ADMIN_REPORTS_STORAGE_GS_PREFIX = 'gs://ignfapp-admin-reports',
 }
 
 export enum SandboxCloudStorage {
-  IGNFAPP_ADMIN_BLOG_STORAGE_AF_CF = 'ignfapp-sandbox-admin-blog',
-  IGNFAPP_ADMIN_BLOG_STORAGE_FB = 'gs://ignfapp-sandbox-admin-blog',
-  IGNFAPP_ADMIN_PRODUCTS_STORAGE_AF_CF = 'ignfapp-sandbox-admin-products',
-  IGNFAPP_ADMIN_PRODUCTS_STORAGE_FB = 'gs://ignfapp-sandbox-admin-products',
-  IGNFAPP_ADMIN_BACKUP_STORAGE_AF_CF = 'ignfapp-sandbox-admin-backup',
-  IGNFAPP_ADMIN_BACKUP_STORAGE_FB = 'gs://ignfapp-sandbox-admin-backup',
-  IGNFAPP_ADMIN_REPORTS_STORAGE_AF_CF = 'ignfapp-sandbox-admin-reports',
-  IGNFAPP_ADMIN_REPORTS_STORAGE_FB = 'gs://ignfapp-sandbox-admin-reports',
+  IGNFAPP_PUBLIC_USERS_STORAGE = 'ignfapp-sandbox-public-users',
+  IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX = 'gs://ignfapp-sandbox-public-users',
+  IGNFAPP_ADMIN_BACKUP_STORAGE = 'ignfapp-sandbox-admin-backup',
+  IGNFAPP_ADMIN_BACKUP_STORAGE_GS_PREFIX = 'gs://ignfapp-sandbox-admin-backup',
+  IGNFAPP_ADMIN_REPORTS_STORAGE = 'ignfapp-sandbox-admin-reports',
+  IGNFAPP_ADMIN_REPORTS_STORAGE_GS_PREFIX = 'gs://ignfapp-sandbox-admin-reports',
 }
 
 // Currently all apps use the Explearning keys

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
-import { catchError, map, switchMap, tap } from "rxjs/operators";
+import { catchError, concatMap, map, switchMap, tap } from "rxjs/operators";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
 import { AuthService } from "src/app/core/services/auth.service";
@@ -216,7 +216,7 @@ export class AuthStoreEffects {
   updateEmailEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.updateEmailRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.authService.updateEmailInAuth(action.emailUpdateData).pipe(
           map(emailUpdated => {
             return AuthStoreActions.updateEmailCompleted({emailUpdated});

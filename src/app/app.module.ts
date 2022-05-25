@@ -15,6 +15,7 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
+import { getStorage, provideStorage } from '@angular/fire/storage';
 
 
 @NgModule({
@@ -30,6 +31,7 @@ import { getFunctions, provideFunctions } from '@angular/fire/functions';
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
     provideFunctions(() => getFunctions()),
+    provideStorage(() => getStorage()),
     
     AuthModule,
     NavigationModule,
