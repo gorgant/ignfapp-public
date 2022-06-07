@@ -3,6 +3,7 @@ export enum GlobalFieldValues {
   AUTH_PERSONALIZED_WORKOUTS = `Personalized Workout Plans`,
   CANCEL = `Cancel`,
   CHANGE_PASSWORD = `Change Password`,
+  CHANGE_PASSWORD_BLURB = `A password reset email will be sent to`,
   CHECK_INBOX_1 = `Thanks`,
   CHECK_INBOX_2 = `Now check your inbox to`,
   CHECK_INBOX_3 = `verify your email`,

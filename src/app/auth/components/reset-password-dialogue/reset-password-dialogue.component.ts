@@ -82,7 +82,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
           this.dialogRef.close(true);
         }
 
-      })
+      });
   }
 
   // These getters are used for easy access in the HTML template
