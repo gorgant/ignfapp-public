@@ -10,7 +10,7 @@ import { RootStoreState, UiStoreActions, UiStoreSelectors } from './root-store';
 })
 export class AppComponent {
   TITLE = 'ignfapp-public';
-  APP_VERSION = '0.0.5'
+  APP_VERSION = '0.0.6'
 
   showNavBar$!: Observable<boolean>;
 
