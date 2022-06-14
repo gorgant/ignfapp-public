@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { collection, doc, Firestore } from '@angular/fire/firestore';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
@@ -20,7 +20,7 @@ import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/ro
 })
 export class PlSignupComponent implements OnInit {
 
-  registerUserForm!: FormGroup;
+  registerUserForm!: UntypedFormGroup;
   formValidationMessages = UserRegistrationFormValidationMessages;
   firstNameFieldValue = GlobalFieldValues.FIRST_NAME;
   emailFieldValue = GlobalFieldValues.EMAIL;
@@ -41,7 +41,7 @@ export class PlSignupComponent implements OnInit {
   prelaunchUserSubscription!: Subscription;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private afs: Firestore,
     private store: Store<RootStoreState.AppState>
   ) { }

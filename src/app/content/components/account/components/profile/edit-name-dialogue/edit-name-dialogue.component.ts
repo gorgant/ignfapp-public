@@ -1,5 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, withLatestFrom } from 'rxjs';
@@ -16,7 +16,7 @@ import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/ro
 })
 export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
-  nameForm!: FormGroup;
+  nameForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
   TITLE_FIELD_VALUE = GlobalFieldValues.EDIT_NAME;
@@ -32,7 +32,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   updateSubmitted!: boolean;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private dialogRef: MatDialogRef<EditNameDialogueComponent>,
     @Inject(MAT_DIALOG_DATA) private userData: PublicUser,
     private store$: Store<RootStoreState.AppState>,

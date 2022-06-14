@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
@@ -15,7 +15,7 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/ro
 })
 export class ResetPasswordDialogueComponent implements OnInit {
 
-  resetPasswordForm!: FormGroup;
+  resetPasswordForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
 
   RESET_PASSWORD_TITLE = GlobalFieldValues.RP_RESET_PASSWORD;
@@ -28,7 +28,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
   resetPasswordSubscription!: Subscription;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private dialogRef: MatDialogRef<ResetPasswordDialogueComponent>,
     @Inject(MAT_DIALOG_DATA) private emailString: string,
     private store$: Store<RootStoreState.AppState>,

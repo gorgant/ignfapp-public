@@ -158,8 +158,9 @@
       }
     }
   },
-  "defaultProject": "ignfapp-public",
   "cli": {
-    "defaultCollection": "@ngrx/schematics"
+    "schematicCollections": [
+      "@ngrx/schematics"
+    ]
   }
 }

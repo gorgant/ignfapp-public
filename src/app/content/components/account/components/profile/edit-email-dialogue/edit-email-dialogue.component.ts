@@ -1,5 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, AbstractControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { Store, select } from '@ngrx/store';
@@ -26,8 +26,8 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   stepperOrientation!: StepperOrientation;
   
-  passwordForm!: FormGroup;
-  emailForm!: FormGroup;
+  passwordForm!: UntypedFormGroup;
+  emailForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
@@ -57,7 +57,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   authOrUserUpdateProcessing$!: Observable<boolean>;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private dialogRef: MatDialogRef<EditNameDialogueComponent>,
     @Inject(MAT_DIALOG_DATA) public userData: PublicUser,
     private store$: Store<RootStoreState.AppState>,

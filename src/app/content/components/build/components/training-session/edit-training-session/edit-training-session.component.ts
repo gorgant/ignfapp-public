@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { withLatestFrom } from 'rxjs/operators';
@@ -18,7 +18,7 @@ import { YoutubeService } from 'src/app/core/services/train.service';
 })
 export class EditTrainingSessionComponent implements OnInit, OnDestroy {
 
-  trainingSessionForm!: FormGroup;
+  trainingSessionForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = 'tbd';
 
   videoData!: YoutubeVideoData;
@@ -27,7 +27,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy {
   userData$!: Observable<PublicUser>;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private store$: Store<RootStoreState.AppState>,
     private router: Router,
     private route: ActivatedRoute,

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
@@ -22,7 +22,7 @@ import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 
-  authUserForm!: FormGroup;
+  authUserForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
   
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
@@ -57,7 +57,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   
   
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private store$: Store<RootStoreState.AppState>,
     private router: Router,
     private dialog: MatDialog,

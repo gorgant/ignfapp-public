@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
@@ -20,7 +20,7 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions,
 })
 export class SignupFormComponent implements OnInit, OnDestroy {
 
-  registerUserForm!: FormGroup;
+  registerUserForm!: UntypedFormGroup;
   FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
   
   FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;
@@ -53,7 +53,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   userFetched: boolean = false;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private store$: Store<RootStoreState.AppState>,
     private router: Router
   ) { }
