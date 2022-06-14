@@ -1,4 +1,5 @@
 export { onCallCreatePublicUser } from './user/on-call-create-public-user';
+export { onCallFetchYoutubeVideoData } from './training/on-call-fetch-youtube-video-data';
 export { onCallRegisterPrelaunchUser } from './auth/on-call-register-prelaunch-user';
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
 export { onCallResizeAvatar } from './user/on-call-resize-avatar';

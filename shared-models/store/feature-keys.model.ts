@@ -1,5 +1,6 @@
 export enum PublicStoreFeatureKeys {
   AUTH = 'auth',
   UI = 'ui',
-  USER = 'user'
+  USER = 'user',
+  TRAIN = 'train'
 }

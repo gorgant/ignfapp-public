@@ -92,7 +92,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
       email: this.email.value,
       firstName: this.firstName.value,
       password: this.password.value
-    }
+    };
 
     this.store$.dispatch(AuthStoreActions.emailSignupRequested({authFormData}));
     this.postAuthActions();
@@ -246,7 +246,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
 
   // After the signup flow is complete, redirect user to the requested route or otherwise to Workouts
   private redirectUserToRequestedRoute(): void {
-    this.router.navigate([PublicAppRoutes.WORKOUT]);
+    this.router.navigate([PublicAppRoutes.TRAIN]);
   }
 
   ngOnDestroy(): void {

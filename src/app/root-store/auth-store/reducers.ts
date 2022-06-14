@@ -17,7 +17,7 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.authGuardValidated, (state, action) => {
     return {
       ...state,
-      authGuardError: undefined
+      authGuardError: null
     }
   }),
 
@@ -34,7 +34,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       confirmPasswordProcessing: true,
-      confirmPasswordError: undefined
+      confirmPasswordError: null
     }
   }),
   on(AuthStoreActions.confirmPasswordCompleted, (state, action) => {
@@ -57,7 +57,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       deleteAuthUserProcessing: true,
-      deleteAuthUserError: undefined
+      deleteAuthUserError: null
     }
   }),
   on(AuthStoreActions.deleteAuthUserCompleted, (state, action) => {
@@ -80,7 +80,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       authProcessing: true,
-      authError: undefined
+      authError: null
     }
   }),
   on(AuthStoreActions.detectCachedUserCompleted, (state, action) => {
@@ -104,7 +104,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       authProcessing: true,
-      authError: undefined
+      authError: null
     }
   }),
   on(AuthStoreActions.emailAuthCompleted, (state, action) => {
@@ -128,7 +128,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       signupProcessing: true,
-      signupError: undefined
+      signupError: null
     }
   }),
   on(AuthStoreActions.emailSignupCompleted, (state, action) => {
@@ -152,7 +152,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       authProcessing: true,
-      authError: undefined
+      authError: null
     }
   }),
   on(AuthStoreActions.facebookAuthCompleted, (state, action) => {
@@ -176,7 +176,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       authProcessing: true,
-      authError: undefined
+      authError: null
     }
   }),
   on(AuthStoreActions.googleAuthCompleted, (state, action) => {
@@ -199,7 +199,7 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.logout, (state, action) => {
     return {
       ...state,
-      authResultsData: undefined
+      authResultsData: null
     }
   }),
   
@@ -209,7 +209,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       reloadAuthDataProcessing: true,
-      reloadAuthDataError: undefined,
+      reloadAuthDataError: null,
     }
   }),
   on(AuthStoreActions.reloadAuthDataCompleted, (state, action) => {
@@ -232,7 +232,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       resetPasswordProcessing: true,
-      resetPasswordError: undefined,
+      resetPasswordError: null,
     }
   }),
   on(AuthStoreActions.resetPasswordCompleted, (state, action) => {
@@ -255,7 +255,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       updateEmailProcessing: true,
-      updateEmailError: undefined
+      updateEmailError: null
     }
   }),
   on(AuthStoreActions.updateEmailCompleted, (state, action) => {
@@ -278,7 +278,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       emailVerificationProcessing: true,
-      emailVerificationError: undefined
+      emailVerificationError: null
     }
   }),
   on(AuthStoreActions.verifyEmailCompleted, (state, action) => {

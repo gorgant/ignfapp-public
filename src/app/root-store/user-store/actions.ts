@@ -41,23 +41,6 @@ export const fetchUserFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// // Get Avatar Download Url
-
-// export const getAvatarDownloadUrlRequested = createAction(
-//   '[Edit Avatar Dialogue] Get Avatar Download Url Requested',
-//   props<{avatarImageData: AvatarImageData}>()
-// );
-
-// export const getAvatarDownloadUrlCompleted = createAction(
-//   '[Image Service] Get Avatar Download Url Completed',
-//   props<{avatarDownloadUrl: string}>()
-// );
-
-// export const getAvatarDownloadUrlFailed = createAction(
-//   '[Image Service] Get Avatar Download Url Failed',
-//   props<{error: FirebaseError}>()
-// );
-
 // Purge User Data
 
 export const purgeUserData = createAction(

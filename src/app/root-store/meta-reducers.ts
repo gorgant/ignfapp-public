@@ -5,7 +5,7 @@ import { AuthStoreActions } from './auth-store/index';
 export function clearStore(reducer: ActionReducer<any>): ActionReducer<any> {
   return (state, action) => {
     on(AuthStoreActions.logout, (state, action) => {
-      state = undefined
+      state = null
     });
 
     return reducer(state, action);

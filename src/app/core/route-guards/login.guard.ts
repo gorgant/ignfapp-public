@@ -25,7 +25,7 @@ export class LoginGuard {
             console.log('Auth credentials present and email verified, routing to requested URL', authResultsData);
             if (state.url === PublicAppRoutes.LOGIN || state.url === PublicAppRoutes.SIGNUP) {
               // This prevents an infinite loop if coming directly from clean login path
-              this.router.navigate([PublicAppRoutes.WORKOUT]);
+              this.router.navigate([PublicAppRoutes.TRAIN]);
             } else {
               // Otherwise pull the return url and route to that
               const returnUrl = route.queryParamMap.get('returnUrl') || '/';

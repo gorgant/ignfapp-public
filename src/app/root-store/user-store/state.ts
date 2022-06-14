@@ -4,31 +4,31 @@ import { PublicUser } from "shared-models/user/public-user.model";
 export const userFeatureKey = PublicStoreFeatureKeys.USER;
 
 export interface UserState {
-  createUserError: {} | undefined,
+  createUserError: {} | null,
   createUserProcessing: boolean,
-  fetchUserError: {} | undefined,
+  fetchUserError: {} | null,
   fetchUserProcessing: boolean,
-  resizeAvatarError: {} | undefined,
+  resizeAvatarError: {} | null,
   resizeAvatarProcessing: boolean;
-  updateUserError: {} | undefined,
+  updateUserError: {} | null,
   updateUserProcessing: boolean,
-  uploadAvatarError: {} | undefined,
+  uploadAvatarError: {} | null,
   uploadAvatarProcessing: boolean,
-  avatarDownloadUrl: string | undefined;
-  userData: PublicUser | undefined,
+  avatarDownloadUrl: string | null;
+  userData: PublicUser | null,
 }
 
 export const initialUserState: UserState = {
-  createUserError: undefined,
+  createUserError: null,
   createUserProcessing: false,
-  fetchUserError: undefined,
+  fetchUserError: null,
   fetchUserProcessing: false,
-  resizeAvatarError: undefined,
+  resizeAvatarError: null,
   resizeAvatarProcessing: false,
-  updateUserError: undefined,
+  updateUserError: null,
   updateUserProcessing: false,
-  uploadAvatarError: undefined,
+  uploadAvatarError: null,
   uploadAvatarProcessing: false,
-  avatarDownloadUrl: undefined,
-  userData: undefined,
+  avatarDownloadUrl: null,
+  userData: null,
 }

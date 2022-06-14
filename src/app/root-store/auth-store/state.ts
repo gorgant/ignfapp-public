@@ -1,45 +1,45 @@
 import { AuthResultsData } from "shared-models/auth/auth-data.model";
 
 export interface AuthState {
-  authError: {} | undefined,
-  authGuardError: {} | undefined,
+  authError: {} | null,
+  authGuardError: {} | null,
   authProcessing: boolean,
-  confirmPasswordError: {} | undefined;
+  confirmPasswordError: {} | null;
   confirmPasswordProcessing: boolean;
-  deleteAuthUserError: {} | undefined;
+  deleteAuthUserError: {} | null;
   deleteAuthUserProcessing: boolean;
   emailVerified: boolean,
-  emailVerificationError: {} | undefined,
+  emailVerificationError: {} | null,
   emailVerificationProcessing: boolean,
-  reloadAuthDataError: {} | undefined, 
+  reloadAuthDataError: {} | null, 
   reloadAuthDataProcessing: boolean,
-  resetPasswordError: {} | undefined,
+  resetPasswordError: {} | null,
   resetPasswordProcessing: boolean,
-  signupError: {} | undefined, 
+  signupError: {} | null, 
   signupProcessing: boolean,
-  updateEmailError: {} | undefined,
+  updateEmailError: {} | null,
   updateEmailProcessing: boolean,
-  authResultsData: AuthResultsData | undefined,
+  authResultsData: AuthResultsData | null,
 }
 
 export const initialAuthState: AuthState = {
-  authError: undefined,
-  authGuardError: undefined,
+  authError: null,
+  authGuardError: null,
   authProcessing: false,
-  confirmPasswordError: undefined,
+  confirmPasswordError: null,
   confirmPasswordProcessing: false,
-  deleteAuthUserError: undefined,
+  deleteAuthUserError: null,
   deleteAuthUserProcessing: false,
   emailVerified: false,
-  emailVerificationError: undefined,
+  emailVerificationError: null,
   emailVerificationProcessing: false,
-  reloadAuthDataError: undefined, 
+  reloadAuthDataError: null, 
   reloadAuthDataProcessing: false,
-  resetPasswordError: undefined,
+  resetPasswordError: null,
   resetPasswordProcessing: false,
-  signupError: undefined,
+  signupError: null,
   signupProcessing: false,
-  updateEmailError: undefined,
+  updateEmailError: null,
   updateEmailProcessing: false,
-  authResultsData: undefined,
+  authResultsData: null,
 }

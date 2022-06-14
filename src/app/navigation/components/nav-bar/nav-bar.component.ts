@@ -10,7 +10,7 @@ export class NavBarComponent implements OnInit {
 
   accountUrl = PublicAppRoutes.ACCOUNT;
   browseUrl = PublicAppRoutes.BROWSE;
-  workoutUrl = PublicAppRoutes.WORKOUT;
+  workoutUrl = PublicAppRoutes.TRAIN;
 
 
   constructor() { }

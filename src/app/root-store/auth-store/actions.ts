@@ -57,7 +57,7 @@ export const detectCachedUserRequested = createAction(
 
 export const detectCachedUserCompleted = createAction(
   '[App Component] Detected Cached User Completed',
-  props<{authResultsData: AuthResultsData | undefined}>()
+  props<{authResultsData: AuthResultsData | null}>()
 );
 
 export const detectCachedUserFailed = createAction(

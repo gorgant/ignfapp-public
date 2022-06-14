@@ -18,7 +18,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       createUserProcessing: true,
-      createUserError: undefined
+      createUserError: null
     }
   }),
   on(UserStoreActions.createUserCompleted, (state, action) => {
@@ -42,7 +42,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       fetchUserProcessing: true,
-      fetchUserError: undefined
+      fetchUserError: null
     }
   }),
   on(UserStoreActions.fetchUserCompleted, (state, action) => {
@@ -64,7 +64,7 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.purgeUserData, (state, action) => {
     return {
       ...state,
-      userData: undefined
+      userData: null
     }
   }),
 
@@ -74,7 +74,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       updateUserProcessing: true,
-      updateUserError: undefined
+      updateUserError: null
     }
   }),
   on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
@@ -98,7 +98,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       resizeAvatarProcessing: true,
-      resizeAvatarError: undefined
+      resizeAvatarError: null
     }
   }),
   on(UserStoreActions.resizeAvatarCompleted, (state, action) => {
@@ -121,7 +121,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       updateUserProcessing: true,
-      updateUserError: undefined
+      updateUserError: null
     }
   }),
   on(UserStoreActions.updateUserCompleted, (state, action) => {
@@ -145,7 +145,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       uploadAvatarProcessing: true,
-      uploadAvatarError: undefined
+      uploadAvatarError: null
     }
   }),
   on(UserStoreActions.uploadAvatarCompleted, (state, action) => {

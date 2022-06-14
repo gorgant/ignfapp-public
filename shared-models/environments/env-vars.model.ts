@@ -58,3 +58,7 @@ export enum StripePublishableKeys {
   IGNFAPP_PROD = 'tbd',
   IGNFAPP_SANDBOX = 'tbd',
 }
+
+export enum SecretsManagerKeyNames {
+  YOUTUBE_DATA_API_V3_FETCH = 'YOUTUBE_DATA_API_V3_FETCH',
+}

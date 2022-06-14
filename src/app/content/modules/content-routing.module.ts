@@ -11,12 +11,16 @@ const routes: Routes = [
     loadChildren: () => import('../components/browse/modules/browse.module').then(m => m.BrowseModule)
   },
   {
-    path: 'workout',
-    loadChildren: () => import('../components/workout/modules/workout.module').then(m => m.WorkoutModule)
+    path: 'build',
+    loadChildren: () => import('../components/build/modules/build.module').then(m => m.BuildModule)
+  },
+  {
+    path: 'train',
+    loadChildren: () => import('../components/train/modules/train.module').then(m => m.TrainModule)
   },
   {
     path: '',
-    redirectTo: 'workout',
+    redirectTo: 'train',
     pathMatch: 'full'
   },
 ];
