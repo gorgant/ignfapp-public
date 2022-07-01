@@ -33,21 +33,21 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   authProcessing$!: Observable<boolean>;
   authSubscription!: Subscription;
-  authError$!: Observable<{} | undefined>;
+  authError$!: Observable<{} | null>;
   authSubmitted!: boolean;
 
   userUpdateProcessing$!: Observable<boolean>;
   userUpdateSubscription!: Subscription;
-  userUpdateError$!: Observable<{} | undefined>;
+  userUpdateError$!: Observable<{} | null>;
   userUpdateSubmitted!: boolean;
 
   fetchUserProcessing$!: Observable<boolean>;
   fetchUserSubscription!: Subscription;
-  fetchUserError$!: Observable<{} | undefined>;
+  fetchUserError$!: Observable<{} | null>;
 
   reloadAuthDataProcessing$!: Observable<boolean>;
   reloadAuthDataSubscription!: Subscription;
-  reloadAuthDataError$!: Observable<{} | undefined>;
+  reloadAuthDataError$!: Observable<{} | null>;
   reloadAuthDataSubmitted!: boolean;
 
   userData$!: Observable<PublicUser>;
@@ -71,17 +71,17 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   private checkAuthStatus() {
 
-    this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser));
-    this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthError));
+    this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing));
+    this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserError));
 
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
     this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
 
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser));
+    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing));
     this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserError));
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
 
-    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsReloadingAuthData));
+    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
     this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
 
   }

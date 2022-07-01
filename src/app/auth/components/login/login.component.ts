@@ -51,11 +51,11 @@ export class LoginComponent implements OnInit {
     this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser)),
-        this.store$.pipe(select(AuthStoreSelectors.selectIsAuthenticatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser)),
-        this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser))
+        this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing)),
+        this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing)),
+        this.store$.pipe(select(UserStoreSelectors.selectCreateUserProcessing)),
+        this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing)),
+        this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing))
       ]
     ).pipe(
         map(([signingUp, authenticating, creatingUser, updatingUser, fetchingUser]) => {

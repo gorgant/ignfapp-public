@@ -24,7 +24,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
 
   resetPasswordProcessing$!: Observable<boolean>;
   resetPasswordSubmitted!: boolean;
-  resetPasswordError$!: Observable<{} | undefined>;
+  resetPasswordError$!: Observable<{} | null>;
   resetPasswordSubscription!: Subscription;
 
   constructor(
@@ -52,7 +52,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
   }
 
   monitorResetRequests() {
-    this.resetPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsResettingPassword));
+    this.resetPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordProcessing));
     this.resetPasswordError$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordError));
   }
 

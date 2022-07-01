@@ -29,11 +29,9 @@ export interface PublicUser {
   [PublicUserKeys.ID]: string;
   lastAuthenticated: number;
   lastModifiedTimestamp: number;
-  [PublicUserKeys.FIRST_NAME]?: string;
   [PublicUserKeys.AVATAR_URL]?: string;
   billingDetails?: BillingDetails | Partial<BillingDetails>;
   [PublicUserKeys.DISPLAY_NAME]?: string;
-  dob?: number;
   [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]?: UnsubscribeRecordList;
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]?: UnsubscribeRecord;
   [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]?: EmailSubSource,
@@ -43,9 +41,11 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]?: string;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]?: SendgridContactListId[];
   [PublicUserKeys.EMAIL_VERIFIED]?: boolean;
-  [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]?: boolean;
+  [PublicUserKeys.FIRST_NAME]?: string;
   gender?: 'male' | 'female' | 'nonbinary'
   [PublicUserKeys.LAST_NAME]?: string;
+  isAdmin?: boolean,
+  [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]?: boolean;
   orderHistory?: OrderHistory;
   stripeCustomerId?: string;
 }

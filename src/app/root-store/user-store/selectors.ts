@@ -2,50 +2,25 @@ import { createFeatureSelector, createSelector } from "@ngrx/store";
 import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
 import { UserState } from "./state";
 
-const getIsCreatingUser = (state: UserState) => state.createUserProcessing;
-const getIsFetchingUser = (state: UserState) => state.fetchUserProcessing;
-const getIsRegisteringPrelaunchUser = (state: UserState) => state.updateUserProcessing;
-const getIsResizingAvatar = (state: UserState) => state.resizeAvatarProcessing;
-const getIsUpdatingUser = (state: UserState) => state.updateUserProcessing;
-const getIsUploadingAvatar = (state: UserState) => state.uploadAvatarProcessing;
 const getAvatarDownloadUrl = (state: UserState) => state.avatarDownloadUrl;
-const getUserData = (state: UserState) => state.userData;
 const getCreateUserError = (state: UserState) => state.createUserError;
+const getCreateUserProcessing = (state: UserState) => state.createUserProcessing;
 const getFetchUserError = (state: UserState) => state.fetchUserError;
+const getFetchUserProcessing = (state: UserState) => state.fetchUserProcessing;
+const getRegisterPrelaunchUserProcessing = (state: UserState) => state.updateUserProcessing;
 const getResizeAvatarError = (state: UserState) => state.resizeAvatarError;
+const getResizeAvatarProcessing = (state: UserState) => state.resizeAvatarProcessing;
 const getUpdateUserError = (state: UserState) => state.updateUserError;
+const getUpdateUserProcessing = (state: UserState) => state.updateUserProcessing;
 const getUploadAvatarError = (state: UserState) => state.uploadAvatarError;
+const getUploadAvatarProcessing = (state: UserState) => state.uploadAvatarProcessing;
+const getUserData = (state: UserState) => state.userData;
 
 const selectUserState = createFeatureSelector<UserState>(PublicStoreFeatureKeys.USER);
 
-export const selectIsCreatingUser = createSelector(
+export const selectAvatarDownloadUrl = createSelector(
   selectUserState,
-  getIsCreatingUser
-);
-
-export const selectIsFetchingUser = createSelector(
-  selectUserState,
-  getIsFetchingUser
-);
-
-export const selectIsRegisteringPrelaunchUser = createSelector(
-  selectUserState,
-  getIsRegisteringPrelaunchUser
-);
-
-export const selectIsResizingAvatar = createSelector(
-  selectUserState,
-  getIsResizingAvatar
-);
-
-export const selectIsUpdatingUser = createSelector(
-  selectUserState,
-  getIsUpdatingUser
-);
-
-export const selectIsUploadingAvatar = createSelector(
-  selectUserState,
-  getIsUploadingAvatar
+  getAvatarDownloadUrl
 );
 
 export const selectCreateUserError = createSelector(
@@ -53,9 +28,24 @@ export const selectCreateUserError = createSelector(
   getCreateUserError
 );
 
+export const selectCreateUserProcessing = createSelector(
+  selectUserState,
+  getCreateUserProcessing
+);
+
 export const selectFetchUserError = createSelector(
   selectUserState,
   getFetchUserError
+);
+
+export const selectFetchUserProcessing = createSelector(
+  selectUserState,
+  getFetchUserProcessing
+);
+
+export const selectRegisterPrelaunchUserProcessing = createSelector(
+  selectUserState,
+  getRegisterPrelaunchUserProcessing
 );
 
 export const selectResizeAvatarError = createSelector(
@@ -63,9 +53,19 @@ export const selectResizeAvatarError = createSelector(
   getResizeAvatarError
 );
 
+export const selectResizeAvatarProcessing = createSelector(
+  selectUserState,
+  getResizeAvatarProcessing
+);
+
 export const selectUpdateUserError = createSelector(
   selectUserState,
   getUpdateUserError
+);
+
+export const selectUpdateUserProcessing = createSelector(
+  selectUserState,
+  getUpdateUserProcessing
 );
 
 export const selectUploadAvatarError = createSelector(
@@ -73,14 +73,12 @@ export const selectUploadAvatarError = createSelector(
   getUploadAvatarError
 );
 
-export const selectAvatarDownloadUrl = createSelector(
+export const selectUploadAvatarProcessing = createSelector(
   selectUserState,
-  getAvatarDownloadUrl
+  getUploadAvatarProcessing
 );
 
 export const selectUserData = createSelector(
   selectUserState,
   getUserData
 );
-
-

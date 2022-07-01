@@ -1,6 +1,10 @@
 export enum PublicCollectionPaths {
-  PUBLIC_USERS = 'publicUsers',
-  PRELAUNCH_USERS = 'prelaunchUsers',
+  EMAIL_LOG = 'emailLog',
   EMAIL_RECORDS = 'emailRecords',
-  EMAIL_LOG = 'emailLog'
+  PRELAUNCH_USERS = 'prelaunchUsers',
+  PUBLIC_USERS = 'publicUsers',
+  SESSION_RATINGS = 'sessionRatings',
+  TRAINING_PLANS = 'trainingPlans',
+  TRAINING_SESSIONS = 'trainingSessions'
+
 }

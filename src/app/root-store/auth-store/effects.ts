@@ -38,7 +38,7 @@ export class AuthStoreEffects {
   deleteAuthUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.deleteAuthUserRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.authService.deleteAuthUser().pipe(
           map(userDeleted => {
             return AuthStoreActions.deleteAuthUserCompleted({userDeleted});
@@ -59,7 +59,7 @@ export class AuthStoreEffects {
   detectCachedUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.detectCachedUserRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.authService.fetchCachedUserData().pipe(
           map(authResultsData => {
             return AuthStoreActions.detectCachedUserCompleted({authResultsData});
@@ -101,7 +101,7 @@ export class AuthStoreEffects {
   emailSignupEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.emailSignupRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.authService.signupUserWithEmailAndPassword(action.authFormData).pipe(
           map(authResultsData => {
             return AuthStoreActions.emailSignupCompleted({authResultsData});
@@ -195,7 +195,7 @@ export class AuthStoreEffects {
   resetPasswordEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(AuthStoreActions.resetPasswordRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.authService.sendResetPasswordEmail(action.email).pipe(
           map(resetSubmitted => {
             return AuthStoreActions.resetPasswordCompleted({resetSubmitted});

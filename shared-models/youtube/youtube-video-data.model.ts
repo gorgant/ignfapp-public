@@ -1,4 +1,5 @@
-export interface YoutubeVideoData {
+
+export interface YoutubeVideoDataRaw {
   kind: string,
   etag: string,
   items: [
@@ -42,7 +43,25 @@ export interface YoutubeVideoData {
           description: string
         },
         defaultAudioLanguage: string
+      },
+      contentDetails: {
+        duration: string,
+        dimension: string,
+        definition: string,
+        caption: 'true' | 'false',
+        licensedContent: boolean,
+        contentRating: {},
+        projection: string
       }
     }
   ]
+}
+
+export interface YoutubeVideoDataCompact {
+  channelId: string;
+  channelTitle: string;
+  duration: string;
+  id: string;
+  title: string;
+  thumbnailUrl: string;
 }

@@ -1,64 +1,172 @@
-export interface TrainingSession {
-  [TrainingSessionKeys.CHANNEL_URL]: string,
+import { FormControl } from "@angular/forms"
+
+export interface TrainingSession extends TrainingSessionNoId {
+  id: string,
+};
+
+export interface TrainingSessionNoId {
+  channelUrl: string,
   complexityAverage: number, // the average value of submitted ratings
-  complexityCount: number // the number of ratings submitted
+  complexityRatingCount: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
   creatorId: string,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
-  [TrainingSessionKeys.DURATION]: number,
-  [TrainingSessionKeys.FOCUS_PRIMARY]: TrainingSessionFocus,
-  [TrainingSessionKeys.FOCUS_SECONDARY]?: TrainingSessionFocus[],
-  id: string,
+  duration: number,
+  [TrainingSessionKeys.FOCUS_LIST]: TrainingSessionFocusDbOption[],
   intensityAverage: number, // the average value of submitted ratings
-  intensityCount: number, // the number of ratings submitted 
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
+  intensityRatingCount: number, // the number of ratings submitted 
   thumbnailUrl: string,
-  [TrainingSessionKeys.VIDEO_PLATFORM]: SessionVideoPlatforms,
-  [TrainingSessionKeys.VIDEO_TITLE]: string,
+  [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
+  videoTitle: string,
   [TrainingSessionKeys.VIDEO_URL]: string,
-  
-};
+  [TrainingSessionKeys.VIDEO_ID]: string
+}
 
 export interface TrainingSessionVideoData {
-  [TrainingSessionKeys.CHANNEL_URL]: string,
-  [TrainingSessionKeys.VIDEO_TITLE]: string,
   [TrainingSessionKeys.VIDEO_URL]: string,
-  [TrainingSessionKeys.DURATION]: number,
+}
+
+export interface YoutubeVideoDataForm {
+  [TrainingSessionKeys.VIDEO_URL]: FormControl<string>,
+  [TrainingSessionKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: FormControl<boolean>,
+}
+
+export interface TrainingSessionForm {
+  [TrainingSessionKeys.COMPLEXITY_DEFAULT]: FormControl<number | null>, // the starting value set by the creator
+  [TrainingSessionKeys.EQUIPMENT]: FormControl<boolean | null>,
+  [TrainingSessionKeys.FOCUS_LIST]: FormControl<TrainingSessionFocusDbOption[] | null>,
+  [TrainingSessionKeys.INTENSITY_DEFAULT]: FormControl<number | null>, // the starting value set by the creator
+  [TrainingSessionKeys.VIDEO_PLATFORM]: FormControl<TrainingSessionVideoPlatform | null>,
+}
+
+export const TrainingSessionFormVars = {
+  complexityMin: 0,
+  complexityMax: 3,
+  intensityMin: 0,
+  intensityMax: 3
 }
 
 export enum TrainingSessionKeys {
-  CHANNEL_URL = 'channelUrl',
   COMPLEXITY_DEFAULT = 'complexityDefault',
   EQUIPMENT = 'equipment',
-  DURATION = 'duration',
-  FOCUS_PRIMARY = 'focusPrimary',
-  FOCUS_SECONDARY = 'focusSecondary',
+  FOCUS_LIST = 'focusList',
   INTENSITY_DEFAULT = 'intensityDefault',
+  VIDEO_ID = 'videoId',
   VIDEO_PLATFORM = 'videoPlatform',
-  VIDEO_TITLE = 'videoTitle',
   VIDEO_URL = 'videoUrl',
+  YOUTUBE_VIDEO_DATA_RETREIVED = 'youtubeVideoDataRetrieved'
 };
 
-export enum SessionVideoPlatforms {
+export enum TrainingSessionVideoPlatform {
   YOUTUBE = 'youtube'
 }
 
-export enum TrainingSessionFocus {
-  HIIT = 'hitt',
-  STRENGTH = 'strength',
+// Db friendly values
+export enum TrainingSessionFocusDbOption {
   AGILITY = 'agility',
-  LOW_IMPACT = 'low-impact',
-  POSTURE = 'posture',
-  CORE = 'core',
   CARDIO = 'cardio',
-  ENDURANCE = 'endurance',
-  STABILITY = 'stability',
-  FLEXIBILITY = 'flexibility',
+  CORE = 'core',
   DANCE = 'dance',
+  ENDURANCE = 'endurance',
+  FLEXIBILITY = 'flexibility',
+  HIIT = 'hitt',
+  LOW_IMPACT = 'low-impact',
   MARTIAL_ARTS = 'martial-arts',
   MEDITATION = 'meditation',
-  STANDING_NO_FLOOR = 'standing-no-floor'
+  POSTURE = 'posture',
+  STABILITY = 'stability',
+  STANDING_NO_FLOOR = 'standing-no-floor',
+  STRENGTH = 'strength',
 };
+
+// User readable version of db values
+export enum TrainingSessionFocusUiOption {
+  AGILITY = 'Agility',
+  CARDIO = 'Cardio',
+  CORE = 'Core',
+  DANCE = 'Dance',
+  ENDURANCE = 'Endurance',
+  FLEXIBILITY = 'Flexibility',
+  HIIT = 'HIIT',
+  LOW_IMPACT = 'Low Impact',
+  MARTIAL_ARTS = 'Martial Arts',
+  MEDITATION = 'Meditation',
+  POSTURE = 'Posture',
+  STABILITY = 'Stability',
+  STANDING_NO_FLOOR = 'Standing - No Floor',
+  STRENGTH = 'Strength',
+};
+
+export interface TrainingSessionFocusObject {
+  uiValue: TrainingSessionFocusUiOption,
+  dbValue: TrainingSessionFocusDbOption
+}
+
+export interface TrainingSessionFocusListModel {
+  [key: string]: TrainingSessionFocusObject
+}
+
+export const TrainingSessionFocusList: TrainingSessionFocusListModel = {
+  [TrainingSessionFocusDbOption.AGILITY]: {
+    uiValue: TrainingSessionFocusUiOption.AGILITY,
+    dbValue: TrainingSessionFocusDbOption.AGILITY
+  },
+  [TrainingSessionFocusDbOption.CARDIO]: {
+    uiValue: TrainingSessionFocusUiOption.CARDIO,
+    dbValue: TrainingSessionFocusDbOption.CARDIO
+  },
+  [TrainingSessionFocusDbOption.CORE]: {
+    uiValue: TrainingSessionFocusUiOption.CORE,
+    dbValue: TrainingSessionFocusDbOption.CORE
+  },
+  [TrainingSessionFocusDbOption.DANCE]: {
+    uiValue: TrainingSessionFocusUiOption.DANCE,
+    dbValue: TrainingSessionFocusDbOption.DANCE
+  },
+  [TrainingSessionFocusDbOption.ENDURANCE]: {
+    uiValue: TrainingSessionFocusUiOption.ENDURANCE,
+    dbValue: TrainingSessionFocusDbOption.ENDURANCE
+  },
+  [TrainingSessionFocusDbOption.FLEXIBILITY]: {
+    uiValue: TrainingSessionFocusUiOption.FLEXIBILITY,
+    dbValue: TrainingSessionFocusDbOption.FLEXIBILITY
+  },
+  [TrainingSessionFocusDbOption.HIIT]: {
+    uiValue: TrainingSessionFocusUiOption.HIIT,
+    dbValue: TrainingSessionFocusDbOption.HIIT
+  },
+  [TrainingSessionFocusDbOption.LOW_IMPACT]: {
+    uiValue: TrainingSessionFocusUiOption.LOW_IMPACT,
+    dbValue: TrainingSessionFocusDbOption.LOW_IMPACT
+  },
+  [TrainingSessionFocusDbOption.MARTIAL_ARTS]: {
+    uiValue: TrainingSessionFocusUiOption.MARTIAL_ARTS,
+    dbValue: TrainingSessionFocusDbOption.MARTIAL_ARTS
+  },
+  [TrainingSessionFocusDbOption.MEDITATION]: {
+    uiValue: TrainingSessionFocusUiOption.MEDITATION,
+    dbValue: TrainingSessionFocusDbOption.MEDITATION
+  },
+  [TrainingSessionFocusDbOption.POSTURE]: {
+    uiValue: TrainingSessionFocusUiOption.POSTURE,
+    dbValue: TrainingSessionFocusDbOption.POSTURE
+  },
+  [TrainingSessionFocusDbOption.STABILITY]: {
+    uiValue: TrainingSessionFocusUiOption.STABILITY,
+    dbValue: TrainingSessionFocusDbOption.STABILITY
+  },
+  [TrainingSessionFocusDbOption.STANDING_NO_FLOOR]: {
+    uiValue: TrainingSessionFocusUiOption.STANDING_NO_FLOOR,
+    dbValue: TrainingSessionFocusDbOption.STANDING_NO_FLOOR
+  },
+  [TrainingSessionFocusDbOption.STRENGTH]: {
+    uiValue: TrainingSessionFocusUiOption.STRENGTH,
+    dbValue: TrainingSessionFocusDbOption.STRENGTH
+  },
+
+
+}
 
 export interface TrainingSessionRecord {
   duration: number,

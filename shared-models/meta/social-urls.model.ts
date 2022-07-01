@@ -27,3 +27,8 @@ export enum SocialHandles {
   IGNFAPP_FACEBOOK = 'IgnyteFit',
   IGNFAPP_LINKEDIN = 'ignytefit',
 }
+
+export enum SocialUrlPrefixes {
+  YOUTUBE_CHANNEL = 'https://www.youtube.com/channel',
+  YOUTUBE_VIDEO = 'https://youtu.be'
+}

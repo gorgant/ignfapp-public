@@ -40,7 +40,7 @@ export class EmailVerificationComponent implements OnInit {
 
   private monitorStoreState() {
     this.emailVerified$ = this.store$.pipe(select(AuthStoreSelectors.selectEmailVerified));
-    this.emailVerificationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsVerifyingEmail));
+    this.emailVerificationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectEmailVerificationProcessing));
   }
 
   private verifyUserEmail() {

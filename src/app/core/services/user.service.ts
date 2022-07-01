@@ -25,26 +25,6 @@ export class UserService {
     private uiService: UiService
   ) { }
 
-  fetchUserData(userId: string): Observable<PublicUser> {
-    const userDoc = docData(this.getPublicUserDoc(userId));
-    return userDoc
-      .pipe(
-        // If logged out, this triggers unsub of this observable
-        takeUntil(this.authService.unsubTrigger$),
-        map(user => {
-          if (!user) {
-            throw new Error(`Error fetching user with id: ${userId}`, );
-          }
-          console.log('Fetched user', user);
-          return user;
-        }),
-        catchError(error => {
-          console.log('Error fetching user', error);
-          return throwError(() => new Error(error));
-        })
-      );
-  }
-
   createPublicUser(partialNewUserData: Partial<PublicUser>): Observable<PublicUser> {
     const createUserHttpCall: (partialNewUserData: Partial<PublicUser>) => 
       Observable<PublicUser> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_CREATE_PUBLIC_USER);
@@ -64,20 +44,21 @@ export class UserService {
       );
   }
 
-  updatePublicUser(userUpdateData: UserUpdateData): Observable<PublicUser> {
-    const updateUserHttpCall: (userUpdateData: UserUpdateData) => 
-      Observable<PublicUser> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_UPDATE_PUBLIC_USER);
-
-    return updateUserHttpCall(userUpdateData)
+  fetchUserData(userId: string): Observable<PublicUser> {
+    const userDoc = docData(this.getPublicUserDoc(userId));
+    return userDoc
       .pipe(
-        take(1),
-        map( updatedUser => {
-          console.log('Public user updated', updatedUser)
-          return updatedUser;
+        // If logged out, this triggers unsub of this observable
+        takeUntil(this.authService.unsubTrigger$),
+        map(user => {
+          if (!user) {
+            throw new Error(`Error fetching user with id: ${userId}`, );
+          }
+          console.log('Fetched user', user);
+          return user;
         }),
         catchError(error => {
-          console.log('Error updating user', error);
-          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
+          console.log('Error fetching user', error);
           return throwError(() => new Error(error));
         })
       );
@@ -125,12 +106,32 @@ export class UserService {
       );
   }
 
-  private getPublicUserDoc(userId: string): DocumentReference<PublicUser> {
-    return doc(this.getPublicUserCollection(), userId);
+
+  updatePublicUser(userUpdateData: UserUpdateData): Observable<PublicUser> {
+    const updateUserHttpCall: (userUpdateData: UserUpdateData) => 
+      Observable<PublicUser> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_UPDATE_PUBLIC_USER);
+
+    return updateUserHttpCall(userUpdateData)
+      .pipe(
+        take(1),
+        map( updatedUser => {
+          console.log('Public user updated', updatedUser)
+          return updatedUser;
+        }),
+        catchError(error => {
+          console.log('Error updating user', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
+          return throwError(() => new Error(error));
+        })
+      );
   }
 
   private getPublicUserCollection(): CollectionReference<PublicUser> {
     return collection(this.afs, PublicCollectionPaths.PUBLIC_USERS) as CollectionReference<PublicUser>;
+  }
+
+  private getPublicUserDoc(userId: string): DocumentReference<PublicUser> {
+    return doc(this.getPublicUserCollection(), userId);
   }
   
 }

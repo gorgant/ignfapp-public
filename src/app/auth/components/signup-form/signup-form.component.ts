@@ -32,21 +32,21 @@ export class SignupFormComponent implements OnInit, OnDestroy {
 
   authSignUpProcessing$!: Observable<boolean>;
   authSignUpSubscription!: Subscription;
-  authSignUpError$!: Observable<{} | undefined>;
+  authSignUpError$!: Observable<{} | null>;
   authSignUpSubmitted!: boolean;
 
   createUserProcessing$!: Observable<boolean>;
   createUserSubscription!: Subscription;
-  createUserError$!: Observable<{} | undefined>;
+  createUserError$!: Observable<{} | null>;
   createUserSubmitted!: boolean;
 
   fetchUserProcessing$!: Observable<boolean>;
   fetchUserSubscription!: Subscription;
-  fetchUserError$!: Observable<{} | undefined>;
+  fetchUserError$!: Observable<{} | null>;
 
   reloadAuthDataProcessing$!: Observable<boolean>;
   reloadAuthDataSubscription!: Subscription;
-  reloadAuthDataError$!: Observable<{} | undefined>;
+  reloadAuthDataError$!: Observable<{} | null>;
   reloadAuthDataSubmitted!: boolean;
 
   userData$!: Observable<PublicUser>;
@@ -64,17 +64,17 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   }
 
   private checkAuthStatus() {
-    this.authSignUpProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsSigningUpUser));
+    this.authSignUpProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing));
     this.authSignUpError$ = this.store$.pipe(select(AuthStoreSelectors.selectSignUpError));
 
-    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsCreatingUser));
+    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectCreateUserProcessing));
     this.createUserError$ = this.store$.pipe(select(UserStoreSelectors.selectCreateUserError));
 
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser));
+    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing));
     this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserError));
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
 
-    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsReloadingAuthData));
+    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
     this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
   }
 

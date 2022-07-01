@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { PublicStoreFeatureKeys } from 'shared-models/store/feature-keys.model';
-import { userMetaReducers, userStoreReducer } from './reducers';
+import { userMetaReducers, userStoreReducer } from './reducer';
 import { UserStoreEffects } from './effects';
 
 @NgModule({

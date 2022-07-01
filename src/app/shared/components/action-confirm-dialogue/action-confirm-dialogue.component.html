@@ -1,0 +1,8 @@
+<h2 class="section-header" mat-dialog-title>{{ confData.title }}</h2>
+<mat-dialog-content>
+  {{ confData.body }}
+</mat-dialog-content>
+<mat-dialog-actions fxLayoutAlign="center center">
+  <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ YES_BUTTON_VALUE }}</button>
+  <button mat-raised-button [mat-dialog-close] cdkFocusInitial="false">{{ NO_BUTTON_VALUE }}</button>
+</mat-dialog-actions>

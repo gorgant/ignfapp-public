@@ -1,23 +1,24 @@
+import { FirebaseError } from "firebase/app";
 import { AuthResultsData } from "shared-models/auth/auth-data.model";
 
 export interface AuthState {
-  authError: {} | null,
-  authGuardError: {} | null,
+  authError: FirebaseError | Error | null,
+  authGuardError: FirebaseError | Error | null,
   authProcessing: boolean,
-  confirmPasswordError: {} | null;
+  confirmPasswordError: FirebaseError | Error | null;
   confirmPasswordProcessing: boolean;
-  deleteAuthUserError: {} | null;
+  deleteAuthUserError: FirebaseError | Error | null;
   deleteAuthUserProcessing: boolean;
   emailVerified: boolean,
-  emailVerificationError: {} | null,
+  emailVerificationError: FirebaseError | Error | null,
   emailVerificationProcessing: boolean,
-  reloadAuthDataError: {} | null, 
+  reloadAuthDataError: FirebaseError | Error | null, 
   reloadAuthDataProcessing: boolean,
-  resetPasswordError: {} | null,
+  resetPasswordError: FirebaseError | Error | null,
   resetPasswordProcessing: boolean,
-  signupError: {} | null, 
+  signupError: FirebaseError | Error | null, 
   signupProcessing: boolean,
-  updateEmailError: {} | null,
+  updateEmailError: FirebaseError | Error | null,
   updateEmailProcessing: boolean,
   authResultsData: AuthResultsData | null,
 }

@@ -1,19 +1,26 @@
+import { SocialUrlPrefixes } from "shared-models/meta/social-urls.model";
+import { TrainingSessionKeys } from "shared-models/train/training-session.model";
 import { PublicUserKeys } from "../user/public-user.model";
 import { UserRegistrationFormFieldKeys } from "./user-registration-form-vals.model";
 
-export const UserRegistrationFormValidationMessages = {
-  [PublicUserKeys.FIRST_NAME]: [
-    { type: 'required', message: 'First name is required.'},
+export const TrainingSessionFormValidationMessages = {
+  [TrainingSessionKeys.VIDEO_URL]: [
+    { type: 'required', message: 'This field is required.'},
+    { type: 'pattern', message: `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}'` }
   ],
-  [PublicUserKeys.EMAIL]: [
-    { type: 'required', message: 'Email is required.'},
-    { type: 'email', message: 'Not a valid email.'},
+  [TrainingSessionKeys.COMPLEXITY_DEFAULT]: [
+    { type: 'min', message: 'Value must be greater than 0.'},
   ],
-  [UserRegistrationFormFieldKeys.PASSWORD]: [
-    { type: 'required', message: 'Password is required.'},
-    { type: 'minlength', message: 'Password must be at least eight characters.' }
+  [TrainingSessionKeys.FOCUS_LIST]: [
+    { type: 'required', message: 'Add at least one focus.'},
   ],
-};
+  [TrainingSessionKeys.INTENSITY_DEFAULT]: [
+    { type: 'min', message: 'Value must be greater than 0.'},
+  ],
+  [TrainingSessionKeys.VIDEO_PLATFORM]: [
+    { type: 'required', message: 'This field is required.'},
+  ],
+}
 
 export const UserProfileFormValidationMessages = {
   [PublicUserKeys.FIRST_NAME]: [
@@ -32,3 +39,19 @@ export const UserProfileFormValidationMessages = {
     { type: 'required', message: 'Password is required.'},
   ],
 }
+
+export const UserRegistrationFormValidationMessages = {
+  [PublicUserKeys.FIRST_NAME]: [
+    { type: 'required', message: 'First name is required.'},
+  ],
+  [PublicUserKeys.EMAIL]: [
+    { type: 'required', message: 'Email is required.'},
+    { type: 'email', message: 'Not a valid email.'},
+  ],
+  [UserRegistrationFormFieldKeys.PASSWORD]: [
+    { type: 'required', message: 'Password is required.'},
+    { type: 'minlength', message: 'Password must be at least eight characters.' }
+  ],
+};
+
+

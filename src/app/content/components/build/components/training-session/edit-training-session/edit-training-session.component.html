@@ -1,3 +1,137 @@
 <div class="component-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <button mat-raised-button (click)="onGetYoutubeVideoData()">Get Youtube Video Data</button>
+  <h2 class="section-header" mat-dialog-title>{{ isNewSession ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
+
+
+
+  <mat-stepper class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
+
+    <!-- Step 1 -->
+    <mat-step [stepControl]="youtubeVideoDataForm" errorMessage="Error collecting video data." [editable]="true">
+      <form [formGroup]="youtubeVideoDataForm">
+        
+        <ng-template matStepLabel>{{ INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL }}</ng-template>
+      
+        <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="32px">
+          <mat-form-field>
+            <input formControlName="videoUrl" matInput type="videoUrl">
+            <mat-placeholder>{{ INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE }}</mat-placeholder>
+            <mat-hint>{{ INPUT_YOUTUBE_VIDEO_URL_HINT }}</mat-hint>
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.videoUrl">
+              <mat-error *ngIf="videoUrl?.hasError(validation.type) && videoUrl?.invalid && (videoUrl?.dirty || videoUrl?.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+            
+          </mat-form-field>
+          <div class="video-exists-in-database-warning" *ngIf="getYoutubeVideoDataError$ | async as error">
+            {{ error.message }}
+          </div>
+          
+          <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+            
+            <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" [disabled]="videoUrl?.invalid" mat-raised-button color="primary" type="button" (click)="onGetYoutubeVideoData()">
+              {{ FETCH_VIDEO_DATA_BUTTON_VALUE }}
+            </button>
+            <div *ngIf="(getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+            </div>
+            
+            <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" mat-raised-button type="button" (click)="onGoBack()">
+              {{ CANCEL_BUTTON_VALUE }}
+            </button>
+          
+          </div>
+        </div>
+
+      </form>
+    </mat-step>
+
+    <!-- Step 2 -->
+    <mat-step [stepControl]="trainingSessionForm" errorMessage="Form is not complete." >
+      <form [formGroup]="trainingSessionForm" fxLayout="column" fxLayoutAlign="center center" >
+
+        <ng-template matStepLabel>{{ INPUT_SESSION_DATA_STEP_LABEL }}</ng-template>
+        
+        <div class="form-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
+
+          <div class="slider-container">
+            <div class="slider-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
+            <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-label">{{ COMPLEXITY_FIELD_VALUE }}</div>
+            <mat-slider [formControl]="complexityDefault" class="example-margin" [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.complexityDefault">
+              <mat-error *ngIf="complexityDefault?.hasError(validation.type) && complexityDefault?.invalid && (complexityDefault?.dirty || complexityDefault?.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-label">{{ INTENSITY_FIELD_VALUE }}</div>
+            <mat-slider [formControl]="intensityDefault" class="example-margin" [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.intensityDefault">
+              <mat-error *ngIf="intensityDefault?.hasError(validation.type) && intensityDefault?.invalid && (intensityDefault?.dirty || intensityDefault?.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+          </div>
+
+          <mat-form-field class="example-chip-list" appearance="fill">
+            <mat-label>{{ SESSION_FOCUS_FIELD_VALUE }}</mat-label>
+            <mat-chip-list #chipList aria-label="Training Session Focus Selection" multiple [formControl]="focusList">
+              <mat-chip
+                *ngFor="let focus of focusList.value"
+                (removed)="removeFocusChip(focus)">
+                {{ getFocusUiOptionFromDbOption(focus) }}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
+              <input
+                [placeholder]="SESSION_FOCUS_PLACEHOLDER"
+                #trainingSessionFocusInput
+                [formControl]="trainingSessionFocusUserInputForm"
+                [matAutocomplete]="auto"
+                [matChipInputFor]="chipList"
+                [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
+                (matChipInputTokenEnd)="addFocusChipFromKeyboard($event)">
+            </mat-chip-list>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addFocusChipFromAutoComplete($event)">
+              <mat-option *ngFor="let focus of filteredtrainingSessionFocusList | async" [value]="focus.dbValue">
+              {{ focus.uiValue }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.focusList">
+              <mat-error *ngIf="focusList?.hasError(validation.type) && focusList?.invalid && (focusList?.dirty || focusList?.touched)">{{ validation.message }}</mat-error>
+            </mat-error>
+          </mat-form-field>
+          
+          
+          <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
+            
+            <button *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm()">
+              {{ isNewSession ? CREATE_SESSION_BUTTON_VALUE : EDIT_SESSION_BUTTON_VALUE }}
+            </button>
+            <div *ngIf="(serverRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+            </div>
+  
+            <button *ngIf="!(serverRequestProcessing$ | async)" mat-raised-button type="button" (click)="onGoBack()">
+              {{ CANCEL_BUTTON_VALUE }}
+            </button>
+  
+          </div>
+        </div>
+
+      </form>
+    </mat-step>
+
+
+  </mat-stepper>
+
+  <div *ngIf="(youtubeVideoData$ | async) as videoData" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+    <img class="video-thumbnail" [src]="videoData.thumbnailUrl" alt="Video Thumbnail">
+    <div>{{ TITLE_BLURB }}: {{ videoData.title }}</div>
+    <div>{{ CHANNEL_BLURB }}: {{ videoData.channelTitle }}</div>
+    <div>{{ DURATION_BLURB }}: {{ videoData.duration | durationToMmSs }}</div>
+  </div>
+
+
 </div>

@@ -19,7 +19,7 @@ export class UserStoreEffects {
   createUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.createUserRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.userService.createPublicUser(action.partialNewUserData).pipe(
           map(newUser => {
             return UserStoreActions.createUserCompleted({newUser});
@@ -58,31 +58,10 @@ export class UserStoreEffects {
     ),
   );
 
-  // getAvatarDownloadUrlEffect$ = createEffect(() => this.actions$
-  //   .pipe(
-  //     ofType(UserStoreActions.getAvatarDownloadUrlRequested),
-  //     switchMap(action => 
-  //       this.imageService.fetchAvatarDownloadUrl(action.avatarImageData).pipe(
-  //         map(avatarDownloadUrl => {
-  //           return UserStoreActions.getAvatarDownloadUrlCompleted({avatarDownloadUrl});
-  //         }),
-  //         catchError(error => {
-  //           const fbError: FirebaseError = {
-  //             code: error.code,
-  //             message: error.message,
-  //             name: error.name
-  //           };
-  //           return of(UserStoreActions.getAvatarDownloadUrlFailed({error: fbError}));
-  //         })
-  //       )
-  //     ),
-  //   ),
-  // );
-
   registerPrelaunchUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.registerPrelaunchUserRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.userService.registerPrelaunchUser(action.emailUserData).pipe(
           map(prelaunchUser => {
             return UserStoreActions.registerPrelaunchUserCompleted({prelaunchUser});
@@ -103,7 +82,7 @@ export class UserStoreEffects {
   resizeAvatarEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.resizeAvatarRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.imageService.resizeAvatarImage(action.imageMetaData).pipe(
           map(serverResponse => {
             return UserStoreActions.resizeAvatarCompleted();
@@ -145,7 +124,7 @@ export class UserStoreEffects {
   uploadAvatarEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.uploadAvatarRequested),
-      switchMap(action => 
+      concatMap(action => 
         this.imageService.uploadAvatarImageAndGetDownloadUrl(action.avatarData).pipe(
           map(avatarDownloadUrl => {
             return UserStoreActions.uploadAvatarCompleted({avatarDownloadUrl});

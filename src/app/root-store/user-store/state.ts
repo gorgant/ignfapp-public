@@ -1,18 +1,19 @@
+import { FirebaseError } from "firebase/app";
 import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
 import { PublicUser } from "shared-models/user/public-user.model";
 
 export const userFeatureKey = PublicStoreFeatureKeys.USER;
 
 export interface UserState {
-  createUserError: {} | null,
+  createUserError: FirebaseError | Error | null,
   createUserProcessing: boolean,
-  fetchUserError: {} | null,
+  fetchUserError: FirebaseError | Error | null,
   fetchUserProcessing: boolean,
-  resizeAvatarError: {} | null,
+  resizeAvatarError: FirebaseError | Error | null,
   resizeAvatarProcessing: boolean;
-  updateUserError: {} | null,
+  updateUserError: FirebaseError | Error | null,
   updateUserProcessing: boolean,
-  uploadAvatarError: {} | null,
+  uploadAvatarError: FirebaseError | Error | null,
   uploadAvatarProcessing: boolean,
   avatarDownloadUrl: string | null;
   userData: PublicUser | null,

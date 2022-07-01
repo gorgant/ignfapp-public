@@ -27,7 +27,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | undefined>;
+  userUpdateError$!: Observable<{} | null>;
   userUpdateSubscription!: Subscription;
   updateSubmitted!: boolean;
 
@@ -59,7 +59,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   }
 
   private monitorUpdateRequests(): void {
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
     this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
   }
 

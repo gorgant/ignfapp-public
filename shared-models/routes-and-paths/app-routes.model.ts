@@ -22,5 +22,7 @@ export const NoNavBarUrls = [
   PublicAppRoutes.PRELAUNCH,
   PublicAppRoutes.LOGIN,
   PublicAppRoutes.SIGNUP,
-  PublicAppRoutes.EMAIL_VERIFICATION
+  PublicAppRoutes.EMAIL_VERIFICATION,
+  PublicAppRoutes.TRAINING_SESSION_EDIT,
+  PublicAppRoutes.TRAINING_SESSION_NEW,
 ];

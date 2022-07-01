@@ -3,7 +3,7 @@ import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
-import { UiService } from "src/app/core/services/ui.service";
+import { HelperService } from "src/app/core/services/helpers.service";
 import * as UiStoreActions from './actions';
 
 @Injectable()
@@ -11,14 +11,14 @@ export class UiStoreEffects {
 
   constructor(
     private actions$: Actions,
-    private uiService: UiService,
+    private helperService: HelperService,
   ) { }
 
   environmentTypeEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UiStoreActions.environmentTypeRequested),
       switchMap(action => 
-        this.uiService.getEnvironmentType().pipe(
+        this.helperService.getEnvironmentType().pipe(
           map(environmentType => {
             return UiStoreActions.environmentTypeRetrieved({environmentType});
           }),

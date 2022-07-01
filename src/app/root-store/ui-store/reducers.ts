@@ -12,7 +12,7 @@ export const uiStoreReducer = createReducer(
     return {
       ...state,
       environmentTypeProcessing: true,
-      evironmentTypeError: false,
+      evironmentTypeError: null,
     }
   }),
   on(UiStoreActions.environmentTypeRetrieved, (state, action) => {

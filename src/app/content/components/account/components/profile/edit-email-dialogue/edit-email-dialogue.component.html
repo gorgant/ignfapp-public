@@ -23,7 +23,7 @@
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button [disabled]="emailForm.invalid" color="primary" (click)="onConfirmPasswordInAuth()">
               {{ VERIFY_PASSWORD_BUTTON_VALUE }}
             </button>
-            <div *ngIf="(authOrUserUpdateProcessing$ | async)" class="user-update-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
+            <div *ngIf="(authOrUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
               <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
             </div>
             

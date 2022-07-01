@@ -19,8 +19,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
-import {MatStepperModule} from '@angular/material/stepper';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
+
 
 @NgModule({
   imports: [
@@ -29,7 +33,6 @@ import {MatStepperModule} from '@angular/material/stepper';
     MatInputModule,
     MatFormFieldModule,
     MatDatepickerModule,
-    MatMomentDateModule,
     MatCheckboxModule,
     MatSidenavModule,
     MatToolbarModule,
@@ -45,7 +48,11 @@ import {MatStepperModule} from '@angular/material/stepper';
     MatSnackBarModule,
     MatTooltipModule,
     MatDividerModule,
-    MatStepperModule
+    MatStepperModule,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatAutocompleteModule,
+    MatChipsModule,
   ],
   exports: [
     MatButtonModule,
@@ -68,7 +75,11 @@ import {MatStepperModule} from '@angular/material/stepper';
     MatSnackBarModule,
     MatTooltipModule,
     MatDividerModule,
-    MatStepperModule
+    MatStepperModule,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatChipsModule,
+    MatAutocompleteModule,
   ]
 })
 export class MaterialModule { }

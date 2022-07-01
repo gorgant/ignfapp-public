@@ -11,6 +11,7 @@ import { PublicCSDirectoryPaths } from 'shared-models/routes-and-paths/cs-direct
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
+import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { environment } from 'src/environments/environment';
@@ -30,19 +31,19 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   uploadAvatarProcessing$!: Observable<boolean>;
   uploadAvatarSubscription!: Subscription;
-  uploadAvatarError$!: Observable<{} | undefined>;
+  uploadAvatarError$!: Observable<{} | null>;
   uploadAvatarSubmitted!: boolean;
   uploadAvatarConfirmed!: boolean;
-  avatarDownloadUrl$!: Observable<string | undefined>;
+  avatarDownloadUrl$!: Observable<string | null>;
 
   resizeAvatarProcessing$!: Observable<boolean>;
   resizeAvatarSubscription!: Subscription;
-  resizeAvatarError$!: Observable<{} | undefined>;
+  resizeAvatarError$!: Observable<{} | null>;
   resizeAvatarSubmitted!: boolean;
   resizeAvatarConfirmed!: boolean;
 
   userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | undefined>;
+  userUpdateError$!: Observable<{} | null>;
   userUpdateSubscription!: Subscription;
   userUpdateSubmitted!: boolean;
 
@@ -54,6 +55,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<EditAvatarDialogueComponent>,
     @Inject(MAT_DIALOG_DATA) public userData: PublicUser,
     private uiService: UiService,
+    private helperService: HelperService,
     private store$: Store<RootStoreState.AppState>,
   ) { }
 
@@ -63,14 +65,14 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
 
-    this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUploadingAvatar));
+    this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarProcessing));
     this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
     this.avatarDownloadUrl$ = this.store$.pipe(select(UserStoreSelectors.selectAvatarDownloadUrl));
     
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
     this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
 
-    this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsResizingAvatar));
+    this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
     this.resizeAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarError));
 
     this.avatarUploadOrUserUpdateProcessing$ = combineLatest(
@@ -108,7 +110,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     const imageMetadata: AvatarImageMetaData = {
       contentType: file.type,
       customMetadata: {
-        fileExt: this.uiService.sanitizeFileName(file).fileExt,
+        fileExt: this.helperService.sanitizeFileName(file).fileExt,
         fileNameNoExt: ImageType.AVATAR,
         filePath: this.generateAvatarImagePath(file, this.userData),
         imageType: ImageType.AVATAR,
@@ -232,7 +234,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   private generateAvatarImagePath(file: File, userData: PublicUser): string {
     const userId = userData.id;
     const folder = `${userId}/${PublicCSDirectoryPaths.AVATAR}`;
-    const name = `${ImageType.AVATAR}.${this.uiService.sanitizeFileName(file).fileExt}`;
+    const name = `${ImageType.AVATAR}.${this.helperService.sanitizeFileName(file).fileExt}`;
     const filePath = `${folder}/${name}`;
     return filePath;
   }

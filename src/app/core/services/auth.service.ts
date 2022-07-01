@@ -97,7 +97,7 @@ export class AuthService {
   }
 
   // Detect cached user data
-  fetchCachedUserData(): Observable<AuthResultsData | undefined> {
+  fetchCachedUserData(): Observable<AuthResultsData | null> {
     return authState(this.auth)
       .pipe(
         takeUntil(this.unsubTrigger$),
@@ -111,7 +111,7 @@ export class AuthService {
             }
             return authResultsData;
           }
-          return undefined;
+          return null;
         })
       );
   }
@@ -358,6 +358,7 @@ export class AuthService {
     // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
     this.ngUnsubscribe$ = new Subject<void>();
     this.store$.dispatch(UserStoreActions.purgeUserData());
+    // TODO: Purge other store data here as well
   }
 
 }

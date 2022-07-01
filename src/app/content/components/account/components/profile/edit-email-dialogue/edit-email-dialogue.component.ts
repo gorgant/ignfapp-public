@@ -40,17 +40,16 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   passwordConfirmationProcessing$!: Observable<boolean>;
   passwordConfirmationSubscription!: Subscription;
-  passwordConfirmationError$!: Observable<{} | undefined>;
+  passwordConfirmationError$!: Observable<{} | null>;
   passwordConfirmationSubmitted!: boolean;
-  passwordConfirmed!: boolean;
 
   authEmailUpdateProcessing$!: Observable<boolean>;
   authEmailUpdateSubscription!: Subscription;
-  authEmailUpdateError$!: Observable<{} | undefined>;
+  authEmailUpdateError$!: Observable<{} | null>;
   authEmailUpdateSubmitted!: boolean;
   
   userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | undefined>;
+  userUpdateError$!: Observable<{} | null>;
   userUpdateSubscription!: Subscription;
   userUpdateSubmitted!: boolean;
   
@@ -88,13 +87,13 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
 
-    this.passwordConfirmationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsConfirmingPassword));
+    this.passwordConfirmationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordProcessing));
     this.passwordConfirmationError$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordError));
     
-    this.authEmailUpdateProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectIsUpdatingEmail));
+    this.authEmailUpdateProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailProcessing));
     this.authEmailUpdateError$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailError));
 
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectIsUpdatingUser));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
     this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
 
     this.authOrUserUpdateProcessing$ = combineLatest(
@@ -157,15 +156,14 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
         // If password confirmation succeeds, proceed to next step
         if (this.passwordConfirmationSubmitted && !passwordUpdateProcessing) {
           console.log('Password confirmation successful');
-          this.passwordConfirmed = true;
           this.passwordConfirmationSubscription.unsubscribe(); // Clear subscription no longer needed
-          this.proceedToStepTwo();
+          this.proceedToNextStep();
         }
       })
   }
 
   // Programatically trigger the stepper to move to the next step
-  private proceedToStepTwo() {
+  private proceedToNextStep() {
     this.updateEmailStepper.next()
   }
 

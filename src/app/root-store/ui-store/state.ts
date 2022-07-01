@@ -1,8 +1,9 @@
+import { FirebaseError } from "firebase/app";
 import { EnvironmentTypes } from "shared-models/environments/env-vars.model";
 
 export interface UiState {
   environmentType: EnvironmentTypes | null
-  evironmentTypeError: {} | null,
+  evironmentTypeError: FirebaseError | Error | null,
   environmentTypeProcessing: boolean,
   showNavBar: boolean
 }

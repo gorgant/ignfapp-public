@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate, CanLoad {
               this.store$.select(UserStoreSelectors.selectUserData)
                 .pipe(
                   take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser)))
+                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing)))
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
@@ -80,7 +80,7 @@ export class AuthGuard implements CanActivate, CanLoad {
               this.store$.select(UserStoreSelectors.selectUserData)
                 .pipe(
                   take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectIsFetchingUser)))
+                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing)))
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
