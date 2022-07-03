@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-import { now } from 'moment';
+import { DateTime } from 'luxon';
 import { publicFirestore } from '../config/db-config';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { EmailCategories } from '../../../shared-models/email/email-vars.model';
@@ -19,17 +19,17 @@ const createOrUpdatePrelaunchUser = async (userData: EmailUserData, existingUser
     // If user already exists, exit function with that user and updated timestamps
     prelaunchUser =  {
       ...existingUser,
-      lastModifiedTimestamp: now(),
-      lastAuthenticated: now(),
+      lastModifiedTimestamp: DateTime.now().toMillis(),
+      lastAuthenticated: DateTime.now().toMillis(),
     }
     functions.logger.log('Updating existing prelaunchUser', prelaunchUser);
   } else {
     // Otherwise, create a new prelaunch user with the provided userData
     prelaunchUser = {
       ...userData,
-      lastModifiedTimestamp: now(),
-      lastAuthenticated: now(),
-      createdTimestamp: now(),
+      lastModifiedTimestamp: DateTime.now().toMillis(),
+      lastAuthenticated: DateTime.now().toMillis(),
+      createdTimestamp: DateTime.now().toMillis(),
       isPrelaunchUser: true,
     };
     functions.logger.log('Creating new PrelaunchUser', prelaunchUser);

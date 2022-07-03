@@ -1,8 +1,8 @@
 import * as functions from 'firebase-functions';
 import { publicFirestore } from '../config/db-config';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
-import { now } from 'moment';
 import { EmailVerificationData } from '../../../shared-models/email/email-verification-data';
+import { DateTime } from 'luxon';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
@@ -59,9 +59,9 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   const updateUserData: Partial<PublicUser | PrelaunchUser> = {
     emailVerified: true, // Adding to user record triggers user subscription on client, which provides easy trigger for user auth check
     emailOptInConfirmed: true,
-    emailOptInTimestamp: now(),
-    lastModifiedTimestamp: now(),
-    emailSendgridContactCreatedTimestamp: userData.emailSendgridContactCreatedTimestamp ? userData.emailSendgridContactCreatedTimestamp : now()
+    emailOptInTimestamp: DateTime.now().toMillis(),
+    lastModifiedTimestamp: DateTime.now().toMillis(),
+    emailSendgridContactCreatedTimestamp: userData.emailSendgridContactCreatedTimestamp ? userData.emailSendgridContactCreatedTimestamp : DateTime.now().toMillis()
   };
 
   // Mark sub opted in on public database
