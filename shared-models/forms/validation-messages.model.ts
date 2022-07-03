@@ -1,10 +1,11 @@
 import { SocialUrlPrefixes } from "shared-models/meta/social-urls.model";
 import { TrainingSessionKeys } from "shared-models/train/training-session.model";
+import { YoutubeVideoDataKeys } from "shared-models/youtube/youtube-video-data.model";
 import { PublicUserKeys } from "../user/public-user.model";
 import { UserRegistrationFormFieldKeys } from "./user-registration-form-vals.model";
 
 export const TrainingSessionFormValidationMessages = {
-  [TrainingSessionKeys.VIDEO_URL]: [
+  [YoutubeVideoDataKeys.VIDEO_URL]: [
     { type: 'required', message: 'This field is required.'},
     { type: 'pattern', message: `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}'` }
   ],

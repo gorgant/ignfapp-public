@@ -1,0 +1,15 @@
+@import '../../../../../../../variables';
+
+.form-container {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+  max-width: $desktop-form-width;
+}
+
+.slider-container, .slider-label, mat-slider {
+  width: 100%;
+  max-width: $desktop-form-width;
+}

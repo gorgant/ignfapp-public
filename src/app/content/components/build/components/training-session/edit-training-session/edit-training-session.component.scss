@@ -1,22 +1,16 @@
 @import '../../../../../../variables';
 
+.section-header {
+  margin-top: 32px;
+}
+
 mat-stepper {
   width: 100%;
   max-width: 800px;
 }
 
-.form-container {
-  width: 100%;
-}
-
-mat-form-field {
-  width: 100%;
-  max-width: $desktop-form-width;
-}
-
-.slider-container, .slider-label, mat-slider {
-  width: 100%;
-  max-width: $desktop-form-width;
+.stepper-buttons {
+  margin-top: 16px;
 }
 
 .video-thumbnail {
@@ -25,4 +19,12 @@ mat-form-field {
 
 .video-exists-in-database-warning {
   color: $warn;
+}
+
+.video-details-container {
+  margin: 16px;
+}
+
+.video-details-prefix {
+  font-weight: $font-weight-medium;
 }

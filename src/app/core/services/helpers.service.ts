@@ -80,5 +80,17 @@ export class HelperService {
     };
   }
 
+  // Avoid using this whenever possible, default to using the firebase API
+  // generateFirestoreId(): string {
+  //   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  //   let autoId = ''
+  //   for (let i = 0; i < 20; i++) {
+  //     autoId += CHARS.charAt(
+  //       Math.floor(Math.random() * CHARS.length)
+  //     )
+  //   }
+  //   return autoId
+  // }
+
 
 }

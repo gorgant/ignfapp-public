@@ -1,35 +1,22 @@
 import { FormControl } from "@angular/forms"
+import { YoutubeVideoDataCompact } from "../youtube/youtube-video-data.model"
 
 export interface TrainingSession extends TrainingSessionNoId {
-  id: string,
-};
+  id: string;
+}
 
 export interface TrainingSessionNoId {
-  channelUrl: string,
   complexityAverage: number, // the average value of submitted ratings
   complexityRatingCount: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
   creatorId: string,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
-  duration: number,
   [TrainingSessionKeys.FOCUS_LIST]: TrainingSessionFocusDbOption[],
   intensityAverage: number, // the average value of submitted ratings
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
   intensityRatingCount: number, // the number of ratings submitted 
-  thumbnailUrl: string,
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
-  videoTitle: string,
-  [TrainingSessionKeys.VIDEO_URL]: string,
-  [TrainingSessionKeys.VIDEO_ID]: string
-}
-
-export interface TrainingSessionVideoData {
-  [TrainingSessionKeys.VIDEO_URL]: string,
-}
-
-export interface YoutubeVideoDataForm {
-  [TrainingSessionKeys.VIDEO_URL]: FormControl<string>,
-  [TrainingSessionKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: FormControl<boolean>,
+  videoData: YoutubeVideoDataCompact
 }
 
 export interface TrainingSessionForm {
@@ -52,10 +39,7 @@ export enum TrainingSessionKeys {
   EQUIPMENT = 'equipment',
   FOCUS_LIST = 'focusList',
   INTENSITY_DEFAULT = 'intensityDefault',
-  VIDEO_ID = 'videoId',
   VIDEO_PLATFORM = 'videoPlatform',
-  VIDEO_URL = 'videoUrl',
-  YOUTUBE_VIDEO_DATA_RETREIVED = 'youtubeVideoDataRetrieved'
 };
 
 export enum TrainingSessionVideoPlatform {

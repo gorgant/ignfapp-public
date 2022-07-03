@@ -6,6 +6,8 @@ import { ViewTrainingSessionComponent } from '../components/training-session/vie
 import { ViewTrainingPlanComponent } from '../components/training-plan/view-training-plan/view-training-plan.component';
 import { EditTrainingPlanComponent } from '../components/training-plan/edit-training-plan/edit-training-plan.component';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { EditTrainingSessionStepOneComponent } from '../components/training-session/edit-training-session/edit-training-session-step-one/edit-training-session-step-one.component';
+import { EditTrainingSessionStepTwoComponent } from '../components/training-session/edit-training-session/edit-training-session-step-two/edit-training-session-step-two.component';
 
 
 @NgModule({
@@ -14,6 +16,8 @@ import { SharedModule } from 'src/app/shared/shared.module';
     ViewTrainingSessionComponent,
     ViewTrainingPlanComponent,
     EditTrainingPlanComponent,
+    EditTrainingSessionStepOneComponent,
+    EditTrainingSessionStepTwoComponent,
   ],
   imports: [
     SharedModule,

@@ -146,6 +146,15 @@ export const trainingSessionStoreReducer = createReducer(
     );
   }),
 
+  // Purge Training Session Data
+
+  on(TrainingSessionStoreActions.purgeYoutubeVideoData, (state, action) => {
+    return {
+      ...state,
+      youtubeVideoData: null
+    }
+  }),
+
   // Update Training Session
   
   on(TrainingSessionStoreActions.updateTrainingSessionRequested, (state, action) => {
@@ -174,3 +183,11 @@ export const trainingSessionStoreReducer = createReducer(
 );
 
 export const trainingSessionMetaReducers: MetaReducer<TrainingSessionState>[] = !environment.production ? [] : [];
+
+// Exporting a variety of selectors in the form of a object from the entity adapter
+export const {
+  selectAll,
+  selectEntities,
+  selectIds,
+  selectTotal
+} = featureAdapter.getSelectors();

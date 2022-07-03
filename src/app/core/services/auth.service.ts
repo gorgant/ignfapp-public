@@ -13,7 +13,7 @@ import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, g
 import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { Store } from '@ngrx/store';
-import { RootStoreState, UserStoreActions } from 'src/app/root-store';
+import { RootStoreState, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
 
 @Injectable({
   providedIn: 'root'
@@ -358,6 +358,7 @@ export class AuthService {
     // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
     this.ngUnsubscribe$ = new Subject<void>();
     this.store$.dispatch(UserStoreActions.purgeUserData());
+    this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
     // TODO: Purge other store data here as well
   }
 

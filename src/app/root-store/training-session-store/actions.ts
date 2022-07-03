@@ -3,7 +3,7 @@ import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { TrainingSession, TrainingSessionNoId } from "shared-models/train/training-session.model";
-import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from "shared-models/youtube/youtube-video-data.model";
+import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 
 // Create Training Session
 
@@ -95,6 +95,12 @@ export const fetchYoutubeVideoDataFailed = createAction(
 export const purgeTrainingSessionData = createAction(
   '[AppWide] Purge Training Session Data'
 );
+
+// Purge Youtube Video Data
+
+export const purgeYoutubeVideoData = createAction(
+  '[AppWide] Purge Youtube Video Data'
+)
 
 // Update Training Session
 

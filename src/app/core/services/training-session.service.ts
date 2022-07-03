@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
-import { collection, doc, docData, DocumentReference, CollectionReference, Firestore, addDoc, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, addDoc, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { TrainingSession, TrainingSessionNoId } from 'shared-models/train/training-session.model';
-import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from 'shared-models/youtube/youtube-video-data.model';
+import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
@@ -26,22 +26,16 @@ export class TrainingSessionService {
 
   createTrainingSession(trainingSessionNoId: TrainingSessionNoId): Observable<TrainingSession> {
 
-    const trainingSessionCollectionRef = this.getTrainingSessionCollection();
-    const trainingSessionAddRequest = addDoc(trainingSessionCollectionRef, trainingSessionNoId);
+    const newId = this.generateNewTrainingSessionDocumentId();
+    const trainingSessionWithId = {...trainingSessionNoId, id: newId};
+    const trainingSessionDocRef = this.getTrainingSessionDoc(newId);
+    const trainingSessionAddRequest = setDoc(trainingSessionDocRef, trainingSessionWithId);
 
     return from(trainingSessionAddRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        map(docRef => {
-          if (!docRef) {
-            throw new Error(`Error creating training session with title: ${trainingSessionNoId.videoTitle}`, );
-          }
-          console.log('Created training session', docRef.id);
-          const trainingSessionWithId: TrainingSession = {
-            ...trainingSessionNoId,
-            id: docRef.id
-          }
+        map(empty => {
           return trainingSessionWithId;
         }),
         catchError(error => {
@@ -164,7 +158,7 @@ export class TrainingSessionService {
   }
 
   updateTrainingSession(trainingSessionUpdates: Update<TrainingSession>): Observable<Update<TrainingSession>> {
-    const trainingSessionDoc = this.getTrainingSessionDoc(trainingSessionUpdates.changes.id as string);
+    const trainingSessionDoc = this.getTrainingSessionDoc(trainingSessionUpdates.id as string);
     const trainingSessionUpdateRequest = updateDoc(trainingSessionDoc, trainingSessionUpdates.changes);
 
     return from(trainingSessionUpdateRequest)
@@ -187,6 +181,10 @@ export class TrainingSessionService {
 
   private getTrainingSessionDoc(sessionId: string): DocumentReference<TrainingSession> {
     return doc(this.getTrainingSessionCollection(), sessionId);
+  }
+
+  private generateNewTrainingSessionDocumentId(): string {
+    return doc(this.getTrainingSessionCollection()).id;
   }
 
 }

@@ -4,6 +4,8 @@ import * as Axios from 'axios';
 import { submitHttpRequest } from '../config/global-helpers';
 import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from '../../../shared-models/youtube/youtube-video-data.model';
 import { findSessionByVideoId } from './find-session-by-video-id';
+import { SocialUrlPrefixes } from '../../../shared-models/meta/social-urls.model';
+import { Duration } from 'luxon';
 
 const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => {
   const youtubeApiKey = process.env[SecretsManagerKeyNames.YOUTUBE_DATA_API_V3_FETCH];
@@ -29,21 +31,27 @@ const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => 
 
 const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): YoutubeVideoDataCompact => {
   
-    const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default.url;
-    const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium.url;
-    const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high.url;
-    const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard.url;
+  const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default.url;
+  const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium.url;
+  const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high.url;
+  const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard.url;
 
 
   const bestThumbnailUrl = thumbnailUrlStandard ? thumbnailUrlStandard : thumbnailUrlHigh ? thumbnailUrlHigh : thumbnailUrlMedium ? thumbnailUrlMedium : thumbnailUrlDefault;
   
+  const durationIso = rawVideoData.items[0].contentDetails.duration;
+  const durationMs = Duration.fromISO(durationIso).toMillis();
+
   const compactVideoData: YoutubeVideoDataCompact = {
     channelId: rawVideoData.items[0].snippet.channelId,
     channelTitle: rawVideoData.items[0].snippet.channelTitle,
-    duration: rawVideoData.items[0].contentDetails.duration,
+    channelUrl: `${SocialUrlPrefixes.YOUTUBE_CHANNEL}/${rawVideoData.items[0].snippet.channelId}`,
+    durationIso,
+    durationMs,
     id: rawVideoData.items[0].id,
     title: rawVideoData.items[0].snippet.title,
-    thumbnailUrl: bestThumbnailUrl
+    thumbnailUrl: bestThumbnailUrl,
+    videoUrl: `${SocialUrlPrefixes.YOUTUBE_VIDEO}/${rawVideoData.items[0].id}`
   }
 
   return compactVideoData;
