@@ -36,7 +36,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
   videoUrlSubscription!: Subscription;
 
-  isNewSession = false;
   existingTrainingSessionDataSubscription!: Subscription;
 
   constructor(
@@ -61,7 +60,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     const sessionId = this.route.snapshot.params[idParamName];
     if (sessionId) {
       console.log('Session id found in url params', sessionId);
-      this.isNewSession = false;
       
       this.existingTrainingSessionDataSubscription = this.store$.select(TrainingSessionStoreSelectors.selectSessionById(sessionId))
         .pipe(withLatestFrom(this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing)))
@@ -74,7 +72,8 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
           if (trainingSession) {
             console.log('Patching video data into step one');
             this.videoUrl.setValue(trainingSession.videoData.videoUrl);
-            this.youtubeVideoData$ = of(trainingSession.videoData);
+            // this.youtubeVideoData$ = of(trainingSession.videoData);
+            this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession.videoData}));
             this.videoDataRetreived.setValue(true);
             this.editTrainingSessionStepper.next();
           }
@@ -139,7 +138,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
 
     if (this.getYoutubeVideoDataSubscription) {
-      console.log('Unsubscribing youtubevideodata observable via step one');
       this.getYoutubeVideoDataSubscription.unsubscribe();
     }
 

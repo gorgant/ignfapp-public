@@ -20,7 +20,7 @@ import { RootStoreState, TrainingSessionStoreSelectors } from 'src/app/root-stor
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   existingTrainingSessionData$!: Observable<TrainingSession | undefined>;
-  existingTrainingSessionDataSubscription!: Subscription;
+  existingTrainingSessionDataSubscription!: Subscription
 
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
   intensityMin = TrainingSessionFormVars.complexityMin;

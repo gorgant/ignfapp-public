@@ -155,6 +155,15 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
 
+  // Set Youtube Video Data
+
+  on(TrainingSessionStoreActions.setYoutubeVideoData, (state, action) => {
+    return {
+      ...state,
+      youtubeVideoData: action.youtubeVideoData
+    }
+  }),
+
   // Update Training Session
   
   on(TrainingSessionStoreActions.updateTrainingSessionRequested, (state, action) => {

@@ -99,7 +99,14 @@ export const purgeTrainingSessionData = createAction(
 // Purge Youtube Video Data
 
 export const purgeYoutubeVideoData = createAction(
-  '[AppWide] Purge Youtube Video Data'
+  '[Edit Training Session] Purge Youtube Video Data'
+)
+
+// Set Youtube Video Data
+
+export const setYoutubeVideoData = createAction(
+  '[Edit Training Session Step One] Set Youtube Video Data',
+  props<{youtubeVideoData: YoutubeVideoDataCompact}>()
 )
 
 // Update Training Session

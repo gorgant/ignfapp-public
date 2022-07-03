@@ -1,5 +1,5 @@
 <div class="component-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <h2 class="section-header" mat-dialog-title>{{ stepOne.isNewSession ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
+  <h2 class="section-header" mat-dialog-title>{{ isNewSession ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
 
   <mat-stepper class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
 
@@ -11,14 +11,14 @@
       
       <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
       
-        <button *ngIf="!(stepOne.getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl?.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
+        <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl?.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
           {{ FETCH_VIDEO_DATA_BUTTON_VALUE }}
         </button>
-        <div *ngIf="(stepOne.getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+        <div *ngIf="(getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
           <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
         </div>
         
-        <button *ngIf="!(stepOne.getYoutubeVideoDataProcessing$ | async)" mat-raised-button type="button" (click)="navigateUserToBrowse()">
+        <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" mat-raised-button type="button" (click)="navigateUserToBrowse()">
           {{ CANCEL_BUTTON_VALUE }}
         </button>
       
@@ -33,8 +33,8 @@
       
       <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
             
-        <button *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!stepTwo.trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm(stepOne, stepTwo)">
-          {{ stepOne.isNewSession ? CREATE_SESSION_BUTTON_VALUE : EDIT_SESSION_BUTTON_VALUE }}
+        <button *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!stepTwo.trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm(stepTwo)">
+          {{ isNewSession ? CREATE_SESSION_BUTTON_VALUE : EDIT_SESSION_BUTTON_VALUE }}
         </button>
         <div *ngIf="(serverRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
           <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
@@ -50,7 +50,7 @@
 
   </mat-stepper>
 
-  <div *ngIf="(stepOne.youtubeVideoData$ | async) as videoData" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+  <div *ngIf="(youtubeVideoData$ | async) as videoData" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
     <img class="video-thumbnail" [src]="videoData.thumbnailUrl" alt="Video Thumbnail">
     <div class="video-details-container" fxLayout="column" fxLayoutGap="16px">
       <div><span class="video-details-prefix">{{ TITLE_BLURB }}:</span> {{ videoData.title }}</div>
