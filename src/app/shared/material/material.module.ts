@@ -24,6 +24,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatRadioModule } from '@angular/material/radio';
 
 
 @NgModule({
@@ -53,6 +54,7 @@ import { MatChipsModule } from '@angular/material/chips';
     MatSlideToggleModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatRadioModule,
   ],
   exports: [
     MatButtonModule,
@@ -80,6 +82,7 @@ import { MatChipsModule } from '@angular/material/chips';
     MatSlideToggleModule,
     MatChipsModule,
     MatAutocompleteModule,
+    MatRadioModule,
   ]
 })
 export class MaterialModule { }

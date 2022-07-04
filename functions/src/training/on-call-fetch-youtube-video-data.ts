@@ -31,10 +31,10 @@ const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => 
 
 const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): YoutubeVideoDataCompact => {
   
-  const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default.url;
-  const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium.url;
-  const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high.url;
-  const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard.url;
+  const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default?.url;
+  const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium?.url;
+  const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high?.url;
+  const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard?.url;
 
 
   const bestThumbnailUrl = thumbnailUrlStandard ? thumbnailUrlStandard : thumbnailUrlHigh ? thumbnailUrlHigh : thumbnailUrlMedium ? thumbnailUrlMedium : thumbnailUrlDefault;

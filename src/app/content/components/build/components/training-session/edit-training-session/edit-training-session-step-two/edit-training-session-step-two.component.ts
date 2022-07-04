@@ -9,7 +9,9 @@ import { Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { TrainingSession, TrainingSessionFocusDbOption, TrainingSessionFocusList, TrainingSessionFocusObject, TrainingSessionFocusUiOption, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform } from 'shared-models/train/training-session.model';
+import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
+import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
+import { TrainingSession, TrainingSessionForm, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform } from 'shared-models/train/training-session.model';
 import { RootStoreState, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -29,22 +31,25 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   complexityMax = TrainingSessionFormVars.complexityMax;
 
   // Note: Not useing formbuilder here due to typing error (will likey be fixed in a future angular forms update)
-  trainingSessionForm = new FormGroup({
+  trainingSessionForm = new FormGroup<TrainingSessionForm>({
     [TrainingSessionKeys.COMPLEXITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]),
     [TrainingSessionKeys.EQUIPMENT]: new FormControl(false, [Validators.required]),
-    [TrainingSessionKeys.FOCUS_LIST]: new FormControl([] as TrainingSessionFocusDbOption[], [Validators.required]),
+    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: new FormControl([] as TrainingSessionActivityCategoryDbOption[], [Validators.required]),
     [TrainingSessionKeys.INTENSITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]),
+    [TrainingSessionKeys.MUSCLE_GROUP]: new FormControl(null, [Validators.required]),
     [TrainingSessionKeys.VIDEO_PLATFORM]: new FormControl(TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]),
   });
 
   chipListSeparatorKeysCodes: number[] = [ENTER, COMMA];
-  trainingSessionFocusUserInputForm = new FormControl('');
-  filteredtrainingSessionFocusList!: Observable<TrainingSessionFocusObject[]>;
+  trainingSessionActivityCategoryUserInputForm = new FormControl('');
+  filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
 
-  trainingSessionFocusMasterList: TrainingSessionFocusObject[] = Object.values(TrainingSessionFocusList);
-  trainingSessionFocusDbValues = Object.values(TrainingSessionFocusList).map(focusOption => focusOption.dbValue);
-  trainingSessionFocusUiValues = Object.values(TrainingSessionFocusList).map(focusOption => focusOption.uiValue);
-  @ViewChild('trainingSessionFocusInput') trainingSessionFocusInput!: ElementRef<HTMLInputElement>;
+  trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
+
+  trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
+  trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
+  trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
+  @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   COMPLEXITY_FIELD_VALUE = GlobalFieldValues.COMPLEXITY;
@@ -52,8 +57,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   EDIT_SESSION_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   EQUIPMENT_FIELD_VALUE = GlobalFieldValues.EQUIPMENT;
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
-  SESSION_FOCUS_FIELD_VALUE = GlobalFieldValues.SESSION_FOCUS;
-  SESSION_FOCUS_PLACEHOLDER = GlobalFieldValues.ADD_A_FOCUS;
+  MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
+  SESSION_ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.SESSION_ACTIVITY_CATEGORY;
+  SESSION_ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
   
   constructor(
     private store$: Store<RootStoreState.AppState>,
@@ -62,7 +68,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.patchExistingDataIfExists();
-    this.initializeFilteredFocusList();
+    this.initializeFilteredActivityCategoryList();
   }
 
   private patchExistingDataIfExists() {
@@ -78,8 +84,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
             this.trainingSessionForm.patchValue({
               [TrainingSessionKeys.COMPLEXITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.COMPLEXITY_DEFAULT],
               [TrainingSessionKeys.EQUIPMENT]: trainingSessionData[TrainingSessionKeys.EQUIPMENT],
-              [TrainingSessionKeys.FOCUS_LIST]: trainingSessionData[TrainingSessionKeys.FOCUS_LIST],
+              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: trainingSessionData[TrainingSessionKeys.ACTIVITY_CATEGORY_LIST],
               [TrainingSessionKeys.INTENSITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT],
+              [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
               [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
             })
           }
@@ -89,107 +96,107 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   // Mat mat-chip framework courtesy of: https://material.angular.io/components/chips/examples
   // Filter search results based on user input
-  private initializeFilteredFocusList() {
-    this.filteredtrainingSessionFocusList = this.trainingSessionFocusUserInputForm.valueChanges.pipe(
+  private initializeFilteredActivityCategoryList() {
+    this.filteredtrainingSessionActivityCategoryList = this.trainingSessionActivityCategoryUserInputForm.valueChanges.pipe(
       startWith(null),
-      map((userInput) => (userInput ? this.filterFocusListWithUserInput(userInput) : this.filterFocusListWithoutUserInput())),
+      map((userInput) => (userInput ? this.filterActivityCategoryListWithUserInput(userInput) : this.filterActivityCategoryListWithoutUserInput())),
     );
   }
 
-  // Match user input to a focus option and filter out existing selected options
-  private filterFocusListWithUserInput(userInput: string): TrainingSessionFocusObject[] {
+  // Match user input to a activityCategory option and filter out existing selected options
+  private filterActivityCategoryListWithUserInput(userInput: string): TrainingSessionActivityCategoryObject[] {
     const formattedUserInput = userInput.toLowerCase();
-    // Find all focus options that match user input
-    const matchingOptions = this.trainingSessionFocusUiValues.filter(uiFocusOption => uiFocusOption.toLowerCase().includes(formattedUserInput));
+    // Find all activityCategory options that match user input
+    const matchingOptions = this.trainingSessionActivityCategoryUiValues.filter(uiActivityCategoryOption => uiActivityCategoryOption.toLowerCase().includes(formattedUserInput));
 
-    // Exclude all focus options that have already been selected
-    const matchingOptionsExcludingExisting = this.filterUiArrayFromSeparateDbArray(matchingOptions, this.focusList.value);
+    // Exclude all activityCategory options that have already been selected
+    const matchingOptionsExcludingExisting = this.filterUiArrayFromSeparateDbArray(matchingOptions, this.activityCategoryList.value);
 
-    // Get the focus object corresponding to the ui value
-    const matchingObjects = matchingOptionsExcludingExisting.map(focusUiOption => this.getFocusObjectFromFocusUiOption(focusUiOption));
+    // Get the activityCategory object corresponding to the ui value
+    const matchingObjects = matchingOptionsExcludingExisting.map(activityCategoryUiOption => this.getActivityCategoryObjectFromActivityCategoryUiOption(activityCategoryUiOption));
 
     return matchingObjects;
   }
 
-  // Query master list for matching focus object
-  private getFocusObjectFromFocusUiOption(focusUiOption: TrainingSessionFocusUiOption): TrainingSessionFocusObject {
-    return this.trainingSessionFocusMasterList.find(focusObject => focusObject.uiValue === focusUiOption) as TrainingSessionFocusObject;
+  // Query master list for matching activityCategory object
+  private getActivityCategoryObjectFromActivityCategoryUiOption(activityCategoryUiOption: TrainingSessionActivityCategoryUiOption): TrainingSessionActivityCategoryObject {
+    return this.trainingSessionActivityCategoryMasterList.find(activityCategoryObject => activityCategoryObject.uiValue === activityCategoryUiOption) as TrainingSessionActivityCategoryObject;
   }
 
-  // Query master list for matching focus object
-  private getFocusObjectFromFocusDbOption(focusDbOption: TrainingSessionFocusDbOption): TrainingSessionFocusObject {
-    return this.trainingSessionFocusMasterList.find(focusObject => focusObject.dbValue === focusDbOption) as TrainingSessionFocusObject;
+  // Query master list for matching activityCategory object
+  private getActivityCategoryObjectFromActivityCategoryDbOption(activityCategoryDbOption: TrainingSessionActivityCategoryDbOption): TrainingSessionActivityCategoryObject {
+    return this.trainingSessionActivityCategoryMasterList.find(activityCategoryObject => activityCategoryObject.dbValue === activityCategoryDbOption) as TrainingSessionActivityCategoryObject;
   }
 
   // Filter an array for items found in a separate array
-  private filterUiArrayFromSeparateDbArray(arrayToFilter: TrainingSessionFocusUiOption[], arrayOfItemsToBeExcluded: TrainingSessionFocusDbOption[]): TrainingSessionFocusUiOption[] {
+  private filterUiArrayFromSeparateDbArray(arrayToFilter: TrainingSessionActivityCategoryUiOption[], arrayOfItemsToBeExcluded: TrainingSessionActivityCategoryDbOption[]): TrainingSessionActivityCategoryUiOption[] {
     // First convert array of db values to ui values
-    const uiVersionOfDbArray = arrayOfItemsToBeExcluded.map(dbOption => this.getFocusObjectFromFocusDbOption(dbOption).uiValue);
+    const uiVersionOfDbArray = arrayOfItemsToBeExcluded.map(dbOption => this.getActivityCategoryObjectFromActivityCategoryDbOption(dbOption).uiValue);
     // Then use that converted array for filtering
-    return arrayToFilter.filter(focusUiOption => !uiVersionOfDbArray.includes(focusUiOption));
+    return arrayToFilter.filter(activityCategoryUiOption => !uiVersionOfDbArray.includes(activityCategoryUiOption));
   }
 
   // Filter out existing selected options
-  private filterFocusListWithoutUserInput(): TrainingSessionFocusObject[] {
+  private filterActivityCategoryListWithoutUserInput(): TrainingSessionActivityCategoryObject[] {
     
-    // Exclude all focus options that have already been selected
-    const focusListExcludingExisting = this.filterUiArrayFromSeparateDbArray(this.trainingSessionFocusUiValues, this.focusList.value);
+    // Exclude all activityCategory options that have already been selected
+    const activityCategoryListExcludingExisting = this.filterUiArrayFromSeparateDbArray(this.trainingSessionActivityCategoryUiValues, this.activityCategoryList.value);
 
-    // Get the focus object corresponding to the ui value
-    const matchingObjects = focusListExcludingExisting.map(focusUiOption => this.getFocusObjectFromFocusUiOption(focusUiOption));
+    // Get the activityCategory object corresponding to the ui value
+    const matchingObjects = activityCategoryListExcludingExisting.map(activityCategoryUiOption => this.getActivityCategoryObjectFromActivityCategoryUiOption(activityCategoryUiOption));
 
     return matchingObjects;
   }
 
-  addFocusChipFromKeyboard(event: MatChipInputEvent): void {
+  addActivityCategoryChipFromKeyboard(event: MatChipInputEvent): void {
 
-    const uiValue = (event.value || '').trim() as TrainingSessionFocusUiOption;
+    const uiValue = (event.value || '').trim() as TrainingSessionActivityCategoryUiOption;
     
-    const dbValue = this.trainingSessionFocusMasterList.find(focusOption => focusOption.uiValue == uiValue)?.dbValue;
+    const dbValue = this.trainingSessionActivityCategoryMasterList.find(activityCategoryOption => activityCategoryOption.uiValue == uiValue)?.dbValue;
 
     // Add our fruit if it is valid
     if (dbValue) {
-      this.focusList.setValue([...this.focusList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection so formControl thinks empty
+      this.activityCategoryList.setValue([...this.activityCategoryList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection so formControl thinks empty
       // Clear the input value
       event.chipInput!.clear();
   
-      this.trainingSessionFocusUserInputForm.setValue(null);
+      this.trainingSessionActivityCategoryUserInputForm.setValue(null);
     }
 
   }
 
-  addFocusChipFromAutoComplete(event: MatAutocompleteSelectedEvent): void {
-    const dbValue = event.option.value as TrainingSessionFocusDbOption;
-    this.focusList.setValue([...this.focusList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection meaning formControl doesn't register input
-    this.trainingSessionFocusInput.nativeElement.value = '';
-    this.trainingSessionFocusUserInputForm.setValue(null);
+  addActivityCategoryChipFromAutoComplete(event: MatAutocompleteSelectedEvent): void {
+    const dbValue = event.option.value as TrainingSessionActivityCategoryDbOption;
+    this.activityCategoryList.setValue([...this.activityCategoryList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection meaning formControl doesn't register input
+    this.trainingSessionActivityCategoryInput.nativeElement.value = '';
+    this.trainingSessionActivityCategoryUserInputForm.setValue(null);
   }
 
-  removeFocusChip(focus: TrainingSessionFocusDbOption): void {
+  removeActivityCategoryChip(activityCategory: TrainingSessionActivityCategoryDbOption): void {
 
-    console.log('Preparing to remove focus chip, current focusListValue', this.focusList.value);
-    console.log('Db option to remove', focus);
+    console.log('Preparing to remove activityCategory chip, current activityCategoryListValue', this.activityCategoryList.value);
+    console.log('Db option to remove', activityCategory);
     
-    const dbValue = focus;
-    const formIndex = this.focusList.value.indexOf(dbValue);
+    const dbValue = activityCategory;
+    const formIndex = this.activityCategoryList.value.indexOf(dbValue);
 
     if (formIndex >= 0) {
-      // Using a temp array here bc splicing the focusList directly causes initialization issues
-      const tempArray = [...this.focusList.value];
+      // Using a temp array here bc splicing the activityCategoryList directly causes initialization issues
+      const tempArray = [...this.activityCategoryList.value];
       tempArray.splice(formIndex,1);
-      this.focusList.setValue(tempArray);
+      this.activityCategoryList.setValue(tempArray);
       // Splicing the form value doesn't trigger form detection so here we also manually set it to blank to ensure formControl detects the change to invalid
-      if (this.focusList.value.length < 1) {
-        this.focusList.patchValue([]);
+      if (this.activityCategoryList.value.length < 1) {
+        this.activityCategoryList.patchValue([]);
       }
-      // This invisible action ensures the valuechange observable fires in initializeFilteredFocusList, which triggers update to filterFocusListWithoutUserInput
-      this.trainingSessionFocusUserInputForm.setValue(''); 
+      // This invisible action ensures the valuechange observable fires in initializeFilteredActivityCategoryList, which triggers update to filterActivityCategoryListWithoutUserInput
+      this.trainingSessionActivityCategoryUserInputForm.setValue(''); 
     }
   }
   
   // Convert this to a pipe since it is used in the html template
-  getFocusUiOptionFromDbOption(dbValue: TrainingSessionFocusDbOption): TrainingSessionFocusUiOption {
-    return this.trainingSessionFocusMasterList.find(focusOption => focusOption.dbValue == dbValue)?.uiValue as TrainingSessionFocusUiOption;
+  getActivityCategoryUiOptionFromDbOption(dbValue: TrainingSessionActivityCategoryDbOption): TrainingSessionActivityCategoryUiOption {
+    return this.trainingSessionActivityCategoryMasterList.find(activityCategoryOption => activityCategoryOption.dbValue == dbValue)?.uiValue as TrainingSessionActivityCategoryUiOption;
   }
 
   ngOnDestroy(): void {
@@ -199,9 +206,10 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
+  get activityCategoryList() { return (this.trainingSessionForm.get(TrainingSessionKeys.ACTIVITY_CATEGORY_LIST) as FormControl<TrainingSessionActivityCategoryDbOption[]>); } // Typed to eliminate formControl type error in HTML
   get complexityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.COMPLEXITY_DEFAULT) as FormControl<number>; }
   get equipment() { return this.trainingSessionForm.get(TrainingSessionKeys.EQUIPMENT) as FormControl<boolean>; }
-  get focusList() { return (this.trainingSessionForm.get(TrainingSessionKeys.FOCUS_LIST) as FormControl<TrainingSessionFocusDbOption[]>); } // Typed to eliminate formControl type error in HTML
   get intensityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.INTENSITY_DEFAULT) as FormControl<number>; }
+  get muscleGroup() {return this.trainingSessionForm.get(TrainingSessionKeys.MUSCLE_GROUP) as FormControl<TrainingSessionMuscleGroupDbOption>;}
 
 }

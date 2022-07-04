@@ -4,12 +4,21 @@
   width: 100%;
 }
 
-mat-form-field {
+mat-form-field, mat-radio-group {
   width: 100%;
   max-width: $desktop-form-width;
+}
+
+mat-slide-toggle {
+  margin-top: 8px;
 }
 
 .slider-container, .slider-label, mat-slider {
   width: 100%;
   max-width: $desktop-form-width;
+  font-weight: $font-weight-medium;
+}
+
+.activity-category-container {
+  margin-top: 16px;
 }

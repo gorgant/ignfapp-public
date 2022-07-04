@@ -1,6 +1,6 @@
 
 export enum GlobalFieldValues {
-  ADD_A_FOCUS = `Add a focus...`,
+  ADD_AN_ACTIVITY_CATEGORY = `Add an activity category...`,
   AUTH_PERSONALIZED_WORKOUTS = `Personalized Workout Plans`,
   CHANNEL = `Channel`,
   CANCEL = `Cancel`,
@@ -53,6 +53,7 @@ export enum GlobalFieldValues {
   LP_ALREADY_REGISTERED = `You're already registered!`,
   LP_COMING_SOON = `IgnyteFit is Coming Soon!`,
   LP_JOIN_WAITLIST = `Join the Waitlist`,
+  MUSCLE_GROUP = `Muscle Group`,
   NO = `No`,
   OR_CAPS = `OR`,
   PASSWORD = `Password`,
@@ -65,7 +66,7 @@ export enum GlobalFieldValues {
   RP_RESET_PASSWORD = `Reset Password`,
   SAVE = `Save`,
   SESSIONS = `Sessions`,
-  SESSION_FOCUS = `Session Focus`,
+  SESSION_ACTIVITY_CATEGORY = `Activity Category`,
   SETTINGS = `Settings`,
   STATS = `Stats`,
   SUBMIT = `Submit`,

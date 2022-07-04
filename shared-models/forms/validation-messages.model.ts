@@ -5,21 +5,24 @@ import { PublicUserKeys } from "../user/public-user.model";
 import { UserRegistrationFormFieldKeys } from "./user-registration-form-vals.model";
 
 export const TrainingSessionFormValidationMessages = {
-  [YoutubeVideoDataKeys.VIDEO_URL]: [
-    { type: 'required', message: 'This field is required.'},
-    { type: 'pattern', message: `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}'` }
+  [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [
+    { type: 'required', message: 'Add at least one focus.'},
   ],
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: [
     { type: 'min', message: 'Value must be greater than 0.'},
   ],
-  [TrainingSessionKeys.FOCUS_LIST]: [
-    { type: 'required', message: 'Add at least one focus.'},
-  ],
   [TrainingSessionKeys.INTENSITY_DEFAULT]: [
     { type: 'min', message: 'Value must be greater than 0.'},
   ],
+  [TrainingSessionKeys.MUSCLE_GROUP]: [
+    { type: 'required', message: 'This field is required.'},
+  ],
   [TrainingSessionKeys.VIDEO_PLATFORM]: [
     { type: 'required', message: 'This field is required.'},
+  ],
+  [YoutubeVideoDataKeys.VIDEO_URL]: [
+    { type: 'required', message: 'This field is required.'},
+    { type: 'pattern', message: `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}'` }
   ],
 }
 
