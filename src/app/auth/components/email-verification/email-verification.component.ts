@@ -93,7 +93,7 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   onEnterApp() {
-    this.router.navigate([PublicAppRoutes.TRAIN]);
+    this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
   }
 
   ngOnDestroy() {

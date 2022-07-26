@@ -130,15 +130,18 @@ $max-screen-width: 2500px;
 $min-screen-width: 320px;
 $mobile-cutoff-width: 959px;
 
-$mobile-button-width: 100%;
-$desktop-button-width: 200px;
-$desktop-buy-button-width: 400px;
+$mobile-button-width: 90%;
+$desktop-button-width: 300px;
+$desktop-buy-button-width: 600px;
 $mobile-buy-button-height: 3em;
 $desktop-buy-button-height: 2em;
 
 $mobile-form-width: 100%;
 $desktop-form-width: 400px;
 $form-border-color: #EEEEEE;
+
+$mobile-screen-width: 100%;
+$desktop-screen-width: 800px;
 
 $text-block-font-weight: $font-weight-regular;
 $text-block-font-size: 22px;

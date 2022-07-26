@@ -1,0 +1,21 @@
+<div *ngIf="trainingSessionData$ | async as sessionData" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  
+  <div [hidden]="videoInitialized" class="header-container">
+    <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrl" alt="Session thumbnail image">
+  </div>
+
+  <app-training-session-video [hidden]="!videoInitialized" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>
+
+  <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
+
+
+
+  <div class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <button *ngIf="!videoInitialized" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
+    <button *ngIf="videoInitialized" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
+    <button *ngIf="videoInitialized" mat-stroked-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized" mat-stroked-button color="primary" (click)="onScheduleLater()">{{ SCHEDULE_LATER_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
+  </div>
+
+</div>

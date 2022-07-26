@@ -4,7 +4,7 @@ import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 import { FirebaseError } from "firebase/app";
 
-export const trainFeatureKey = PublicStoreFeatureKeys.TRAINING_SESSION;
+export const trainingRecordFeatureKey = PublicStoreFeatureKeys.TRAINING_SESSION;
 
 export const featureAdapter: EntityAdapter<TrainingSession> = createEntityAdapter<TrainingSession>({
   selectId: (trainingSession: TrainingSession) => trainingSession.id,

@@ -1,0 +1,40 @@
+@import '../../../../../../variables';
+
+.content-container {
+  margin: 8px;
+}
+
+mat-accordion {
+  width: 100%;
+}
+
+.session-details {
+  width: 100%;
+}
+
+.session-title {
+  font-size: 18px;
+  font-weight: $font-weight-light;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.session-details {
+  margin-top: 16px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.activity-categories-container {
+  margin-top: 32px;
+}
+
+.tags-title {
+  font-weight: $font-weight-medium;
+}
+
+@media screen and (min-width: $mobile-cutoff-width) {
+  .content-container {
+    margin: 0px;
+  }
+}

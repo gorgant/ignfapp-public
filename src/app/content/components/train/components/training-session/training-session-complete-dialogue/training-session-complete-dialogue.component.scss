@@ -1,0 +1,31 @@
+@import '../../../../../../variables';
+
+
+.edit-time-field {
+  width: 32px;
+}
+
+.edit-time-input {
+  text-align: center;
+}
+
+.training-session-summary-container {
+  width: 100%;
+}
+
+.summary-item-title {
+  font-weight: $font-weight-medium;
+}
+
+.summary-item, .slider-container, mat-slider {
+  width: 100%;
+  max-width: $desktop-form-width;
+}
+
+mat-dialog-actions {
+  margin-bottom: 8px;
+}
+
+@media screen and (min-width: $mobile-cutoff-width) {
+
+}

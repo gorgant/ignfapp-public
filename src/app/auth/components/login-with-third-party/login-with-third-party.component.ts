@@ -300,7 +300,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
     if (returnUrl && returnUrl !== '/') {
       this.router.navigate([returnUrl]);
     } else {
-      this.router.navigate([PublicAppRoutes.TRAIN]);
+      this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
     }
   }
 

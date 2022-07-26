@@ -1,4 +1,5 @@
 import { SocialUrlPrefixes } from "shared-models/meta/social-urls.model";
+import { TrainingRecordKeys } from "shared-models/train/training-record.model";
 import { TrainingSessionKeys } from "shared-models/train/training-session.model";
 import { YoutubeVideoDataKeys } from "shared-models/youtube/youtube-video-data.model";
 import { PublicUserKeys } from "../user/public-user.model";
@@ -24,6 +25,34 @@ export const TrainingSessionFormValidationMessages = {
     { type: 'required', message: 'This field is required.'},
     { type: 'pattern', message: `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}'` }
   ],
+}
+
+export const TrainingRecordFormValidationMessages = {
+  [TrainingRecordKeys.COMPLEXITY_RATING]: [
+    { type: 'min', message: 'Value must be greater than 0.'},
+  ],
+  [TrainingRecordKeys.HOURS]: [
+    { type: 'required', message: 'This field is required.'},
+    { type: 'pattern', message: 'Value must be a number.'},
+    { type: 'min', message: 'Value must be zero or greater' }
+  ],
+  [TrainingRecordKeys.INTENSITY_RATING]: [
+    { type: 'min', message: 'Value must be greater than 0.'},
+  ],
+  [TrainingRecordKeys.MINUTES]: [
+    { type: 'required', message: 'This field is required.'},
+    { type: 'pattern', message: 'Value must be a number.'},
+    { type: 'min', message: 'Value must be zero or greater' }
+  ],
+  [TrainingRecordKeys.SECONDS]: [
+    { type: 'required', message: 'This field is required.'},
+    { type: 'pattern', message: 'Value must be a number.'},
+    { type: 'min', message: 'Value must be zero or greater' }
+  ],
+  trainingSessionForm: [
+    {type: 'durationGreaterThanZero', message: 'Duration must be greater than zero.'},
+    {type: 'durationIsInteger', message: 'Duration must be an integer.'},
+  ]
 }
 
 export const UserProfileFormValidationMessages = {

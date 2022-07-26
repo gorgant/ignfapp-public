@@ -51,11 +51,3 @@ export enum TrainingSessionVideoPlatform {
   YOUTUBE = 'youtube'
 }
 
-export interface TrainingSessionRecord {
-  duration: number,
-  endTime: number
-  id: string,
-  sessionId: string,
-  startTime: number,
-  userId: string,
-};

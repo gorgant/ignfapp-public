@@ -7,11 +7,14 @@ import { UserStoreState } from './user-store';
 import { userStoreReducer } from './user-store/reducer';
 import { UiStoreState } from './ui-store';
 import { uiStoreReducer } from './ui-store/reducers';
+import { TrainingRecordStoreState } from './training-record-store';
+import { trainingRecordStoreReducer } from './training-record-store/reducer';
 import { TrainingSessionStoreState } from './training-session-store';
 import { trainingSessionStoreReducer } from './training-session-store/reducer';
 
 export interface AppState {
   [PublicStoreFeatureKeys.AUTH]: AuthStoreState.AuthState;
+  [PublicStoreFeatureKeys.TRAINING_RECORD]: TrainingRecordStoreState.TrainingRecordState;
   [PublicStoreFeatureKeys.TRAINING_SESSION]: TrainingSessionStoreState.TrainingSessionState;
   [PublicStoreFeatureKeys.UI]: UiStoreState.UiState;
   [PublicStoreFeatureKeys.USER]: UserStoreState.UserState;
@@ -20,6 +23,7 @@ export interface AppState {
 
 export const reducers: ActionReducerMap<AppState> = {
   [PublicStoreFeatureKeys.AUTH]: authStoreReducer,
+  [PublicStoreFeatureKeys.TRAINING_RECORD]: trainingRecordStoreReducer,
   [PublicStoreFeatureKeys.TRAINING_SESSION]: trainingSessionStoreReducer,
   [PublicStoreFeatureKeys.UI]: uiStoreReducer,
   [PublicStoreFeatureKeys.USER]: userStoreReducer,

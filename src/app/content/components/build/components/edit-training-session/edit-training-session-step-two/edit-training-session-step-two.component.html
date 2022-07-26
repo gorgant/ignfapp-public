@@ -1,0 +1,64 @@
+<form [formGroup]="trainingSessionForm" fxLayout="column" fxLayoutAlign="center center" >
+        
+  <div class="form-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
+
+    <div class="slider-container">
+      <div class="slider-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
+      <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>
+    </div>
+
+    <div class="slider-container">
+      <div class="slider-label">{{ COMPLEXITY_FIELD_VALUE }}</div>
+      <mat-slider [formControl]="complexityDefault" [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.complexityDefault">
+        <mat-error *ngIf="complexityDefault?.hasError(validation.type) && complexityDefault?.invalid && (complexityDefault?.dirty || complexityDefault?.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </div>
+
+    <div class="slider-container">
+      <div class="slider-label">{{ INTENSITY_FIELD_VALUE }}</div>
+      <mat-slider [formControl]="intensityDefault" [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.intensityDefault">
+        <mat-error *ngIf="intensityDefault?.hasError(validation.type) && intensityDefault?.invalid && (intensityDefault?.dirty || intensityDefault?.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </div>
+
+    <div class="slider-label">{{ MUSCLE_GROUP_FIELD_VALUE }}</div>
+    <mat-radio-group aria-labelledby="Muscle Group Selection" [formControl]="muscleGroup" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+      <mat-radio-button *ngFor="let muscleGroup of trainingSessionMuscleGroupMasterList" [value]="muscleGroup.dbValue">
+        {{muscleGroup.uiValue}}
+      </mat-radio-button>
+    </mat-radio-group>
+
+    <mat-form-field class="activity-category-container">
+      <mat-label>{{ SESSION_ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
+      <mat-chip-list #chipList aria-label="Training Session ActivityCategory Selection" multiple [formControl]="activityCategoryList">
+        <mat-chip
+          *ngFor="let activityCategory of activityCategoryList.value"
+          (removed)="removeActivityCategoryChip(activityCategory)">
+          {{ activityCategory | activityCategoryDbToUi }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+        <input
+          [placeholder]="SESSION_ACTIVITY_CATEGORY_PLACEHOLDER"
+          #trainingSessionActivityCategoryInput
+          [formControl]="trainingSessionActivityCategoryUserInputForm"
+          [matAutocomplete]="auto"
+          [matChipInputFor]="chipList"
+          [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
+          (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
+      </mat-chip-list>
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addActivityCategoryChipFromAutoComplete($event)">
+        <mat-option *ngFor="let activityCategory of filteredtrainingSessionActivityCategoryList | async" [value]="activityCategory.dbValue">
+        {{ activityCategory.uiValue }}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.activityCategoryList">
+        <mat-error *ngIf="activityCategoryList?.hasError(validation.type) && activityCategoryList?.invalid && (activityCategoryList?.dirty || activityCategoryList?.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+    </mat-form-field>
+  </div>
+
+</form>

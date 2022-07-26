@@ -1,0 +1,20 @@
+@import '../../../../../variables';
+
+.header-container, .session-thumbnail, app-training-session-details, .actions {
+  width: 100%;
+  max-width: $desktop-screen-width;
+}
+
+.actions {
+  margin-top: 16px;
+}
+
+button {
+  width: 90%;
+}
+
+@media screen and (min-width: $mobile-cutoff-width) {
+  button {
+    width: $desktop-button-width;
+  }
+}

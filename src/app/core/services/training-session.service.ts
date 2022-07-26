@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, addDoc, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
@@ -55,6 +55,7 @@ export class TrainingSessionService {
           return sessionId;
         }),
         catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error deleting training session', error);
           return throwError(() => new Error(error));
         })
@@ -100,6 +101,7 @@ export class TrainingSessionService {
           return trainingSessions;
         }),
         catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching training sessions', error);
           return throwError(() => new Error(error));
         })
@@ -120,6 +122,7 @@ export class TrainingSessionService {
           return session;
         }),
         catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching training session', error);
           return throwError(() => new Error(error));
         })
@@ -169,6 +172,7 @@ export class TrainingSessionService {
           return trainingSessionUpdates;
         }),
         catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
           console.log('Error creating training session', error);
           return throwError(() => new Error(error));
         })

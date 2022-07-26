@@ -11,7 +11,8 @@ export enum PublicAppRoutes {
   SETTINGS = '/account/settings',
   STATS = '/account/stats',
   TERMS_AND_CONDITIONS = '/legal/terms-and-conditions',
-  TRAIN = '/train',
+  TRAIN_DASHBOARD = '/train',
+  TRAINING_SESSION = 'train/session',
   TRAINING_SESSION_EDIT = 'build/edit-training-session',
   TRAINING_SESSION_NEW = 'build/new-training-session',
   TRAINING_PLAN_EDIT = 'build/edit-training-plan',
@@ -23,6 +24,7 @@ export const NoNavBarUrls = [
   PublicAppRoutes.LOGIN,
   PublicAppRoutes.SIGNUP,
   PublicAppRoutes.EMAIL_VERIFICATION,
+  PublicAppRoutes.TRAINING_SESSION,
   PublicAppRoutes.TRAINING_SESSION_EDIT,
   PublicAppRoutes.TRAINING_SESSION_NEW,
 ];

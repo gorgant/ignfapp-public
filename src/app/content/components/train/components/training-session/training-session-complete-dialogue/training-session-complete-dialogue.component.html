@@ -1,0 +1,70 @@
+<div fxLayout="column" fxLayoutAlign="center center">
+  
+  <h2 mat-dialog-title>{{ SAVE_TRAINING_SESSION_TITLE_VALUE }}</h2>
+
+    <div class="training-session-summary-container" fxLayout="column"  fxLayoutAlign.gt-md="center center">
+      <div class="summary-item" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div fxFlex="33" fxFlex.gt-md="25" class="summary-item-title">{{ DURATION_TITLE_VALUE }}: </div>
+        <div *ngIf="!editDuration" fxFlex="67" fxFlex.gt-md="75" class="summary-item-value" fxLayout="row" fxLayoutAlign="start center">
+          <div >{{ sessionCompletionData.sessionDuration | durationMsToMmSs }}</div>
+          <button *ngIf="!editDuration" mat-button color="primary" (click)="onEditDuration()"> {{ EDIT_BUTTON_VALUE }}</button>
+        </div>
+        <form [hidden]="!editDuration" [formGroup]="trainingRecordForm">
+          <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+            <mat-form-field class="edit-time-field">
+              <mat-placeholder>{{ HOURS_FIELD_VALUE }}</mat-placeholder>
+              <input class="edit-time-input" [formControl]="hours" matInput type="number">
+            </mat-form-field>
+            <mat-form-field class="edit-time-field">
+              <mat-placeholder>{{ MINUTES_FIELD_VALUE }}</mat-placeholder>
+              <input class="edit-time-input" [formControl]="minutes" matInput type="number">
+            </mat-form-field>
+            <mat-form-field class="edit-time-field">
+              <mat-placeholder>{{ SECONDS_FIELD_VALUE }}</mat-placeholder>
+              <input class="edit-time-input" [formControl]="seconds" matInput type="number">
+            </mat-form-field>
+          </div>
+          <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.trainingSessionForm">
+            <mat-error *ngIf="trainingRecordForm.hasError(validation.type) && trainingRecordForm.invalid && (trainingRecordForm.dirty || trainingRecordForm.touched)">{{ validation.message }}</mat-error>
+          </mat-error>
+
+        </form>
+      </div>
+      <div class="summary-item" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div fxFlex="33" fxFlex.gt-md="25" class="summary-item-title">{{ COMPLEXITY_TITLE_VALUE }}: </div>
+        <div fxFlex="67" fxFlex.gt-md="75" class="slider-container">
+          <mat-slider [formControl]="complexityRating" [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+          <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.complexityRating">
+            <mat-error *ngIf="complexityRating?.hasError(validation.type) && complexityRating?.invalid && (complexityRating?.dirty || complexityRating?.touched)">{{ validation.message }}</mat-error>
+          </mat-error>
+        </div>
+      </div>
+      <div class="summary-item" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div fxFlex="33" fxFlex.gt-md="25" class="summary-item-title">{{ INTENSITY_TITLE_VALUE }}: </div>
+        <div fxFlex="67" fxFlex.gt-md="75" class="slider-container">
+          <mat-slider [formControl]="intensityRating" [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+          <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.intensityRating">
+            <mat-error *ngIf="intensityRating?.hasError(validation.type) && intensityRating?.invalid && (intensityRating?.dirty || intensityRating?.touched)">{{ validation.message }}</mat-error>
+          </mat-error>
+        </div>
+      </div>
+
+    </div>
+
+  
+
+  <mat-dialog-actions fxLayout="row" fxLayoutAlign="center center">
+
+    <button *ngIf="!(createTrainingRecordProcessing$ | async)" [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
+    <div *ngIf="(createTrainingRecordProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+      <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+    </div>
+
+    <button *ngIf="!(createTrainingRecordProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+  
+  </mat-dialog-actions>
+
+        
+
+
+</div>

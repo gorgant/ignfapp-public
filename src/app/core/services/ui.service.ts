@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { environment } from 'src/environments/environment';
 import { NoNavBarUrls } from 'shared-models/routes-and-paths/app-routes.model';
 import { filter, tap } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { RootStoreState, UiStoreActions } from 'src/app/root-store';
+import { DOCUMENT, Location } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -16,16 +16,21 @@ export class UiService {
 
   private sideNavSignal$ = new Subject<void>();
   private screenIsMobile$ = new BehaviorSubject(true);
-  private productionEnvironment: boolean = environment.production;
+  private window: Window;
+  private history: string[] = []
 
   constructor(
     private store$: Store<RootStoreState.AppState>,
     private snackbar: MatSnackBar,
     private breakpointObserver: BreakpointObserver,
-    private router: Router
+    private router: Router,
+    @Inject(DOCUMENT) private document: Document,
+    private location: Location,
   ) {
     this.monitorScreenSize();
     this.evaluateNavBarVisibility();
+    this.monitorNavigationHistory();
+    this.window =this.document.defaultView as Window;
    }
 
   dispatchSideNavClick() {
@@ -58,6 +63,12 @@ export class UiService {
 
   }
 
+
+
+  get screenWidth() {
+    return this.window.innerWidth;
+  }
+
   get screenIsMobile(): Observable<boolean> {
     return this.screenIsMobile$;
   }
@@ -79,5 +90,24 @@ export class UiService {
         this.store$.dispatch(UiStoreActions.showNavBar());
       }),
     ).subscribe();
+  }
+
+  // Used to avoid a back naviagation request when no navigation history available (e.g., user just loaded app)
+  private monitorNavigationHistory() {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.history.push(event.urlAfterRedirects)
+      }
+    })
+  }
+
+  // Courtesy of https://nils-mehlhorn.de/posts/angular-navigate-back-previous-page
+  routeUserToPreviousPage(): void {
+    this.history.pop();
+    if (this.history.length > 0) {
+      this.location.back()
+    } else {
+      this.router.navigateByUrl('/')
+    }
   }
 }

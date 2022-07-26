@@ -246,7 +246,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
 
   // After the signup flow is complete, redirect user to the requested route or otherwise to Workouts
   private redirectUserToRequestedRoute(): void {
-    this.router.navigate([PublicAppRoutes.TRAIN]);
+    this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
   }
 
   ngOnDestroy(): void {

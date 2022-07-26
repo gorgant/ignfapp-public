@@ -11,6 +11,7 @@ import { StoreRouterConnectingModule, RouterStateSerializer, RouterState } from 
 import { CustomSerializer } from '../core/utils/custom-route-serializer';
 import { reducers } from './root-store.state';
 import { UiStoreModule } from './ui-store';
+import { TrainingRecordStoreModule } from './training-record-store';
 import { TrainingSessionStoreModule } from './training-session-store';
 
 @NgModule({
@@ -18,6 +19,7 @@ import { TrainingSessionStoreModule } from './training-session-store';
   imports: [
     CommonModule,
     AuthStoreModule,
+    TrainingRecordStoreModule,
     TrainingSessionStoreModule,
     UiStoreModule,
     UserStoreModule,

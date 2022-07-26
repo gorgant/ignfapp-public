@@ -75,7 +75,7 @@ export const selectFetchYoutubeVideoDataProcessing = createSelector(
   getFetchYoutubeVideoDataProcessing
 );
 
-export const selectSessionById: (sessionId: string) => MemoizedSelector<object, TrainingSession | undefined> = (sessionId: string) => createSelector(
+export const selectTrainingSessionById: (sessionId: string) => MemoizedSelector<object, TrainingSession | undefined> = (sessionId: string) => createSelector(
   selectTrainingSessionState,
   trainingSessionState => trainingSessionState.entities[sessionId]
 );

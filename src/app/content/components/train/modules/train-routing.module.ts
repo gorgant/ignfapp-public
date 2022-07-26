@@ -1,11 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TrainComponent } from '../components/train/train.component';
+import { UnsavedChangesGuard } from 'src/app/core/route-guards/unsaved-changes.guard';
+import { TrainDashboardComponent } from '../components/train-dashboard/train-dashboard.component';
+import { TrainingPlanComponent } from '../components/training-plan/training-plan.component';
+import { TrainingSessionComponent } from '../components/training-session/training-session.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: TrainComponent
+    component: TrainDashboardComponent
+  },
+  {
+    path: 'session/:id',
+    component: TrainingSessionComponent,
+    canDeactivate: [UnsavedChangesGuard]
+  },
+  {
+    path: 'plan/:id',
+    component: TrainingPlanComponent,
   }
 ];
 

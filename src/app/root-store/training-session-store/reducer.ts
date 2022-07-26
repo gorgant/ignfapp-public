@@ -95,7 +95,7 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
   on(TrainingSessionStoreActions.fetchSingleTrainingSessionCompleted, (state, action) => {
-    return featureAdapter.addOne(
+    return featureAdapter.upsertOne(
       action.trainingSession, {
         ...state,
         fetchSingleTrainingSessionProcessing: false,  
@@ -141,12 +141,11 @@ export const trainingSessionStoreReducer = createReducer(
     return featureAdapter.removeAll(
       {
         ...state, 
-        youtubeVideoData: null
       }
     );
   }),
 
-  // Purge Training Session Data
+  // Purge Youtube Video Data
 
   on(TrainingSessionStoreActions.purgeYoutubeVideoData, (state, action) => {
     return {

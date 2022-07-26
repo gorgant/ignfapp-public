@@ -1,0 +1,30 @@
+@import '../../../../../variables';
+
+.section-header {
+  margin-top: 32px;
+}
+
+mat-stepper {
+  width: 100%;
+  max-width: $desktop-screen-width;
+}
+
+.stepper-buttons {
+  margin-top: 16px;
+}
+
+.video-thumbnail {
+  max-width: 100%;
+}
+
+.video-exists-in-database-warning {
+  color: $warn;
+}
+
+.video-details-container {
+  margin: 16px;
+}
+
+.video-details-prefix {
+  font-weight: $font-weight-medium;
+}
