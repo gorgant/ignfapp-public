@@ -14,7 +14,7 @@ export const deleteSgContact = async(userData: EmailUserData) => {
     ...userData
   }
   const bufferedMsg = Buffer.from(JSON.stringify(pubsubMsg));
-  const [publishedMsgId] = await topic.publishMessage({data: bufferedMsg})
+  const publishedMsgId = await topic.publishMessage({data: bufferedMsg})
     .catch(err => {functions.logger.log(`Failed to publish to topic "${topicName}" on project "${projectId}":`, err); throw new functions.https.HttpsError('internal', err);});
   functions.logger.log(`Publish to topic "${topicName}" on project "${projectId}" succeeded:`, publishedMsgId);
 

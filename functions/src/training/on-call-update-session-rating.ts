@@ -1,17 +1,17 @@
 import * as functions from 'firebase-functions';
-import { PublicTopicNames } from "../../../shared-models/routes-and-paths/fb-function-names.model";
-import { SgContactListRemovalData } from "../../../shared-models/email/sg-contact-list-removal-data";
 import { publicProjectId } from "../config/environments-config";
 import { PubSub } from '@google-cloud/pubsub';
+import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
+import { SessionRating } from '../../../shared-models/train/session-rating.model';;
 const pubSub = new PubSub();
 
 // Publish request to remove user from SG contact list
-const publishRemoveUserFromSgContactList = async(sgContactListRemovalData: SgContactListRemovalData) => {
-  const topicName = PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC;
+const publishUpdateRating = async(sessionRating: SessionRating) => {
+  const topicName = PublicTopicNames.UPDATE_SESSION_RATING;
   const projectId = publicProjectId;
   const topic = pubSub.topic(`projects/${projectId}/topics/${topicName}`);
-  const pubsubMsg: SgContactListRemovalData = {
-    ...sgContactListRemovalData
+  const pubsubMsg: SessionRating = {
+    ...sessionRating
   };
   const bufferedMsg = Buffer.from(JSON.stringify(pubsubMsg));
   const publishedMsgId = await topic.publishMessage({data: bufferedMsg})
@@ -23,9 +23,9 @@ const publishRemoveUserFromSgContactList = async(sgContactListRemovalData: SgCon
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-export const onCallRemoveUserFromSgContactList = functions.https.onCall( async (sgContactListRemovalData: SgContactListRemovalData): Promise<string> => {
+export const onCallUpdateSessionRating = functions.https.onCall( async (sessionRating: SessionRating): Promise<string> => {
 
-  functions.logger.log(`Remove user ${sgContactListRemovalData.emailUserData.id} from these SG contact lists`, sgContactListRemovalData.listsToUpdate);
+  functions.logger.log(`Update rating with this data ${sessionRating}`);
   
-  return publishRemoveUserFromSgContactList(sgContactListRemovalData);
+  return publishUpdateRating(sessionRating);
 });

@@ -119,6 +119,27 @@ export class TrainingSessionStoreEffects {
     ),
   );
 
+  updateSessionRatingEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(TrainingSessionStoreActions.updateSessionRatingRequested),
+      concatMap(action => 
+        this.trainingSessionService.updateSessionRating(action.sessionRating).pipe(
+          map(pubSubMessageId => {
+            return TrainingSessionStoreActions.updateSessionRatingCompleted({pubSubMessageId});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(TrainingSessionStoreActions.updateSessionRatingFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   updateTrainingSessionEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(TrainingSessionStoreActions.updateTrainingSessionRequested),

@@ -2,6 +2,7 @@ import { FirebaseError } from "@angular/fire/app";
 import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
+import { SessionRatingNoId } from "shared-models/train/session-rating.model";
 import { TrainingSession, TrainingSessionNoId } from "shared-models/train/training-session.model";
 import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 
@@ -108,6 +109,23 @@ export const setYoutubeVideoData = createAction(
   '[Edit Training Session Step One] Set Youtube Video Data',
   props<{youtubeVideoData: YoutubeVideoDataCompact}>()
 )
+
+// Update Session Rating
+
+export const updateSessionRatingRequested = createAction(
+  '[Training Session Complete Dialogue] Update Session Rating Requested',
+  props<{sessionRating: SessionRatingNoId}>()
+);
+
+export const updateSessionRatingCompleted = createAction(
+  '[Train Service] Update Session Rating Completed',
+  props<{pubSubMessageId: string}>()
+);
+
+export const updateSessionRatingFailed = createAction(
+  '[Train Service] Update Session Rating Failed',
+  props<{error: FirebaseError}>()
+);
 
 // Update Training Session
 

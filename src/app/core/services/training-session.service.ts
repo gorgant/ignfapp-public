@@ -11,6 +11,7 @@ import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
+import { SessionRating, SessionRatingNoId } from 'shared-models/train/session-rating.model';
 
 @Injectable({
   providedIn: 'root'
@@ -130,7 +131,6 @@ export class TrainingSessionService {
   }
 
   fetchYoutubeVideoData(videoId: string): Observable<YoutubeVideoDataCompact> {
-    console.log('Fetch youtube data request received in service', videoId);
     const fetchYoutubeDataHttpCall: (videoId: string) => 
       Observable<YoutubeVideoDataCompact | null> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_FETCH_YOUTUBE_VIDEO_DATA);
     
@@ -179,6 +179,29 @@ export class TrainingSessionService {
       );
   }
 
+  updateSessionRating(sessionRatingNoId: SessionRatingNoId): Observable<string> {
+
+    const newId = this.generateNewSessionRatingDocumentId(sessionRatingNoId.sessionId);
+    const sessionRatingWithId = {...sessionRatingNoId, id: newId};
+
+    const updateSessionRatingHttpCall: (sessionRatingWithId: SessionRating) => 
+      Observable<string> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_UPDATE_SESSION_RATING);
+    
+    return updateSessionRatingHttpCall(sessionRatingWithId)
+      .pipe(
+        take(1),
+        map( pubSubMessageId => {
+          console.log('Session rating submitted', pubSubMessageId)
+          return pubSubMessageId;
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error submitting sessionRating', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
   private getTrainingSessionCollection(): CollectionReference<TrainingSession> {
     return collection(this.afs, PublicCollectionPaths.TRAINING_SESSIONS) as CollectionReference<TrainingSession>;
   }
@@ -189,6 +212,18 @@ export class TrainingSessionService {
 
   private generateNewTrainingSessionDocumentId(): string {
     return doc(this.getTrainingSessionCollection()).id;
+  }
+
+  private getSessionRatingCollection(sessionId: string): CollectionReference<SessionRating> {
+    return collection(this.afs, `${PublicCollectionPaths.TRAINING_SESSIONS}/${sessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<SessionRating>;
+  }
+
+  private getSessionRatingDoc(sessionId: string, sessionRatingId: string): DocumentReference<SessionRating> {
+    return doc(this.getSessionRatingCollection(sessionId), sessionRatingId);
+  }
+
+  private generateNewSessionRatingDocumentId(sessionId: string): string {
+    return doc(this.getSessionRatingCollection(sessionId)).id;
   }
 
 }

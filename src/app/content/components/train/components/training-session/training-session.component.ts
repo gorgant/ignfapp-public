@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, take } from 'rxjs';
 import { map, withLatestFrom } from 'rxjs/operators';
@@ -14,6 +14,9 @@ import { DateTime } from 'luxon';
 import { ComponentCanDeactivate } from 'src/app/core/route-guards/unsaved-changes.guard';
 import { CanDeactivateData } from 'shared-models/utils/can-deactivate-data.model';
 import { TrainingSessionCompletionData } from 'shared-models/train/training-record.model';
+import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
+import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
+import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 
 @Component({
   selector: 'app-training-session',
@@ -23,10 +26,12 @@ import { TrainingSessionCompletionData } from 'shared-models/train/training-reco
 export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate {
 
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
+  CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
+  CANCEL_TRAINING_CONF_TITLE = GlobalFieldValues.CANCEL_TRAINING;
   COMPLETE_TRAINING_BUTTON_VALUE = GlobalFieldValues.COMPLETE_TRAINING;
-  DISCARD_SESSION_DATA_TITLE_VALUE = GlobalFieldValues.DISCARD_EDITS_TITLE;
-  DISCARD_SESSION_DATA_BODY_VALUE = GlobalFieldValues.DISCARD_EDITS_BODY;
   GO_BACK_BUTTON_VALUE = GlobalFieldValues.GO_BACK;
+  PAUSE_TRAINING_BUTTON_VALUE = GlobalFieldValues.PAUSE_TRAINING;
+  RESUME_TRAINING_BUTTON_VALUE = GlobalFieldValues.RESUME_TRAINING;
   SCHEDULE_LATER_BUTTON_VALUE = GlobalFieldValues.SCHEDULE_LATER;
   START_NOW_BUTTON_VALUE = GlobalFieldValues.START_NOW;
 
@@ -38,13 +43,17 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
   @ViewChild('videoComponent') videoComponent!: TrainingSessionVideoComponent;
   @ViewChild('detailsComponent') detailsComponent!: TrainingSessionDetailsComponent;
 
+  sessionDuration!: number | null;
   sessionStartTime!: number | null;
   sessionEndTime!: number | null;
+  sessionPaused!: boolean;
+  sessionCompleted!: boolean;
 
   constructor(
     private store$: Store<RootStoreState.AppState>,
     private route: ActivatedRoute,
     private dialog: MatDialog,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -86,11 +95,25 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
     this.sessionStartTime = DateTime.now().toMillis();
   }
 
-  // TODO: Add a pause button that pauses time keeper (calc current duration and then start a new duration and combine with current duration)
+  onPauseTrainingSession() {
+    this.videoComponent.ytVideoPlayerApi.pauseVideo();
+    this.sessionEndTime = DateTime.now().toMillis();
+    this.sessionDuration = this.sessionDuration ? this.sessionEndTime! - this.sessionStartTime! + this.sessionDuration : this.sessionEndTime! - this.sessionStartTime!;
+    this.sessionStartTime = null;
+    this.sessionEndTime = null;
+    this.sessionPaused = true;
+  }
+
+  onResumeTrainingSession() {
+    this.videoComponent.ytVideoPlayerApi.playVideo();
+    this.sessionStartTime = DateTime.now().toMillis();
+    this.sessionPaused = false;
+  }
 
   onCompleteTrainingSession() {
-    this.sessionEndTime = DateTime.now().toMillis();
-    this.videoComponent.ytVideoPlayerApi.pauseVideo();
+    if (!this.sessionPaused) {
+      this.onPauseTrainingSession();
+    }
     
     this.trainingSessionData$
       .pipe(
@@ -98,13 +121,12 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
         withLatestFrom(this.store$.select(UserStoreSelectors.selectUserData))
         )
       .subscribe(([trainingSessionData, userData]) => {
-        const sessionDuration = this.sessionEndTime! - this.sessionStartTime!;
         const sessionCompletionTimestamp = DateTime.now().toMillis();
 
         const sessionCompletionData: TrainingSessionCompletionData = {
           trainingSession: trainingSessionData!,
           sessionCompletionTimestamp,
-          sessionDuration,
+          sessionDuration: this.sessionDuration!,
           userId: userData!.id
         }
 
@@ -122,17 +144,35 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
           if (submitted) {
             this.videoComponent.ytVideoPlayerApi.stopVideo();
             this.videoInitialized = false;
+            this.sessionCompleted = true;
+            this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
           }
-      })
+      });
 
     })
   }
 
   onCancelTrainingSession() {
-    this.sessionStartTime = null;
-    this.sessionEndTime = null;
-    this.videoComponent.ytVideoPlayerApi.stopVideo();
-    this.videoInitialized = false;
+    const dialogConfig = new MatDialogConfig();
+    const actionConfData: ActionConfData = {
+      title: this.CANCEL_TRAINING_CONF_TITLE,
+      body: this.CANCEL_TRAINING_CONF_BODY,
+    };
+
+    dialogConfig.data = actionConfData;
+    
+    const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.sessionStartTime = null;
+        this.sessionEndTime = null;
+        this.sessionDuration = null;
+        this.videoComponent.ytVideoPlayerApi.stopVideo();
+        this.videoInitialized = false;
+
+      }
+    });
   }
 
   onScheduleLater() {
@@ -143,19 +183,17 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
   @HostListener('window:beforeunload') canDeactivate(): Observable<CanDeactivateData> | CanDeactivateData {
     
     // Check if there is a session in progress, if so, warn user before deactivating
-    const trainingSessionInProgress = !!this.sessionStartTime && !this.sessionEndTime;
+    const trainingSessionInProgress = (!!this.sessionStartTime || !!this.sessionDuration) && !this.sessionCompleted;
 
     const warningMessage: CanDeactivateData = {
       deactivationPermitted: !trainingSessionInProgress,
       warningMessage: {
-        title: this.DISCARD_SESSION_DATA_TITLE_VALUE,
-        body: this.DISCARD_SESSION_DATA_BODY_VALUE
+        title: this.CANCEL_TRAINING_CONF_TITLE,
+        body: this.CANCEL_TRAINING_CONF_BODY
       }
     }
 
     
    return warningMessage;
   }
-
-
 }

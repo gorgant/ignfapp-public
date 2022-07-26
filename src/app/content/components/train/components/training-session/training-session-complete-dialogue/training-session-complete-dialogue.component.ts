@@ -5,13 +5,13 @@ import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingRecordFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSessionCompletionData, TrainingRecordForm, TrainingRecordKeys, TrainingRecordNoId } from 'shared-models/train/training-record.model';
-import { RootStoreState, TrainingRecordStoreActions, TrainingRecordStoreSelectors } from 'src/app/root-store';
-import { Duration, DurationLikeObject } from 'luxon';
+import { RootStoreState, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions } from 'src/app/root-store';
+import { Duration, DurationLikeObject, DateTime } from 'luxon';
 import { distinctUntilChanged, Observable, Subscription, withLatestFrom } from 'rxjs';
 import { TrainingSessionFormVars } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { Router } from '@angular/router';
-import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
+import { SessionRatingNoId } from 'shared-models/train/session-rating.model';
 
 @Component({
   selector: 'app-training-session-complete-dialogue',
@@ -62,7 +62,6 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     @Inject(MAT_DIALOG_DATA) public sessionCompletionData: TrainingSessionCompletionData,
     private store$: Store<RootStoreState.AppState>,
     private uiService: UiService,
-    private router: Router,
   ) { }
 
   ngOnInit(): void {
@@ -143,11 +142,20 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     }
 
     console.log('Training session record data', trainingRecordNoId);
+
+    const sessionRating: SessionRatingNoId = {
+      complexityRating: this.complexityRating.value,
+      intensityRating: this.intensityRating.value,
+      ratingTimestamp: DateTime.now().toMillis(),
+      sessionId: this.sessionCompletionData.trainingSession.id,
+      userId: this.sessionCompletionData.userId
+    }
     
+    this.store$.dispatch(TrainingSessionStoreActions.updateSessionRatingRequested({sessionRating}))
     this.store$.dispatch(TrainingRecordStoreActions.createTrainingRecordRequested({userId: this.sessionCompletionData.userId, trainingRecordNoId}));
+
     this.postCreateTrainingRecordActions();
     
-    // TODO: submit function to update trainingSession average rating with this rating data
   }
 
   private postCreateTrainingRecordActions() {
@@ -172,7 +180,6 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
           this.uiService.showSnackBar(`Training Record created!`, 5000);
           this.createTrainingRecordSubscription.unsubscribe();
           this.dialogRef.close(true);
-          this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
         }
       })
   }

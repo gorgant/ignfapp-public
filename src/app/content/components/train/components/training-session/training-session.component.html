@@ -8,14 +8,14 @@
 
   <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
 
-
-
   <div class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <button *ngIf="!videoInitialized" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
-    <button *ngIf="videoInitialized" mat-stroked-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="!videoInitialized" mat-stroked-button color="primary" (click)="onScheduleLater()">{{ SCHEDULE_LATER_BUTTON_VALUE }}</button>
     <button *ngIf="!videoInitialized" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
+    <button *ngIf="videoInitialized && !sessionPaused" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
+    <button *ngIf="videoInitialized && sessionPaused" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
+    <button *ngIf="videoInitialized" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
   </div>
 
 </div>

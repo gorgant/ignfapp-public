@@ -163,6 +163,30 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
 
+  // Update Session Rating
+  
+  on(TrainingSessionStoreActions.updateSessionRatingRequested, (state, action) => {
+    return {
+      ...state,
+      updateSessionRatingProcessing: true,
+      updateSessionRatingError: null
+    }
+  }),
+  on(TrainingSessionStoreActions.updateSessionRatingCompleted, (state, action) => {
+    return {
+      ...state,
+      updateSessionRatingProcessing: false,
+      updateSessionRatingError: null
+    }
+  }),
+  on(TrainingSessionStoreActions.updateSessionRatingFailed, (state, action) => {
+    return {
+      ...state,
+      updateSessionRatingProcessing: false,
+      updateSessionRatingError: action.error
+    }
+  }),
+
   // Update Training Session
   
   on(TrainingSessionStoreActions.updateTrainingSessionRequested, (state, action) => {

@@ -16,6 +16,8 @@ const getFetchMultipleTrainingSessionsError = (state: TrainingSessionState) => s
 const getFetchMultipleTrainingSessionsProcessing = (state: TrainingSessionState) => state.fetchMultipleTrainingSessionsProcessing;
 const getFetchYoutubeVideoDataError = (state: TrainingSessionState) => state.fetchYoutubeVideoDataError;
 const getFetchYoutubeVideoDataProcessing = (state: TrainingSessionState) => state.fetchYoutubeVideoDataProcessing;
+const getUpdateSessionRatingError = (state: TrainingSessionState) => state.updateSessionRatingError;
+const getUpdateSessionRatingProcessing = (state: TrainingSessionState) => state.updateSessionRatingProcessing;
 const getUpdateTrainingSessionError = (state: TrainingSessionState) => state.updateTrainingSessionError;
 const getUpdateTrainingSessionProcessing = (state: TrainingSessionState) => state.updateTrainingSessionProcessing;
 const getYoutubeVideoData = (state: TrainingSessionState) => state.youtubeVideoData;
@@ -78,6 +80,16 @@ export const selectFetchYoutubeVideoDataProcessing = createSelector(
 export const selectTrainingSessionById: (sessionId: string) => MemoizedSelector<object, TrainingSession | undefined> = (sessionId: string) => createSelector(
   selectTrainingSessionState,
   trainingSessionState => trainingSessionState.entities[sessionId]
+);
+
+export const selectUpdateSessionRatingError = createSelector(
+  selectTrainingSessionState,
+  getUpdateSessionRatingError
+);
+
+export const selectUpdateSessionRatingProcessing = createSelector(
+  selectTrainingSessionState,
+  getUpdateSessionRatingProcessing
 );
 
 export const selectUpdateTrainingSessionError = createSelector(
