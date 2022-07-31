@@ -1,5 +1,5 @@
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-import { TrainingSession } from '../../../shared-models/train/training-session.model';
+import { TrainingSession, TrainingSessionKeys } from '../../../shared-models/train/training-session.model';
 import { YoutubeVideoDataKeys } from '../../../shared-models/youtube/youtube-video-data.model';
 import { publicFirestore } from '../config/db-config';
 
@@ -7,7 +7,7 @@ export const findSessionByVideoId = async (videoId: string): Promise<TrainingSes
 
   const trainingSessionCollectionPath: string = PublicCollectionPaths.TRAINING_SESSIONS;
 
-  const matchingSessionQuerySnapshot = await publicFirestore.collection(trainingSessionCollectionPath).where(YoutubeVideoDataKeys.VIDEO_ID, "==", videoId).get();
+  const matchingSessionQuerySnapshot = await publicFirestore.collection(trainingSessionCollectionPath).where(`${TrainingSessionKeys.VIDEO_DATA}.${YoutubeVideoDataKeys.ID}`, "==", videoId).get();
 
   const noMatchingSession = matchingSessionQuerySnapshot.empty;
 

@@ -84,7 +84,11 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   onGetYoutubeVideoData() {
     const url = this.videoUrl.value as string;
-    const videoId = url.split('/').pop() as string; // Grab the video ID from the end of the url https://stackoverflow.com/a/8376542/6572208
+    let videoId = url.split('/').pop() as string; // Grab the video ID from the end of the url https://stackoverflow.com/a/8376542/6572208
+    // Parse out video ID if there's a query param
+    if (videoId.includes('?')) {
+      videoId = videoId.split('?')[0];
+    }
     this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
     this.postGetYoutubeVideoDataActions();
   }
@@ -112,7 +116,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         // If succeeds, proceed to next step
         if (this.getYoutubeVideoDataSubmitted && !processing) {
           console.log('Video data retreival successful');
-          console.log('Image url', videoData.thumbnailUrl);
+          console.log('Image url', videoData.thumbnailUrlSmall);
           this.videoDataRetreived.setValue(true); // Ensures youtube data is retreived before user can proceed
           this.getYoutubeVideoDataSubscription.unsubscribe(); // Clear subscription no longer needed
           this.monitorYoutubeVideoUrlChange(); 

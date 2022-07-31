@@ -26,6 +26,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   imports: [
@@ -55,7 +56,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatAutocompleteModule,
     MatChipsModule,
     MatRadioModule,
-    MatExpansionModule
+    MatExpansionModule,
+    ScrollingModule
   ],
   exports: [
     MatButtonModule,
@@ -84,7 +86,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatChipsModule,
     MatAutocompleteModule,
     MatRadioModule,
-    MatExpansionModule
+    MatExpansionModule,
+    ScrollingModule
   ]
 })
 export class MaterialModule { }

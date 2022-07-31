@@ -1,7 +1,7 @@
 <div *ngIf="trainingSessionData$ | async as sessionData" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
   
   <div [hidden]="videoInitialized" class="header-container">
-    <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrl" alt="Session thumbnail image">
+    <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
   </div>
 
   <app-training-session-video [hidden]="!videoInitialized" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>

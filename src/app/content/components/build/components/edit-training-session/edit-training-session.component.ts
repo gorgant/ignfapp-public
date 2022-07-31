@@ -151,8 +151,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
       )
       .subscribe(([userData, videoData]) => {
 
-        console.log('user subscription fired', userData);
-
         if (!videoData) {
           console.log(`No video data, terminating function`);
           this.userDataSubscription.unsubscribe();
@@ -190,8 +188,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         )
       )
       .subscribe(([userData, videoData, existingTrainingData]) => {
-
-        console.log('user subscription fired', userData);
 
         if (!videoData) {
           console.log(`No video data, terminating function`);
@@ -277,7 +273,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.router.navigate([PublicAppRoutes.BROWSE]);
   }
 
-
   // @HostListener allows us to also CanDeactivate Guard against browser refresh, close, etc.
   @HostListener('window:beforeunload') canDeactivate(): Observable<CanDeactivateData> | CanDeactivateData {
     // If form untouched, allow user to navigate freely
@@ -299,6 +294,11 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   ngOnDestroy(): void {
+
+    // Purge if canceled operation
+    if (!this.updateTrainingSessionSubmitted) {
+      this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
+    }
     
     if (this.userDataSubscription) {
       this.userDataSubscription.unsubscribe();

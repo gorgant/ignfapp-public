@@ -1,5 +1,5 @@
-import { AfterContentInit, AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MatAccordion, MatExpansionPanel } from '@angular/material/expansion';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { MatExpansionPanel } from '@angular/material/expansion';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSession } from 'shared-models/train/training-session.model';
 

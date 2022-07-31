@@ -31,13 +31,15 @@ const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => 
 
 const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): YoutubeVideoDataCompact => {
   
-  const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default?.url;
-  const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium?.url;
-  const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high?.url;
-  const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard?.url;
+  const thumbnailUrlDefault = rawVideoData.items[0].snippet.thumbnails.default?.url; // 120px, has black bars
+  const thumbnailUrlMedium = rawVideoData.items[0].snippet.thumbnails.medium?.url; // 320px, no black bars
+  const thumbnailUrlHigh = rawVideoData.items[0].snippet.thumbnails.high?.url; // 480px, has black bars
+  const thumbnailUrlStandard = rawVideoData.items[0].snippet.thumbnails.standard?.url; //640px, has black bars
+  const thumbnailUrlMaxRes = rawVideoData.items[0].snippet.thumbnails.maxres?.url; // 1280px, no black bars
 
 
-  const bestThumbnailUrl = thumbnailUrlStandard ? thumbnailUrlStandard : thumbnailUrlHigh ? thumbnailUrlHigh : thumbnailUrlMedium ? thumbnailUrlMedium : thumbnailUrlDefault;
+  const compactThumbnail = thumbnailUrlMedium ? thumbnailUrlMedium : thumbnailUrlMaxRes ? thumbnailUrlMaxRes : thumbnailUrlStandard ? thumbnailUrlStandard : thumbnailUrlHigh ? thumbnailUrlHigh : thumbnailUrlDefault;
+  const maxResThumbnail = thumbnailUrlMaxRes ? thumbnailUrlMaxRes : thumbnailUrlStandard ? thumbnailUrlStandard : thumbnailUrlHigh ? thumbnailUrlHigh : thumbnailUrlMedium ? thumbnailUrlMedium : thumbnailUrlDefault;
   
   const durationIso = rawVideoData.items[0].contentDetails.duration;
   const durationMs = Duration.fromISO(durationIso).toMillis();
@@ -50,10 +52,12 @@ const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): Youtube
     durationMs,
     id: rawVideoData.items[0].id,
     title: rawVideoData.items[0].snippet.title,
-    thumbnailUrl: bestThumbnailUrl,
+    thumbnailUrlSmall: compactThumbnail,
+    thumbnailUrlLarge: maxResThumbnail,
     videoUrl: `${SocialUrlPrefixes.YOUTUBE_VIDEO}/${rawVideoData.items[0].id}`
   }
 
+  functions.logger.log('Compact video data created', compactVideoData);
   return compactVideoData;
 }
 

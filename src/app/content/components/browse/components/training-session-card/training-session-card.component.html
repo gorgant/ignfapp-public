@@ -1,0 +1,7 @@
+<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
+  <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" >
+  <div class="training-session-details-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="4px">
+    <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
+    <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
+  </div>
+</div>

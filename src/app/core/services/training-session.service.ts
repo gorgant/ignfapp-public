@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { TrainingSession, TrainingSessionNoId } from 'shared-models/train/training-session.model';
+import { TrainingSession, TrainingSessionKeys, TrainingSessionNoId } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -77,15 +77,20 @@ export class TrainingSessionService {
     let combinedQueryConstraints: QueryConstraint[] = [];
     
     if (whereQueryConditions) {
-      combinedQueryConstraints = [...whereQueryConditions]
+      combinedQueryConstraints = [...whereQueryConditions];
     }
     if (limitQueryCondition) {
-      combinedQueryConstraints = [...combinedQueryConstraints, limitQueryCondition]
+      combinedQueryConstraints = [...combinedQueryConstraints, limitQueryCondition];
     }
+
+    // Order by most popular based on complexity rating count
+    const orderQueryCondition: QueryConstraint = orderBy(TrainingSessionKeys.COMPLEXITY_RATING_COUNT);
+
+    combinedQueryConstraints = [...combinedQueryConstraints, orderQueryCondition];
     
     const trainingSessionCollectionQuery = query(
       this.getTrainingSessionCollection(),
-      ...combinedQueryConstraints
+      ...combinedQueryConstraints,
     );
 
     const trainingSessionCollectionDataRequest = collectionData(trainingSessionCollectionQuery);

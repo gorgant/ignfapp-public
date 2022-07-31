@@ -11,7 +11,7 @@
       
       <div class="stepper-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="8px">
       
-        <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl?.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
+        <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
           {{ FETCH_VIDEO_DATA_BUTTON_VALUE }}
         </button>
         <div *ngIf="(getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
@@ -51,7 +51,7 @@
   </mat-stepper>
 
   <div *ngIf="(youtubeVideoData$ | async) as videoData" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
-    <img class="video-thumbnail" [src]="videoData.thumbnailUrl" alt="Video Thumbnail">
+    <img class="video-thumbnail" [src]="videoData.thumbnailUrlLarge" alt="Video Thumbnail">
     <div class="video-details-container" fxLayout="column" fxLayoutGap="16px">
       <div><span class="video-details-prefix">{{ TITLE_BLURB }}:</span> {{ videoData.title }}</div>
       <div><span class="video-details-prefix">{{ CHANNEL_BLURB }}:</span> {{ videoData.channelTitle }}</div>

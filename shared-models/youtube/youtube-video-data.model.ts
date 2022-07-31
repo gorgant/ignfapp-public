@@ -16,22 +16,27 @@ export interface YoutubeVideoDataRaw {
         thumbnails: {
           default: {
             url: string
-            width: string,
+            width: string, // 120px
             height: string
           },
           medium: {
             url: string,
-            width: string,
+            width: string, // 320px
             height: string
           },
           high: {
             url: string,
-            width: string,
+            width: string, // 480px
             height: string
           },
           standard: {
             url: string,
-            width: string,
+            width: string, // 640px
+            height: string
+          },
+          maxres: {
+            url: string,
+            width: string, // 1280
             height: string
           }
         },
@@ -64,9 +69,10 @@ export interface YoutubeVideoDataCompact {
   channelUrl: string;
   durationIso: string;
   durationMs: number;
-  id: string;
+  [YoutubeVideoDataKeys.ID]: string;
   title: string;
-  thumbnailUrl: string;
+  thumbnailUrlSmall: string;
+  thumbnailUrlLarge: string;
   videoUrl: string;
 }
 
@@ -76,6 +82,7 @@ export interface YoutubeVideoDataForm {
 }
 
 export enum YoutubeVideoDataKeys {
+  ID = 'id',
   VIDEO_ID = 'videoId',
   VIDEO_URL = 'videoUrl',
   YOUTUBE_VIDEO_DATA_RETREIVED = 'youtubeVideoDataRetrieved'

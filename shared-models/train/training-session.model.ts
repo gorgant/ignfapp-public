@@ -10,7 +10,7 @@ export interface TrainingSession extends TrainingSessionNoId {
 export interface TrainingSessionNoId {
   [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: TrainingSessionActivityCategoryDbOption[],
   complexityAverage: number, // the average value of submitted ratings
-  complexityRatingCount: number // the number of ratings submitted
+  [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
   creatorId: string,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
@@ -19,7 +19,7 @@ export interface TrainingSessionNoId {
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
   intensityRatingCount: number, // the number of ratings submitted 
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
-  videoData: YoutubeVideoDataCompact
+  [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact
 }
 
 export interface TrainingSessionForm {
@@ -40,10 +40,12 @@ export const TrainingSessionFormVars = {
 
 export enum TrainingSessionKeys {
   ACTIVITY_CATEGORY_LIST = 'activityCategoryList',
+  COMPLEXITY_RATING_COUNT = 'complexityRatingCount',
   COMPLEXITY_DEFAULT = 'complexityDefault',
   EQUIPMENT = 'equipment',
   INTENSITY_DEFAULT = 'intensityDefault',
   MUSCLE_GROUP = 'muscleGroup',
+  VIDEO_DATA = 'videoData',
   VIDEO_PLATFORM = 'videoPlatform',
 };
 

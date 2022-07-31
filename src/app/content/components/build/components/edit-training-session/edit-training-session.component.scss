@@ -14,7 +14,8 @@ mat-stepper {
 }
 
 .video-thumbnail {
-  max-width: 100%;
+  width: 100%;
+  max-width: $desktop-screen-width;
 }
 
 .video-exists-in-database-warning {

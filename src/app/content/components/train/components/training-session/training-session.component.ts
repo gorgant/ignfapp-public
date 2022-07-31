@@ -1,9 +1,9 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, take } from 'rxjs';
-import { map, withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, take } from 'rxjs';
+import { distinctUntilChanged, map, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSession } from 'shared-models/train/training-session.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -23,7 +23,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
   templateUrl: './training-session.component.html',
   styleUrls: ['./training-session.component.scss']
 })
-export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate {
+export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate, OnDestroy {
 
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
   CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
@@ -48,6 +48,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
   sessionEndTime!: number | null;
   sessionPaused!: boolean;
   sessionCompleted!: boolean;
+  videoStateSubscription!: Subscription;
 
   constructor(
     private store$: Store<RootStoreState.AppState>,
@@ -88,14 +89,49 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
         )
   }
 
+  // Update training status if user interacts with video widget directly
+  private monitorVideoState() {
+    this.videoStateSubscription = this.videoComponent.ytVideoPlayerApi.stateChange
+      .pipe(distinctUntilChanged())
+      .subscribe(event => {
+        const currentState = event.data;
+
+        switch (currentState) {
+          case YT.PlayerState.PAUSED: {
+            if (!this.sessionPaused) {
+              this.onPauseTrainingSession();
+            }
+            break;
+          }
+          
+          case YT.PlayerState.ENDED: {
+            if (!this.sessionCompleted) {
+              this.onCompleteTrainingSession();
+            }
+            break;
+          }
+
+          case YT.PlayerState.PLAYING: {
+            if (this.sessionPaused) {
+              this.onResumeTrainingSession();
+            }
+            break;
+          }
+        }
+
+      })
+  }
+
   onBeginTrainingSession() {
     this.videoInitialized = true;
     this.detailsComponent.expansionPanel.close();
     this.videoComponent.ytVideoPlayerApi.playVideo();
     this.sessionStartTime = DateTime.now().toMillis();
+    this.monitorVideoState();
   }
 
   onPauseTrainingSession() {
+    console.log('Pausing training session');
     this.videoComponent.ytVideoPlayerApi.pauseVideo();
     this.sessionEndTime = DateTime.now().toMillis();
     this.sessionDuration = this.sessionDuration ? this.sessionEndTime! - this.sessionStartTime! + this.sessionDuration : this.sessionEndTime! - this.sessionStartTime!;
@@ -105,6 +141,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
   }
 
   onResumeTrainingSession() {
+    console.log('Resuming training session');
     this.videoComponent.ytVideoPlayerApi.playVideo();
     this.sessionStartTime = DateTime.now().toMillis();
     this.sessionPaused = false;
@@ -153,6 +190,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
   }
 
   onCancelTrainingSession() {
+    this.onPauseTrainingSession();
+
     const dialogConfig = new MatDialogConfig();
     const actionConfData: ActionConfData = {
       title: this.CANCEL_TRAINING_CONF_TITLE,
@@ -171,6 +210,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
         this.videoComponent.ytVideoPlayerApi.stopVideo();
         this.videoInitialized = false;
 
+      } else {
+        this.onResumeTrainingSession();
       }
     });
   }
@@ -195,5 +236,11 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate 
 
     
    return warningMessage;
+  }
+
+  ngOnDestroy(): void {
+    if (this.videoStateSubscription) {
+      this.videoStateSubscription.unsubscribe();
+    }
   }
 }

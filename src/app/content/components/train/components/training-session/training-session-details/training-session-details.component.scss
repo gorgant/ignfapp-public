@@ -17,6 +17,7 @@ mat-accordion {
   font-weight: $font-weight-light;
   padding-left: 8px;
   padding-right: 8px;
+  line-height: 1.1em; // Prevents lower letters from being cut off
 }
 
 .session-details {
