@@ -17,6 +17,7 @@ import { TrainingSessionCompletionData } from 'shared-models/train/training-reco
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
 
 @Component({
   selector: 'app-training-session',
@@ -25,10 +26,13 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 })
 export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate, OnDestroy {
 
+  userData$!: Observable<PublicUser | null>;
+
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
   CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
   CANCEL_TRAINING_CONF_TITLE = GlobalFieldValues.CANCEL_TRAINING;
   COMPLETE_TRAINING_BUTTON_VALUE = GlobalFieldValues.COMPLETE_TRAINING;
+  EDIT_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.EDIT_SESSION;
   GO_BACK_BUTTON_VALUE = GlobalFieldValues.GO_BACK;
   PAUSE_TRAINING_BUTTON_VALUE = GlobalFieldValues.PAUSE_TRAINING;
   RESUME_TRAINING_BUTTON_VALUE = GlobalFieldValues.RESUME_TRAINING;
@@ -63,6 +67,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   private monitorProcesses() {
+    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
   }
 
@@ -155,7 +160,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.trainingSessionData$
       .pipe(
         take(1),
-        withLatestFrom(this.store$.select(UserStoreSelectors.selectUserData))
+        withLatestFrom(this.userData$)
         )
       .subscribe(([trainingSessionData, userData]) => {
         const sessionCompletionTimestamp = DateTime.now().toMillis();
@@ -218,6 +223,10 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   onScheduleLater() {
     // TODO: Implement a date/time modal and add to user training calendar
+  }
+
+  onEditTrainingSession(sessionId: string) {
+    this.router.navigate([PublicAppRoutes.TRAINING_SESSION_EDIT, sessionId]);
   }
 
   // @HostListener allows us to also CanDeactivate Guard against browser refresh, close, etc.

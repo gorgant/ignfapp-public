@@ -6,12 +6,15 @@ import * as fromTrainingSessions from './reducer';
 
 const selectTrainingSessionState = createFeatureSelector<TrainingSessionState>(PublicStoreFeatureKeys.TRAINING_SESSION);
 
+const getAllTrainingSessionsFetched = (state: TrainingSessionState) => state.allTrainingSessionsFetched;
 const getCreateTrainingSessionError = (state: TrainingSessionState) => state.createTrainingSessionError;
 const getCreateTrainingSessionProcessing = (state: TrainingSessionState) => state.createTrainingSessionProcessing;
 const getDeleteTrainingSessionError = (state: TrainingSessionState) => state.deleteTrainingSessionError;
 const getDeleteTrainingSessionProcessing = (state: TrainingSessionState) => state.deleteTrainingSessionProcessing;
 const getFetchSingleTrainingSessionError = (state: TrainingSessionState) => state.fetchSingleTrainingSessionError;
 const getFetchSingleTrainingSessionProcessing = (state: TrainingSessionState) => state.fetchSingleTrainingSessionProcessing;
+const getFetchAllTrainingSessionsError = (state: TrainingSessionState) => state.fetchAllTrainingSessionsError;
+const getFetchAllTrainingSessionsProcessing = (state: TrainingSessionState) => state.fetchAllTrainingSessionsProcessing;
 const getFetchMultipleTrainingSessionsError = (state: TrainingSessionState) => state.fetchMultipleTrainingSessionsError;
 const getFetchMultipleTrainingSessionsProcessing = (state: TrainingSessionState) => state.fetchMultipleTrainingSessionsProcessing;
 const getFetchYoutubeVideoDataError = (state: TrainingSessionState) => state.fetchYoutubeVideoDataError;
@@ -25,6 +28,11 @@ const getYoutubeVideoData = (state: TrainingSessionState) => state.youtubeVideoD
 export const selectAllSessionsInStore: (state: object) => TrainingSession[] = createSelector(
   selectTrainingSessionState,
   fromTrainingSessions.selectAll
+);
+
+export const selectAllTrainingSessionsFetched = createSelector(
+  selectTrainingSessionState,
+  getAllTrainingSessionsFetched
 );
 
 export const selectCreateTrainingSessionError = createSelector(
@@ -47,14 +55,14 @@ export const selectDeleteTrainingSessionProcessing = createSelector(
   getDeleteTrainingSessionProcessing
 );
 
-export const selectFetchSingleTrainingSessionError = createSelector(
+export const selectFetchAllTrainingSessionsError = createSelector(
   selectTrainingSessionState,
-  getFetchSingleTrainingSessionError
+  getFetchAllTrainingSessionsError
 );
 
-export const selectFetchSingleTrainingSessionProcessing = createSelector(
+export const selectFetchAllTrainingSessionsProcessing = createSelector(
   selectTrainingSessionState,
-  getFetchSingleTrainingSessionProcessing
+  getFetchAllTrainingSessionsProcessing
 );
 
 export const selectFetchMultipleTrainingSessionsError = createSelector(
@@ -65,6 +73,16 @@ export const selectFetchMultipleTrainingSessionsError = createSelector(
 export const selectFetchMultipleTrainingSessionsProcessing = createSelector(
   selectTrainingSessionState,
   getFetchMultipleTrainingSessionsProcessing
+);
+
+export const selectFetchSingleTrainingSessionError = createSelector(
+  selectTrainingSessionState,
+  getFetchSingleTrainingSessionError
+);
+
+export const selectFetchSingleTrainingSessionProcessing = createSelector(
+  selectTrainingSessionState,
+  getFetchSingleTrainingSessionProcessing
 );
 
 export const selectFetchYoutubeVideoDataError = createSelector(

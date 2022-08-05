@@ -11,10 +11,13 @@ export const featureAdapter: EntityAdapter<TrainingSession> = createEntityAdapte
 });
 
 export interface TrainingSessionState extends EntityState<TrainingSession> {
+  allTrainingSessionsFetched: boolean,
   createTrainingSessionError: FirebaseError | Error | null,
   createTrainingSessionProcessing: boolean,
   deleteTrainingSessionError: FirebaseError | Error | null,
   deleteTrainingSessionProcessing: boolean,
+  fetchAllTrainingSessionsError: FirebaseError | Error | null,
+  fetchAllTrainingSessionsProcessing: boolean,
   fetchMultipleTrainingSessionsError: FirebaseError | Error | null,
   fetchMultipleTrainingSessionsProcessing: boolean,
   fetchSingleTrainingSessionError: FirebaseError | Error | null,
@@ -30,10 +33,13 @@ export interface TrainingSessionState extends EntityState<TrainingSession> {
 
 export const initialTrainingSessionState: TrainingSessionState = featureAdapter.getInitialState(
   {
+    allTrainingSessionsFetched: false,
     createTrainingSessionError: null,
     createTrainingSessionProcessing: false,
     deleteTrainingSessionError: null,
     deleteTrainingSessionProcessing: false,
+    fetchAllTrainingSessionsError: null,
+    fetchAllTrainingSessionsProcessing: false,
     fetchMultipleTrainingSessionsError: null,
     fetchMultipleTrainingSessionsProcessing: false,
     fetchSingleTrainingSessionError: null,

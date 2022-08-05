@@ -64,6 +64,8 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     const sessionId = this.route.snapshot.params[idParamName];
     if (sessionId) {
       console.log('Session id found in url params', sessionId);
+
+      this.videoUrl.disable();
       
       this.existingTrainingSessionDataSubscription = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId))
         .pipe(withLatestFrom(this.fetchTrainingSessionProcessing$))
@@ -73,10 +75,10 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
             this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId}));
           }
           if (trainingSession) {
-            this.videoUrl.setValue(trainingSession.videoData.videoUrl);
             this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession.videoData}));
+            this.videoUrl.setValue(trainingSession.videoData.videoUrl);
             this.videoDataRetreived.setValue(true);
-            this.editTrainingSessionStepper.next();
+            this.proceedToNextStep();
           }
         });
     }

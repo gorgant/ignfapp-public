@@ -12,6 +12,7 @@ import { IntensityDbToUiPipe } from './pipes/intensity-db-to-ui.pipe';
 import { YouTubePlayerModule } from '@angular/youtube-player';
 import { DurationMsToMmSsPipe } from './pipes/duration-ms-to-mm-ss.pipe';
 import { BackButtonDirective } from './directives/back-button.directive';
+import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
 
 
 
@@ -25,6 +26,7 @@ import { BackButtonDirective } from './directives/back-button.directive';
     IntensityDbToUiPipe,
     DurationMsToMmSsPipe,
     BackButtonDirective,
+    SessionSearchFilterPipe,
   ],
   imports: [
     CommonModule,
@@ -47,7 +49,8 @@ import { BackButtonDirective } from './directives/back-button.directive';
     IntensityDbToUiPipe,
     YouTubePlayerModule,
     DurationMsToMmSsPipe,
-    BackButtonDirective
+    BackButtonDirective,
+    SessionSearchFilterPipe
   ]
 })
 export class SharedModule { }

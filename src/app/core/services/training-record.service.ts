@@ -59,6 +59,29 @@ export class TrainingRecordService {
       );
   }
 
+  fetchAllTrainingRecords(userId: string): Observable<TrainingRecord[]> {
+
+    const trainingRecordCollectionDataRequest = collectionData(this.getTrainingRecordCollection(userId));
+
+    return from(trainingRecordCollectionDataRequest)
+      .pipe(
+        // If logged out, this triggers unsub of this observable
+        takeUntil(this.authService.unsubTrigger$),
+        map(trainingRecords => {
+          if (!trainingRecords) {
+            throw new Error(`Error fetching all training records`, );
+          }
+          console.log(`Fetched all ${trainingRecords.length} training records`, );
+          return trainingRecords;
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error fetching training records', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
   fetchMultipleTrainingRecords(userId: string, queryParams: FirestoreCollectionQueryParams): Observable<TrainingRecord[]> {
 
     const whereQueryConditions: QueryConstraint[] | undefined = queryParams.whereQueries ? 

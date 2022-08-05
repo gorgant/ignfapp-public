@@ -60,6 +60,32 @@ export const trainingRecordStoreReducer = createReducer(
     }
   }),
 
+  // Fetch All Training Records
+
+  on(TrainingRecordStoreActions.fetchAllTrainingRecordsRequested, (state, action) => {
+    return {
+      ...state,
+      fetchAllTrainingRecordsProcessing: true,
+      fetchAllTrainingRecordsError: null
+    }
+  }),
+  on(TrainingRecordStoreActions.fetchAllTrainingRecordsCompleted, (state, action) => {
+    return featureAdapter.addMany(
+      action.trainingRecords, {
+        ...state,
+        fetchAllTrainingRecordsProcessing: false,
+        allTrainingRecordsFetched: true,
+      }
+    );
+  }),
+  on(TrainingRecordStoreActions.fetchAllTrainingRecordsFailed, (state, action) => {
+    return {
+      ...state,
+      fetchAllTrainingRecordsProcessing: false,
+      fetchAllTrainingRecordsError: action.error
+    }
+  }),
+
   // Fetch Multiple Training Records
 
   on(TrainingRecordStoreActions.fetchMultipleTrainingRecordsRequested, (state, action) => {

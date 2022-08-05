@@ -56,6 +56,27 @@ export class TrainingSessionStoreEffects {
     ),
   );
 
+  fetchAllTrainingSessionsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested),
+      switchMap(action => 
+        this.trainingSessionService.fetchAllTrainingSessions().pipe(
+          map(trainingSessions => {
+            return TrainingSessionStoreActions.fetchAllTrainingSessionsCompleted({trainingSessions});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(TrainingSessionStoreActions.fetchAllTrainingSessionsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   fetchMultipleTrainingSessionsEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(TrainingSessionStoreActions.fetchMultipleTrainingSessionsRequested),

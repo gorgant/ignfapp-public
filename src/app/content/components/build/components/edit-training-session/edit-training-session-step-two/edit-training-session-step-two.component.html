@@ -31,7 +31,7 @@
     </mat-radio-group>
 
     <mat-form-field class="activity-category-container">
-      <mat-label>{{ SESSION_ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
+      <mat-label>{{ ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
       <mat-chip-list #chipList aria-label="Training Session ActivityCategory Selection" multiple [formControl]="activityCategoryList">
         <mat-chip
           *ngFor="let activityCategory of activityCategoryList.value"
@@ -42,7 +42,7 @@
           </button>
         </mat-chip>
         <input
-          [placeholder]="SESSION_ACTIVITY_CATEGORY_PLACEHOLDER"
+          [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
           #trainingSessionActivityCategoryInput
           [formControl]="trainingSessionActivityCategoryUserInputForm"
           [matAutocomplete]="auto"

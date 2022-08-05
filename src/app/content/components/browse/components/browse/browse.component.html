@@ -2,20 +2,17 @@
   <mat-tab-group mat-align-tabs="center" mat-stretch-tabs >
       <mat-tab [label]="PLANS_TAB_VALUE">
         <ng-template matTabContent>
-          <div class="actions" fxLayout="column" fxLayoutAlign="center center">
-            <button class="create-button" mat-raised-button color="primary" (click)="onCreatePlan()">{{ CREATE_PLAN_BUTTON_VALUE }}</button>
-          </div>
+          <app-browse-training-plans></app-browse-training-plans>
         </ng-template>
       </mat-tab>
       <mat-tab [label]="SESSIONS_TAB_VALUE" >
         <ng-template matTabContent >
-          <div class="actions" fxLayout="column" fxLayoutAlign="center center" >
-            <button class="create-button" mat-raised-button color="primary" (click)="onCreateSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
-          </div>
-          <cdk-virtual-scroll-viewport itemSize="300" class="scrolling-container">
-            <app-training-session-card *cdkVirtualFor="let session of trainingSessions$ | async" [trainingSesssionData]="session" fxLayout="column" (click)="onSelectTrainingSession(session)"></app-training-session-card>
-          </cdk-virtual-scroll-viewport>
+          <app-browse-training-sessions></app-browse-training-sessions>
         </ng-template>
       </mat-tab>
   </mat-tab-group>
 </div>
+
+<!-- <div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" >
+  <app-browse-training-sessions></app-browse-training-sessions>
+</div> -->

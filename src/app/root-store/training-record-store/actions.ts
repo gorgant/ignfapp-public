@@ -38,6 +38,23 @@ export const deleteTrainingRecordFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
+// Fetch All Training Records
+
+export const fetchAllTrainingRecordsRequested = createAction(
+  '[AppWide] Fetch All Training Records Requested',
+  props<{userId: string, queryParams: FirestoreCollectionQueryParams}>()
+);
+
+export const fetchAllTrainingRecordsCompleted = createAction(
+  '[Train Service] Fetch All Training Records Completed',
+  props<{trainingRecords: TrainingRecord[]}>()
+);
+
+export const fetchAllTrainingRecordsFailed = createAction(
+  '[Train Service] Fetch All Training Records Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Fetch Multiple Training Records
 
 export const fetchMultipleTrainingRecordsRequested = createAction(

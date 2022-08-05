@@ -56,6 +56,27 @@ export class TrainingRecordStoreEffects {
     ),
   );
 
+  fetchAllTrainingRecordsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(TrainingRecordStoreActions.fetchAllTrainingRecordsRequested),
+      switchMap(action => 
+        this.trainingRecordService.fetchAllTrainingRecords(action.userId).pipe(
+          map(trainingRecords => {
+            return TrainingRecordStoreActions.fetchAllTrainingRecordsCompleted({trainingRecords});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(TrainingRecordStoreActions.fetchAllTrainingRecordsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   fetchMultipleTrainingRecordsEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(TrainingRecordStoreActions.fetchMultipleTrainingRecordsRequested),

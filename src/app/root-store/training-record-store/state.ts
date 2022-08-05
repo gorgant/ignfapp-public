@@ -10,10 +10,13 @@ export const featureAdapter: EntityAdapter<TrainingRecord> = createEntityAdapter
 });
 
 export interface TrainingRecordState extends EntityState<TrainingRecord> {
+  allTrainingRecordsFetched: boolean,
   createTrainingRecordError: FirebaseError | Error | null,
   createTrainingRecordProcessing: boolean,
   deleteTrainingRecordError: FirebaseError | Error | null,
   deleteTrainingRecordProcessing: boolean,
+  fetchAllTrainingRecordsError: FirebaseError | Error | null,
+  fetchAllTrainingRecordsProcessing: boolean,
   fetchMultipleTrainingRecordsError: FirebaseError | Error | null,
   fetchMultipleTrainingRecordsProcessing: boolean,
   fetchSingleTrainingRecordError: FirebaseError | Error | null,
@@ -24,10 +27,13 @@ export interface TrainingRecordState extends EntityState<TrainingRecord> {
 
 export const initialTrainingRecordState: TrainingRecordState = featureAdapter.getInitialState(
   {
+    allTrainingRecordsFetched: false,
     createTrainingRecordError: null,
     createTrainingRecordProcessing: false,
     deleteTrainingRecordError: null,
     deleteTrainingRecordProcessing: false,
+    fetchAllTrainingRecordsError: null,
+    fetchAllTrainingRecordsProcessing: false,
     fetchMultipleTrainingRecordsError: null,
     fetchMultipleTrainingRecordsProcessing: false,
     fetchSingleTrainingRecordError: null,

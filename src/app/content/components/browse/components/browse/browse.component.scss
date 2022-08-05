@@ -5,23 +5,6 @@ mat-tab-group {
   max-width: $desktop-screen-width;
 }
 
-.create-button {
-  margin-top: 16px;
-  margin-bottom: 16px;
-}
-
-.scrolling-container {
-  width: 100vw;
-  height: 100vh;
-}
-
-app-training-session-card {
-  height: 300px; // Height must be set for virtual scroll to work, 240 for element + 16px of margin
-}
-
-@media screen and (min-width: $mobile-cutoff-width) {
-  .scrolling-container {
-    width: $desktop-screen-width;
-    height: calc(100vh - 200px);
-  }
+app-browse-training-sessions, app-browse-training-plans {
+  width: 100%;
 }

@@ -2,6 +2,8 @@ import { FormControl } from "@angular/forms"
 import { YoutubeVideoDataCompact } from "../youtube/youtube-video-data.model"
 import { TrainingSessionActivityCategoryDbOption } from "./activity-category.model";
 import { TrainingSessionMuscleGroupDbOption } from "./muscle-group.model";
+import { TrainingSessionComplexityDbOption } from "./training-complexity.model";
+import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
 
 export interface TrainingSession extends TrainingSessionNoId {
   id: string;
@@ -9,15 +11,15 @@ export interface TrainingSession extends TrainingSessionNoId {
 
 export interface TrainingSessionNoId {
   [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: TrainingSessionActivityCategoryDbOption[],
-  complexityAverage: number, // the average value of submitted ratings
+  [TrainingSessionKeys.COMPLEXITY_AVERAGE]: number, // the average value of submitted ratings
   [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
   creatorId: string,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
-  intensityAverage: number, // the average value of submitted ratings
+  [TrainingSessionKeys.INTENSITY_AVERAGE]: number, // the average value of submitted ratings
   [TrainingSessionKeys.MUSCLE_GROUP]: TrainingSessionMuscleGroupDbOption,
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
-  intensityRatingCount: number, // the number of ratings submitted 
+  [TrainingSessionKeys.INTENSITY_RATING_COUNT]: number, // the number of ratings submitted 
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
   [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact
 }
@@ -40,10 +42,13 @@ export const TrainingSessionFormVars = {
 
 export enum TrainingSessionKeys {
   ACTIVITY_CATEGORY_LIST = 'activityCategoryList',
-  COMPLEXITY_RATING_COUNT = 'complexityRatingCount',
+  COMPLEXITY_AVERAGE = 'complexityAverage',
   COMPLEXITY_DEFAULT = 'complexityDefault',
+  COMPLEXITY_RATING_COUNT = 'complexityRatingCount',
   EQUIPMENT = 'equipment',
+  INTENSITY_AVERAGE = 'intensityAverage',
   INTENSITY_DEFAULT = 'intensityDefault',
+  INTENSITY_RATING_COUNT = 'intensityRatingCount',
   MUSCLE_GROUP = 'muscleGroup',
   VIDEO_DATA = 'videoData',
   VIDEO_PLATFORM = 'videoPlatform',
@@ -51,5 +56,20 @@ export enum TrainingSessionKeys {
 
 export enum TrainingSessionVideoPlatform {
   YOUTUBE = 'youtube'
+}
+
+export enum TrainingSessionFilterFormKeys {
+  ACTIVITY_CATEGORY_FILTER_ARRAY = 'activityCategoryFilterArray',
+  COMPLEXITY_FILTER_ARRAY = 'complexityFilterArray',
+  INTENSITY_FILTER_ARRAY = 'intensityFilterArray',
+  MUSCLE_GROUP_FILTER_ARRAY = 'muscleGroupFilterArray',
+}
+
+export interface TrainingSessionFilterForm {
+  [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: FormControl<TrainingSessionActivityCategoryDbOption[] | null>,
+  [TrainingSessionFilterFormKeys.COMPLEXITY_FILTER_ARRAY]: FormControl<TrainingSessionComplexityDbOption[] | null>, 
+  [TrainingSessionKeys.EQUIPMENT]: FormControl<boolean[] | null>, // This is an array due to the multiselect nature of the button toggle mat field form
+  [TrainingSessionFilterFormKeys.INTENSITY_FILTER_ARRAY]: FormControl<TrainingSessionIntensityDbOption[] | null>,
+  [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: FormControl<TrainingSessionMuscleGroupDbOption[] | null>,
 }
 

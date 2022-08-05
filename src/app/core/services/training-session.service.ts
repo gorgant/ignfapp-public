@@ -63,6 +63,28 @@ export class TrainingSessionService {
       );
   }
 
+  fetchAllTrainingSessions() {
+    const trainingSessionCollectionDataRequest = collectionData(this.getTrainingSessionCollection());
+
+    return from(trainingSessionCollectionDataRequest)
+      .pipe(
+        // If logged out, this triggers unsub of this observable
+        takeUntil(this.authService.unsubTrigger$),
+        map(trainingSessions => {
+          if (!trainingSessions) {
+            throw new Error(`Error fetching training sessions`);
+          }
+          console.log(`Fetched all ${trainingSessions.length} training sessions`);
+          return trainingSessions;
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error fetching training sessions', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
   fetchMultipleTrainingSessions(queryParams: FirestoreCollectionQueryParams): Observable<TrainingSession[]> {
 
     const whereQueryConditions: QueryConstraint[] | undefined = queryParams.whereQueries ? 
@@ -101,7 +123,7 @@ export class TrainingSessionService {
         takeUntil(this.authService.unsubTrigger$),
         map(trainingSessions => {
           if (!trainingSessions) {
-            throw new Error(`Error fetching training sessions with query: ${queryParams}`, );
+            throw new Error(`Error fetching training sessions with query: ${queryParams}`);
           }
           console.log(`Fetched ${trainingSessions.length} training sessions`, );
           return trainingSessions;

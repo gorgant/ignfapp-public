@@ -16,6 +16,7 @@
     <button *ngIf="videoInitialized && !sessionPaused" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized && sessionPaused" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
+    <button *ngIf="(userData$ | async)?.isAdmin" mat-stroked-button color="accent" (click)="onEditTrainingSession(sessionData.id)">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
   </div>
 
 </div>

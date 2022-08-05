@@ -9,8 +9,17 @@ mat-stepper {
   max-width: $desktop-screen-width;
 }
 
-.stepper-buttons {
-  margin-top: 16px;
+// app-edit-training-session-step-one {
+//   margin-bottom: 16px;
+// }
+
+.step-one-buttons {
+  margin-top: 32px;
+}
+
+button {
+  width: 100%;
+  max-width: 300px;
 }
 
 .video-thumbnail {

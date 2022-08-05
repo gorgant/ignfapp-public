@@ -1,8 +1,10 @@
 
 export enum GlobalFieldValues {
+  ACTIVITY_CATEGORY = `Activity Category`,
   ADD_AN_ACTIVITY_CATEGORY = `Add an activity category...`,
   AUTH_PERSONALIZED_WORKOUTS = `Personalized Workout Plans`,
   BEGIN_TRAINING = `Begin Training`,
+  BODYWEIGHT = `Bodyweight`,
   CHANNEL = `Channel`,
   CANCEL = `Cancel`,
   CANCEL_TRAINING = `Cancel Session`,
@@ -76,8 +78,8 @@ export enum GlobalFieldValues {
   SAVE = `Save`,
   SAVE_TRAINING_SESSION_TITLE = `Save Training Session`,
   SCHEDULE_LATER = `Schedule Later`,
+  SEARCH_VIDEO_OR_CHANNEL_TITLE = `Search video or channel title...`,
   SESSIONS = `Sessions`,
-  SESSION_ACTIVITY_CATEGORY = `Activity Category`,
   SECONDS_SHORT = `Sec`,
   SETTINGS = `Settings`,
   STATS = `Stats`,

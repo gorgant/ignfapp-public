@@ -6,20 +6,28 @@ import * as fromTrainingRecords from './reducer';
 
 const selectTrainingRecordState = createFeatureSelector<TrainingRecordState>(PublicStoreFeatureKeys.TRAINING_RECORD);
 
+const getAllTrainingRecordsFetched = (state: TrainingRecordState) => state.allTrainingRecordsFetched;
 const getCreateTrainingRecordError = (state: TrainingRecordState) => state.createTrainingRecordError;
 const getCreateTrainingRecordProcessing = (state: TrainingRecordState) => state.createTrainingRecordProcessing;
 const getDeleteTrainingRecordError = (state: TrainingRecordState) => state.deleteTrainingRecordError;
 const getDeleteTrainingRecordProcessing = (state: TrainingRecordState) => state.deleteTrainingRecordProcessing;
-const getFetchSingleTrainingRecordError = (state: TrainingRecordState) => state.fetchSingleTrainingRecordError;
-const getFetchSingleTrainingRecordProcessing = (state: TrainingRecordState) => state.fetchSingleTrainingRecordProcessing;
+const getFetchAllTrainingRecordsError = (state: TrainingRecordState) => state.fetchAllTrainingRecordsError;
+const getFetchAllTrainingRecordsProcessing = (state: TrainingRecordState) => state.fetchAllTrainingRecordsProcessing;
 const getFetchMultipleTrainingRecordsError = (state: TrainingRecordState) => state.fetchMultipleTrainingRecordsError;
 const getFetchMultipleTrainingRecordsProcessing = (state: TrainingRecordState) => state.fetchMultipleTrainingRecordsProcessing;
+const getFetchSingleTrainingRecordError = (state: TrainingRecordState) => state.fetchSingleTrainingRecordError;
+const getFetchSingleTrainingRecordProcessing = (state: TrainingRecordState) => state.fetchSingleTrainingRecordProcessing;
 const getUpdateTrainingRecordError = (state: TrainingRecordState) => state.updateTrainingRecordError;
 const getUpdateTrainingRecordProcessing = (state: TrainingRecordState) => state.updateTrainingRecordProcessing;
 
 export const selectAllRecordsInStore: (state: object) => TrainingRecord[] = createSelector(
   selectTrainingRecordState,
   fromTrainingRecords.selectAll
+);
+
+export const selectAllTrainingRecordsFetched = createSelector(
+  selectTrainingRecordState,
+  getAllTrainingRecordsFetched
 );
 
 export const selectCreateTrainingRecordError = createSelector(
@@ -50,6 +58,16 @@ export const selectFetchSingleTrainingRecordError = createSelector(
 export const selectFetchSingleTrainingRecordProcessing = createSelector(
   selectTrainingRecordState,
   getFetchSingleTrainingRecordProcessing
+);
+
+export const selectFetchAllTrainingRecordsError = createSelector(
+  selectTrainingRecordState,
+  getFetchAllTrainingRecordsError
+);
+
+export const selectFetchAllTrainingRecordsProcessing = createSelector(
+  selectTrainingRecordState,
+  getFetchAllTrainingRecordsProcessing
 );
 
 export const selectFetchMultipleTrainingRecordsError = createSelector(

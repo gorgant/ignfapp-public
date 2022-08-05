@@ -1,0 +1,43 @@
+<div class="content-container" fxLayout="column" fxLayoutAlign="start center">
+
+  <form [formGroup]="trainingSessionFilterForm" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="16px">
+    <!-- <div class="slider-container">
+      <div class="slider-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
+      <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>
+    </div> -->
+    <mat-button-toggle-group multiple (change)="onEquipmentToggle($event)">
+      <mat-button-toggle [value]="false">{{ BODYWEIGHT_FIELD_VALUE }}</mat-button-toggle>
+      <mat-button-toggle [value]="true">{{ EQUIPMENT_FIELD_VALUE }}</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <mat-form-field>
+      <mat-label>{{ COMPLEXITY_FIELD_VALUE }}</mat-label>
+      <mat-select [formControl]="complexityFilterArray" multiple>
+        <mat-option *ngFor="let complexityObject of trainingSessionComplexityMasterList" [value]="complexityObject.dbValue">{{complexityObject.uiValue}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ INTENSITY_FIELD_VALUE }}</mat-label>
+      <mat-select [formControl]="intensityFilterArray" multiple>
+        <mat-option *ngFor="let intensityObject of trainingSessionIntensityMasterList" [value]="intensityObject.dbValue">{{intensityObject.uiValue}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    
+    <mat-form-field>
+      <mat-label>{{ ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
+      <mat-select [formControl]="activityCategoryFilterArray" multiple>
+        <mat-option *ngFor="let activityCategoryObject of trainingSessionActivityCategoryMasterList" [value]="activityCategoryObject.dbValue">{{activityCategoryObject.uiValue}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    
+    <mat-form-field>
+      <mat-label>{{ MUSCLE_GROUP_FIELD_VALUE }}</mat-label>
+      <mat-select [formControl]="muscleGroupFilterArray" multiple>
+        <mat-option *ngFor="let muscleGroupObject of trainingSessionMuscleGroupMasterList" [value]="muscleGroupObject.dbValue">{{muscleGroupObject.uiValue}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+  </form>
+
+</div>

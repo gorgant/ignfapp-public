@@ -40,6 +40,22 @@ export const deleteTrainingSessionFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
+// Fetch All Training Sessions
+
+export const fetchAllTrainingSessionsRequested = createAction(
+  '[AppWide] Fetch All Training Sessions Requested',
+);
+
+export const fetchAllTrainingSessionsCompleted = createAction(
+  '[Train Service] Fetch All Training Sessions Completed',
+  props<{trainingSessions: TrainingSession[]}>()
+);
+
+export const fetchAllTrainingSessionsFailed = createAction(
+  '[Train Service] Fetch All Training Sessions Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Fetch Multiple Training Sessions
 
 export const fetchMultipleTrainingSessionsRequested = createAction(

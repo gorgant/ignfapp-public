@@ -60,6 +60,32 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
 
+  // Fetch All Training Sessions
+
+  on(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested, (state, action) => {
+    return {
+      ...state,
+      fetchAllTrainingSessionsProcessing: true,
+      fetchAllTrainingSessionsError: null
+    }
+  }),
+  on(TrainingSessionStoreActions.fetchAllTrainingSessionsCompleted, (state, action) => {
+    return featureAdapter.addMany(
+      action.trainingSessions, {
+        ...state,
+        fetchAllTrainingSessionsProcessing: false,
+        allTrainingSessionsFetched: true,
+      }
+    );
+  }),
+  on(TrainingSessionStoreActions.fetchAllTrainingSessionsFailed, (state, action) => {
+    return {
+      ...state,
+      fetchAllTrainingSessionsProcessing: false,
+      fetchAllTrainingSessionsError: action.error
+    }
+  }),
+
   // Fetch Multiple Training Sessions
 
   on(TrainingSessionStoreActions.fetchMultipleTrainingSessionsRequested, (state, action) => {
@@ -150,7 +176,8 @@ export const trainingSessionStoreReducer = createReducer(
   on(TrainingSessionStoreActions.purgeYoutubeVideoData, (state, action) => {
     return {
       ...state,
-      youtubeVideoData: null
+      youtubeVideoData: null,
+      fetchYoutubeVideoDataError: null,
     }
   }),
 

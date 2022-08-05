@@ -32,9 +32,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   // Note: Not useing formbuilder here due to typing error (will likey be fixed in a future angular forms update)
   trainingSessionForm = new FormGroup<TrainingSessionForm>({
+    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: new FormControl([] as TrainingSessionActivityCategoryDbOption[], [Validators.required]),
     [TrainingSessionKeys.COMPLEXITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]),
     [TrainingSessionKeys.EQUIPMENT]: new FormControl(false, [Validators.required]),
-    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: new FormControl([] as TrainingSessionActivityCategoryDbOption[], [Validators.required]),
     [TrainingSessionKeys.INTENSITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]),
     [TrainingSessionKeys.MUSCLE_GROUP]: new FormControl(null, [Validators.required]),
     [TrainingSessionKeys.VIDEO_PLATFORM]: new FormControl(TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]),
@@ -51,6 +51,8 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
 
+  ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
+  ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   COMPLEXITY_FIELD_VALUE = GlobalFieldValues.COMPLEXITY;
   CREATE_SESSION_BUTTON_VALUE = GlobalFieldValues.CREATE_SESSION;
@@ -58,8 +60,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   EQUIPMENT_FIELD_VALUE = GlobalFieldValues.EQUIPMENT;
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
-  SESSION_ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.SESSION_ACTIVITY_CATEGORY;
-  SESSION_ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
   
   constructor(
     private store$: Store<RootStoreState.AppState>,

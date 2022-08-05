@@ -39,10 +39,11 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   DISCARD_EDITS_BODY_VALUE = GlobalFieldValues.DISCARD_EDITS_BODY;
   DURATION_BLURB = GlobalFieldValues.DURATION;
   EDIT_SESSION_TITLE_VALUE = GlobalFieldValues.EDIT_SESSION;
-  EDIT_SESSION_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
+  EDIT_SESSION_BUTTON_VALUE = GlobalFieldValues.EDIT_SESSION;
   FETCH_VIDEO_DATA_BUTTON_VALUE = GlobalFieldValues.FETCH_VIDEO_DATA;
   INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_TITLE;
   INPUT_SESSION_DATA_STEP_LABEL = GlobalFieldValues.INPUT_SESSION_DATA;
+  SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   TITLE_BLURB = GlobalFieldValues.TITLE;
 
   userDataSubscription!: Subscription;
