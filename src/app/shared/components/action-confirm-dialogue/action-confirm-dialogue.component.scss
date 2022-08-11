@@ -4,6 +4,12 @@
   color: $primary;
 }
 
+.actions-container {
+  margin-top: 16px;
+  width: 100%;
+}
+
 button {
-  margin: 16px;
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }

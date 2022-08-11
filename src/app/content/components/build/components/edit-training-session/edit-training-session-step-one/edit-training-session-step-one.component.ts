@@ -7,7 +7,7 @@ import { Observable, Subscription } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
+import { YoutubeVideoDataCompact, YoutubeVideoDataForm, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -18,7 +18,7 @@ import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelect
 export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   @Input() editTrainingSessionStepper!: MatStepper;
-  youtubeVideoDataForm = new FormGroup({
+  youtubeVideoDataForm = new FormGroup<YoutubeVideoDataForm>({
     [YoutubeVideoDataKeys.VIDEO_URL]: new FormControl('', [Validators.required, Validators.pattern(/^\S*(?:https\:\/\/youtu\.be)\S*$/)]),
     [YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: new FormControl(false, [Validators.requiredTrue])
   });

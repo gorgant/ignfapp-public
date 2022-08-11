@@ -1,6 +1,9 @@
+import { Timestamp } from '@angular/fire/firestore';
+
+
 // The base pair
 export interface UnsubscribeRecord {
-  unsubscribeDate: number;
+  unsubscribeTimestamp: number | Timestamp;
   asm_group_id?: number;
 }
 

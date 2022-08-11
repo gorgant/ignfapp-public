@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
+import { AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { TrainingSession, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { RootStoreState, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -16,6 +17,8 @@ import { TrainingSessionFiltersComponent } from '../training-session-filters/tra
 })
 export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
+  @Input() planBuilderRequest!: boolean;
+  
   userData$!: Observable<PublicUser | null>;
 
   CREATE_SESSION_BUTTON_VALUE = GlobalFieldValues.CREATE_SESSION;
@@ -37,6 +40,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private store$: Store<RootStoreState.AppState>,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
@@ -53,7 +57,24 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   onSelectTrainingSession(sessionData: TrainingSession) {
-    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${sessionData.id}`]);
+    let navigationExtras: NavigationExtras = {};
+    if (this.planBuilderRequest) {
+      const queryParams = this.generatePlanBuilderQueryParams();
+      navigationExtras = {...navigationExtras, queryParams};
+    }
+    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${sessionData.id}`], navigationExtras);
+  }
+
+  // TODO: Add a button to add session to plan on each session card
+
+  // Indicate in URL that this is a planbuilder request
+  private generatePlanBuilderQueryParams() {
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
+    const queryParams: AddTrainingPlanUrlParams = {
+      [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+      [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId
+    }
+    return queryParams
   }
 
   onToggleFilters() {

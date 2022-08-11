@@ -9,7 +9,7 @@
           <div >{{ sessionCompletionData.sessionDuration | durationMsToMmSs }}</div>
           <button *ngIf="!editDuration" mat-button color="primary" (click)="onEditDuration()"> {{ EDIT_BUTTON_VALUE }}</button>
         </div>
-        <form [hidden]="!editDuration" [formGroup]="trainingRecordForm">
+        <form [fxHide]="!editDuration" [formGroup]="trainingRecordForm">
           <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
             <mat-form-field class="edit-time-field">
               <mat-placeholder>{{ HOURS_FIELD_VALUE }}</mat-placeholder>

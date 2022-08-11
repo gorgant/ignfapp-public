@@ -1,14 +1,14 @@
 <div *ngIf="trainingSessionData$ | async as sessionData" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
   
-  <div [hidden]="videoInitialized" class="header-container">
+  <div [fxHide]="videoInitialized" class="header-container">
     <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
   </div>
 
-  <app-training-session-video [hidden]="!videoInitialized" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>
+  <app-training-session-video *ngIf="!trainingPlanBuilderRequest" [fxHide]="!videoInitialized" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>
 
   <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
 
-  <div class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <div *ngIf="!trainingPlanBuilderRequest" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <button *ngIf="!videoInitialized" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="!videoInitialized" mat-stroked-button color="primary" (click)="onScheduleLater()">{{ SCHEDULE_LATER_BUTTON_VALUE }}</button>
@@ -17,6 +17,14 @@
     <button *ngIf="videoInitialized && sessionPaused" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="(userData$ | async)?.isAdmin" mat-stroked-button color="accent" (click)="onEditTrainingSession(sessionData.id)">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
+  </div>
+
+  <div *ngIf="trainingPlanBuilderRequest" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <button *ngIf="!(serverRequestProcessing | async)" mat-raised-button color="primary" (click)="onAddTrainingSessionToPlan(sessionData)">{{ ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE }}</button>
+    <button *ngIf="!(serverRequestProcessing | async)" mat-stroked-button color="primary" (click)="onNavigateToTrainingSessionSelection()">{{ GO_BACK_BUTTON_VALUE }}</button>
+    <div *ngIf="(serverRequestProcessing | async)" fxLayout="column" fxLayoutAlign="center center">
+      <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+    </div>
   </div>
 
 </div>

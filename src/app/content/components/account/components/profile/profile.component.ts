@@ -48,7 +48,8 @@ export class ProfileComponent implements OnInit {
         const dialogConfig = new MatDialogConfig();
 
         dialogConfig.disableClose = false;
-        dialogConfig.width = '400px';
+        dialogConfig.width = '90%';
+        dialogConfig.maxWidth = '600px';
 
         dialogConfig.data = user;
 
@@ -64,7 +65,8 @@ export class ProfileComponent implements OnInit {
         const dialogConfig = new MatDialogConfig();
 
         dialogConfig.disableClose = false;
-        dialogConfig.width = '400px';
+        dialogConfig.width = '90%';
+        dialogConfig.maxWidth = '600px';
 
         dialogConfig.data = user;
 
@@ -82,7 +84,8 @@ export class ProfileComponent implements OnInit {
         const dialogConfig = new MatDialogConfig();
 
         dialogConfig.disableClose = false;
-        dialogConfig.width = '400px';
+        dialogConfig.width = '90%';
+        dialogConfig.maxWidth = '600px';
 
         dialogConfig.data = user;
 
@@ -98,7 +101,8 @@ export class ProfileComponent implements OnInit {
         const dialogConfig = new MatDialogConfig();
 
         dialogConfig.disableClose = false;
-        dialogConfig.width = '400px';
+        dialogConfig.width = '90%';
+        dialogConfig.maxWidth = '600px';
 
         dialogConfig.data = user;
         dialogConfig.autoFocus = false;

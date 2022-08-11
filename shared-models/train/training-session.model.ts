@@ -1,25 +1,30 @@
 import { FormControl } from "@angular/forms"
+import { Timestamp } from '@angular/fire/firestore';
 import { YoutubeVideoDataCompact } from "../youtube/youtube-video-data.model"
 import { TrainingSessionActivityCategoryDbOption } from "./activity-category.model";
 import { TrainingSessionMuscleGroupDbOption } from "./muscle-group.model";
 import { TrainingSessionComplexityDbOption } from "./training-complexity.model";
 import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
 
-export interface TrainingSession extends TrainingSessionNoId {
-  id: string;
+
+export interface TrainingSession extends TrainingSessionNoIdOrTimestamps {
+  [TrainingSessionKeys.CREATED_TIMESTAMP]: number | Timestamp,
+  id: string,
+  [TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp,
 }
 
-export interface TrainingSessionNoId {
+export interface TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: TrainingSessionActivityCategoryDbOption[],
   [TrainingSessionKeys.COMPLEXITY_AVERAGE]: number, // the average value of submitted ratings
   [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
   creatorId: string,
+  [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
   [TrainingSessionKeys.INTENSITY_AVERAGE]: number, // the average value of submitted ratings
-  [TrainingSessionKeys.MUSCLE_GROUP]: TrainingSessionMuscleGroupDbOption,
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
   [TrainingSessionKeys.INTENSITY_RATING_COUNT]: number, // the number of ratings submitted 
+  [TrainingSessionKeys.MUSCLE_GROUP]: TrainingSessionMuscleGroupDbOption,
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
   [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact
 }
@@ -31,6 +36,12 @@ export interface TrainingSessionForm {
   [TrainingSessionKeys.INTENSITY_DEFAULT]: FormControl<number | null>, // the starting value set by the creator
   [TrainingSessionKeys.MUSCLE_GROUP]: FormControl<TrainingSessionMuscleGroupDbOption | null>,
   [TrainingSessionKeys.VIDEO_PLATFORM]: FormControl<TrainingSessionVideoPlatform | null>,
+}
+
+export enum TrainingSessionDatabaseCategoryTypes {
+  CANONICAL = 'canonical',
+  PLAN_FRAGMENT = 'planFragment',
+  PERSONAL_FRAGMENT = 'personalFragment',
 }
 
 export const TrainingSessionFormVars = {
@@ -45,10 +56,13 @@ export enum TrainingSessionKeys {
   COMPLEXITY_AVERAGE = 'complexityAverage',
   COMPLEXITY_DEFAULT = 'complexityDefault',
   COMPLEXITY_RATING_COUNT = 'complexityRatingCount',
+  CREATED_TIMESTAMP = 'createdTimestamp',
+  DATABASE_CATEGORY = 'databaseCategory',
   EQUIPMENT = 'equipment',
   INTENSITY_AVERAGE = 'intensityAverage',
   INTENSITY_DEFAULT = 'intensityDefault',
   INTENSITY_RATING_COUNT = 'intensityRatingCount',
+  LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   MUSCLE_GROUP = 'muscleGroup',
   VIDEO_DATA = 'videoData',
   VIDEO_PLATFORM = 'videoPlatform',

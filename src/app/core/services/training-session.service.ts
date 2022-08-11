@@ -5,13 +5,14 @@ import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { TrainingSession, TrainingSessionKeys, TrainingSessionNoId } from 'shared-models/train/training-session.model';
+import { TrainingSession, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
-import { SessionRating, SessionRatingNoId } from 'shared-models/train/session-rating.model';
+import { TrainingSessionRating, TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
+import { Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -22,42 +23,60 @@ export class TrainingSessionService {
     private afs: Firestore,
     private fns: Functions,
     private authService: AuthService,
-    private uiService: UiService
+    private uiService: UiService,
   ) { }
 
-  createTrainingSession(trainingSessionNoId: TrainingSessionNoId): Observable<TrainingSession> {
+  createTrainingSession(trainingSessionNoIdOrTimestamp: TrainingSessionNoIdOrTimestamps): Observable<TrainingSession> {
+
+    const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewTrainingSessionDocumentId();
-    const trainingSessionWithId = {...trainingSessionNoId, id: newId};
+
+    const trainingSessionWithIdAndTimestamps: TrainingSession = {
+      ...trainingSessionNoIdOrTimestamp, 
+      createdTimestamp: currentTimeTimestamp,
+      id: newId,
+      lastModifiedTimestamp: currentTimeTimestamp,
+    };
+
+    const trainingSessionWithIdAndMs: TrainingSession = {
+      ...trainingSessionNoIdOrTimestamp, 
+      createdTimestamp: currentTimeTimestamp.toMillis(),
+      id: newId,
+      lastModifiedTimestamp: currentTimeTimestamp.toMillis(),
+    };
+
     const trainingSessionDocRef = this.getTrainingSessionDoc(newId);
-    const trainingSessionAddRequest = setDoc(trainingSessionDocRef, trainingSessionWithId);
+    const trainingSessionAddRequest = setDoc(trainingSessionDocRef, trainingSessionWithIdAndTimestamps);
 
     return from(trainingSessionAddRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
         map(empty => {
-          return trainingSessionWithId;
+          console.log('Created new trainingSession', trainingSessionWithIdAndMs);
+          return trainingSessionWithIdAndMs; // Use new version with MS timestamps
         }),
         catchError(error => {
-          console.log('Error creating training session', error);
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error creating trainingSession', error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  deleteTrainingSession(sessionId: string): Observable<string> {
-    const trainingSessionDeleteRequest = deleteDoc(this.getTrainingSessionDoc(sessionId));
+  deleteTrainingSession(trainingSessionId: string): Observable<string> {
+    const trainingSessionDeleteRequest = deleteDoc(this.getTrainingSessionDoc(trainingSessionId));
 
     return from(trainingSessionDeleteRequest)
       .pipe(
         map(empty => {
-          console.log('Deleted training session', sessionId);
-          return sessionId;
+          console.log('Deleted trainingSession', trainingSessionId);
+          return trainingSessionId;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting training session', error);
+          console.log('Error deleting trainingSession', error);
           return throwError(() => new Error(error));
         })
       );
@@ -72,14 +91,22 @@ export class TrainingSessionService {
         takeUntil(this.authService.unsubTrigger$),
         map(trainingSessions => {
           if (!trainingSessions) {
-            throw new Error(`Error fetching training sessions`);
+            throw new Error(`Error fetching trainingSessions`);
           }
-          console.log(`Fetched all ${trainingSessions.length} training sessions`);
-          return trainingSessions;
+          const trainingSessionsWithUpdatedTimestamps = trainingSessions.map(trainingSession => {
+            const formattedTrainingSessions: TrainingSession = {
+              ...trainingSession,
+              createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
+              lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
+            };
+            return formattedTrainingSessions;
+          });
+          console.log(`Fetched all ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
+          return trainingSessionsWithUpdatedTimestamps;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training sessions', error);
+          console.log('Error fetching trainingSessions', error);
           return throwError(() => new Error(error));
         })
       );
@@ -123,35 +150,48 @@ export class TrainingSessionService {
         takeUntil(this.authService.unsubTrigger$),
         map(trainingSessions => {
           if (!trainingSessions) {
-            throw new Error(`Error fetching training sessions with query: ${queryParams}`);
+            throw new Error(`Error fetching trainingSessions with query: ${queryParams}`);
           }
-          console.log(`Fetched ${trainingSessions.length} training sessions`, );
-          return trainingSessions;
+          const trainingSessionsWithUpdatedTimestamps = trainingSessions.map(trainingSession => {
+            const formattedTrainingSessions: TrainingSession = {
+              ...trainingSession,
+              createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
+              lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
+            };
+            return formattedTrainingSessions;
+          });
+          console.log(`Fetched all ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
+          return trainingSessionsWithUpdatedTimestamps;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training sessions', error);
+          console.log('Error fetching trainingSessions', error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchSingleTrainingSession(sessionId: string): Observable<TrainingSession> {
-    const trainingSession = docData(this.getTrainingSessionDoc(sessionId));
+  fetchSingleTrainingSession(trainingSessionId: string): Observable<TrainingSession> {
+    const trainingSession = docData(this.getTrainingSessionDoc(trainingSessionId));
     return trainingSession
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        map(session => {
-          if (!session) {
-            throw new Error(`Error fetching training session with id: ${sessionId}`);
+        map(trainingSession => {
+          if (!trainingSession) {
+            throw new Error(`Error fetching trainingSession with id: ${trainingSessionId}`);
           }
-          console.log('Fetched trainingSession', session);
-          return session;
+          const formattedTrainingSession: TrainingSession = {
+            ...trainingSession,
+            createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
+            lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
+          };
+          console.log(`Fetched single trainingSession`, formattedTrainingSession);
+          return formattedTrainingSession;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training session', error);
+          console.log('Error fetching trainingSession', error);
           return throwError(() => new Error(error));
         })
       );
@@ -188,33 +228,48 @@ export class TrainingSessionService {
   }
 
   updateTrainingSession(trainingSessionUpdates: Update<TrainingSession>): Observable<Update<TrainingSession>> {
-    const trainingSessionDoc = this.getTrainingSessionDoc(trainingSessionUpdates.id as string);
-    const trainingSessionUpdateRequest = updateDoc(trainingSessionDoc, trainingSessionUpdates.changes);
+    const changesWithTimestamp: Partial<TrainingSession> = {
+      ...trainingSessionUpdates.changes,
+      lastModifiedTimestamp: Timestamp.now()
+    }
+
+    const trainingSessionUpdatesWithTimestamp: Update<TrainingSession> = {
+      ...trainingSessionUpdates,
+      changes: changesWithTimestamp
+    }
+    const trainingSessionDoc = this.getTrainingSessionDoc(trainingSessionUpdatesWithTimestamp.id as string);
+    const trainingSessionUpdateRequest = updateDoc(trainingSessionDoc, changesWithTimestamp);
 
     return from(trainingSessionUpdateRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
         map(docRef => {
-          console.log('Updated training session', trainingSessionUpdates.changes);
-          return trainingSessionUpdates;
+          console.log('Updated trainingSession', trainingSessionUpdates);
+          return trainingSessionUpdates; // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating training session', error);
+          console.log('Error creating trainingSession', error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  updateSessionRating(sessionRatingNoId: SessionRatingNoId): Observable<string> {
+  updateSessionRating(trainingSessionRatingNoIdOrTimestamp: TrainingSessionRatingNoIdOrTimestamp): Observable<string> {
 
-    const newId = this.generateNewSessionRatingDocumentId(sessionRatingNoId.sessionId);
-    const sessionRatingWithId = {...sessionRatingNoId, id: newId};
+    const currentTime = Timestamp.now();
 
-    const updateSessionRatingHttpCall: (sessionRatingWithId: SessionRating) => 
+    const newId = this.generateNewSessionRatingDocumentId(trainingSessionRatingNoIdOrTimestamp.trainingSessionId);
+    const trainingSessionRatingWithIdAndTimestamp: TrainingSessionRating = {
+      ...trainingSessionRatingNoIdOrTimestamp, 
+      id: newId,
+      ratingTimestamp: currentTime
+    };
+
+    const updateSessionRatingHttpCall: (trainingSessionRatingWithId: TrainingSessionRating) => 
       Observable<string> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_UPDATE_SESSION_RATING);
     
-    return updateSessionRatingHttpCall(sessionRatingWithId)
+    return updateSessionRatingHttpCall(trainingSessionRatingWithIdAndTimestamp)
       .pipe(
         take(1),
         map( pubSubMessageId => {
@@ -223,7 +278,7 @@ export class TrainingSessionService {
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error submitting sessionRating', error);
+          console.log('Error submitting trainingSessionRating', error);
           return throwError(() => new Error(error));
         })
       );
@@ -233,24 +288,24 @@ export class TrainingSessionService {
     return collection(this.afs, PublicCollectionPaths.TRAINING_SESSIONS) as CollectionReference<TrainingSession>;
   }
 
-  private getTrainingSessionDoc(sessionId: string): DocumentReference<TrainingSession> {
-    return doc(this.getTrainingSessionCollection(), sessionId);
+  private getTrainingSessionDoc(trainingSessionId: string): DocumentReference<TrainingSession> {
+    return doc(this.getTrainingSessionCollection(), trainingSessionId);
   }
 
   private generateNewTrainingSessionDocumentId(): string {
     return doc(this.getTrainingSessionCollection()).id;
   }
 
-  private getSessionRatingCollection(sessionId: string): CollectionReference<SessionRating> {
-    return collection(this.afs, `${PublicCollectionPaths.TRAINING_SESSIONS}/${sessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<SessionRating>;
+  private getSessionRatingCollection(trainingSessionId: string): CollectionReference<TrainingSessionRating> {
+    return collection(this.afs, `${PublicCollectionPaths.TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
   }
 
-  private getSessionRatingDoc(sessionId: string, sessionRatingId: string): DocumentReference<SessionRating> {
-    return doc(this.getSessionRatingCollection(sessionId), sessionRatingId);
+  private getSessionRatingDoc(trainingSessionId: string, trainingSessionRatingId: string): DocumentReference<TrainingSessionRating> {
+    return doc(this.getSessionRatingCollection(trainingSessionId), trainingSessionRatingId);
   }
 
-  private generateNewSessionRatingDocumentId(sessionId: string): string {
-    return doc(this.getSessionRatingCollection(sessionId)).id;
+  private generateNewSessionRatingDocumentId(trainingSessionId: string): string {
+    return doc(this.getSessionRatingCollection(trainingSessionId)).id;
   }
 
 }

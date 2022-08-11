@@ -1,9 +1,10 @@
 import { PublicUser } from '../user/public-user.model';
+import { Timestamp } from '@angular/fire/firestore';
 
 export interface Order {
   id: string;
   orderNumber: string; // A subset of id
-  createdDate: number;
+  createdTimestamp: number | Timestamp;
   stripeChargeId: string;
   stripeCustomerId: string;
   firstName: string;

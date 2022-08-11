@@ -3,6 +3,9 @@ import { SendgridContactListId } from "../email/email-vars.model";
 import { BillingDetails } from "../billing/billing-details.model";
 import { OrderHistory } from "../orders/order-history.model";
 import { UnsubscribeRecordList, UnsubscribeRecord } from "../email/unsubscribe-record.model";
+import { Timestamp } from '@angular/fire/firestore';
+
+
 
 export enum PublicUserKeys {
   AVATAR_URL = 'avatarUrl',
@@ -24,11 +27,11 @@ export enum PublicUserKeys {
 }
 
 export interface PublicUser {
-  createdTimestamp: number;
+  createdTimestamp: number | Timestamp;
   [PublicUserKeys.EMAIL]: string;
   [PublicUserKeys.ID]: string;
-  lastAuthenticated: number;
-  lastModifiedTimestamp: number;
+  lastAuthenticatedTimestamp: number | Timestamp;
+  lastModifiedTimestamp: number | Timestamp;
   [PublicUserKeys.AVATAR_URL]?: string;
   billingDetails?: BillingDetails | Partial<BillingDetails>;
   [PublicUserKeys.DISPLAY_NAME]?: string;
@@ -36,8 +39,8 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]?: UnsubscribeRecord;
   [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]?: EmailSubSource,
   [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]?: boolean;
-  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]?: number;
-  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]?: number;
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]?: number | Timestamp;
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]?: number | Timestamp;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]?: string;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]?: SendgridContactListId[];
   [PublicUserKeys.EMAIL_VERIFIED]?: boolean;

@@ -1,7 +1,9 @@
 
 export enum GlobalFieldValues {
   ACTIVITY_CATEGORY = `Activity Category`,
+  ADD_A_PLAN = `Add a Plan`,
   ADD_AN_ACTIVITY_CATEGORY = `Add an activity category...`,
+  ADD_TRAINING_SESSION = `Add Training Session`,
   AUTH_PERSONALIZED_WORKOUTS = `Personalized Workout Plans`,
   BEGIN_TRAINING = `Begin Training`,
   BODYWEIGHT = `Bodyweight`,
@@ -35,6 +37,7 @@ export enum GlobalFieldValues {
   EDIT_EMAIL = `Edit Email`,
   EDIT_NAME = `Edit Name`,
   EDIT_SESSION = `Edit Session`,
+  EDIT_TRAINING_PLAN = `Edit Training Plan`,
   EMAIL = `Email`,
   EQUIPMENT = `Equipment`,
   FETCH_VIDEO_DATA = `Fetch Video Data`,

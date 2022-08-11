@@ -11,6 +11,9 @@ import { StoreRouterConnectingModule, RouterStateSerializer, RouterState } from 
 import { CustomSerializer } from '../core/utils/custom-route-serializer';
 import { reducers } from './root-store.state';
 import { UiStoreModule } from './ui-store';
+import { PersonalSessionFragmentStoreModule } from './personal-session-fragment-store';
+import { PlanSessionFragmentStoreModule } from './plan-session-fragment-store';
+import { TrainingPlanStoreModule } from './training-plan-store';
 import { TrainingRecordStoreModule } from './training-record-store';
 import { TrainingSessionStoreModule } from './training-session-store';
 
@@ -19,6 +22,9 @@ import { TrainingSessionStoreModule } from './training-session-store';
   imports: [
     CommonModule,
     AuthStoreModule,
+    PersonalSessionFragmentStoreModule,
+    PlanSessionFragmentStoreModule,
+    TrainingPlanStoreModule,
     TrainingRecordStoreModule,
     TrainingSessionStoreModule,
     UiStoreModule,

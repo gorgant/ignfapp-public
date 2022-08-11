@@ -1,23 +1,23 @@
-// Create Training Record
-
 import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
-import { TrainingRecord, TrainingRecordNoId } from "shared-models/train/training-record.model";
+import { TrainingRecord, TrainingRecordNoIdOrTimestamp } from "shared-models/train/training-record.model";
+
+// Create Training Record
 
 export const createTrainingRecordRequested = createAction(
-  '[Training Record Complete Dialogue] Create Training Record Record Requested',
-  props<{userId: string, trainingRecordNoId: TrainingRecordNoId}>()
+  '[Training Record Complete Dialogue] Create Training Record Requested',
+  props<{userId: string, trainingRecordNoId: TrainingRecordNoIdOrTimestamp}>()
 );
 
 export const createTrainingRecordCompleted = createAction(
-  '[Train Service] Create Training Record Record Completed',
+  '[Train Service] Create Training Record Completed',
   props<{trainingRecord: TrainingRecord}>()
 );
 
 export const createTrainingRecordFailed = createAction(
-  '[Train Service] Create Training Record Record Failed',
+  '[Train Service] Create Training Record Failed',
   props<{error: FirebaseError}>()
 );
 
@@ -42,7 +42,7 @@ export const deleteTrainingRecordFailed = createAction(
 
 export const fetchAllTrainingRecordsRequested = createAction(
   '[AppWide] Fetch All Training Records Requested',
-  props<{userId: string, queryParams: FirestoreCollectionQueryParams}>()
+  props<{userId: string}>()
 );
 
 export const fetchAllTrainingRecordsCompleted = createAction(

@@ -1,9 +1,18 @@
 import { SocialUrlPrefixes } from "shared-models/meta/social-urls.model";
+import { TrainingPlanFormVars, TrainingPlanKeys } from "shared-models/train/training-plan.model";
 import { TrainingRecordKeys } from "shared-models/train/training-record.model";
 import { TrainingSessionKeys } from "shared-models/train/training-session.model";
 import { YoutubeVideoDataKeys } from "shared-models/youtube/youtube-video-data.model";
 import { PublicUserKeys } from "../user/public-user.model";
 import { UserRegistrationFormFieldKeys } from "./user-registration-form-vals.model";
+
+export const TrainingPlanFormValidationMessages = {
+  [TrainingPlanKeys.TITLE]: [
+    { type: 'required', message: 'This field is required.' },
+    { type: 'minlength', message: `Title must be at least ${TrainingPlanFormVars.titleMinLength} characters`},
+    { type: 'maxlength', message: `Title cannot exceed ${TrainingPlanFormVars.titleMaxLength} characters`},
+  ]
+}
 
 export const TrainingSessionFormValidationMessages = {
   [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [

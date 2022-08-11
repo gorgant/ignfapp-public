@@ -1,6 +1,12 @@
 @import '../../../../../../variables';
 
+.actions-container {
+  width: 100%;
+}
+
 .create-button {
   margin-top: 16px;
   margin-bottom: 16px;
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }

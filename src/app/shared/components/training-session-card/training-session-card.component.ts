@@ -1,5 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
+import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
+import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSession } from 'shared-models/train/training-session.model';
 
 @Component({
@@ -9,7 +11,7 @@ import { TrainingSession } from 'shared-models/train/training-session.model';
 })
 export class TrainingSessionCardComponent implements OnInit {
 
-  @Input() trainingSesssionData!: TrainingSession; 
+  @Input() trainingSesssionData!: TrainingSession | PlanSessionFragment | PersonalSessionFragment; 
 
   COMPLEXITY_SUBTEXT = GlobalFieldValues.COMPLEXITY;
   INTENSITY_SUBTEXT = GlobalFieldValues.INTENSITY;

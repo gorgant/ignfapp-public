@@ -6,11 +6,11 @@ import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-fun
 import { sendgridMarketingContactsApiUrl, sendgridSecret } from './config';
 import { submitHttpRequest } from '../config/global-helpers';
 import { publicFirestore } from '../config/db-config';
-import { DateTime } from 'luxon';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { SgContactCustomFieldData, SgContactCustomFieldIds } from '../../../shared-models/email/sg-contact-custom-field-data.model';
 import { getSgContactId } from './helpers/get-sg-contact-id';
 import { SendgridContactListId } from '../../../shared-models/email/email-vars.model';
+import { Timestamp } from '@google-cloud/firestore';;
 
 // Append Sendgrid Contact Id to Subscriber
 const addSgContactIdToSubscriber = async (userData: EmailUserData) => {
@@ -27,7 +27,7 @@ const addSgContactIdToSubscriber = async (userData: EmailUserData) => {
   
   const userUpdate: Partial<EmailUserData> = {
     emailSendgridContactId: contactId,
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   }
 
   const userCollectionPath = userData.isPrelaunchUser ? PublicCollectionPaths.PRELAUNCH_USERS : PublicCollectionPaths.PUBLIC_USERS;
@@ -94,7 +94,7 @@ export const onPubCreateOrUpdateSgContact = functions.pubsub.topic(PublicTopicNa
 
   await createOrUpdateSendgridContact(userData);
 
-  const sgContactCreatedRecently = userData.emailSendgridContactCreatedTimestamp ? userData.emailSendgridContactCreatedTimestamp > DateTime.now().toMillis() - (5*60*1000) : false; // Check if opt in happend in last five minutes
+  const sgContactCreatedRecently = userData.emailSendgridContactCreatedTimestamp ? (userData.emailSendgridContactCreatedTimestamp as Timestamp).toMillis() > (Timestamp.now().toMillis() - (5*60*1000)) : false; // Check if opt in happend in last five minutes
 
   if (!userData.emailSendgridContactId && !sgContactCreatedRecently) {
     await addSgContactIdToSubscriber(userData);

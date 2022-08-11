@@ -2,7 +2,7 @@
 <mat-dialog-content>
   {{ confData.body }}
 </mat-dialog-content>
-<mat-dialog-actions fxLayoutAlign="center center">
+<div class="actions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
   <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ YES_BUTTON_VALUE }}</button>
-  <button mat-raised-button [mat-dialog-close] cdkFocusInitial="false">{{ NO_BUTTON_VALUE }}</button>
-</mat-dialog-actions>
+  <button mat-stroked-button color="primary" [mat-dialog-close] cdkFocusInitial="false">{{ NO_BUTTON_VALUE }}</button>
+</div>

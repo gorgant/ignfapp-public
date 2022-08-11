@@ -27,4 +27,6 @@ export const NoNavBarUrls = [
   PublicAppRoutes.TRAINING_SESSION,
   PublicAppRoutes.TRAINING_SESSION_EDIT,
   PublicAppRoutes.TRAINING_SESSION_NEW,
+  PublicAppRoutes.TRAINING_PLAN_NEW,
+  PublicAppRoutes.TRAINING_PLAN_EDIT,
 ];

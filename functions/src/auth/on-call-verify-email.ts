@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions';
 import { publicFirestore } from '../config/db-config';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { EmailVerificationData } from '../../../shared-models/email/email-verification-data';
-import { DateTime } from 'luxon';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
@@ -14,6 +13,7 @@ import { dispatchEmail } from '../email/helpers/dispatch-email';
 import { ignfappPublicApp } from '../config/app-config';
 import { UserRecord } from 'firebase-functions/v1/auth';
 import { fetchAuthUserById } from '../config/global-helpers';
+import { Timestamp } from '@google-cloud/firestore';;
 
 // Trigger email send
 const dispatchWelcomeEmail = async(userData: EmailUserData, emailVerificationData: EmailVerificationData) => {
@@ -59,9 +59,9 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   const updateUserData: Partial<PublicUser | PrelaunchUser> = {
     emailVerified: true, // Adding to user record triggers user subscription on client, which provides easy trigger for user auth check
     emailOptInConfirmed: true,
-    emailOptInTimestamp: DateTime.now().toMillis(),
-    lastModifiedTimestamp: DateTime.now().toMillis(),
-    emailSendgridContactCreatedTimestamp: userData.emailSendgridContactCreatedTimestamp ? userData.emailSendgridContactCreatedTimestamp : DateTime.now().toMillis()
+    emailOptInTimestamp: Timestamp.now() as any,
+    lastModifiedTimestamp: Timestamp.now() as any,
+    emailSendgridContactCreatedTimestamp: userData.emailSendgridContactCreatedTimestamp ? userData.emailSendgridContactCreatedTimestamp : Timestamp.now() as any,
   };
 
   // Mark sub opted in on public database

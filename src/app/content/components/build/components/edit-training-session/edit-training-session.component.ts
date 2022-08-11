@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { TrainingSessionVideoPlatform, TrainingSessionNoId, TrainingSessionKeys, TrainingSession } from 'shared-models/train/training-session.model';
+import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable } from 'rxjs';
@@ -160,13 +160,14 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           return;
         }
 
-        const trainingSessionNoId: TrainingSessionNoId = {
+        const trainingSessionNoId: TrainingSessionNoIdOrTimestamps = {
+          [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
           complexityAverage: stepTwoData.complexityDefault.value,
           [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
           complexityRatingCount: 1,
           creatorId: userData.id,
+          databaseCategory: TrainingSessionDatabaseCategoryTypes.CANONICAL,
           [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-          [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
           intensityAverage: stepTwoData.intensityDefault.value,
           [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
           intensityRatingCount: 1,
@@ -181,11 +182,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   private updateExistingSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
+    const sessionId = this.getExistingSessionId() as string;
     this.userDataSubscription = this.userData$
       .pipe(
         withLatestFrom(
           this.youtubeVideoData$,
-          this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(this.getExistingSessionId() as string)) as Observable<TrainingSession>,
+          this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<TrainingSession>,
         )
       )
       .subscribe(([userData, videoData, existingTrainingData]) => {
@@ -199,7 +201,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         }
 
         const updatedTrainingSession: Update<TrainingSession> = {
-          id: existingTrainingData!.id,
+          id: existingTrainingData.id,
           changes: {
             [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
             [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
@@ -269,7 +271,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   }
 
-  navigateUserToBrowse(): void {
+  private navigateUserToBrowse(): void {
     // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if changes detected
     this.router.navigate([PublicAppRoutes.BROWSE]);
   }

@@ -4,14 +4,13 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingRecordFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { TrainingSessionCompletionData, TrainingRecordForm, TrainingRecordKeys, TrainingRecordNoId } from 'shared-models/train/training-record.model';
-import { RootStoreState, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions } from 'src/app/root-store';
-import { Duration, DurationLikeObject, DateTime } from 'luxon';
+import { TrainingSessionCompletionData, TrainingRecordForm, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
+import { PersonalSessionFragmentStoreActions, RootStoreState, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions } from 'src/app/root-store';
+import { Duration, DurationLikeObject } from 'luxon';
 import { distinctUntilChanged, Observable, Subscription, withLatestFrom } from 'rxjs';
 import { TrainingSessionFormVars } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { Router } from '@angular/router';
-import { SessionRatingNoId } from 'shared-models/train/session-rating.model';
+import { TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
 
 @Component({
   selector: 'app-training-session-complete-dialogue',
@@ -54,8 +53,6 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   createTrainingRecordSubmitted!: boolean;
   
   editDuration = false;
-
-  
 
   constructor(
     private dialogRef: MatDialogRef<TrainingSessionCompleteDialogueComponent>,
@@ -118,8 +115,11 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     this.createTrainingRecordError$ = this.store$.select(TrainingRecordStoreSelectors.selectCreateTrainingRecordError);
   }
 
-  
   onSubmitTrainingRecord() {
+
+    const userId = this.sessionCompletionData.userId;
+    const personalSessionFragmentId = this.sessionCompletionData.personalSessionFragmentId;
+
     // Create a duration object and convert to ms
     let hmsObject: DurationLikeObject = {
       hours: this.hours.value ? this.hours.value : 0,
@@ -131,31 +131,32 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       hmsObject.seconds = 1;
     }
     const updatedDuration = Duration.fromObject(hmsObject).toMillis();
-
-    const trainingRecordNoId: TrainingRecordNoId = {
+    
+    const trainingRecordNoId: TrainingRecordNoIdOrTimestamp = {
       complexityRating: this.complexityRating.value,
       duration: updatedDuration,
       intensityRating: this.intensityRating.value,
       trainingSessionData: this.sessionCompletionData.trainingSession,
       userId: this.sessionCompletionData.userId,
-      completedTimestamp: this.sessionCompletionData.sessionCompletionTimestamp
     }
 
     console.log('Training session record data', trainingRecordNoId);
 
-    const sessionRating: SessionRatingNoId = {
+    const sessionRating: TrainingSessionRatingNoIdOrTimestamp = {
       complexityRating: this.complexityRating.value,
       intensityRating: this.intensityRating.value,
-      ratingTimestamp: DateTime.now().toMillis(),
-      sessionId: this.sessionCompletionData.trainingSession.id,
+      trainingSessionId: this.sessionCompletionData.trainingSession.id,
       userId: this.sessionCompletionData.userId
-    }
+    };
     
     this.store$.dispatch(TrainingSessionStoreActions.updateSessionRatingRequested({sessionRating}))
     this.store$.dispatch(TrainingRecordStoreActions.createTrainingRecordRequested({userId: this.sessionCompletionData.userId, trainingRecordNoId}));
+    // If this was loaded from a personalSessionFragment, delete that from user's queue upon completion
+    if (personalSessionFragmentId) {
+      this.store$.dispatch(PersonalSessionFragmentStoreActions.deletePersonalSessionFragmentRequested({userId: this.sessionCompletionData.userId, personalSessionFragmentId}));
+    }
 
     this.postCreateTrainingRecordActions();
-    
   }
 
   private postCreateTrainingRecordActions() {

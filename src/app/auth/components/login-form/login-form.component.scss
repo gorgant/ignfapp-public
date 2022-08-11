@@ -10,7 +10,7 @@
 
 mat-form-field {
   width: 100%;
-  max-width: 300px;
+  max-width: $desktop-form-width-standard;
 }
 
 .input-icon {
@@ -20,8 +20,8 @@ mat-form-field {
 
 .submit-button {
   margin-top: 16px;
-  width: 100%;
-  max-width: 300px;
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }
 
 .forgot-password-container {

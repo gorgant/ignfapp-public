@@ -1,15 +1,28 @@
 @import '../../../../../../variables';
 
+mat-stepper {
+  width: 100%;
+}
+
+form {
+  width: 100%;
+}
+
 mat-form-field {
   width: 100%;
-  max-width: 225px;
+  max-width: $desktop-form-width-standard;
   margin-top: 16px;
 }
 
 .stepper-buttons {
   margin-top: 16px;
+  width: 100%;
 }
 
+button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
 
 @media screen and (max-width: $mobile-cutoff-width) {
   .stepper-buttons {

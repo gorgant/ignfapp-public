@@ -1,5 +1,5 @@
+import { Timestamp } from '@google-cloud/firestore';;
 import * as functions from 'firebase-functions';
-import { DateTime } from 'luxon';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { EmailCategories } from '../../../shared-models/email/email-vars.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
@@ -7,16 +7,16 @@ import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { publicFirestore } from '../config/db-config';
 import { fetchUserById } from '../config/global-helpers';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
-
+// import * as admin from 'firebase-admin';
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
 
 const createPublicUser = async (userData: Partial<PublicUser>) => {
-  const publicUser = {
+  const publicUser: PublicUser = {
     ...userData as PublicUser,
-    lastModifiedTimestamp: DateTime.now().toMillis(),
-    lastAuthenticated: DateTime.now().toMillis(),
-    createdTimestamp: DateTime.now().toMillis(),
+    lastModifiedTimestamp: Timestamp.now() as any,
+    lastAuthenticatedTimestamp: Timestamp.now() as any,
+    createdTimestamp: Timestamp.now() as any,
   };
 
   functions.logger.log('Creating new Public User', publicUser);

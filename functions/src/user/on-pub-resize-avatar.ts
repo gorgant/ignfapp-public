@@ -12,7 +12,7 @@ import { EnvironmentTypes, ProductionCloudStorage, SandboxCloudStorage } from '.
 import { publicFirestore } from '../config/db-config';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
-import { DateTime } from 'luxon';
+import { Timestamp } from '@google-cloud/firestore';;
 
 const publicStorage = ignfappPublicStorage;
 const publicUsersBucket = currentEnvironmentType === EnvironmentTypes.PRODUCTION ? 
@@ -109,7 +109,7 @@ const updateUserAvatarUrl = async (imageMetaData: AvatarImageMetaData, downloadU
   const userId = imageMetaData.customMetadata.publicUserId;
   const userUpdates: Partial<PublicUser> = {
     avatarUrl: downloadUrl,
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   };
 
   await publicUsersCollection.doc(userId).update(userUpdates)

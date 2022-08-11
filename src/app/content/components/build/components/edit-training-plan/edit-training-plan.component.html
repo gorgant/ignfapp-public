@@ -1,1 +1,43 @@
-<p>edit-training-plan works!</p>
+<div class="content-container" fxLayout="column" fxLayoutAlign="center center">
+  <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" backButton>
+    <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
+  </div>
+  <div class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
+    <div *ngIf="existingTrainingPlanData$ | async as trainingPlanData" [fxHide]="editPlanDetails" class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
+      <div fxFlex="99" class="plan-title">{{ trainingPlanData.title }}</div>
+      <button class="action-button" fxFlex="1" mat-icon-button (click)="onEditPlanDetails()" aria-label="Edit training session">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <form class="training-plan-form" [fxHide]="!editPlanDetails" [formGroup]="trainingPlanForm" fxLayout="column" fxLayoutAlign="center center">
+      <div class="form-title"> {{ isNewPlan ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
+      <mat-form-field class="edit-title-field">
+        <mat-placeholder>{{ TITLE_FIELD_VALUE }}</mat-placeholder>
+        <input class="edit-title-input" [formControl]="title" matInput type="text">
+        <mat-hint>{{ title.value.length }}/{{ TITLE_MAX_LENGTH }}</mat-hint>
+      </mat-form-field>
+      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.title">
+        <mat-error *ngIf="title.hasError(validation.type) && title.invalid && (title.dirty || title.touched)">{{ validation.message }}</mat-error>
+      </mat-error>
+      <div class="form-actions" fxLayout="column" fxLayoutAlign="center center" fxLayout.gt-md="row" fxLayoutGap="16px">
+        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
+          {{ isNewPlan ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
+        </button>
+        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
+          {{ CANCEL_BUTTON_VALUE }}
+        </button>
+      </div>
+    </form>
+  </div>
+  <div *ngIf="(serverRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+  </div>
+  <div *ngIf="!editPlanDetails && (combinedTrainingPlanAndPlanSessionFragmentData$ | async) as combinedData " class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <button class="action-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingPlan(combinedData.trainingPlan?.id)">
+      {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
+    </button>
+    <cdk-virtual-scroll-viewport itemSize="300" class="scrolling-container">
+      <app-training-session-card *cdkVirtualFor="let fragment of combinedData.planSessionFragments" [trainingSesssionData]="fragment" fxLayout="column" (click)="onSelectTrainingSession(fragment)"></app-training-session-card>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>

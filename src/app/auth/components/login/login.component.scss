@@ -13,7 +13,8 @@ app-login-with-third-party {
 }
 
 .email-button {
-  width: 300px;
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
   color: #737373;
 }
 

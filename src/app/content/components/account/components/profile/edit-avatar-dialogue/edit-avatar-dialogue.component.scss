@@ -7,6 +7,12 @@
   border-radius: 50%;
 }
 
-mat-dialog-actions {
-  margin-bottom: 8px;
+.actions-container {
+  margin-top: 16px;
+  width: 100%;
+}
+
+button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }

@@ -1,25 +1,26 @@
 import * as functions from 'firebase-functions';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
-import { SessionRating } from '../../../shared-models/train/session-rating.model';
+import { TrainingSessionRating } from '../../../shared-models/train/session-rating.model';
 import { TrainingSession } from '../../../shared-models/train/training-session.model';
 import { publicFirestore } from '../config/db-config';
+import { Timestamp } from '@google-cloud/firestore';;
 
 const trainingSessionCollection = publicFirestore.collection(PublicCollectionPaths.TRAINING_SESSIONS);
 
 
 // Store session rating in collection
-const storeSessionRating = async (sessionRating: SessionRating) => {
+const storeSessionRating = async (sessionRating: TrainingSessionRating) => {
   functions.logger.log('Creating new sessionRating', sessionRating);
-  const sessionRatingCollection = publicFirestore.collection(`${PublicCollectionPaths.TRAINING_SESSIONS}/${sessionRating.sessionId}/${PublicCollectionPaths.SESSION_RATINGS}`);
+  const sessionRatingCollection = publicFirestore.collection(`${PublicCollectionPaths.TRAINING_SESSIONS}/${sessionRating.trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}`);
   await sessionRatingCollection.doc(sessionRating.id).set(sessionRating)
     .catch(err => {functions.logger.log(`Failed to create sessionRating in public database:`, err); throw new functions.https.HttpsError('internal', err);});
 }
 
 // Update session average rating values
-const updateTrainingSessionAverage = async (sessionRating: SessionRating) => {
+const updateTrainingSessionAverage = async (sessionRating: TrainingSessionRating) => {
   functions.logger.log('Updating session rating average');
-  const trainingSessionDoc = await trainingSessionCollection.doc(sessionRating.sessionId).get()
+  const trainingSessionDoc = await trainingSessionCollection.doc(sessionRating.trainingSessionId).get()
     .catch(err => {functions.logger.log(`Failed to fetch trainingSession in public database:`, err); throw new functions.https.HttpsError('internal', err);});
   
   const trainingSessionData = trainingSessionDoc.data() as TrainingSession;
@@ -45,7 +46,8 @@ const updateTrainingSessionAverage = async (sessionRating: SessionRating) => {
     complexityAverage: roundedComplexityAverage,
     complexityRatingCount: newComplexityRatingCount,
     intensityAverage: roundedIntensityAverage,
-    intensityRatingCount: newIntensityRatingCount
+    intensityRatingCount: newIntensityRatingCount,
+    lastModifiedTimestamp: Timestamp.now() as any,
   };
 
   await trainingSessionCollection.doc(trainingSessionData.id).update(updatedRatingData)
@@ -53,7 +55,7 @@ const updateTrainingSessionAverage = async (sessionRating: SessionRating) => {
   
 }
 
-const executeActions = async (sessionRating: SessionRating): Promise<void> => {
+const executeActions = async (sessionRating: TrainingSessionRating): Promise<void> => {
   await storeSessionRating(sessionRating);
   await updateTrainingSessionAverage(sessionRating);
 }
@@ -63,7 +65,7 @@ const executeActions = async (sessionRating: SessionRating): Promise<void> => {
 
 // Listen for pubsub message
 export const onPubUpdateSessionRating = functions.pubsub.topic(PublicTopicNames.UPDATE_SESSION_RATING).onPublish( async (message, context) => {
-  const sessionRating = message.json as SessionRating;
+  const sessionRating = message.json as TrainingSessionRating;
   functions.logger.log(`${PublicTopicNames.UPDATE_SESSION_RATING} request received with this data:`, sessionRating);
   functions.logger.log('Context from pubsub:', context);
 

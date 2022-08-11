@@ -18,6 +18,7 @@
   font-weight: 300;
 }
 
-// .account-item-button {
-//   width: 100%;
-// }
+.account-item-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}

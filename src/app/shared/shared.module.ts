@@ -13,6 +13,7 @@ import { YouTubePlayerModule } from '@angular/youtube-player';
 import { DurationMsToMmSsPipe } from './pipes/duration-ms-to-mm-ss.pipe';
 import { BackButtonDirective } from './directives/back-button.directive';
 import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
+import { TrainingSessionCardComponent } from './components/training-session-card/training-session-card.component';
 
 
 
@@ -27,6 +28,7 @@ import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
     DurationMsToMmSsPipe,
     BackButtonDirective,
     SessionSearchFilterPipe,
+    TrainingSessionCardComponent
   ],
   imports: [
     CommonModule,
@@ -50,7 +52,8 @@ import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
     YouTubePlayerModule,
     DurationMsToMmSsPipe,
     BackButtonDirective,
-    SessionSearchFilterPipe
+    SessionSearchFilterPipe,
+    TrainingSessionCardComponent
   ]
 })
 export class SharedModule { }

@@ -1,7 +1,8 @@
 <div class="tab-contents" fxLayout="column" fxLayoutAlign="center center">
-  <div *ngIf="(userData$ | async)?.isAdmin" class="actions" fxLayout="column" fxLayoutAlign="center center" >
+  <div *ngIf="(userData$ | async)?.isAdmin && !planBuilderRequest" class="actions-container" fxLayout="column" fxLayoutAlign="center center" >
     <button class="create-button" mat-raised-button color="primary" (click)="onCreateSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
   </div>
+  <div *ngIf="planBuilderRequest" class="add-sessions-title" fxLayout="column" fxLayoutAlign="center center">Add Sessions to Plan</div>
   <div class="search-options-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutAlign.gt-xs="center center">
     <mat-form-field class="search-form-field">
       <mat-icon *ngIf="!searchInput.focused" matPrefix class="search-icon">search</mat-icon>

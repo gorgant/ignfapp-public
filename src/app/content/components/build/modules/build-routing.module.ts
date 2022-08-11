@@ -23,12 +23,10 @@ const routes: Routes = [
   {
     path: 'new-training-plan',
     component: EditTrainingPlanComponent,
-    canDeactivate: [UnsavedChangesGuard]
   },
   {
     path: 'edit-training-plan/:id',
     component: EditTrainingPlanComponent,
-    canDeactivate: [UnsavedChangesGuard]
   },
 ];
 

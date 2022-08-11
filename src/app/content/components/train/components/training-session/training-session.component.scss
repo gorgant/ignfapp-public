@@ -10,11 +10,6 @@
 }
 
 button {
-  width: 90%;
-}
-
-@media screen and (min-width: $mobile-cutoff-width) {
-  button {
-    width: $desktop-button-width;
-  }
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }

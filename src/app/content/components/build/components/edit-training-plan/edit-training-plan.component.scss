@@ -1,0 +1,52 @@
+@import '../../../../../variables';
+
+.back-button-container {
+  width: 100%;
+  max-width: $desktop-screen-width;
+}
+
+.plan-details-container {
+  width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
+  max-width: $desktop-screen-width;
+  margin-bottom: 16px;
+}
+
+.training-plan-form {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+  max-width: $desktop-form-width-wide;
+}
+
+.form-actions {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.action-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
+
+.form-title, .plan-title {
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.plan-sessions-container {
+  width: 100%;
+  max-width: $desktop-screen-width;
+}
+
+.scrolling-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+app-training-session-card {
+  height: 300px; // Height must be set for virtual scroll to work, 240 for element + 16px of margin
+}

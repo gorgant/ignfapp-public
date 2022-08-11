@@ -1,11 +1,13 @@
-export interface SessionRating extends SessionRatingNoId {
+import { Timestamp } from '@angular/fire/firestore';
+
+export interface TrainingSessionRating extends TrainingSessionRatingNoIdOrTimestamp {
   id: string;
+  ratingTimestamp: number | Timestamp;
 }
 
-export interface SessionRatingNoId {
+export interface TrainingSessionRatingNoIdOrTimestamp {
   complexityRating: number;
   intensityRating: number;
-  ratingTimestamp: number;
-  sessionId: string;
+  trainingSessionId: string;
   userId: string;
 }

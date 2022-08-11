@@ -1,12 +1,11 @@
 import * as functions from 'firebase-functions';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import { DateTime } from 'luxon';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from '../../../shared-models/user/user-update.model';
 import { publicFirestore } from '../config/db-config';
 import { fetchUserById, fetchAuthUserById } from '../config/global-helpers';
-
+import { Timestamp } from '@google-cloud/firestore';;
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
 
@@ -45,10 +44,10 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
   if (updateType === UserUpdateType.AUTHENTICATION) {
     const userAuthData: UserRecord = await fetchAuthUserById(updatedUser.id); // This is a precaution to ensure the auth DB is the primary record of email verification
     updatedUser.emailVerified = userAuthData.emailVerified;
-    updatedUser.lastAuthenticated = DateTime.now().toMillis();
+    updatedUser.lastAuthenticatedTimestamp = Timestamp.now() as any;
   }
 
-  updatedUser.lastModifiedTimestamp = DateTime.now().toMillis(); // All user updates trigger this
+  updatedUser.lastModifiedTimestamp = Timestamp.now() as any; // All user updates trigger this
 
   await publicUsersCollection.doc(updatedUser.id).update(updatedUser as {}) // Temp typecast to object to bypass typescript type error bug
     .catch(err => {functions.logger.log(`Failed to update publicUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});

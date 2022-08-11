@@ -1,17 +1,20 @@
 import { FormControl } from "@angular/forms";
 import { TrainingSession } from "./training-session.model";
+import { Timestamp } from '@angular/fire/firestore';
 
-export interface TrainingRecord extends TrainingRecordNoId {
+export interface TrainingRecord extends TrainingRecordNoIdOrTimestamp {
+  createdTimestamp: number | Timestamp,
   id: string,
+  lastModifiedTimestamp: number | Timestamp
 };
 
-export interface TrainingRecordNoId {
+export interface TrainingRecordNoIdOrTimestamp {
   [TrainingRecordKeys.COMPLEXITY_RATING]: number,
   duration: number,
   [TrainingRecordKeys.INTENSITY_RATING]: number,
   trainingSessionData: TrainingSession,
   userId: string,
-  completedTimestamp: number,
+
 };
 
 export interface TrainingRecordForm {
@@ -31,8 +34,8 @@ export enum TrainingRecordKeys {
 }
 
 export interface TrainingSessionCompletionData {
-  trainingSession: TrainingSession,
-  sessionCompletionTimestamp: number,
   sessionDuration: number,
-  userId: string
+  trainingSession: TrainingSession,
+  userId: string,
+  personalSessionFragmentId?: string
 }

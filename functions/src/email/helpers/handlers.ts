@@ -2,7 +2,6 @@ import { EmailEvent } from "../../../../shared-models/email/email-event.model";
 import { EmailRecordKeys, EmailRecordWithClicks } from "../../../../shared-models/email/email-record.model";
 import { publicFirestore } from "../../config/db-config";
 import { EmailEventType } from "../../../../shared-models/email/email-event-type.model";
-import { DateTime } from "luxon";
 import { UnsubscribeRecord, UnsubscribeRecordList } from '../../../../shared-models/email/unsubscribe-record.model';
 import * as functions from 'firebase-functions';
 import admin = require('firebase-admin');
@@ -11,6 +10,7 @@ import { PublicCollectionPaths } from "../../../../shared-models/routes-and-path
 import { PublicUser, PublicUserKeys } from "../../../../shared-models/user/public-user.model";
 import { PrelaunchUser } from "../../../../shared-models/user/prelaunch-user.model";
 import { SendgridUnsubGroupIdContactListPairings } from "../../../../shared-models/email/email-vars.model";
+import { Timestamp } from '@google-cloud/firestore';;
 
 let eventKey: EmailEventType | string;
 
@@ -27,7 +27,7 @@ const handleClickEvent = async (emailRecordDocRef: FirebaseFirestore.DocumentRef
     ...updateClickCount
   };
 
-  eventKey = `click_${DateTime.now().toMillis()}`; // Set event key to a unique value (to avoid overwriting previous event)
+  eventKey = `click_${Timestamp.now().toMillis()}`; // Set event key to a unique value (to avoid overwriting previous event)
 
   // Update the email record with the click data
   return emailRecordClickUpdates;
@@ -40,7 +40,7 @@ const handleGroupUnsubscribe = async (rawEventData: EmailEvent, subDocRef: Fireb
   const unsubGroupId: number = rawEventData.asm_group_id as number;
 
   const groupUnsubscribeObject: UnsubscribeRecord = {
-    unsubscribeDate: DateTime.now().toMillis(),
+    unsubscribeTimestamp: Timestamp.now() as any,
     asm_group_id: unsubGroupId
   }
   
@@ -59,7 +59,7 @@ const handleGroupUnsubscribe = async (rawEventData: EmailEvent, subDocRef: Fireb
     emailGlobalUnsubscribe: admin.firestore.FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
     emailGroupUnsubscribes: groupUnsub, // Since this is an update operation, this will add to existing array of objects
     emailSendgridContactListArray: admin.firestore.FieldValue.arrayRemove(unsubGroupContactListPairing.contactListId) as any,
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   }
 
   functions.logger.log('Updating user with group unsubscribe and removing contact list id', userUpdate);
@@ -83,9 +83,9 @@ const handleGroupResubscribe = async (rawEventData: EmailEvent, userDocRef: Fire
     emailGlobalUnsubscribe: admin.firestore.FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
     [`${PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES}.${unsubGroupId}`]: admin.firestore.FieldValue.delete() as any, // remove specific unsub record from list
     emailOptInConfirmed: true, // mark user optedIn
-    emailOptInTimestamp: DateTime.now().toMillis(),
+    emailOptInTimestamp: Timestamp.now() as any,
     emailSendgridContactListArray: admin.firestore.FieldValue.arrayUnion(unsubGroupContactListPairing.contactListId) as any,
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   }
 
   functions.logger.log('Updating user with these updates', userUpdates);
@@ -99,7 +99,7 @@ const handleGlobalUnsubscribe = async (subDocRef: FirebaseFirestore.DocumentRefe
   functions.logger.log('Global unsubscribe detected');
   
   const globalUnsubscribeObject: UnsubscribeRecord = {
-    unsubscribeDate: DateTime.now().toMillis(),
+    unsubscribeTimestamp: Timestamp.now() as any,
   }
   const subscriberUpdates: Partial<PublicUser| PrelaunchUser> = {
     emailGlobalUnsubscribe: globalUnsubscribeObject,
@@ -107,7 +107,7 @@ const handleGlobalUnsubscribe = async (subDocRef: FirebaseFirestore.DocumentRefe
     emailOptInConfirmed: false,
     emailOptInTimestamp: admin.firestore.FieldValue.delete() as any,
     emailSendgridContactListArray: admin.firestore.FieldValue.delete() as any,
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   };
   
   functions.logger.log('Updating subscriber with global unsubscribe', subscriberUpdates);

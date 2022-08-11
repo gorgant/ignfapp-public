@@ -1,8 +1,18 @@
 @import '../../../../../../variables';
 
+.actions-container {
+  width: 100%;
+}
+
 .create-button {
   margin-top: 16px;
   margin-bottom: 16px;
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
+
+.select-sessions-title {
+  font-size: 1.2em;
 }
 
 .scrolling-container {
@@ -21,7 +31,7 @@ app-training-session-card {
 .search-form-field {
   padding-left: 16px;
   width: 100%;
-  max-width: $desktop-button-width;
+  max-width: 400px;
 }
 
 .search-icon {

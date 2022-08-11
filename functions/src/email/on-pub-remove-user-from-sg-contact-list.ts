@@ -13,7 +13,7 @@ import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { publicFirestore } from '../config/db-config';
-import { DateTime } from 'luxon';
+import { Timestamp } from '@google-cloud/firestore';;
 
 // Courtesy of https://sendgrid.api-docs.io/v3.0/contacts-api-lists/delete-a-single-recipient-from-a-single-list
 
@@ -61,7 +61,7 @@ const updateUserListsOnFirestore = async (sgContactListRemovalData: SgContactLis
   
   const userUpdate: Partial<PublicUser | PrelaunchUser> = {
     emailSendgridContactListArray: admin.firestore.FieldValue.arrayRemove(...listsToUpdate) as any, // This spread operator deconstructs the array into comma separated values
-    lastModifiedTimestamp: DateTime.now().toMillis()
+    lastModifiedTimestamp: Timestamp.now() as any,
   }
 
   const userCollectionPath = userData.isPrelaunchUser ? PublicCollectionPaths.PRELAUNCH_USERS : PublicCollectionPaths.PUBLIC_USERS;

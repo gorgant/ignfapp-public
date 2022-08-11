@@ -11,7 +11,7 @@ import { sendWebpageDataLoadFailureEmail } from './email-templates/webpage-data-
 import { sendPrelaunchWelcomeEmail } from './email-templates/prelaunch-welcome-email';
 import { sendNewUserDetectedEmail } from './email-templates/new-user-detected-email';
 import { publicFirestore } from '../config/db-config';
-import { DateTime } from 'luxon';
+import { Timestamp } from '@google-cloud/firestore';;
 
 // Store the email record in the database
 const addEmailLogEntry = async (emailData: EmailPubMessage) => {
@@ -31,7 +31,7 @@ const addEmailLogEntry = async (emailData: EmailPubMessage) => {
     emailCategory: emailData.emailCategory,
     recipientEmail: emailData.userData.email,
     recipientId: emailData.userData.id,
-    sentTimestamp: DateTime.now().toMillis()
+    sentTimestamp: Timestamp.now() as any,
   }
 
   await publicFirestore.collection(PublicCollectionPaths.EMAIL_LOG).doc().set(emailLogEntry);
