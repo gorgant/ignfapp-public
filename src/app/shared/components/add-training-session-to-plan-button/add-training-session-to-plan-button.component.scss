@@ -1,0 +1,6 @@
+@import "../../../variables";
+
+button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}

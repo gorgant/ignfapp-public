@@ -20,11 +20,8 @@
   </div>
 
   <div *ngIf="trainingPlanBuilderRequest" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-    <button *ngIf="!(serverRequestProcessing | async)" mat-raised-button color="primary" (click)="onAddTrainingSessionToPlan(sessionData)">{{ ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE }}</button>
-    <button *ngIf="!(serverRequestProcessing | async)" mat-stroked-button color="primary" (click)="onNavigateToTrainingSessionSelection()">{{ GO_BACK_BUTTON_VALUE }}</button>
-    <div *ngIf="(serverRequestProcessing | async)" fxLayout="column" fxLayoutAlign="center center">
-      <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-    </div>
+    <app-add-training-session-to-plan-button [trainingSessionData]="sessionData" #addTrainingSessionToPlanButton></app-add-training-session-to-plan-button>
+    <button *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing | async)" mat-stroked-button color="primary" (click)="onNavigateToTrainingSessionSelection()">{{ GO_BACK_BUTTON_VALUE }}</button>
   </div>
 
 </div>

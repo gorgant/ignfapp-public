@@ -21,7 +21,7 @@ import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/traini
 })
 export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
-  ADD_A_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.ADD_TRAINING_SESSION;
+  ADD_A_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.ADD_SESSION_TO_PLAN;
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   CREATE_TRAINING_PLAN_BUTTON_VALUE = GlobalFieldValues.CREATE_PLAN;
   CREATE_TRAINING_PLAN_TITLE_VALUE = GlobalFieldValues.CREATE_PLAN;
@@ -63,7 +63,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   planSessionFragmentsRequested!: boolean;
 
   combinedTrainingPlanAndPlanSessionFragmentData$!: Observable<{trainingPlan: TrainingPlan | undefined, planSessionFragments: PlanSessionFragment[]}>;
-
 
   isNewPlan = true;
   editPlanDetails!: boolean;
@@ -308,7 +307,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.router.navigate([PublicAppRoutes.TRAINING_PLAN_EDIT, trainingPlanId]);
   }
 
-  navigateUserToBrowse(): void {
+  onNavigateUserToBrowse(): void {
     this.router.navigate([PublicAppRoutes.BROWSE]);
   }
 

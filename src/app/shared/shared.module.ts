@@ -14,6 +14,7 @@ import { DurationMsToMmSsPipe } from './pipes/duration-ms-to-mm-ss.pipe';
 import { BackButtonDirective } from './directives/back-button.directive';
 import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
 import { TrainingSessionCardComponent } from './components/training-session-card/training-session-card.component';
+import { AddTrainingSessionToPlanButtonComponent } from './components/add-training-session-to-plan-button/add-training-session-to-plan-button.component';
 
 
 
@@ -28,7 +29,8 @@ import { TrainingSessionCardComponent } from './components/training-session-card
     DurationMsToMmSsPipe,
     BackButtonDirective,
     SessionSearchFilterPipe,
-    TrainingSessionCardComponent
+    TrainingSessionCardComponent,
+    AddTrainingSessionToPlanButtonComponent
   ],
   imports: [
     CommonModule,
@@ -53,7 +55,8 @@ import { TrainingSessionCardComponent } from './components/training-session-card
     DurationMsToMmSsPipe,
     BackButtonDirective,
     SessionSearchFilterPipe,
-    TrainingSessionCardComponent
+    TrainingSessionCardComponent,
+    AddTrainingSessionToPlanButtonComponent
   ]
 })
 export class SharedModule { }

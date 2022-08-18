@@ -2,11 +2,11 @@ import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { combineLatest, Observable, Subscription, take } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { distinctUntilChanged, map, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingSessionDatabaseCategoryTypes, TrainingSession, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
-import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionCompleteDialogueComponent } from './training-session-complete-dialogue/training-session-complete-dialogue.component';
 import { TrainingSessionDetailsComponent } from './training-session-details/training-session-details.component';
 import { TrainingSessionVideoComponent } from './training-session-video/training-session-video.component';
@@ -17,9 +17,8 @@ import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { TrainingPlan, AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
-import { PlanSessionFragment, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
-import { UiService } from 'src/app/core/services/ui.service';
+import { AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { Timestamp } from '@angular/fire/firestore';
 import { PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
 
@@ -32,7 +31,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   userData$!: Observable<PublicUser | null>;
 
-  ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TRAINING_SESSION;
+  ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
   CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
   CANCEL_TRAINING_CONF_TITLE = GlobalFieldValues.CANCEL_TRAINING;
@@ -60,25 +59,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   videoStateSubscription!: Subscription;
 
   trainingPlanBuilderRequest!: boolean;
-  createPlanSessionFragmentProcessing$!: Observable<boolean>;
-  createPlanSessionFragmentSubscription!: Subscription;
-  createPlanSessionFragmentError$!: Observable<{} | null>;
-  createPlanSessionFragmentSubmitted!: boolean;
-
-  fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
-  fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
-  planSessionFragmentsLoaded!: boolean;
-  planSessionFragmentData$!: Observable<PlanSessionFragment[]>;
-
-  fetchSingleTrainingPlanProcessing$!: Observable<boolean>;
-  fetchSingleTrainingPlanError$!: Observable<{} | null>;
-  trainingPlanLoaded!: boolean;
-  trainingPlanData$!: Observable<TrainingPlan | undefined>;
-
-  serverRequestProcessing!: Observable<boolean>;
-
-  addTrainingSessionSubscription!: Subscription;
-
   databaseCategoryType!: TrainingSessionDatabaseCategoryTypes;
   planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
   personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
@@ -88,7 +68,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     private route: ActivatedRoute,
     private dialog: MatDialog,
     private router: Router,
-    private uiService: UiService
   ) { }
 
   ngOnInit(): void {
@@ -123,33 +102,10 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
       }
     }
   }
-
+  
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
-
-    this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
-    this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchMultiplePlanSessionFragmentsError);
-
-    this.createPlanSessionFragmentProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentProcessing);
-    this.createPlanSessionFragmentError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentError);
-
-    this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
-    this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
-
-    this.serverRequestProcessing = combineLatest(
-      [
-        this.createPlanSessionFragmentProcessing$,
-        this.fetchSingleTrainingPlanProcessing$,
-      ]
-    ).pipe(
-        map(([creatingPlanSessionFragment, fetchSingleTrainingPlanProcessing]) => {
-          if (creatingPlanSessionFragment || fetchSingleTrainingPlanProcessing) {
-            return true
-          }
-          return false
-        })
-    );
 
   }
 
@@ -321,124 +277,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.router.navigate([PublicAppRoutes.TRAINING_SESSION_EDIT, sessionId]);
   }
 
-  private monitorAllPlanSessionFragments(trainingPlanId: string) {
-    this.planSessionFragmentData$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore)
-      .pipe(
-        withLatestFrom(
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing),
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError),
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched),
-        ),
-        map(([planSessionFragments, loadingPlanSessionFragments, loadError, allPlanSessionFragmentsFetched]) => {
-          console.log('planSessionFragment subscription fired with this value', planSessionFragments);
-          if (loadError) {
-            console.log('Error loading planSessionFragments in component', loadError);
-            this.planSessionFragmentsLoaded = false;
-          }
-  
-          // Check if sessions are loaded, if not fetch from server
-          if (!loadingPlanSessionFragments && !this.planSessionFragmentsLoaded && !allPlanSessionFragmentsFetched) {
-            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
-            this.planSessionFragmentsLoaded = true;
-          }
-          return planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
-        }),
-      )
-  }
-
-  private monitorSingleTrainingPlan(trainingPlanId: string) {
-    this.trainingPlanData$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId))
-      .pipe(
-        withLatestFrom(
-          this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing),
-          this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError),
-        ),
-        map(([trainingPlan, loadingTrainingPlans, loadError]) => {
-          console.log('trainingPlan subscription fired with this value', trainingPlan);
-          if (loadError) {
-            console.log('Error loading trainingPlan in component', loadError);
-            this.trainingPlanLoaded = false;
-          }
-  
-          // Check if sessions are loaded, if not fetch from server
-          if (!loadingTrainingPlans && !this.trainingPlanLoaded) {
-            this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
-            this.trainingPlanLoaded = true;
-          }
-          
-          return trainingPlan;
-        })
-      )
-  }
-
-  // Gather planSessionFragment collection and trainingPlan and then use that create a planSessionFragment
-  onAddTrainingSessionToPlan(trainingSessionData: TrainingSession) {
-    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
-
-    this.monitorAllPlanSessionFragments(trainingPlanId);
-
-    this.monitorSingleTrainingPlan(trainingPlanId);
-
-    const trainingSessionToModify: any = {...trainingSessionData};
-
-    delete trainingSessionToModify.id;
-
-    const trainingSessionNoId = trainingSessionToModify as TrainingSessionNoIdOrTimestamps;
-
-    this.addTrainingSessionSubscription = combineLatest([this.planSessionFragmentData$, this.trainingPlanData$])
-      .subscribe(([planSessionFragments, trainingPlan]) => {
-        console.log('addTrainingSessionSubscription fired with these values', planSessionFragments, trainingPlan);
-        if (planSessionFragments && trainingPlan && !this.createPlanSessionFragmentSubmitted) {
-          const indexOfFinalItem = planSessionFragments.length - 1;
-          const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {
-            ...trainingSessionNoId,
-            [PlanSessionFragmentKeys.CANONICAL_ID]: trainingSessionData.id,
-            [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT,
-            [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: trainingPlanId,
-            [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,
-            [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: trainingPlan.creatorId
-          }
-
-          this.store$.dispatch(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested({trainingPlanId, planSessionFragmentNoId}));
-          if (this.addTrainingSessionSubscription) {
-            this.addTrainingSessionSubscription.unsubscribe();
-          }
-          this.createPlanSessionFragmentSubmitted = true;
-          this.postAddTrainingSessionToPlanActions();
-        }
-      })
-  }
-
-  private postAddTrainingSessionToPlanActions() {
-    this.createPlanSessionFragmentSubscription = this.createPlanSessionFragmentProcessing$
-      .pipe(
-        withLatestFrom(
-          this.createPlanSessionFragmentError$,
-        ),
-      )
-      .subscribe(([creatingPlanSessionFragment, creationError]) => {
-        if (creationError) {
-          console.log('Error creating planSessionFragment in database, terminating function');
-          this.createPlanSessionFragmentSubscription.unsubscribe();
-          this.createPlanSessionFragmentSubmitted = false;
-          return;
-        }
-        
-        if (creatingPlanSessionFragment) {
-          this.createPlanSessionFragmentSubmitted = true;
-        }
-
-        if (!creatingPlanSessionFragment && this.createPlanSessionFragmentSubmitted) {
-          console.log('planSessionFragment creation successful.');
-          this.uiService.showSnackBar(`Training Session Added to Plan!`, 5000);
-          if (this.createPlanSessionFragmentSubscription) {
-            this.createPlanSessionFragmentSubscription.unsubscribe();
-          }
-          this.onNavigateToTrainingSessionSelection();
-        }
-      })
-  }
-
   onNavigateToTrainingSessionSelection() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
     const queryParams: AddTrainingPlanUrlParams = {
@@ -469,14 +307,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   ngOnDestroy(): void {
     if (this.videoStateSubscription) {
       this.videoStateSubscription.unsubscribe();
-    }
-
-    if (this.createPlanSessionFragmentSubscription) {
-      this.createPlanSessionFragmentSubscription.unsubscribe();
-    }
-
-    if (this.addTrainingSessionSubscription) {
-      this.addTrainingSessionSubscription.unsubscribe();
     }
   }
 }

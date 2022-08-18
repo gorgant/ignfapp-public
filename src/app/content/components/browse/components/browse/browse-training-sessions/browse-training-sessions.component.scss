@@ -4,6 +4,11 @@
   width: 100%;
 }
 
+.back-button {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 .create-button {
   margin-top: 16px;
   margin-bottom: 16px;
@@ -20,8 +25,12 @@
   height: 100vh;
 }
 
-app-training-session-card {
-  height: 300px; // Height must be set for virtual scroll to work, 240 for element + 16px of margin
+.training-session-card-container {
+  height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+}
+
+.training-session-card-container.plan-builder {
+  height: 356px;
 }
 
 .search-options-container {
@@ -55,6 +64,7 @@ app-training-session-card {
 .filters-icon-active {
   color: $accent;
 }
+
 
 @media screen and (min-width: $mobile-cutoff-width) {
   .scrolling-container {

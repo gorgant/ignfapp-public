@@ -17,11 +17,14 @@ import { TrainingSessionFiltersComponent } from '../training-session-filters/tra
 })
 export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
-  @Input() planBuilderRequest!: boolean;
+  @Input() trainingPlanBuilderRequest!: boolean;
+  trainingSessionCardHeight!: number; // Will vary depending on if planBuilderRequest
   
   userData$!: Observable<PublicUser | null>;
 
+  ADD_SESSION_TO_PLAN_HEADER_VALUE = GlobalFieldValues.ADD_SESSION_TO_PLAN;
   CREATE_SESSION_BUTTON_VALUE = GlobalFieldValues.CREATE_SESSION;
+  RETURN_TO_EDIT_PLAN_BUTTON_VALUE = GlobalFieldValues.RETURN_TO_EDIT_PLAN;
   SEARCH_VIDEO_OR_CHANNEL_TITLE_PLACEHOLDER = GlobalFieldValues.SEARCH_VIDEO_OR_CHANNEL_TITLE;
 
   fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
@@ -44,7 +47,16 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.setTrainingSessionCardHeight();
     this.monitorProcesses();
+  }
+
+  private setTrainingSessionCardHeight() {
+    if (this.trainingPlanBuilderRequest) {
+      this.trainingSessionCardHeight = 356;
+    } else {
+      this.trainingSessionCardHeight = 300
+    }
   }
 
   private monitorProcesses() {
@@ -58,14 +70,12 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
   onSelectTrainingSession(sessionData: TrainingSession) {
     let navigationExtras: NavigationExtras = {};
-    if (this.planBuilderRequest) {
+    if (this.trainingPlanBuilderRequest) {
       const queryParams = this.generatePlanBuilderQueryParams();
       navigationExtras = {...navigationExtras, queryParams};
     }
     this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${sessionData.id}`], navigationExtras);
   }
-
-  // TODO: Add a button to add session to plan on each session card
 
   // Indicate in URL that this is a planbuilder request
   private generatePlanBuilderQueryParams() {
@@ -95,6 +105,11 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
   onApplyFilters() {
     this.showFilters = false;
+  }
+
+  onReturnToEditPlan() {
+    const queryParams = this.generatePlanBuilderQueryParams();
+    this.router.navigate([PublicAppRoutes.TRAINING_PLAN_EDIT, queryParams.trainingPlanId]);
   }
 
   // Used to highlight the filters icon
