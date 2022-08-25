@@ -1,4 +1,5 @@
 @import '../../../../../variables';
+@include edit-training-plan-drag-drop();
 
 .back-button-container {
   width: 100%;
@@ -42,11 +43,20 @@ mat-form-field {
   max-width: $desktop-screen-width;
 }
 
-.scrolling-container {
-  width: 100vw;
-  height: 100vh;
+.drag-drop-list {
+  width: 100%;
+  max-width: $desktop-button-width;
 }
 
-app-training-session-card {
-  height: 300px; // Height must be set for virtual scroll to work, 240 for element + 16px of margin
+.training-session-card-container {
+  margin-bottom: 16px;
 }
+
+.drag-drop-icon {
+  padding-left: 16px;
+}
+
+.drag-and-drop-icon.desktop {
+  padding-left: 0px;
+}
+

@@ -27,8 +27,6 @@ export class UserService {
     private uiService: UiService,
   ) { }
 
-  // TODO: Figure out if we need any edits here, might need to revert the MS (potentially better on server side)
-
   createPublicUser(partialPublicUserData: Partial<PublicUser>): Observable<PublicUser> {
     const createUserHttpCall: (partialNewUserData: Partial<PublicUser>) => 
       Observable<PublicUser> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_CREATE_PUBLIC_USER);

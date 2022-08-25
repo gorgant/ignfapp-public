@@ -17,6 +17,8 @@ export const featureAdapter: EntityAdapter<PlanSessionFragment> = createEntityAd
 
 export interface PlanSessionFragmentState extends EntityState<PlanSessionFragment> {
   allPlanSessionFragmentsFetched: boolean,
+  batchModifyPlanSessionFragmentsError: FirebaseError | Error | null,
+  batchModifyPlanSessionFragmentsProcessing: boolean,
   createPlanSessionFragmentError: FirebaseError | Error | null,
   createPlanSessionFragmentProcessing: boolean,
   deletePlanSessionFragmentError: FirebaseError | Error | null,
@@ -34,6 +36,8 @@ export interface PlanSessionFragmentState extends EntityState<PlanSessionFragmen
 export const initialPlanSessionFragmentState: PlanSessionFragmentState = featureAdapter.getInitialState(
   {
     allPlanSessionFragmentsFetched: false,
+    batchModifyPlanSessionFragmentsError: null,
+    batchModifyPlanSessionFragmentsProcessing: false,
     createPlanSessionFragmentError: null,
     createPlanSessionFragmentProcessing: false,
     deletePlanSessionFragmentError: null,

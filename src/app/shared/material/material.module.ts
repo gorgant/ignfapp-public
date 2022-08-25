@@ -27,7 +27,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 
 @NgModule({
@@ -60,7 +61,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
     MatRadioModule,
     MatExpansionModule,
     ScrollingModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    DragDropModule,
   ],
   exports: [
     MatButtonModule,
@@ -91,7 +93,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
     MatRadioModule,
     MatExpansionModule,
     ScrollingModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    DragDropModule
   ]
 })
 export class MaterialModule { }

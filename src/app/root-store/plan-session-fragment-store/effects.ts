@@ -14,6 +14,27 @@ export class PlanSessionFragmentStoreEffects {
     private planSessionFragmentService: PlanSessionFragmentService,
   ) { }
 
+  batchModifyPlanSessionFragmentsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested),
+      concatMap(action => 
+        this.planSessionFragmentService.batchModifyPlanSessionFragments(action.trainingPlanId, action.planSessionFragmentUpdates).pipe(
+          map(planSessionFragmentUpdates => {
+            return PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsCompleted({planSessionFragmentUpdates});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   createPlanSessionFragmentEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested),

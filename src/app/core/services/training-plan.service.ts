@@ -203,14 +203,13 @@ export class TrainingPlanService {
 
     return from(trainingPlanUpdateRequest)
       .pipe(
-        // If logged out, this triggers unsub of this observable
-        map(docRef => {
+        map(empty => {
           console.log('Updated trainingPlan', trainingPlanUpdates);
           return trainingPlanUpdates;  // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating trainingPlan', error);
+          console.log('Error updating trainingPlan', error);
           return throwError(() => new Error(error));
         })
       );

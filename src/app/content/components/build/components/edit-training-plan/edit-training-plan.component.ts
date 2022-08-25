@@ -13,6 +13,7 @@ import { UiService } from 'src/app/core/services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PlanSessionFragment, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-edit-training-plan',
@@ -63,6 +64,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   planSessionFragmentsRequested!: boolean;
 
   combinedTrainingPlanAndPlanSessionFragmentData$!: Observable<{trainingPlan: TrainingPlan | undefined, planSessionFragments: PlanSessionFragment[]}>;
+  localPlanSessionFragments!: PlanSessionFragment[]; // Used to manage optimistic reordering in the UI (vs waiting for updates in databse)
 
   isNewPlan = true;
   editPlanDetails!: boolean;
@@ -180,6 +182,11 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           }
           return planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
         }),
+        tap(planSessionFragments => {
+          if (planSessionFragments) {
+            this.localPlanSessionFragments = planSessionFragments;
+          }
+        })
       );
 
     this.combinedTrainingPlanAndPlanSessionFragmentData$ = combineLatest([this.existingTrainingPlanData$, this.planSessionFragmentData$])
@@ -353,6 +360,65 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     };
     const navigationExtras = {queryParams};
     this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${sessionData.id}`], navigationExtras);
+  }
+
+  onListItemDrop(event: CdkDragDrop<PlanSessionFragment[]>) {
+    const tempPlanSessionFragmentList = [...this.localPlanSessionFragments];
+    const previousIndex = event.previousIndex;
+    const currentIndex = event.currentIndex;
+    const planSessionFragmentUpdates = [] as Update<PlanSessionFragment>[]; // This will be used to send batch update to database
+
+    // Part 1
+    // Basic splice/move logic courtesy of https://stackoverflow.com/a/6470794/6572208
+    const itemToMove = tempPlanSessionFragmentList[previousIndex]; // Fetch item to move
+    tempPlanSessionFragmentList.splice(previousIndex, 1); // Remove item from the array
+    const itemWithUpdatedIndex = {...itemToMove}; // Create a mutatable copy of item
+    itemWithUpdatedIndex.trainingPlanIndex = currentIndex; // Update item index
+    tempPlanSessionFragmentList.splice(currentIndex, 0, itemWithUpdatedIndex); // Insert updated item in new position
+
+    // Create item update object to push to database
+    const itemUpdateObject: Update<PlanSessionFragment> = {
+      id: itemWithUpdatedIndex.id,
+      changes: {
+        trainingPlanIndex: itemWithUpdatedIndex.trainingPlanIndex
+      }
+    };
+    planSessionFragmentUpdates.push(itemUpdateObject); // Push the item update object to the update array
+
+    // Part 2
+    // Once the item has been moved and updated, then update all the other affected items between the previous index and the current index
+    const indexChangeSize = (currentIndex - previousIndex);
+    const itemMovedDown = indexChangeSize > 0;
+    const qtyOfOtherAffectedItems = itemMovedDown ? indexChangeSize : (indexChangeSize * -1);
+    
+    // Start loop either at the previous location of the moved item (if item moved down the list) or at the location of the next item (if moved up the list)
+    const startingIndex = itemMovedDown ? previousIndex : currentIndex + 1; 
+    // End loop either at the affected item count after the previous location of the item (if item moved down the list) or that count after the new location of the moved item (if moved up the list)
+    const endingIndex = itemMovedDown ? previousIndex + qtyOfOtherAffectedItems : startingIndex + qtyOfOtherAffectedItems; 
+
+    // Initiate the loop to update the affected items
+    for (let i = startingIndex; i < endingIndex; i++) {
+      const affectedItemToUpdate: PlanSessionFragment = {...tempPlanSessionFragmentList[i]}; // Create a mutateable copy
+      const affectedItemId = affectedItemToUpdate.id;
+      affectedItemToUpdate.trainingPlanIndex = i; // Set the trainingPlanIndex value to match the array index
+      tempPlanSessionFragmentList.splice(i, 1, affectedItemToUpdate); // Swap updated item into local array (removing original item)
+      
+      // Create item update object to push to database
+      const affectedItemUpdateObject: Update<PlanSessionFragment> = {
+        id: affectedItemId,
+        changes: {
+          trainingPlanIndex: affectedItemToUpdate.trainingPlanIndex
+        }
+      };
+      planSessionFragmentUpdates.push(affectedItemUpdateObject); // Push the item update object to the update array
+    }
+
+    // Part 3
+    // Update the local array for the UI
+    this.localPlanSessionFragments = tempPlanSessionFragmentList; 
+    // Dispatch updates to database
+    const trainingPlanId = this.getExistingTrainingPlanId() as string;
+    this.store$.dispatch(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested({trainingPlanId, planSessionFragmentUpdates}));
   }
 
   ngOnDestroy(): void {

@@ -31,6 +31,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   userData$!: Observable<PublicUser | null>;
 
+  ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
   ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
   CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
@@ -40,7 +41,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   GO_BACK_BUTTON_VALUE = GlobalFieldValues.GO_BACK;
   PAUSE_TRAINING_BUTTON_VALUE = GlobalFieldValues.PAUSE_TRAINING;
   RESUME_TRAINING_BUTTON_VALUE = GlobalFieldValues.RESUME_TRAINING;
-  SCHEDULE_LATER_BUTTON_VALUE = GlobalFieldValues.SCHEDULE_LATER;
   START_NOW_BUTTON_VALUE = GlobalFieldValues.START_NOW;
 
   trainingSessionData$!: Observable<TrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
@@ -269,8 +269,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     });
   }
 
-  onScheduleLater() {
-    // TODO: Implement a date/time modal and add to user training calendar
+  onAddToQueue() {
+    // TODO: Add to the user personalSessionFragment collection
   }
 
   onEditTrainingSession(sessionId: string) {

@@ -4,6 +4,23 @@ import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from "shared-models/train/plan-session-fragment.model";
 
+// Batch Modify Plan Session Fragments
+
+export const batchModifyPlanSessionFragmentsRequested = createAction(
+  '[Edit Plan Session Fragment] Batch Modify Plan Session Fragments Requested',
+  props<{trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>[]}>()
+);
+
+export const batchModifyPlanSessionFragmentsCompleted = createAction(
+  '[Plan Session Fragment Service] Batch Modify Plan Session Fragments Completed',
+  props<{planSessionFragmentUpdates: Update<PlanSessionFragment>[]}>()
+);
+
+export const batchModifyPlanSessionFragmentsFailed = createAction(
+  '[Plan Session Fragment Service] Batch Modify Plan Session Fragments Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Create Plan Session Fragment
 
 export const createPlanSessionFragmentRequested = createAction(
@@ -12,12 +29,12 @@ export const createPlanSessionFragmentRequested = createAction(
 );
 
 export const createPlanSessionFragmentCompleted = createAction(
-  '[Train Service] Create Plan Session Fragment Completed',
+  '[Plan Session Fragment Service] Create Plan Session Fragment Completed',
   props<{planSessionFragment: PlanSessionFragment}>()
 );
 
 export const createPlanSessionFragmentFailed = createAction(
-  '[Train Service] Create Plan Session Fragment Failed',
+  '[Plan Session Fragment Service] Create Plan Session Fragment Failed',
   props<{error: FirebaseError}>()
 );
 
@@ -29,12 +46,12 @@ export const deletePlanSessionFragmentRequested = createAction(
 );
 
 export const deletePlanSessionFragmentCompleted = createAction(
-  '[Train Service] Delete Plan Session Fragment Completed',
+  '[Plan Session Fragment Service] Delete Plan Session Fragment Completed',
   props<{planSessionFragmentId: string}>()
 );
 
 export const deletePlanSessionFragmentFailed = createAction(
-  '[Train Service] Delete Plan Session Fragment Failed',
+  '[Plan Session Fragment Service] Delete Plan Session Fragment Failed',
   props<{error: FirebaseError}>()
 );
 
@@ -46,12 +63,12 @@ export const fetchAllPlanSessionFragmentsRequested = createAction(
 );
 
 export const fetchAllPlanSessionFragmentsCompleted = createAction(
-  '[Train Service] Fetch All Plan Session Fragments Completed',
+  '[Plan Session Fragment Service] Fetch All Plan Session Fragments Completed',
   props<{planSessionFragments: PlanSessionFragment[]}>()
 );
 
 export const fetchAllPlanSessionFragmentsFailed = createAction(
-  '[Train Service] Fetch All Plan Session Fragments Failed',
+  '[Plan Session Fragment Service] Fetch All Plan Session Fragments Failed',
   props<{error: FirebaseError}>()
 );
 
@@ -63,12 +80,12 @@ export const fetchMultiplePlanSessionFragmentsRequested = createAction(
 );
 
 export const fetchMultiplePlanSessionFragmentsCompleted = createAction(
-  '[Train Service] Fetch Multiple Plan Session Fragments Completed',
+  '[Plan Session Fragment Service] Fetch Multiple Plan Session Fragments Completed',
   props<{planSessionFragments: PlanSessionFragment[]}>()
 );
 
 export const fetchMultiplePlanSessionFragmentsFailed = createAction(
-  '[Train Service] Fetch Multiple Plan Session Fragments Failed',
+  '[Plan Session Fragment Service] Fetch Multiple Plan Session Fragments Failed',
   props<{error: FirebaseError}>()
 );
 
@@ -80,16 +97,16 @@ export const fetchSinglePlanSessionFragmentRequested = createAction(
 );
 
 export const fetchSinglePlanSessionFragmentCompleted = createAction(
-  '[Train Service] Fetch Single Plan Session Fragment Completed',
+  '[Plan Session Fragment Service] Fetch Single Plan Session Fragment Completed',
   props<{planSessionFragment: PlanSessionFragment}>()
 );
 
 export const fetchSinglePlanSessionFragmentFailed = createAction(
-  '[Train Service] Fetch Single Plan Session Fragment Failed',
+  '[Plan Session Fragment Service] Fetch Single Plan Session Fragment Failed',
   props<{error: FirebaseError}>()
 );
 
-// Purge Trainining PlanSessionFragment Data
+// Purge Plan Session Fragmentining PlanSessionFragment Data
 
 export const purgePlanSessionFragmentData = createAction(
   '[AppWide] Purge Plan Session Fragment Data'
@@ -103,12 +120,12 @@ export const updatePlanSessionFragmentRequested = createAction(
 );
 
 export const updatePlanSessionFragmentCompleted = createAction(
-  '[Train Service] Update Plan Session Fragment Completed',
+  '[Plan Session Fragment Service] Update Plan Session Fragment Completed',
   props<{planSessionFragmentUpdates: Update<PlanSessionFragment>}>()
 );
 
 export const updatePlanSessionFragmentFailed = createAction(
-  '[Train Service] Update Plan Session Fragment Failed',
+  '[Plan Session Fragment Service] Update Plan Session Fragment Failed',
   props<{error: FirebaseError}>()
 );
 

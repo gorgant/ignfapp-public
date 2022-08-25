@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, takeUntil } from 'rxjs/operators';
@@ -20,6 +20,39 @@ export class PersonalSessionFragmentService {
     private authService: AuthService,
     private uiService: UiService,
   ) { }
+
+  batchModifyPersonalSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PersonalSessionFragment>[]): Observable<Update<PersonalSessionFragment>[]> {
+    const batch = writeBatch(this.afs);
+
+    planSessionFragmentUpdates.forEach(singlePersonalSessionFragmentUpdate => {
+      const changesWithTimestamp: Partial<PersonalSessionFragment> = {
+        ...singlePersonalSessionFragmentUpdate.changes,
+        lastModifiedTimestamp: Timestamp.now()
+      }
+  
+      const planSessionFragmentUpdatesWithTimestamp: Update<PersonalSessionFragment> = {
+        ...singlePersonalSessionFragmentUpdate,
+        changes: changesWithTimestamp
+      }
+      const planSessionFragmentDoc = this.getPersonalSessionFragmentDoc(trainingPlanId, planSessionFragmentUpdatesWithTimestamp.id as string);
+      batch.update(planSessionFragmentDoc, changesWithTimestamp)
+    });
+
+    const batchModifyRequest = batch.commit();
+
+    return from(batchModifyRequest)
+      .pipe(
+        map(empty => {
+          console.log(`Updated ${planSessionFragmentUpdates.length} planSessionFragments`, planSessionFragmentUpdates);
+          return planSessionFragmentUpdates;  // Use original version with MS timestamps
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error updating planSessionFragment', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
 
   createPersonalSessionFragment(userId: string, personalSessionFragmentNoIdOrTimestamp: PersonalSessionFragmentNoId): Observable<PersonalSessionFragment> {
     const currentTimeTimestamp: Timestamp = Timestamp.now();
@@ -203,14 +236,13 @@ export class PersonalSessionFragmentService {
 
     return from(personalSessionFragmentUpdateRequest)
       .pipe(
-        // If logged out, this triggers unsub of this observable
         map(docRef => {
           console.log('Updated personalSessionFragment', changesWithTimestamp);
           return personalSessionFragmentUpdates; // Use new version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating personalSessionFragment', error);
+          console.log('Error updating personalSessionFragment', error);
           return throwError(() => new Error(error));
         })
       );

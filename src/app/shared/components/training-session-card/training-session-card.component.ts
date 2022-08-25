@@ -12,6 +12,7 @@ import { TrainingSession } from 'shared-models/train/training-session.model';
 export class TrainingSessionCardComponent implements OnInit {
 
   @Input() trainingSesssionData!: TrainingSession | PlanSessionFragment | PersonalSessionFragment; 
+  @Input() compressedDisplay?: boolean; // Used for edit plan display
 
   COMPLEXITY_SUBTEXT = GlobalFieldValues.COMPLEXITY;
   INTENSITY_SUBTEXT = GlobalFieldValues.INTENSITY;

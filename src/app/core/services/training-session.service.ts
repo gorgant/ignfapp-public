@@ -242,14 +242,13 @@ export class TrainingSessionService {
 
     return from(trainingSessionUpdateRequest)
       .pipe(
-        // If logged out, this triggers unsub of this observable
-        map(docRef => {
+        map(empty => {
           console.log('Updated trainingSession', trainingSessionUpdates);
           return trainingSessionUpdates; // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating trainingSession', error);
+          console.log('Error updating trainingSession', error);
           return throwError(() => new Error(error));
         })
       );

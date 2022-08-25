@@ -22,7 +22,6 @@ export class TrainingRecordService {
     private uiService: UiService,
   ) { }
 
-  // TODO: STill causing unserializable data
   createTrainingRecord(userId: string, trainingRecordNoIdOrTimestamp: TrainingRecordNoIdOrTimestamp): Observable<TrainingRecord> {
 
     const currentTimeTimestamp: Timestamp = Timestamp.now();
@@ -241,7 +240,7 @@ export class TrainingRecordService {
     return from(trainingRecordUpdateRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
-        map(docRef => {
+        map(empty => {
           console.log('Updated trainingRecord', trainingRecordUpdates);
           return trainingRecordUpdates; // Use the original version with MS timestamps
         }),
