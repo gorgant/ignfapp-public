@@ -12,9 +12,11 @@ import { IntensityDbToUiPipe } from './pipes/intensity-db-to-ui.pipe';
 import { YouTubePlayerModule } from '@angular/youtube-player';
 import { DurationMsToMmSsPipe } from './pipes/duration-ms-to-mm-ss.pipe';
 import { BackButtonDirective } from './directives/back-button.directive';
-import { SessionSearchFilterPipe } from './pipes/session-search-filter.pipe';
+import { TrainingSessionSearchFilterPipe } from './pipes/training-session-search-filter.pipe';
 import { TrainingSessionCardComponent } from './components/training-session-card/training-session-card.component';
 import { AddTrainingSessionToPlanButtonComponent } from './components/add-training-session-to-plan-button/add-training-session-to-plan-button.component';
+import { TrainingPlanSearchFilterPipe } from './pipes/training-plan-search-filter.pipe';
+import { TrainingPlanCardComponent } from './components/training-plan-card/training-plan-card.component';
 
 
 
@@ -28,9 +30,11 @@ import { AddTrainingSessionToPlanButtonComponent } from './components/add-traini
     IntensityDbToUiPipe,
     DurationMsToMmSsPipe,
     BackButtonDirective,
-    SessionSearchFilterPipe,
+    TrainingSessionSearchFilterPipe,
     TrainingSessionCardComponent,
-    AddTrainingSessionToPlanButtonComponent
+    AddTrainingSessionToPlanButtonComponent,
+    TrainingPlanSearchFilterPipe,
+    TrainingPlanCardComponent
   ],
   imports: [
     CommonModule,
@@ -54,9 +58,11 @@ import { AddTrainingSessionToPlanButtonComponent } from './components/add-traini
     YouTubePlayerModule,
     DurationMsToMmSsPipe,
     BackButtonDirective,
-    SessionSearchFilterPipe,
+    TrainingSessionSearchFilterPipe,
     TrainingSessionCardComponent,
-    AddTrainingSessionToPlanButtonComponent
+    AddTrainingSessionToPlanButtonComponent,
+    TrainingPlanSearchFilterPipe,
+    TrainingPlanCardComponent
   ]
 })
 export class SharedModule { }

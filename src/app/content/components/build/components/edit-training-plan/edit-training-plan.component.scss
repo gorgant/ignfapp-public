@@ -50,13 +50,22 @@ mat-form-field {
 
 .training-session-card-container {
   margin-bottom: 16px;
+  cursor: pointer;
 }
 
 .drag-drop-icon {
   padding-left: 16px;
 }
 
-.drag-and-drop-icon.desktop {
+.drag-drop-icon.desktop {
   padding-left: 0px;
 }
 
+.delete-icon {
+  opacity: 0.3;
+  text-align: center;
+}
+
+.delete-icon.desktop {
+  text-align: end;
+}

@@ -1,12 +1,13 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription, withLatestFrom, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
-import { AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys, TrainingPlan } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys, TrainingPlan } from 'shared-models/train/training-plan.model';
 import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors } from 'src/app/root-store';
@@ -24,9 +25,9 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   trainingPlanBuilderRequest!: boolean;
   createPlanSessionFragmentProcessing$!: Observable<boolean>;
-  createPlanSessionFragmentSubscription!: Subscription;
   createPlanSessionFragmentError$!: Observable<{} | null>;
   createPlanSessionFragmentSubmitted!: boolean;
+  createPlanSessionFragmentSubscription!: Subscription;
 
   fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
   fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
@@ -37,6 +38,12 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   fetchSingleTrainingPlanError$!: Observable<{} | null>;
   trainingPlanLoaded!: boolean;
   trainingPlanData$!: Observable<TrainingPlan | undefined>;
+
+  updateTrainingPlanProcessing$!: Observable<boolean>;
+  updateTrainingPlanError$!: Observable<{} | null>;
+  updateTrainingPlanSubmitted!: boolean;
+  updateTrainingPlanSubscription!: Subscription;
+
 
   serverRequestProcessing!: Observable<boolean>;
   activeCard!: boolean; // Prevents all buttons from showing the processing spinner when server request processing, instead only the one that's clicked
@@ -70,14 +77,18 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
     this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
 
+    this.updateTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanProcessing);
+    this.updateTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanError);
+
     this.serverRequestProcessing = combineLatest(
       [
         this.createPlanSessionFragmentProcessing$,
         this.fetchSingleTrainingPlanProcessing$,
+        this.updateTrainingPlanProcessing$,
       ]
     ).pipe(
-        map(([creatingPlanSessionFragment, fetchSingleTrainingPlanProcessing]) => {
-          if (creatingPlanSessionFragment || fetchSingleTrainingPlanProcessing) {
+        map(([creatingPlanSessionFragment, fetchSingleTrainingPlanProcessing, updateTrainingPlanProcessing]) => {
+          if (creatingPlanSessionFragment || fetchSingleTrainingPlanProcessing || updateTrainingPlanProcessing) {
             return true
           }
           return false
@@ -185,37 +196,80 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
             this.addTrainingSessionSubscription.unsubscribe();
           }
           this.createPlanSessionFragmentSubmitted = true;
-          this.postAddTrainingSessionToPlanActions();
+          this.postAddTrainingSessionToPlanActions(planSessionFragmentNoId, trainingPlan);
         }
       })
   }
 
-  private postAddTrainingSessionToPlanActions() {
+
+  // Once training session has been added to plan, update the plan data accordingly
+  private postAddTrainingSessionToPlanActions(planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp, trainingPlan: TrainingPlan) {
     this.createPlanSessionFragmentSubscription = this.createPlanSessionFragmentProcessing$
+    .pipe(
+      withLatestFrom(
+        this.createPlanSessionFragmentError$,
+      ),
+    )
+    .subscribe(([creatingPlanSessionFragment, creationError]) => {
+      if (creationError) {
+        console.log('Error creating planSessionFragment in database, terminating function');
+        this.createPlanSessionFragmentSubscription.unsubscribe();
+        this.createPlanSessionFragmentSubmitted = false;
+        return;
+      }
+      
+      if (creatingPlanSessionFragment) {
+        this.createPlanSessionFragmentSubmitted = true;
+      }
+
+      if (!creatingPlanSessionFragment && this.createPlanSessionFragmentSubmitted) {
+        console.log('planSessionFragment creation successful.');
+        if (this.createPlanSessionFragmentSubscription) {
+          this.createPlanSessionFragmentSubscription.unsubscribe();
+        }
+        // Add thumbnail url if one doesn't already exist
+        const thumbnailExists = trainingPlan.thumbnailUrlSmall && trainingPlan.thumbnailUrlLarge;
+        const trainingPlanUpdates: Update<TrainingPlan> = {
+          id: trainingPlan.id,
+          changes: {
+            trainingSessionCount: trainingPlan.trainingSessionCount + 1, // Increment the training session count by one
+            thumbnailUrlSmall: thumbnailExists ? trainingPlan.thumbnailUrlSmall : planSessionFragmentNoId.videoData.thumbnailUrlSmall, // Add thumbnail data if it doesn't exist
+            thumbnailUrlLarge: thumbnailExists ? trainingPlan.thumbnailUrlLarge : planSessionFragmentNoId.videoData.thumbnailUrlLarge, // Add thumbnail data if it doesn't exist
+          }
+        };
+    
+        this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates}));
+        this.postUpdateTrainingPlanActions();
+      }
+    })
+  }
+
+  private postUpdateTrainingPlanActions() {
+    this.updateTrainingPlanSubscription = this.updateTrainingPlanProcessing$
       .pipe(
         withLatestFrom(
-          this.createPlanSessionFragmentError$,
+          this.updateTrainingPlanError$,
         ),
       )
-      .subscribe(([creatingPlanSessionFragment, creationError]) => {
-        if (creationError) {
-          console.log('Error creating planSessionFragment in database, terminating function');
-          this.createPlanSessionFragmentSubscription.unsubscribe();
-          this.createPlanSessionFragmentSubmitted = false;
+      .subscribe(([updatingTrainingPlan, updateError]) => {
+        if (updateError) {
+          console.log('Error updating trainingPlan in database, terminating function');
+          this.updateTrainingPlanSubscription.unsubscribe();
+          this.updateTrainingPlanSubmitted = false;
           return;
         }
         
-        if (creatingPlanSessionFragment) {
-          this.createPlanSessionFragmentSubmitted = true;
+        if (updatingTrainingPlan) {
+          this.updateTrainingPlanSubmitted = true;
         }
 
-        if (!creatingPlanSessionFragment && this.createPlanSessionFragmentSubmitted) {
-          console.log('planSessionFragment creation successful.');
-          this.uiService.showSnackBar(`Training Session Added to Plan!`, 5000);
-          if (this.createPlanSessionFragmentSubscription) {
-            this.createPlanSessionFragmentSubscription.unsubscribe();
+        if (!updatingTrainingPlan && this.updateTrainingPlanSubmitted) {
+          console.log('trainingPlan creation successful.');
+          if (this.updateTrainingPlanSubscription) {
+            this.updateTrainingPlanSubscription.unsubscribe();
           }
           this.activeCard = false;
+          this.uiService.showSnackBar(`Training Session Added to Plan!`, 5000);
           this.navigateToTrainingSessionSelection();
         }
       })
@@ -223,7 +277,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   private navigateToTrainingSessionSelection() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
-    const queryParams: AddTrainingPlanUrlParams = {
+    const queryParams: AddTrainingSessionUrlParams = {
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId
     }
@@ -238,6 +292,10 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
     if (this.addTrainingSessionSubscription) {
       this.addTrainingSessionSubscription.unsubscribe();
+    }
+
+    if (this.updateTrainingPlanSubscription) {
+      this.updateTrainingPlanSubscription.unsubscribe();
     }
   }
 

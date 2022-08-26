@@ -25,7 +25,7 @@ const getUpdateTrainingSessionError = (state: TrainingSessionState) => state.upd
 const getUpdateTrainingSessionProcessing = (state: TrainingSessionState) => state.updateTrainingSessionProcessing;
 const getYoutubeVideoData = (state: TrainingSessionState) => state.youtubeVideoData;
 
-export const selectAllSessionsInStore: (state: object) => TrainingSession[] = createSelector(
+export const selectAllTrainingSessionsInStore: (state: object) => TrainingSession[] = createSelector(
   selectTrainingSessionState,
   fromTrainingSessions.selectAll
 );

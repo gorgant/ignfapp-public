@@ -17,7 +17,7 @@ import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { Timestamp } from '@angular/fire/firestore';
 import { PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
@@ -279,7 +279,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   onNavigateToTrainingSessionSelection() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
-    const queryParams: AddTrainingPlanUrlParams = {
+    const queryParams: AddTrainingSessionUrlParams = {
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId
     }

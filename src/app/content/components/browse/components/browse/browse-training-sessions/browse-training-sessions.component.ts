@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { AddTrainingPlanUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { TrainingSession, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { RootStoreState, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -27,8 +27,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   RETURN_TO_EDIT_PLAN_BUTTON_VALUE = GlobalFieldValues.RETURN_TO_EDIT_PLAN;
   SEARCH_VIDEO_OR_CHANNEL_TITLE_PLACEHOLDER = GlobalFieldValues.SEARCH_VIDEO_OR_CHANNEL_TITLE;
 
-  fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
-  trainingSessionsSubscription!: Subscription;
+  fetchAllTrainingSessionsProcessing$!: Observable<boolean>;
   
   @ViewChild('trainingSessionFilters') trainingSessionFiltersComponent!: TrainingSessionFiltersComponent;
 
@@ -61,26 +60,26 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
-    this.fetchAllTrainingSesssionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
+    this.fetchAllTrainingSessionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
   }
 
-  onCreateSession() {
+  onCreateTrainingSession() {
     this.router.navigate([PublicAppRoutes.TRAINING_SESSION_NEW]);
   }
 
-  onSelectTrainingSession(sessionData: TrainingSession) {
+  onSelectTrainingSession(trainingSessionData: TrainingSession) {
     let navigationExtras: NavigationExtras = {};
     if (this.trainingPlanBuilderRequest) {
       const queryParams = this.generatePlanBuilderQueryParams();
       navigationExtras = {...navigationExtras, queryParams};
     }
-    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${sessionData.id}`], navigationExtras);
+    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${trainingSessionData.id}`], navigationExtras);
   }
 
   // Indicate in URL that this is a planbuilder request
   private generatePlanBuilderQueryParams() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
-    const queryParams: AddTrainingPlanUrlParams = {
+    const queryParams: AddTrainingSessionUrlParams = {
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId
     }
@@ -139,10 +138,6 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.trainingSessionFilterFormSubscription) {
       this.trainingSessionFilterFormSubscription.unsubscribe();
-    }
-
-    if (this.trainingSessionsSubscription) {
-      this.trainingSessionsSubscription.unsubscribe();
     }
   }
 

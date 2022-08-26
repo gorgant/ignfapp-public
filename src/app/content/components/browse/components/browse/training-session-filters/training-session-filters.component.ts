@@ -59,7 +59,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   }
 
   private fetchInitialTrainingSessionBatch() {
-    this.trainingSessionsSubscription = this.store$.select(TrainingSessionStoreSelectors.selectAllSessionsInStore)
+    this.trainingSessionsSubscription = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore)
       .pipe(
         withLatestFrom(
           this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing),

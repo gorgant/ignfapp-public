@@ -1,21 +1,21 @@
 @import '../../../variables';
 
-.training-session-thumbnail, .training-session-details-container {
+.training-plan-thumbnail, .training-plan-details-container {
   width: 100%;
   max-width: $desktop-button-width;
 }
 
-.training-session-details-container {
+.training-plan-details-container {
   padding-left: 16px;
-  padding-right: 8px;
+  padding-right: 16px;
 }
 
-.training-session-title {
+.training-plan-title {
   font-size: 15px;
   font-weight: $font-weight-regular;
 }
 
-.training-session-subtext {
+.training-plan-subtext {
   font-size: 13px;
   color: $font-subheader-color;
 }

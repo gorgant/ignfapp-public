@@ -10,6 +10,9 @@ export interface TrainingPlan extends TrainingPlanNoIdOrTimestamp {
 export interface TrainingPlanNoIdOrTimestamp {
   creatorId: string,
   [TrainingPlanKeys.TITLE]: string,
+  trainingSessionCount: number,
+  thumbnailUrlLarge?: string | null,
+  thumbnailUrlSmall?: string | null,
 }
 
 export enum TrainingPlanKeys {
@@ -22,10 +25,10 @@ export interface TrainingPlanForm {
 
 export const TrainingPlanFormVars = {
   titleMinLength: 3,
-  titleMaxLength: 70,
+  titleMaxLength: 70, // This is the max length of a YouTube video
 }
 
-export interface AddTrainingPlanUrlParams extends Params {
+export interface AddTrainingSessionUrlParams extends Params {
   [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: boolean,
   [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: string
 }

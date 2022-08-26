@@ -10,3 +10,39 @@
   width: $mobile-button-width;
   max-width: $desktop-button-width;
 }
+
+.search-options-container {
+  width: 100%
+}
+
+.search-form-field {
+  padding-left: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-icon {
+  margin-bottom: -4px;
+  margin-right: 4px;
+}
+
+.loading-spinner {
+  margin-top: 64px;
+}
+
+.scrolling-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+.training-plan-card-container {
+  height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+}
+
+@media screen and (min-width: $mobile-cutoff-width) {
+  .scrolling-container {
+    width: $desktop-screen-width;
+    height: calc(100vh - 200px);
+  }
+}
+

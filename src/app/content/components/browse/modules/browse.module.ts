@@ -13,7 +13,7 @@ import { TrainingSessionFiltersComponent } from '../components/browse/training-s
     BrowseComponent,
     BrowseTrainingSessionsComponent,
     BrowseTrainingPlansComponent,
-    TrainingSessionFiltersComponent
+    TrainingSessionFiltersComponent,
   ],
   imports: [
     SharedModule,

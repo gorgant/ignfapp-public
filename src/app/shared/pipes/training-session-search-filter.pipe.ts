@@ -2,33 +2,33 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TrainingSession } from 'shared-models/train/training-session.model';
 
 @Pipe({
-  name: 'sessionSearchFilter'
+  name: 'trainingSessionSearchFilter'
 })
-export class SessionSearchFilterPipe implements PipeTransform {
+export class TrainingSessionSearchFilterPipe implements PipeTransform {
 
   /**
    * Pipe filters the list of elements based on the search text provided, including character matches and keyword matches
    *
-   * @param sessions array of trainingSessions
+   * @param trainingSessions array of trainingSessions
    * @param searchText search string
    * @returns list of elements filtered by search text or []
    */
-   transform(sessions: TrainingSession[] | null, searchText: string): TrainingSession[] {
-    if (!sessions) {
+   transform(trainingSessions: TrainingSession[] | null, searchText: string): TrainingSession[] {
+    if (!trainingSessions) {
       return [];
     }
     if (!searchText) {
-      return sessions;
+      return trainingSessions;
     }
     searchText = searchText.toLocaleLowerCase();
 
-    return sessions.filter(session => {
-      const combinedVideoTitleChannelTitle = [session.videoData.title.toLocaleLowerCase(), session.videoData.channelTitle.toLocaleLowerCase()].join(' ');
+    return trainingSessions.filter(trainingSession => {
+      const combinedVideoTitleChannelTitle = [trainingSession.videoData.title.toLocaleLowerCase(), trainingSession.videoData.channelTitle.toLocaleLowerCase()].join(' ');
       
       // Simple character match
       const isCharacterMatch = combinedVideoTitleChannelTitle.toLocaleLowerCase().includes(searchText);
 
-      // This checks any combination of keywords against the video and channel title keywords
+      // This checks any combination of keywords against the reference keywords
       let isKeywordMatch = false;
       let keywords: string[] = [];
 

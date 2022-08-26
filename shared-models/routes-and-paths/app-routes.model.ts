@@ -15,6 +15,7 @@ export enum PublicAppRoutes {
   TRAINING_SESSION = 'train/session',
   TRAINING_SESSION_EDIT = 'build/edit-training-session',
   TRAINING_SESSION_NEW = 'build/new-training-session',
+  TRAINING_PLAN = 'train/plan',
   TRAINING_PLAN_EDIT = 'build/edit-training-plan',
   TRAINING_PLAN_NEW = 'build/new-training-plan',
 }

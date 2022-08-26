@@ -33,15 +33,16 @@
     <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
   </div>
   <div *ngIf="!editPlanDetails && (combinedTrainingPlanAndPlanSessionFragmentData$ | async) as combinedData " class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
-    <button class="action-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingPlan(combinedData.trainingPlan?.id)">
+    <button class="action-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingSession(combinedData.trainingPlan?.id)">
       {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
     </button>
     <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
       <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of localPlanSessionFragments">
         <div class="drop-placeholder" *cdkDragPlaceholder></div>
-        <div class="training-session-card-details" fxLayout="row" fxLayoutAlign="center start" fxLayoutGap="4px">
-          <mat-icon class="drag-drop-icon" ngClass.gt-xs="desktop">drag_indicator</mat-icon>
-          <app-training-session-card [trainingSesssionData]="fragment" [compressedDisplay]="true" fxLayout="column" (click)="onSelectTrainingSession(fragment)"></app-training-session-card>
+        <div class="training-session-card-details" fxLayout="row" fxLayoutAlign="center start">
+          <mat-icon fxFlex="15" fxFlex.gt-xs="10" class="drag-drop-icon" ngClass.gt-xs="desktop">drag_indicator</mat-icon>
+          <app-training-session-card fxFlex="75" fxFlex.gt-xs="80" [trainingSesssionData]="fragment" [compressedDisplay]="true" fxLayout="column" (click)="onSelectTrainingSession(fragment)"></app-training-session-card>
+          <mat-icon fxFlex="15" fxFlex.gt-xs="10" class="delete-icon" ngClass.gt-xs="desktop" (click)="onDeletePlanSessionFragment(fragment, combinedData.trainingPlan)">delete</mat-icon>
         </div>
       </div>
     </div>
