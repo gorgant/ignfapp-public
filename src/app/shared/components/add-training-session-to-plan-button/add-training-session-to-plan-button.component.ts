@@ -2,7 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { combineLatest, Observable, Subscription, withLatestFrom, map } from 'rxjs';
+import { combineLatest, Observable, Subscription, withLatestFrom, map, take, takeUntil, Subject } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
@@ -46,13 +46,15 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
 
   serverRequestProcessing!: Observable<boolean>;
-  activeCard!: boolean; // Prevents all buttons from showing the processing spinner when server request processing, instead only the one that's clicked
 
   addTrainingSessionSubscription!: Subscription;
 
   databaseCategoryType!: TrainingSessionDatabaseCategoryTypes;
   planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
   personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
+
+  unsubAllRequested$: Subject<void> = new Subject();
+  unsubButtonRequested$: Subject<void> = new Subject();
 
   constructor(
     private store$: Store<RootStoreState.AppState>,
@@ -62,23 +64,31 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   ) { }
 
   ngOnInit(): void {
-    this.checkForAdditionalViewSessionData();
-    this.monitorProcesses();
+    // Note everything is triggered by button click to conserve resources since this gets duplicated a lot on a list view
+    // Additionally, since this doesn't get destroyed in a list view, we aggressively unsubscribe after we complete the necessary action
   }
 
   private monitorProcesses() {
 
-    this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
-    this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchMultiplePlanSessionFragmentsError);
+    this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing)
+      .pipe(takeUntil(this.unsubAllRequested$));
+    this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchMultiplePlanSessionFragmentsError)
+      .pipe(takeUntil(this.unsubAllRequested$));
 
-    this.createPlanSessionFragmentProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentProcessing);
-    this.createPlanSessionFragmentError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentError);
+    this.createPlanSessionFragmentProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentProcessing)
+      .pipe(takeUntil(this.unsubAllRequested$));
+    this.createPlanSessionFragmentError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentError)
+      .pipe(takeUntil(this.unsubAllRequested$));
 
-    this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
-    this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
+    this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing)
+      .pipe(takeUntil(this.unsubAllRequested$));
+    this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError)
+      .pipe(takeUntil(this.unsubAllRequested$));
 
-    this.updateTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanProcessing);
-    this.updateTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanError);
+    this.updateTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanProcessing)
+      .pipe(takeUntil(this.unsubAllRequested$));
+    this.updateTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanError)
+      .pipe(takeUntil(this.unsubAllRequested$));
 
     this.serverRequestProcessing = combineLatest(
       [
@@ -115,6 +125,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private monitorAllPlanSessionFragments(trainingPlanId: string) {
     this.planSessionFragmentData$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore)
       .pipe(
+        takeUntil(this.unsubAllRequested$),
         withLatestFrom(
           this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing),
           this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError),
@@ -140,6 +151,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private monitorSingleTrainingPlan(trainingPlanId: string) {
     this.trainingPlanData$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId))
       .pipe(
+        takeUntil(this.unsubAllRequested$),
         withLatestFrom(
           this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing),
           this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError),
@@ -164,6 +176,14 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   // Gather planSessionFragment collection and trainingPlan and then use that create a planSessionFragment
   onAddTrainingSessionToPlan() {
+    console.log('Add training session clicked for ', this.trainingSessionData.id);
+    if (this.createPlanSessionFragmentSubmitted) {
+      console.log(`Create planSessionFragment already created for ${this.trainingSessionData.id}`, this.createPlanSessionFragmentSubmitted)
+      return;
+    }
+
+    this.checkForAdditionalViewSessionData();
+    this.monitorProcesses();
     
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
 
@@ -178,8 +198,11 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     const trainingSessionNoId = trainingSessionToModify as TrainingSessionNoIdOrTimestamps;
 
     this.addTrainingSessionSubscription = combineLatest([this.planSessionFragmentData$, this.trainingPlanData$])
+      .pipe(
+        takeUntil(this.unsubButtonRequested$)
+      )
       .subscribe(([planSessionFragments, trainingPlan]) => {
-        console.log('addTrainingSessionSubscription fired with these values', planSessionFragments, trainingPlan);
+        console.log(`addTrainingSessionSubscription fired for ${this.trainingSessionData.id} with these values`, planSessionFragments, trainingPlan, this.createPlanSessionFragmentSubmitted);
         if (planSessionFragments && trainingPlan && !this.createPlanSessionFragmentSubmitted) {
           const indexOfFinalItem = planSessionFragments.length - 1;
           const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {
@@ -190,12 +213,13 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
             [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,
             [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: trainingPlan.creatorId
           }
-
+          this.unsubButton();
           this.store$.dispatch(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested({trainingPlanId, planSessionFragmentNoId}));
+          this.createPlanSessionFragmentSubmitted = true;
           if (this.addTrainingSessionSubscription) {
+            console.log('Unsubbing addTrainingSessionSubscription');
             this.addTrainingSessionSubscription.unsubscribe();
           }
-          this.createPlanSessionFragmentSubmitted = true;
           this.postAddTrainingSessionToPlanActions(planSessionFragmentNoId, trainingPlan);
         }
       })
@@ -206,6 +230,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private postAddTrainingSessionToPlanActions(planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp, trainingPlan: TrainingPlan) {
     this.createPlanSessionFragmentSubscription = this.createPlanSessionFragmentProcessing$
     .pipe(
+      takeUntil(this.unsubAllRequested$),
       withLatestFrom(
         this.createPlanSessionFragmentError$,
       ),
@@ -218,10 +243,6 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         return;
       }
       
-      if (creatingPlanSessionFragment) {
-        this.createPlanSessionFragmentSubmitted = true;
-      }
-
       if (!creatingPlanSessionFragment && this.createPlanSessionFragmentSubmitted) {
         console.log('planSessionFragment creation successful.');
         if (this.createPlanSessionFragmentSubscription) {
@@ -247,6 +268,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private postUpdateTrainingPlanActions() {
     this.updateTrainingPlanSubscription = this.updateTrainingPlanProcessing$
       .pipe(
+        takeUntil(this.unsubAllRequested$),
         withLatestFrom(
           this.updateTrainingPlanError$,
         ),
@@ -264,11 +286,10 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         }
 
         if (!updatingTrainingPlan && this.updateTrainingPlanSubmitted) {
-          console.log('trainingPlan creation successful.');
+          console.log('trainingPlan update successful.');
           if (this.updateTrainingPlanSubscription) {
             this.updateTrainingPlanSubscription.unsubscribe();
           }
-          this.activeCard = false;
           this.uiService.showSnackBar(`Training Session Added to Plan!`, 5000);
           this.navigateToTrainingSessionSelection();
         }
@@ -276,6 +297,8 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   }
 
   private navigateToTrainingSessionSelection() {
+    console.log('Navigating to training session selection');
+    this.unsubAll();
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
     const queryParams: AddTrainingSessionUrlParams = {
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
@@ -283,6 +306,18 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     }
     const navigationExtras: NavigationExtras = {queryParams};
     this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+  }
+
+  private unsubAll() {
+    this.unsubAllRequested$.next();
+    this.unsubAllRequested$.complete(); // Send signal to subscriptions to unsubscribe
+    this.unsubAllRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
+  }
+
+  private unsubButton() {
+    this.unsubButtonRequested$.next();
+    this.unsubButtonRequested$.complete(); // Send signal to subscriptions to unsubscribe
+    this.unsubButtonRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
   ngOnDestroy(): void {

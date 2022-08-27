@@ -1,1 +1,22 @@
-<p>training-plan works!</p>
+<div *ngIf="(combinedTrainingPlanAndPlanSessionFragmentData$ | async) as combinedData" class="content-container" fxLayout="column" fxLayoutAlign="center center">
+  <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" (click)="onNavigateUserToBrowse()">
+    <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
+  </div>
+  <div class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
+    <div class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
+      <div class="plan-title">{{ combinedData.trainingPlan?.title }}</div>
+      <button *ngIf="(userData$ | async)?.isAdmin" class="action-button"  mat-icon-button (click)="onEditTrainingPlan(combinedData.trainingPlan)" aria-label="Edit training session">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <div class="lesson-count">{{ combinedData.trainingPlan?.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
+  </div>
+  <button class="add-plan-button" mat-raised-button color="primary" (click)="onAddTrainingPlanToQueue()">{{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>
+  <div class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+    <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
+      <div class="training-session-card-container" *cdkVirtualFor="let planSessionFragment of combinedData.planSessionFragments" fxLayout="column" fxLayoutGap="8px">
+        <app-training-session-card [trainingSesssionData]="planSessionFragment" fxLayout="column" (click)="onSelectTrainingSession(planSessionFragment)"></app-training-session-card>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>

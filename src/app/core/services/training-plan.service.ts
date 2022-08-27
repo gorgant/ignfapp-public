@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { from, Observable, throwError, take, catchError, map, takeUntil, Subject, combineLatest } from 'rxjs';
 import { TrainingPlan, TrainingPlanNoIdOrTimestamp } from 'shared-models/train/training-plan.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -15,11 +14,13 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class TrainingPlanService {
 
+  deleteTrainingPlanRequested$: Subject<void> = new Subject();
+
   constructor(
     private afs: Firestore,
     private authService: AuthService,
     private uiService: UiService,
-  ) { }
+  ) {}
 
   createTrainingPlan(trainingPlanNoIdOrTimestamp: TrainingPlanNoIdOrTimestamp): Observable<TrainingPlan> {
 
@@ -61,6 +62,8 @@ export class TrainingPlanService {
   }
 
   deleteTrainingPlan(planId: string): Observable<string> {
+    this.unsubscribeSingleTrainingPlan();
+
     const trainingPlanDeleteRequest = deleteDoc(this.getTrainingPlanDoc(planId));
 
     return from(trainingPlanDeleteRequest)
@@ -166,7 +169,7 @@ export class TrainingPlanService {
     const trainingPlan = docData(this.getTrainingPlanDoc(planId));
     return trainingPlan
       .pipe(
-        // If logged out, this triggers unsub of this observable
+        takeUntil(this.deleteTrainingPlanRequested$), // Prevents fetching error when plan is deleted
         takeUntil(this.authService.unsubTrigger$),
         map(trainingPlan => {
           if (!trainingPlan) {
@@ -213,6 +216,12 @@ export class TrainingPlanService {
           return throwError(() => new Error(error));
         })
       );
+  }
+
+  private unsubscribeSingleTrainingPlan() {
+    this.deleteTrainingPlanRequested$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanRequested$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
   private getTrainingPlanCollection(): CollectionReference<TrainingPlan> {

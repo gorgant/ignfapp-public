@@ -25,14 +25,16 @@
       <button class="filter-button" mat-stroked-button color="primary" (click)="onClearFilters()">Clear Filters</button>
     </div>
   </div>
-  <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
+  <cdk-virtual-scroll-viewport *ngIf="!trainingPlanBuilderRequest" [itemSize]="trainingSessionCardHeight" class="scrolling-container">
     <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *cdkVirtualFor="let session of trainingSessionFilters.filteredTrainingSessions | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
-      <app-training-session-card [trainingSesssionData]="session" fxLayout="column" (click)="onSelectTrainingSession(session)"></app-training-session-card>
-      <ng-container *ngIf="trainingPlanBuilderRequest">
-        <app-add-training-session-to-plan-button (click)="addTrainingSessionButton.activeCard = true" [trainingSessionData]="session" #addTrainingSessionButton></app-add-training-session-to-plan-button>
-      </ng-container>
+      <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="trainingPlanBuilderRequest" fxLayout="column" ></app-training-session-card>
     </div>
   </cdk-virtual-scroll-viewport>
+  <ng-container *ngIf="trainingPlanBuilderRequest">
+    <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *ngFor="let session of trainingSessionFilters.filteredTrainingSessions | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
+      <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="trainingPlanBuilderRequest" fxLayout="column" ></app-training-session-card>
+    </div>
+  </ng-container>
 </div>
 <div *ngIf="(fetchAllTrainingSessionsProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center" class="loading-spinner">
   <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>

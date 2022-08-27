@@ -10,6 +10,31 @@ import { featureAdapter, initialPlanSessionFragmentState, PlanSessionFragmentSta
 export const planSessionFragmentStoreReducer = createReducer(
   initialPlanSessionFragmentState,
 
+  // Batch Delete Plan Session Fragment
+  
+  on(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested, (state, action) => {
+    return {
+      ...state,
+      batchDeletePlanSessionFragmentsProcessing: true,
+      batchDeletePlanSessionFragmentsError: null
+    }
+  }),
+  on(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsCompleted, (state, action) => {
+    return featureAdapter.removeMany(
+      action.planSessionFragmentIds, {
+        ...state,
+        batchDeletePlanSessionFragmentsProcessing: false,
+      }
+    )
+  }),
+  on(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsFailed, (state, action) => {
+    return {
+      ...state,
+      batchDeletePlanSessionFragmentsProcessing: false,
+      batchDeletePlanSessionFragmentsError: action.error
+    }
+  }),
+
   // Batch Modify Plan Session Fragment
   
   on(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested, (state, action) => {

@@ -194,8 +194,6 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     })
   }
 
-  // TODO: See if we can give the equipment toggle boxes an accent color
-
   onEquipmentToggle(event: MatButtonToggleChange) {
 
     const fieldValueChangeArray: boolean[] = event.value; // This is an array of selected values

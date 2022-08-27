@@ -28,6 +28,10 @@ mat-form-field {
   margin-top: 16px;
 }
 
+.plan-actions-button-container {
+  width: 100%;
+}
+
 .action-button {
   width: $mobile-button-width;
   max-width: $desktop-button-width;
@@ -36,6 +40,7 @@ mat-form-field {
 .form-title, .plan-title {
   font-size: 1.2em;
   text-align: center;
+  line-height: 1.1em;
 }
 
 .plan-sessions-container {

@@ -7,6 +7,8 @@ import * as fromPlanSessionFragments from './reducer';
 const selectPlanSessionFragmentState = createFeatureSelector<PlanSessionFragmentState>(PublicStoreFeatureKeys.PLAN_SESSSION_FRAGMENT);
 
 const getAllPlanSessionFragmentsFetched = (state: PlanSessionFragmentState) => state.allPlanSessionFragmentsFetched;
+const getBatchDeletePlanSessionFragmentsError = (state: PlanSessionFragmentState) => state.batchDeletePlanSessionFragmentsError;
+const getBatchDeletePlanSessionFragmentsProcessing = (state: PlanSessionFragmentState) => state.batchDeletePlanSessionFragmentsProcessing;
 const getBatchModifyPlanSessionFragmentsError = (state: PlanSessionFragmentState) => state.batchModifyPlanSessionFragmentsError;
 const getBatchModifyPlanSessionFragmentsProcessing = (state: PlanSessionFragmentState) => state.batchModifyPlanSessionFragmentsProcessing;
 const getCreatePlanSessionFragmentError = (state: PlanSessionFragmentState) => state.createPlanSessionFragmentError;
@@ -30,6 +32,16 @@ export const selectAllPlanSessionFragmentsInStore: (state: object) => PlanSessio
 export const selectAllPlanSessionFragmentsFetched = createSelector(
   selectPlanSessionFragmentState,
   getAllPlanSessionFragmentsFetched
+);
+
+export const selectBatchDeletePlanSessionFragmentsError = createSelector(
+  selectPlanSessionFragmentState,
+  getBatchDeletePlanSessionFragmentsError
+);
+
+export const selectBatchDeletePlanSessionFragmentsProcessing = createSelector(
+  selectPlanSessionFragmentState,
+  getBatchDeletePlanSessionFragmentsProcessing
 );
 
 export const selectBatchModifyPlanSessionFragmentsError = createSelector(

@@ -4,6 +4,23 @@ import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from "shared-models/train/plan-session-fragment.model";
 
+// Batch Delete Plan Session Fragments
+
+export const batchDeletePlanSessionFragmentsRequested = createAction(
+  '[Edit Plan Session Fragment] Batch Delete Plan Session Fragments Requested',
+  props<{trainingPlanId: string, planSessionFragmentIds: string[]}>()
+);
+
+export const batchDeletePlanSessionFragmentsCompleted = createAction(
+  '[Plan Session Fragment Service] Batch Delete Plan Session Fragments Completed',
+  props<{planSessionFragmentIds: string[]}>()
+);
+
+export const batchDeletePlanSessionFragmentsFailed = createAction(
+  '[Plan Session Fragment Service] Batch Delete Plan Session Fragments Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Batch Modify Plan Session Fragments
 
 export const batchModifyPlanSessionFragmentsRequested = createAction(

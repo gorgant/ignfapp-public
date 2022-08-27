@@ -25,12 +25,8 @@ export class BrowseTrainingPlansComponent implements OnInit {
   trainingPlans$!: Observable<TrainingPlan[]>;
   fetchAllTrainingPlansProcessing$!: Observable<boolean>;
   fetchAllTrainingSesssionsError$!: Observable<{} | null>;
-  // trainingPlansLoaded!: boolean;
 
   searchText = ''; // Used in template for ngModel
-
-  // TODO: Consider filters for plan length (number of lessons)
-  // TODO: Create a landing page for trainingPlans
 
   constructor(
     private router: Router,

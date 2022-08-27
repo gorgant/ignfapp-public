@@ -14,6 +14,27 @@ export class PlanSessionFragmentStoreEffects {
     private planSessionFragmentService: PlanSessionFragmentService,
   ) { }
 
+  batchDeletePlanSessionFragmentsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested),
+      concatMap(action => 
+        this.planSessionFragmentService.batchDeletePlanSessionFragments(action.trainingPlanId, action.planSessionFragmentIds).pipe(
+          map(planSessionFragmentIds => {
+            return PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsCompleted({planSessionFragmentIds});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   batchModifyPlanSessionFragmentsEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested),

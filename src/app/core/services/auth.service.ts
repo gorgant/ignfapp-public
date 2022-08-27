@@ -355,8 +355,7 @@ export class AuthService {
   private preLogoutActions(): void {
     this.ngUnsubscribe$.next(); // Send signal to Firebase subscriptions to unsubscribe
     this.ngUnsubscribe$.complete(); // Send signal to Firebase subscriptions to unsubscribe
-    // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
-    this.ngUnsubscribe$ = new Subject<void>();
+    this.ngUnsubscribe$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
     this.store$.dispatch(UserStoreActions.purgeUserData());
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
     this.store$.dispatch(TrainingRecordStoreActions.purgeTrainingRecordData());

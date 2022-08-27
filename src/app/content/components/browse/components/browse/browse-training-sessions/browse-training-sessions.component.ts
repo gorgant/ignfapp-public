@@ -67,15 +67,6 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
     this.router.navigate([PublicAppRoutes.TRAINING_SESSION_NEW]);
   }
 
-  onSelectTrainingSession(trainingSessionData: TrainingSession) {
-    let navigationExtras: NavigationExtras = {};
-    if (this.trainingPlanBuilderRequest) {
-      const queryParams = this.generatePlanBuilderQueryParams();
-      navigationExtras = {...navigationExtras, queryParams};
-    }
-    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}/${trainingSessionData.id}`], navigationExtras);
-  }
-
   // Indicate in URL that this is a planbuilder request
   private generatePlanBuilderQueryParams() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;

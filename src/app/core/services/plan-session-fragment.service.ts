@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError } from 'rxjs';
+import { from, Observable, Subject, throwError } from 'rxjs';
 import { catchError, map, takeUntil } from 'rxjs/operators';
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { UiService } from './ui.service';
@@ -15,11 +15,39 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class PlanSessionFragmentService {
 
+  deleteTrainingPlanRequested$: Subject<void> = new Subject();
+
   constructor(
     private afs: Firestore,
     private authService: AuthService,
     private uiService: UiService,
   ) { }
+
+  batchDeletePlanSessionFragments(trainingPlanId: string, planSessionFragmentIds: string[]): Observable<string[]> {
+    this.unsubscribeFetchAllPlanSessionFragments();
+
+    const batch = writeBatch(this.afs);
+
+    planSessionFragmentIds.forEach(planSessionFragmentId => {
+      const planSessionFragmentDoc = this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId);
+      batch.delete(planSessionFragmentDoc)
+    });
+
+    const batchDeleteRequest = batch.commit();
+
+    return from(batchDeleteRequest)
+      .pipe(
+        map(empty => {
+          console.log(`Deleted ${planSessionFragmentIds.length} planSessionFragments`, planSessionFragmentIds);
+          return planSessionFragmentIds;  // Use original version with MS timestamps
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error deleting planSessionFragments', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
 
   batchModifyPlanSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>[]): Observable<Update<PlanSessionFragment>[]> {
     const batch = writeBatch(this.afs);
@@ -116,6 +144,7 @@ export class PlanSessionFragmentService {
     return from(planSessionFragmentCollectionDataRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
+        takeUntil(this.deleteTrainingPlanRequested$), // Prevents fetching error when plan is deleted
         takeUntil(this.authService.unsubTrigger$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
@@ -246,6 +275,12 @@ export class PlanSessionFragmentService {
           return throwError(() => new Error(error));
         })
       );
+  }
+
+  private unsubscribeFetchAllPlanSessionFragments() {
+    this.deleteTrainingPlanRequested$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanRequested$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
   private getPlanSessionFragmentCollection(trainingPlanId: string): CollectionReference<PlanSessionFragment> {
