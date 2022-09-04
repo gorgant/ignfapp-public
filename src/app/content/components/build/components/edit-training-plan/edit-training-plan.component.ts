@@ -92,7 +92,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData) as Observable<PublicUser>;
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
 
     this.createTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanProcessing);
     this.createTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanError);

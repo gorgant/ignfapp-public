@@ -52,7 +52,7 @@ export class TrainingPlanComponent implements OnInit {
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData) as Observable<PublicUser>;
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
     
     this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
     this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);

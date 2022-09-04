@@ -1,21 +1,21 @@
 import * as functions from 'firebase-functions';
 import { UserRecord } from 'firebase-functions/v1/auth';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-import { PublicUser } from '../../../shared-models/user/public-user.model';
+import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
 import { UserUpdateData, UserUpdateType } from '../../../shared-models/user/user-update.model';
 import { publicFirestore } from '../config/db-config';
 import { fetchDbUserById, fetchAuthUserById } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';;
 
-const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
+const prelaunchUsersCollection = publicFirestore.collection(PublicCollectionPaths.PRELAUNCH_USERS);
 
-const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> => {
+const updateUser = async (userUpdateData: UserUpdateData): Promise<PrelaunchUser> => {
 
-  const existingUser = await fetchDbUserById(userUpdateData.userData.id as string, publicUsersCollection) as PublicUser;
+  const existingUser = await fetchDbUserById(userUpdateData.userData.id as string, prelaunchUsersCollection) as PrelaunchUser;
   const newDataFromClient = userUpdateData.userData;
   const updateType = userUpdateData.updateType;
 
-  let updatedUser: PublicUser = {
+  let updatedUser: PrelaunchUser = {
     ...existingUser,
   }
 
@@ -49,15 +49,15 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
 
   updatedUser.lastModifiedTimestamp = Timestamp.now() as any; // All user updates trigger this
 
-  await publicUsersCollection.doc(updatedUser.id).update(updatedUser as {}) // Temp typecast to object to bypass typescript type error bug
-    .catch(err => {functions.logger.log(`Failed to update publicUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+  await prelaunchUsersCollection.doc(updatedUser.id).update(updatedUser as {}) // Temp typecast to object to bypass typescript type error bug
+    .catch(err => {functions.logger.log(`Failed to update prelaunchUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
   
-  functions.logger.log('Updated existing public user', updatedUser);
+  functions.logger.log('Updated prelaunchUser', updatedUser);
   
   return updatedUser;
 }
 
-const executeActions = async (userUpateData: UserUpdateData): Promise<Partial<PublicUser>> => {
+const executeActions = async (userUpateData: UserUpdateData): Promise<Partial<PrelaunchUser>> => {
 
   const updatedUser = await updateUser(userUpateData);
 
@@ -67,8 +67,8 @@ const executeActions = async (userUpateData: UserUpdateData): Promise<Partial<Pu
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-export const onCallUpdatePublicUser = functions.https.onCall(async (userUpdateData: UserUpdateData) => {
-  functions.logger.log('Received updatePublicUser request with these params', userUpdateData);
+export const onCallUpdatePrelaunchUser = functions.https.onCall(async (userUpdateData: UserUpdateData) => {
+  functions.logger.log('Received updatePrelaunchUser request with these params', userUpdateData);
 
   const updatedUser = await executeActions(userUpdateData);
  

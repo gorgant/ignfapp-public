@@ -104,7 +104,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
   
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
 
   }

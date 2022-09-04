@@ -69,8 +69,8 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
     this.avatarDownloadUrl$ = this.store$.pipe(select(UserStoreSelectors.selectAvatarDownloadUrl));
     
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
 
     this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
     this.resizeAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarError));
@@ -166,7 +166,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
           this.uploadAvatarSubscription.unsubscribe(); // Clear subscription no longer needed
           
-          this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
+          this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
           this.postUserUpdateActions();
         }
       })

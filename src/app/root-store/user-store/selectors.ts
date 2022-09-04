@@ -3,18 +3,26 @@ import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
 import { UserState } from "./state";
 
 const getAvatarDownloadUrl = (state: UserState) => state.avatarDownloadUrl;
-const getCreateUserError = (state: UserState) => state.createUserError;
-const getCreateUserProcessing = (state: UserState) => state.createUserProcessing;
-const getFetchUserError = (state: UserState) => state.fetchUserError;
-const getFetchUserProcessing = (state: UserState) => state.fetchUserProcessing;
-const getRegisterPrelaunchUserProcessing = (state: UserState) => state.updateUserProcessing;
+const getCreatePublicUserError = (state: UserState) => state.createPublicUserError;
+const getCreatePublicUserProcessing = (state: UserState) => state.createPublicUserProcessing;
+const getDeletePublicUserError = (state: UserState) => state.createPublicUserError;
+const getDeletePublicUserProcessing = (state: UserState) => state.createPublicUserProcessing;
+const getFetchPrelaunchUserError = (state: UserState) => state.fetchPrelaunchUserError;
+const getFetchPrelaunchUserProcessing = (state: UserState) => state.fetchPrelaunchUserProcessing;
+const getFetchPublicUserError = (state: UserState) => state.fetchPublicUserError;
+const getFetchPublicUserProcessing = (state: UserState) => state.fetchPublicUserProcessing;
+const getRegisterPrelaunchUserError = (state: UserState) => state.registerPrelaunchUserError;
+const getRegisterPrelaunchUserProcessing = (state: UserState) => state.updatePublicUserProcessing;
 const getResizeAvatarError = (state: UserState) => state.resizeAvatarError;
 const getResizeAvatarProcessing = (state: UserState) => state.resizeAvatarProcessing;
-const getUpdateUserError = (state: UserState) => state.updateUserError;
-const getUpdateUserProcessing = (state: UserState) => state.updateUserProcessing;
+const getUpdatePrelaunchUserError = (state: UserState) => state.updatePrelaunchUserError;
+const getUpdatePrelaunchUserProcessing = (state: UserState) => state.updatePrelaunchUserProcessing;
+const getUpdatePublicUserError = (state: UserState) => state.updatePublicUserError;
+const getUpdatePublicUserProcessing = (state: UserState) => state.updatePublicUserProcessing;
 const getUploadAvatarError = (state: UserState) => state.uploadAvatarError;
 const getUploadAvatarProcessing = (state: UserState) => state.uploadAvatarProcessing;
-const getUserData = (state: UserState) => state.userData;
+const getPrelaunchUserData = (state: UserState) => state.prelaunchUserData;
+const getPublicUserData = (state: UserState) => state.publicUserData;
 
 const selectUserState = createFeatureSelector<UserState>(PublicStoreFeatureKeys.USER);
 
@@ -23,24 +31,49 @@ export const selectAvatarDownloadUrl = createSelector(
   getAvatarDownloadUrl
 );
 
-export const selectCreateUserError = createSelector(
+export const selectCreatePublicUserError = createSelector(
   selectUserState,
-  getCreateUserError
+  getCreatePublicUserError
 );
 
-export const selectCreateUserProcessing = createSelector(
+export const selectCreatePublicUserProcessing = createSelector(
   selectUserState,
-  getCreateUserProcessing
+  getCreatePublicUserProcessing
 );
 
-export const selectFetchUserError = createSelector(
+export const selectDeletePublicUserError = createSelector(
   selectUserState,
-  getFetchUserError
+  getDeletePublicUserError
 );
 
-export const selectFetchUserProcessing = createSelector(
+export const selectDeletePublicUserProcessing = createSelector(
   selectUserState,
-  getFetchUserProcessing
+  getDeletePublicUserProcessing
+);
+
+export const selectFetchPrelaunchUserError = createSelector(
+  selectUserState,
+  getFetchPrelaunchUserError
+);
+
+export const selectFetchPrelaunchUserProcessing = createSelector(
+  selectUserState,
+  getFetchPrelaunchUserProcessing
+);
+
+export const selectFetchPublicUserError = createSelector(
+  selectUserState,
+  getFetchPublicUserError
+);
+
+export const selectFetchPublicUserProcessing = createSelector(
+  selectUserState,
+  getFetchPublicUserProcessing
+);
+
+export const selectRegisterPrelaunchUserError = createSelector(
+  selectUserState,
+  getRegisterPrelaunchUserError
 );
 
 export const selectRegisterPrelaunchUserProcessing = createSelector(
@@ -58,14 +91,24 @@ export const selectResizeAvatarProcessing = createSelector(
   getResizeAvatarProcessing
 );
 
-export const selectUpdateUserError = createSelector(
+export const selectUpdatePrelaunchUserError = createSelector(
   selectUserState,
-  getUpdateUserError
+  getUpdatePrelaunchUserError
 );
 
-export const selectUpdateUserProcessing = createSelector(
+export const selectUpdatePrelaunchUserProcessing = createSelector(
   selectUserState,
-  getUpdateUserProcessing
+  getUpdatePrelaunchUserProcessing
+);
+
+export const selectUpdatePublicUserError = createSelector(
+  selectUserState,
+  getUpdatePublicUserError
+);
+
+export const selectUpdatePublicUserProcessing = createSelector(
+  selectUserState,
+  getUpdatePublicUserProcessing
 );
 
 export const selectUploadAvatarError = createSelector(
@@ -78,7 +121,12 @@ export const selectUploadAvatarProcessing = createSelector(
   getUploadAvatarProcessing
 );
 
-export const selectUserData = createSelector(
+export const selectPrelaunchUserData = createSelector(
   selectUserState,
-  getUserData
+  getPrelaunchUserData
+);
+
+export const selectPublicUserData = createSelector(
+  selectUserState,
+  getPublicUserData
 );

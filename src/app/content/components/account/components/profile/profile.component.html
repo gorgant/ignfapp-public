@@ -24,5 +24,8 @@
       <mat-icon>lock</mat-icon>
       <a class="password-button" (click)="onEditPassword()">{{ CHANGE_PASSWORD_BUTTON_VALUE }}</a>
     </div>
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <button mat-stroked-button color="primary" class="delete-public-user-button" (click)="onDeletePublicUser()">{{ DELETE_PUBLIC_USER_BUTTON_VALUE }}</button>
+    </div>
   </div>
 </div>

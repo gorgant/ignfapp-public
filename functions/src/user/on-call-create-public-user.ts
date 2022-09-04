@@ -5,7 +5,7 @@ import { EmailCategories } from '../../../shared-models/email/email-vars.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { publicFirestore } from '../config/db-config';
-import { fetchUserById } from '../config/global-helpers';
+import { fetchDbUserById } from '../config/global-helpers';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
 // import * as admin from 'firebase-admin';
 
@@ -34,7 +34,7 @@ const dispatchEmailVerificationEmail = async(userData: EmailUserData) => {
 
 const executeActions = async (userData: Partial<PublicUser>): Promise<PublicUser> => {
 
-  const existingUser = await fetchUserById(userData.id as string, publicUsersCollection);
+  const existingUser = await fetchDbUserById(userData.id as string, publicUsersCollection);
 
   if (existingUser) {
     functions.logger.log(`Terminating function, user with id ${userData.id} already exists in database`);

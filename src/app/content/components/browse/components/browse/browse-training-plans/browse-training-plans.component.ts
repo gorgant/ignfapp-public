@@ -39,7 +39,7 @@ export class BrowseTrainingPlansComponent implements OnInit {
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchAllTrainingPlansProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchAllTrainingPlansProcessing);
     this.fetchAllTrainingSesssionsError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchAllTrainingPlansError);
   }

@@ -13,7 +13,7 @@ import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, g
 import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { Store } from '@ngrx/store';
-import { RootStoreState, TrainingRecordStoreActions, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
+import { PersonalSessionFragmentStoreActions, PlanSessionFragmentStoreActions, RootStoreState, TrainingPlanStoreActions, TrainingRecordStoreActions, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
 
 @Injectable({
   providedIn: 'root'
@@ -356,10 +356,12 @@ export class AuthService {
     this.ngUnsubscribe$.next(); // Send signal to Firebase subscriptions to unsubscribe
     this.ngUnsubscribe$.complete(); // Send signal to Firebase subscriptions to unsubscribe
     this.ngUnsubscribe$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
-    this.store$.dispatch(UserStoreActions.purgeUserData());
+    this.store$.dispatch(UserStoreActions.purgePublicUserData());
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
     this.store$.dispatch(TrainingRecordStoreActions.purgeTrainingRecordData());
-    // TODO: Purge other store data here as well
+    this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanData());
+    this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentData());
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentData());
   }
 
 }

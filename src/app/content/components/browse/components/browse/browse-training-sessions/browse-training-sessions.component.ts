@@ -59,7 +59,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectUserData);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchAllTrainingSessionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
   }
 

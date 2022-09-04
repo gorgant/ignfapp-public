@@ -74,12 +74,12 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing));
     this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserError));
 
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
 
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing));
-    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserError));
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing));
+    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserError));
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
 
     this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
     this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
@@ -148,11 +148,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       userData,
       updateType: UserUpdateType.AUTHENTICATION
     }
-    this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
+    this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
   }
 
   // Fetch user and navigate to requested route
-  private postUpdateUserActions(userId: string) {
+  private postUpdateUserActions(publicUserId: string) {
 
     this.userUpdateSubscription = this.userUpdateProcessing$
       .pipe(
@@ -175,7 +175,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
         if (!updateProcessing && this.userUpdateSubmitted) {
           console.log('User update successful, fetching user data');
-          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId}));
+          this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId}));
           this.userUpdateSubscription.unsubscribe();
           this.confirmUserEmailVerified();
         }

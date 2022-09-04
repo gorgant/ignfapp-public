@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthStoreActions, RootStoreState, UserStoreActions } from 'src/app/root-store';
-import { selectUserData } from 'src/app/root-store/user-store/selectors';
+import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 
 @Component({
   selector: 'app-settings',
@@ -25,7 +25,7 @@ export class SettingsComponent implements OnInit {
   }
 
   fetchUserData(): void {
-    this.userData$ = this.store$.pipe(select(selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
   }
 
   onLogout(): void {

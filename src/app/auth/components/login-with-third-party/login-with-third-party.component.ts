@@ -68,15 +68,15 @@ export class LoginWithThirdPartyComponent implements OnInit {
     this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing));
     this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserError));
 
-    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectCreateUserProcessing));
-    this.createUserError$ = this.store$.pipe(select(UserStoreSelectors.selectCreateUserError));
+    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserProcessing));
+    this.createUserError$ = this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserError));
 
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
 
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing));
-    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchUserError));
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing));
+    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserError));
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
 
     this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
     this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
@@ -144,7 +144,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       id: authData.id,
       avatarUrl: authData.avatarUrl
     }
-    this.store$.dispatch(UserStoreActions.createUserRequested({partialNewUserData}));
+    this.store$.dispatch(UserStoreActions.createPublicUserRequested({partialNewPublicUserData: partialNewUserData}));
   }
 
   private updateUserInFirebase(authResultsData: AuthResultsData) {
@@ -156,7 +156,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       userData,
       updateType: UserUpdateType.AUTHENTICATION
     }
-    this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
+    this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
   }
 
   // Fetch user and navigate to requested route
@@ -184,7 +184,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
 
         if (!creatingUser && this.createUserSubmitted) {
           console.log('User creation successful, fetching user data');
-          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId}));
+          this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: userId}));
           this.createUserSubscription.unsubscribe();
           this.confirmUserEmailVerified();
         }
@@ -215,7 +215,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
 
         if (!updateProcessing && this.userUpdateSubmitted) {
           console.log('User update successful, fetching user data');
-          this.store$.dispatch(UserStoreActions.fetchUserRequested({userId}));
+          this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: userId}));
           this.userUpdateSubscription.unsubscribe();
           this.confirmUserEmailVerified();
         }

@@ -53,9 +53,9 @@ export class SignupComponent implements OnInit {
       [
         this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing)),
         this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectCreateUserProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing))
+        this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserProcessing)),
+        this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing)),
+        this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing))
       ]
     ).pipe(
         map(([signingUp, authenticating, creatingUser, updatingUser, fetchingUser]) => {
@@ -66,7 +66,7 @@ export class SignupComponent implements OnInit {
         })
     );
     
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
   }
 
 }

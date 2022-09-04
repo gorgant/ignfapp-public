@@ -12,59 +12,109 @@ import { initialUserState, UserState } from './state';
 export const userStoreReducer = createReducer(
   initialUserState,
 
-  // Create User
+  // Create Public User
 
-  on(UserStoreActions.createUserRequested, (state, action) => {
+  on(UserStoreActions.createPublicUserRequested, (state, action) => {
     return {
       ...state,
-      createUserProcessing: true,
-      createUserError: null
+      createPublicUserProcessing: true,
+      createPublicUserError: null
     }
   }),
-  on(UserStoreActions.createUserCompleted, (state, action) => {
+  on(UserStoreActions.createPublicUserCompleted, (state, action) => {
     return {
       ...state,
-      createUserProcessing: false,
-      userData: action.newUser
+      createPublicUserProcessing: false,
+      publicUserData: action.newPublicUser
     }
   }),
-  on(UserStoreActions.createUserFailed, (state, action) => {
+  on(UserStoreActions.createPublicUserFailed, (state, action) => {
     return {
       ...state,
-      createUserProcessing: false,
-      createUserError: action.error
-    }
-  }),
-
-  // Fetch User
-
-  on(UserStoreActions.fetchUserRequested, (state, action) => {
-    return {
-      ...state,
-      fetchUserProcessing: true,
-      fetchUserError: null
-    }
-  }),
-  on(UserStoreActions.fetchUserCompleted, (state, action) => {
-    return {
-      ...state,
-      fetchUserProcessing: false,
-      userData: action.publicUser
-    }
-  }),
-  on(UserStoreActions.fetchUserFailed, (state, action) => {
-    return {
-      ...state,
-      fetchUserProcessing: false,
-      fetchUserError: action.error
+      createPublicUserProcessing: false,
+      createPublicUserError: action.error
     }
   }),
 
-  // Purge User Data
-  on(UserStoreActions.purgeUserData, (state, action) => {
+  // Delete Public User
+
+  on(UserStoreActions.deletePublicUserRequested, (state, action) => {
     return {
       ...state,
-      userData: null
+      deletePublicUserProcessing: true,
+      deletePublicUserError: null
+    }
+  }),
+  on(UserStoreActions.deletePublicUserCompleted, (state, action) => {
+    return {
+      ...state,
+      deletePublicUserProcessing: false,
+      publicUserData: null
+    }
+  }),
+  on(UserStoreActions.deletePublicUserFailed, (state, action) => {
+    return {
+      ...state,
+      deletePublicUserProcessing: false,
+      deletePublicUserError: action.error
+    }
+  }),
+
+  // Fetch Prelaunch User
+
+  on(UserStoreActions.fetchPrelaunchUserRequested, (state, action) => {
+    return {
+      ...state,
+      fetchPrelaunchUserProcessing: true,
+      fetchPrelaunchUserError: null
+    }
+  }),
+  on(UserStoreActions.fetchPrelaunchUserCompleted, (state, action) => {
+    return {
+      ...state,
+      fetchPrelaunchUserProcessing: false,
+      prelaunchUserData: action.prelaunchUser
+    }
+  }),
+  on(UserStoreActions.fetchPrelaunchUserFailed, (state, action) => {
+    return {
+      ...state,
+      fetchPrelaunchUserProcessing: false,
+      fetchPrelaunchUserError: action.error
+    }
+  }),
+
+  // Fetch Public User
+
+  on(UserStoreActions.fetchPublicUserRequested, (state, action) => {
+    return {
+      ...state,
+      fetchPublicUserProcessing: true,
+      fetchPublicUserError: null
+    }
+  }),
+  on(UserStoreActions.fetchPublicUserCompleted, (state, action) => {
+    return {
+      ...state,
+      fetchPublicUserProcessing: false,
+      publicUserData: action.publicUser
+    }
+  }),
+  on(UserStoreActions.fetchPublicUserFailed, (state, action) => {
+    return {
+      ...state,
+      fetchPublicUserProcessing: false,
+      fetchPublicUserError: action.error
+    }
+  }),
+
+  // Purge Public User Data
+  on(UserStoreActions.purgePublicUserData, (state, action) => {
+    return {
+      ...state,
+      prelaunchUserData: null,
+      publicUserData: null,
+      avatarDownloadUrl: null,
     }
   }),
 
@@ -73,22 +123,22 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.registerPrelaunchUserRequested, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: true,
-      updateUserError: null
+      registerPrelaunchUserProcessing: true,
+      registerPrelaunchUserError: null
     }
   }),
   on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: false,
-      userData: action.prelaunchUser
+      registerPrelaunchUserProcessing: false,
+      prelaunchUserData: action.prelaunchUser
     }
   }),
   on(UserStoreActions.registerPrelaunchUserFailed, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: false,
-      updateUserError: action.error
+      registerPrelaunchUserProcessing: false,
+      registerPrelaunchUserError: action.error
     }
   }),
 
@@ -114,28 +164,52 @@ export const userStoreReducer = createReducer(
       resizeAvatarError: action.error
     }
   }),
+
+  // Update Prelaunch User
   
-  // Update User
-  
-  on(UserStoreActions.updateUserRequested, (state, action) => {
+  on(UserStoreActions.updatePrelaunchUserRequested, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: true,
-      updateUserError: null
+      updatePrelaunchUserProcessing: true,
+      updatePrelaunchUserError: null
     }
   }),
-  on(UserStoreActions.updateUserCompleted, (state, action) => {
+  on(UserStoreActions.updatePrelaunchUserCompleted, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: false,
-      userData: action.updatedUser
+      updatePrelaunchUserProcessing: false,
+      prelaunchUserData: action.updatedPrelaunchUser
     }
   }),
-  on(UserStoreActions.updateUserFailed, (state, action) => {
+  on(UserStoreActions.updatePrelaunchUserFailed, (state, action) => {
     return {
       ...state,
-      updateUserProcessing: false,
-      updateUserError: action.error
+      updatePrelaunchUserProcessing: false,
+      updatePrelaunchUserError: action.error
+    }
+  }),
+  
+  // Update Public User
+  
+  on(UserStoreActions.updatePublicUserRequested, (state, action) => {
+    return {
+      ...state,
+      updatePublicUserProcessing: true,
+      updatePublicUserError: null
+    }
+  }),
+  on(UserStoreActions.updatePublicUserCompleted, (state, action) => {
+    return {
+      ...state,
+      updatePublicUserProcessing: false,
+      publicUserData: action.updatedPublicUser
+    }
+  }),
+  on(UserStoreActions.updatePublicUserFailed, (state, action) => {
+    return {
+      ...state,
+      updatePublicUserProcessing: false,
+      updatePublicUserError: action.error
     }
   }),
 

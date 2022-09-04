@@ -6,7 +6,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { RootStoreState } from 'src/app/root-store';
-import { selectFetchUserProcessing, selectUserData } from 'src/app/root-store/user-store/selectors';
+import { selectFetchPublicUserProcessing, selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 
 @Component({
   selector: 'app-account',
@@ -40,8 +40,8 @@ export class AccountComponent implements OnInit {
   }
 
   private fetchUserData(): void {
-    this.userData$ = this.store.pipe(select(selectUserData)) as Observable<PublicUser>;
-    this.loading$ = this.store.pipe(select(selectFetchUserProcessing));
+    this.userData$ = this.store.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
+    this.loading$ = this.store.pipe(select(selectFetchPublicUserProcessing));
   }
 
 }

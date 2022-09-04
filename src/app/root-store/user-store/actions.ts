@@ -7,44 +7,78 @@ import { PrelaunchUser } from "shared-models/user/prelaunch-user.model";
 import { PublicUser } from "shared-models/user/public-user.model";
 import { UserUpdateData } from "shared-models/user/user-update.model";
 
-// Create User
+// Create Public User
 
-export const createUserRequested = createAction(
-  '[Signup Form] Create User Requested',
-  props<{partialNewUserData: Partial<PublicUser>}>()
+export const createPublicUserRequested = createAction(
+  '[Signup Form] Create Public User Requested',
+  props<{partialNewPublicUserData: Partial<PublicUser>}>()
 );
 
-export const createUserCompleted = createAction(
-  '[User Service] Create User Completed',
-  props<{newUser: PublicUser}>()
+export const createPublicUserCompleted = createAction(
+  '[User Service] Create Public User Completed',
+  props<{newPublicUser: PublicUser}>()
 );
 
-export const createUserFailed = createAction(
-  '[User Service] Create User Failed',
+export const createPublicUserFailed = createAction(
+  '[User Service] Create Public User Failed',
   props<{error: FirebaseError}>()
 );
 
-// Fetch User
+// Delete Public User
 
-export const fetchUserRequested = createAction(
-  '[AppWide] Fetch User Requested',
-  props<{userId: string}>()
+export const deletePublicUserRequested = createAction(
+  '[Profile Component] Delete Public User Requested',
+  props<{publicUserId: string}>()
 );
 
-export const fetchUserCompleted = createAction(
-  '[User Service] Fetch User Completed',
+export const deletePublicUserCompleted = createAction(
+  '[User Service] Delete Public User Completed',
+  props<{publicUserDeleted: boolean}>()
+);
+
+export const deletePublicUserFailed = createAction(
+  '[User Service] Delete Public User Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Fetch Prelaunch User
+
+export const fetchPrelaunchUserRequested = createAction(
+  '[AppWide] Fetch Prelaunch User Requested',
+  props<{prelaunchUserId: string}>()
+);
+
+export const fetchPrelaunchUserCompleted = createAction(
+  '[User Service] Fetch Prelaunch User Completed',
+  props<{prelaunchUser: PrelaunchUser}>()
+);
+
+export const fetchPrelaunchUserFailed = createAction(
+  '[User Service] Fetch Prelaunch User Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Fetch Public User
+
+export const fetchPublicUserRequested = createAction(
+  '[AppWide] Fetch Public User Requested',
+  props<{publicUserId: string}>()
+);
+
+export const fetchPublicUserCompleted = createAction(
+  '[User Service] Fetch Public User Completed',
   props<{publicUser: PublicUser}>()
 );
 
-export const fetchUserFailed = createAction(
-  '[User Service] Fetch User Failed',
+export const fetchPublicUserFailed = createAction(
+  '[User Service] Fetch Public User Failed',
   props<{error: FirebaseError}>()
 );
 
-// Purge User Data
+// Purge Public User Data
 
-export const purgeUserData = createAction(
-  '[AppWide] Purge User Data'
+export const purgePublicUserData = createAction(
+  '[AppWide] Purge Public User Data'
 );
 
 // Register Prelaunch User
@@ -80,20 +114,37 @@ export const resizeAvatarFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Update User
+// Update Prelaunch User
 
-export const updateUserRequested = createAction(
-  '[AppWide] Update User Requested',
+export const updatePrelaunchUserRequested = createAction(
+  '[AppWide] Update Prelaunch User Requested',
   props<{userUpdateData: UserUpdateData}>()
 );
 
-export const updateUserCompleted = createAction(
-  '[User Service] Update User Completed',
-  props<{updatedUser: PublicUser}>()
+export const updatePrelaunchUserCompleted = createAction(
+  '[User Service] Update Prelaunch User Completed',
+  props<{updatedPrelaunchUser: PrelaunchUser}>()
 );
 
-export const updateUserFailed = createAction(
-  '[User Service] Update User Failed',
+export const updatePrelaunchUserFailed = createAction(
+  '[User Service] Update Prelaunch User Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Update Public User
+
+export const updatePublicUserRequested = createAction(
+  '[AppWide] Update Public User Requested',
+  props<{userUpdateData: UserUpdateData}>()
+);
+
+export const updatePublicUserCompleted = createAction(
+  '[User Service] Update Public User Completed',
+  props<{updatedPublicUser: PublicUser}>()
+);
+
+export const updatePublicUserFailed = createAction(
+  '[User Service] Update Public User Failed',
   props<{error: FirebaseError}>()
 );
 

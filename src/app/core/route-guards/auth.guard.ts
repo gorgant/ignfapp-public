@@ -30,15 +30,15 @@ export class AuthGuard implements CanActivate, CanLoad {
           // Inspired by https://stackoverflow.com/a/46386082/6572208
           return new Observable<boolean>(observer => {
             if (authResults && authResults.emailVerified) {
-              this.store$.select(UserStoreSelectors.selectUserData)
+              this.store$.select(UserStoreSelectors.selectPublicUserData)
                 .pipe(
                   take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing)))
+                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing)))
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
                     console.log('AuthGuard canActivate: creds present and email verified, fetching user data');
-                    this.store$.dispatch(UserStoreActions.fetchUserRequested({userId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
+                    this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
                   }
                   this.store$.dispatch(AuthStoreActions.authGuardValidated());
                   observer.next(true);
@@ -77,15 +77,15 @@ export class AuthGuard implements CanActivate, CanLoad {
           // Inspired by https://stackoverflow.com/a/46386082/6572208
           return new Observable<boolean>(observer => {
             if (authResults && authResults.emailVerified) {
-              this.store$.select(UserStoreSelectors.selectUserData)
+              this.store$.select(UserStoreSelectors.selectPublicUserData)
                 .pipe(
                   take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchUserProcessing)))
+                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing)))
                 )
                 .subscribe(([userData, isFetchingUser]) => {
                   if (!userData && !isFetchingUser) {
                     console.log('AuthGuard canLoad: creds present and email verified, fetching user data');
-                    this.store$.dispatch(UserStoreActions.fetchUserRequested({userId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
+                    this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
                   }
                   this.store$.dispatch(AuthStoreActions.authGuardValidated());
                   observer.next(true);

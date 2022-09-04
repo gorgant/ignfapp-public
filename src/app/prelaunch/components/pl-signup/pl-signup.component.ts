@@ -59,8 +59,8 @@ export class PlSignupComponent implements OnInit {
   }
 
   private monitorStoreContents() {
-    this.prelaunchUserData$ = this.store.pipe(select(UserStoreSelectors.selectUserData)) as Observable<PrelaunchUser>;
-    this.registrationProcessing$ = this.store.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
+    this.prelaunchUserData$ = this.store.pipe(select(UserStoreSelectors.selectPrelaunchUserData)) as Observable<PrelaunchUser>;
+    this.registrationProcessing$ = this.store.pipe(select(UserStoreSelectors.selectRegisterPrelaunchUserProcessing));
   }
 
   onSubmit(): void {

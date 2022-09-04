@@ -26,6 +26,8 @@ export enum GlobalFieldValues {
   CREATE_PASSWORD = `Create Password`,
   CREATE_PLAN = `Create Plan`,
   CREATE_SESSION = `Create Session`,
+  DELETE_PUBLIC_USER_CONF_BODY = `Are you sure you want to delete your account and all data associated with it? This action is permanent and cannot be undone.`,
+  DELETE_PUBLIC_USER_CONF_TITLE = `Permanently Delete Account`,
   DELETE_TRAINING_PLAN = `Delete Training Plan`,
   DELETE_TRAINING_PLAN_CONF_BODY = `Delete Training Plan`,
   DELETE_TRAINING_PLAN_CONF_TITLE = `Are you sure you want to delete this training plan?`,

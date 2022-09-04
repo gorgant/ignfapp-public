@@ -16,13 +16,13 @@ export class UserStoreEffects {
     private imageService: ImageService
   ) { }
 
-  createUserEffect$ = createEffect(() => this.actions$
+  createPublicUserEffect$ = createEffect(() => this.actions$
     .pipe(
-      ofType(UserStoreActions.createUserRequested),
+      ofType(UserStoreActions.createPublicUserRequested),
       concatMap(action => 
-        this.userService.createPublicUser(action.partialNewUserData).pipe(
-          map(newUser => {
-            return UserStoreActions.createUserCompleted({newUser});
+        this.userService.createPublicUser(action.partialNewPublicUserData).pipe(
+          map(newPublicUser => {
+            return UserStoreActions.createPublicUserCompleted({newPublicUser});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -30,20 +30,20 @@ export class UserStoreEffects {
               message: error.message,
               name: error.name
             };
-            return of(UserStoreActions.createUserFailed({error: fbError}));
+            return of(UserStoreActions.createPublicUserFailed({error: fbError}));
           })
         )
       ),
     ),
   );
 
-  fetchUserEffect$ = createEffect(() => this.actions$
+  deletePublicUserEffect$ = createEffect(() => this.actions$
     .pipe(
-      ofType(UserStoreActions.fetchUserRequested),
-      switchMap(action => 
-        this.userService.fetchUserData(action.userId).pipe(
-          map(publicUser => {
-            return UserStoreActions.fetchUserCompleted({publicUser});
+      ofType(UserStoreActions.deletePublicUserRequested),
+      concatMap(action => 
+        this.userService.deletePublicUser(action.publicUserId).pipe(
+          map(publicUserDeleted => {
+            return UserStoreActions.deletePublicUserCompleted({publicUserDeleted});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -51,7 +51,49 @@ export class UserStoreEffects {
               message: error.message,
               name: error.name
             };
-            return of(UserStoreActions.fetchUserFailed({error: fbError}));
+            return of(UserStoreActions.deletePublicUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  fetchPrelaunchUserEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.fetchPrelaunchUserRequested),
+      switchMap(action => 
+        this.userService.fetchPrelaunchUser(action.prelaunchUserId).pipe(
+          map(prelaunchUser => {
+            return UserStoreActions.fetchPrelaunchUserCompleted({prelaunchUser});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.fetchPrelaunchUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  fetchPublicUserEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.fetchPublicUserRequested),
+      switchMap(action => 
+        this.userService.fetchPublicUser(action.publicUserId).pipe(
+          map(publicUser => {
+            return UserStoreActions.fetchPublicUserCompleted({publicUser});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.fetchPublicUserFailed({error: fbError}));
           })
         )
       ),
@@ -100,13 +142,13 @@ export class UserStoreEffects {
     ),
   );
 
-  updateUserEffect$ = createEffect(() => this.actions$
+  updatePrelaunchUserEffect$ = createEffect(() => this.actions$
     .pipe(
-      ofType(UserStoreActions.updateUserRequested),
+      ofType(UserStoreActions.updatePrelaunchUserRequested),
       concatMap(action => 
-        this.userService.updatePublicUser(action.userUpdateData).pipe(
-          map(updatedUser => {
-            return UserStoreActions.updateUserCompleted({updatedUser});
+        this.userService.updatePrelaunchUser(action.userUpdateData).pipe(
+          map(updatedPrelaunchUser => {
+            return UserStoreActions.updatePrelaunchUserCompleted({updatedPrelaunchUser});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -114,7 +156,28 @@ export class UserStoreEffects {
               message: error.message,
               name: error.name
             };
-            return of(UserStoreActions.updateUserFailed({error: fbError}));
+            return of(UserStoreActions.updatePrelaunchUserFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  updatePublicUserEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(UserStoreActions.updatePublicUserRequested),
+      concatMap(action => 
+        this.userService.updatePublicUser(action.userUpdateData).pipe(
+          map(updatedPublicUser => {
+            return UserStoreActions.updatePublicUserCompleted({updatedPublicUser});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(UserStoreActions.updatePublicUserFailed({error: fbError}));
           })
         )
       ),

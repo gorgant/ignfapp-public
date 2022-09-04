@@ -59,8 +59,8 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   }
 
   private monitorUpdateRequests(): void {
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdateUserError));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
   }
 
   onSubmit() {
@@ -77,7 +77,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
       updateType: UserUpdateType.BIO_UPDATE
     };
 
-    this.store$.dispatch(UserStoreActions.updateUserRequested({userUpdateData}));
+    this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
     this.postSubmitActions();
   }
 
