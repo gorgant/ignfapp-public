@@ -142,7 +142,19 @@ export const trainingRecordStoreReducer = createReducer(
     return featureAdapter.removeAll(
       {
         ...state, 
-        youtubeVideoData: null
+        allTrainingRecordsFetched: false,
+        createTrainingRecordError: null,
+        createTrainingRecordProcessing: false,
+        deleteTrainingRecordError: null,
+        deleteTrainingRecordProcessing: false,
+        fetchAllTrainingRecordsError: null,
+        fetchAllTrainingRecordsProcessing: false,
+        fetchMultipleTrainingRecordsError: null,
+        fetchMultipleTrainingRecordsProcessing: false,
+        fetchSingleTrainingRecordError: null,
+        fetchSingleTrainingRecordProcessing: false,
+        updateTrainingRecordError: null,
+        updateTrainingRecordProcessing: false,
       }
     );
   }),

@@ -132,7 +132,8 @@ export const planSessionFragmentStoreReducer = createReducer(
     return {
       ...state,
       fetchAllPlanSessionFragmentsProcessing: false,
-      fetchAllPlanSessionFragmentsError: action.error
+      fetchAllPlanSessionFragmentsError: action.error,
+      allPlanSessionFragmentsFetched: false,
     }
   }),
 
@@ -192,7 +193,23 @@ export const planSessionFragmentStoreReducer = createReducer(
     return featureAdapter.removeAll(
       {
         ...state, 
-        youtubeVideoData: null
+        allPlanSessionFragmentsFetched: false,
+        batchDeletePlanSessionFragmentsError: null,
+        batchDeletePlanSessionFragmentsProcessing: false,
+        batchModifyPlanSessionFragmentsError: null,
+        batchModifyPlanSessionFragmentsProcessing: false,
+        createPlanSessionFragmentError: null,
+        createPlanSessionFragmentProcessing: false,
+        deletePlanSessionFragmentError: null,
+        deletePlanSessionFragmentProcessing: false,
+        fetchAllPlanSessionFragmentsError: null,
+        fetchAllPlanSessionFragmentsProcessing: false,
+        fetchMultiplePlanSessionFragmentsError: null,
+        fetchMultiplePlanSessionFragmentsProcessing: false,
+        fetchSinglePlanSessionFragmentError: null,
+        fetchSinglePlanSessionFragmentProcessing: false,
+        updatePlanSessionFragmentError: null,
+        updatePlanSessionFragmentProcessing: false,
       }
     );
   }),

@@ -199,7 +199,25 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.logout, (state, action) => {
     return {
       ...state,
-      authResultsData: null
+      authError: null,
+      authGuardError: null,
+      authProcessing: false,
+      confirmPasswordError: null,
+      confirmPasswordProcessing: false,
+      deleteAuthUserError: null,
+      deleteAuthUserProcessing: false,
+      emailVerified: false,
+      emailVerificationError: null,
+      emailVerificationProcessing: false,
+      reloadAuthDataError: null, 
+      reloadAuthDataProcessing: false,
+      resetPasswordError: null,
+      resetPasswordProcessing: false,
+      signupError: null,
+      signupProcessing: false,
+      updateEmailError: null,
+      updateEmailProcessing: false,
+      authResultsData: null,
     }
   }),
   

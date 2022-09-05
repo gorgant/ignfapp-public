@@ -1,15 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { combineLatest, map, Observable, tap, withLatestFrom } from 'rxjs';
+import { map, Observable, take, withLatestFrom, zip } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PlanSessionFragment, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
+import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingPlan } from 'shared-models/train/training-plan.model';
-import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -17,7 +14,7 @@ import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, Roo
   templateUrl: './training-plan.component.html',
   styleUrls: ['./training-plan.component.scss']
 })
-export class TrainingPlanComponent implements OnInit {
+export class TrainingPlanComponent implements OnInit, OnDestroy {
 
   TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
@@ -41,9 +38,7 @@ export class TrainingPlanComponent implements OnInit {
   constructor(
     private store$: Store<RootStoreState.AppState>,
     private route: ActivatedRoute,
-    private uiService: UiService,
     private router: Router,
-    private dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
@@ -69,19 +64,20 @@ export class TrainingPlanComponent implements OnInit {
 
   private loadTrainingPlanData() {
     const trainingPlanId = this.getSessionIdFromParams();
-    this.existingTrainingPlanData$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId))
+    this.existingTrainingPlanData$ = this.fetchSingleTrainingPlanProcessing$
       .pipe(
         withLatestFrom(
-          this.fetchSingleTrainingPlanProcessing$,
+          this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId)),
           this.fetchSingleTrainingPlanError$
-          ),
-        map(([trainingPlan, fetchProcessing, loadError]) => {
+        ),
+        map(([fetchProcessing, trainingPlan, loadError]) => {
           if (loadError) {
             console.log('Error loading trainingPlan in component', loadError);
             this.singleTrainingPlanRequested = false;
+            this.onNavigateUserToBrowse();
           }
 
-          if (!fetchProcessing && !this.singleTrainingPlanRequested) {
+          if (!fetchProcessing && !this.singleTrainingPlanRequested && !loadError) {
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
             this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
             this.singleTrainingPlanRequested = true;
@@ -90,21 +86,30 @@ export class TrainingPlanComponent implements OnInit {
         }),
       );
 
-    this.planSessionFragmentData$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore)
+    this.planSessionFragmentData$ = this.fetchAllPlanSessionFragmentsProcessing$
       .pipe(
         withLatestFrom(
-          this.fetchAllPlanSessionFragmentsProcessing$,
+          this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore),
           this.fetchAllPlanSessionFragmentsError$,
           this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched),
+          this.fetchSingleTrainingPlanError$
         ),
-        map(([planSessionFragments, loadingPlanSessionFragments, loadError, allPlanSessionFragmentsFetched]) => {
+        map(([loadingPlanSessionFragments, planSessionFragments, loadError, allPlanSessionFragmentsFetched, trainingPlanLoadError]) => {
           if (loadError) {
             console.log('Error loading planSessionFragments in component', loadError);
             this.planSessionFragmentsRequested = false;
+            this.onNavigateUserToBrowse();
+          }
+
+          if (trainingPlanLoadError) {
+            console.log('Upstream error loading trainingPlan', loadError);
+            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsFailed({error: { name: 'upstream error', message: 'failed to load planSessionFragments due to trainingPlan load error', code: 'internal'}}));
+            this.planSessionFragmentsRequested = false;
+            this.onNavigateUserToBrowse();
           }
   
           // Check if sessions are loaded, if not fetch from server
-          if (!loadingPlanSessionFragments && !this.planSessionFragmentsRequested && !allPlanSessionFragmentsFetched) {
+          if (!loadingPlanSessionFragments && !this.planSessionFragmentsRequested && !allPlanSessionFragmentsFetched && !(trainingPlanLoadError || loadError)) {
             this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
             this.planSessionFragmentsRequested = true;
           }
@@ -112,7 +117,7 @@ export class TrainingPlanComponent implements OnInit {
         })
       );
 
-    this.combinedTrainingPlanAndPlanSessionFragmentData$ = combineLatest([this.existingTrainingPlanData$, this.planSessionFragmentData$])
+    this.combinedTrainingPlanAndPlanSessionFragmentData$ = zip([this.existingTrainingPlanData$, this.planSessionFragmentData$])
       .pipe(
         map(([trainingPlan, planSessionFragments]) => {
           console.log('Combined data subscription firing with these values', trainingPlan, planSessionFragments);
@@ -135,18 +140,24 @@ export class TrainingPlanComponent implements OnInit {
     }
   }
 
-  onSelectTrainingSession(planSessionFragmentData: PlanSessionFragment) {
-    const queryParams: ViewPlanSessionFragmentUrlParams = {
-      canonicalId: planSessionFragmentData.canonicalId,
-      databaseCategory: TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT,
-      trainingPlanId: planSessionFragmentData.trainingPlanId
-    };
-    const navigationExtras = {queryParams};
-    this.router.navigate([`${PublicAppRoutes.TRAINING_SESSION}`, planSessionFragmentData.id], navigationExtras);
-  }
-
   onAddTrainingPlanToQueue() {
     // TODO: Add trainingPlan to user personalSessionFragment collection
+  }
+
+  ngOnDestroy(): void {
+    // If error exists, clear the errors before destroying components
+    this.fetchSingleTrainingPlanError$
+      .pipe(
+        withLatestFrom(this.fetchAllPlanSessionFragmentsError$),
+        take(1))
+      .subscribe(([fetchSingleTrainingPlanError, fetchAllPlanSessionFragmentsError]) => {
+        if (fetchSingleTrainingPlanError) {
+          this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanData());
+        }
+        if (fetchAllPlanSessionFragmentsError) {
+          this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentData());
+        }
+      });
   }
 
 }

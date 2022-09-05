@@ -112,9 +112,25 @@ export const userStoreReducer = createReducer(
   on(UserStoreActions.purgePublicUserData, (state, action) => {
     return {
       ...state,
+      createPublicUserError: null,
+      createPublicUserProcessing: false,
+      fetchPrelaunchUserError: null,
+      fetchPrelaunchUserProcessing: false,
+      fetchPublicUserError: null,
+      fetchPublicUserProcessing: false,
+      registerPrelaunchUserError: null,
+      registerPrelaunchUserProcessing: false,
+      resizeAvatarError: null,
+      resizeAvatarProcessing: false,
+      updatePrelaunchUserError: null,
+      updatePrelaunchUserProcessing: false,
+      updatePublicUserError: null,
+      updatePublicUserProcessing: false,
+      uploadAvatarError: null,
+      uploadAvatarProcessing: false,
+      avatarDownloadUrl: null,
       prelaunchUserData: null,
       publicUserData: null,
-      avatarDownloadUrl: null,
     }
   }),
 

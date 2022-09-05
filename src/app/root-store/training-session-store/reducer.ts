@@ -166,7 +166,25 @@ export const trainingSessionStoreReducer = createReducer(
   on(TrainingSessionStoreActions.purgeTrainingSessionData, (state, action) => {
     return featureAdapter.removeAll(
       {
-        ...state, 
+        ...state,
+        allTrainingSessionsFetched: false,
+        createTrainingSessionError: null,
+        createTrainingSessionProcessing: false,
+        deleteTrainingSessionError: null,
+        deleteTrainingSessionProcessing: false,
+        fetchAllTrainingSessionsError: null,
+        fetchAllTrainingSessionsProcessing: false,
+        fetchMultipleTrainingSessionsError: null,
+        fetchMultipleTrainingSessionsProcessing: false,
+        fetchSingleTrainingSessionError: null,
+        fetchSingleTrainingSessionProcessing: false,
+        fetchYoutubeVideoDataError: null,
+        fetchYoutubeVideoDataProcessing: false,
+        updateSessionRatingError: null,
+        updateSessionRatingProcessing: false,
+        updateTrainingSessionError: null,
+        updateTrainingSessionProcessing: false,
+        youtubeVideoData: null, 
       }
     );
   }),

@@ -87,3 +87,11 @@ export interface TrainingSessionFilterForm {
   [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: FormControl<TrainingSessionMuscleGroupDbOption[] | null>,
 }
 
+export interface ViewTrainingSessionsUlrParams {
+  [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: boolean | null
+}
+
+export enum ViewTrainingSessionsUrlParamsKeys {
+  VIEW_TRAINING_SESSIONS = 'viewTrainingSessions'
+}
+

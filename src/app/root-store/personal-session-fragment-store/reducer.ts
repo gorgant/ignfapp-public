@@ -142,7 +142,19 @@ export const personalSessionFragmentStoreReducer = createReducer(
     return featureAdapter.removeAll(
       {
         ...state, 
-        youtubeVideoData: null
+        allPersonalSessionFragmentsFetched: false,
+        createPersonalSessionFragmentError: null,
+        createPersonalSessionFragmentProcessing: false,
+        deletePersonalSessionFragmentError: null,
+        deletePersonalSessionFragmentProcessing: false,
+        fetchAllPersonalSessionFragmentsError: null,
+        fetchAllPersonalSessionFragmentsProcessing: false,
+        fetchMultiplePersonalSessionFragmentsError: null,
+        fetchMultiplePersonalSessionFragmentsProcessing: false,
+        fetchSinglePersonalSessionFragmentError: null,
+        fetchSinglePersonalSessionFragmentProcessing: false,
+        updatePersonalSessionFragmentError: null,
+        updatePersonalSessionFragmentProcessing: false,
       }
     );
   }),

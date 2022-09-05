@@ -152,7 +152,20 @@ export const trainingPlanStoreReducer = createReducer(
     return featureAdapter.removeAll(
       {
         ...state, 
-        youtubeVideoData: null
+        allTrainingPlansFetched: false,
+        createTrainingPlanError: null,
+        createTrainingPlanProcessing: false,
+        deleteTrainingPlanError: null,
+        deleteTrainingPlanProcessing: false,
+        fetchAllTrainingPlansError: null,
+        fetchAllTrainingPlansProcessing: false,
+        fetchMultipleTrainingPlansError: null,
+        fetchMultipleTrainingPlansProcessing: false,
+        fetchSingleTrainingPlanError: null,
+        fetchSingleTrainingPlanProcessing: false,
+        newTrainingPlanId: null,
+        updateTrainingPlanError: null,
+        updateTrainingPlanProcessing: false,
       }
     );
   }),

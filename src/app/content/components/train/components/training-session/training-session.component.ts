@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription, take } from 'rxjs';
 import { distinctUntilChanged, map, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionCompleteDialogueComponent } from './training-session-complete-dialogue/training-session-complete-dialogue.component';
 import { TrainingSessionDetailsComponent } from './training-session-details/training-session-details.component';
@@ -45,6 +45,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   trainingSessionData$!: Observable<TrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
   fetchTrainingSessionProcessing$!: Observable<boolean>;
+  fetchTrainingSessionError$!: Observable<{} | null>;
+  singleTrainingSessionRequested!: boolean;
 
   videoInitialized: boolean = false;
 
@@ -106,7 +108,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
-
+    this.fetchTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionError);
   }
 
   private getSessionIdFromParams(): string {
@@ -128,15 +130,27 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   private getTrainingSessionData() {
-    
     const trainingSessionId = this.getSessionIdFromParams();
-    this.trainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId))
+    this.trainingSessionData$ = this.fetchTrainingSessionProcessing$
         .pipe(
-          withLatestFrom(this.fetchTrainingSessionProcessing$),
-          map(([trainingSession, fetchProcessing]) => {
-            if (!trainingSession && !fetchProcessing) {
+          withLatestFrom(
+            this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)), 
+            this.fetchTrainingSessionError$
+          ),
+          map(([fetchProcessing, trainingSession, loadError]) => {
+            if (loadError) {
+              console.log('Error loading trainingSession in component', loadError);
+              this.singleTrainingSessionRequested = false;
+              const queryParams: ViewTrainingSessionsUlrParams = {
+                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+              };
+              const navigationExtras: NavigationExtras = {queryParams};
+              this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+            }
+            if (!trainingSession && !fetchProcessing && !this.singleTrainingSessionRequested && !loadError) {
               console.log(`Session ${trainingSessionId} not in store, fetching from database`);
               this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
+              this.singleTrainingSessionRequested = true;
             }
             return trainingSession;
           })
@@ -308,5 +322,13 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     if (this.videoStateSubscription) {
       this.videoStateSubscription.unsubscribe();
     }
+
+    this.fetchTrainingSessionError$
+      .pipe(take(1))
+      .subscribe((fetchTrainingSessionError) => {
+        if (fetchTrainingSessionError) {
+          this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
+        }
+      })
   }
 }

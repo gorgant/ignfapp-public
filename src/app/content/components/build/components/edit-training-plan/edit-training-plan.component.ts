@@ -145,19 +145,20 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   private patchExistingDataIntoForm(trainingPlanId: string) {
-    this.existingTrainingPlanData$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId))
+    this.existingTrainingPlanData$ = this.fetchSingleTrainingPlanProcessing$
       .pipe(
         withLatestFrom(
-          this.fetchSingleTrainingPlanProcessing$,
+          this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId)),
           this.fetchSingleTrainingPlanError$
-          ),
-        map(([trainingPlan, fetchProcessing, loadError]) => {
+        ),
+        map(([fetchProcessing, trainingPlan, loadError]) => {
           if (loadError) {
             console.log('Error loading trainingPlan in component', loadError);
             this.singleTrainingPlanRequested = false;
+            this.onNavigateUserToBrowse();
           }
 
-          if (!fetchProcessing && !this.singleTrainingPlanRequested) {
+          if (!fetchProcessing && !this.singleTrainingPlanRequested && !loadError) {
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
             this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
             this.singleTrainingPlanRequested = true;
@@ -171,21 +172,30 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         })
       );
 
-    this.planSessionFragmentData$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore)
+    this.planSessionFragmentData$ = this.fetchAllPlanSessionFragmentsProcessing$
       .pipe(
         withLatestFrom(
-          this.fetchAllPlanSessionFragmentsProcessing$,
+          this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore),
           this.fetchAllPlanSessionFragmentsError$,
           this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched),
+          this.fetchSingleTrainingPlanError$
         ),
-        map(([planSessionFragments, loadingPlanSessionFragments, loadError, allPlanSessionFragmentsFetched]) => {
+        map(([loadingPlanSessionFragments, planSessionFragments, loadError, allPlanSessionFragmentsFetched, trainingPlanLoadError]) => {
           if (loadError) {
             console.log('Error loading planSessionFragments in component', loadError);
             this.planSessionFragmentsRequested = false;
+            this.onNavigateUserToBrowse();
+          }
+
+          if (trainingPlanLoadError) {
+            console.log('Upstream error loading trainingPlan', loadError);
+            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsFailed({error: { name: 'upstream error', message: 'failed to load planSessionFragments due to trainingPlan load error', code: 'internal'}}));
+            this.planSessionFragmentsRequested = false;
+            this.onNavigateUserToBrowse();
           }
   
           // Check if sessions are loaded, if not fetch from server
-          if (!loadingPlanSessionFragments && !this.planSessionFragmentsRequested && !allPlanSessionFragmentsFetched) {
+          if (!loadingPlanSessionFragments && !this.planSessionFragmentsRequested && !allPlanSessionFragmentsFetched && !(trainingPlanLoadError || loadError)) {
             this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
             this.planSessionFragmentsRequested = true;
           }
@@ -580,6 +590,20 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     if (this.updateTrainingPlanSubscription) {
       this.updateTrainingPlanSubscription.unsubscribe();
     }
+    
+    // If error exists, clear the errors before destroying components
+    this.fetchSingleTrainingPlanError$
+      .pipe(
+        withLatestFrom(this.fetchAllPlanSessionFragmentsError$),
+        take(1))
+      .subscribe(([fetchSingleTrainingPlanError, fetchAllPlanSessionFragmentsError]) => {
+        if (fetchSingleTrainingPlanError) {
+          this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanData());
+        }
+        if (fetchAllPlanSessionFragmentsError) {
+          this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentData());
+        }
+      });
   }
 
   get title() { return this.trainingPlanForm.get(TrainingPlanKeys.TITLE) as FormControl<string>; }

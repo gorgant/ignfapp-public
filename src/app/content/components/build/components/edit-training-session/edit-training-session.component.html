@@ -4,10 +4,10 @@
   <mat-stepper class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
 
     <!-- Step 1 -->
-    <mat-step [stepControl]="stepOne.youtubeVideoDataForm" errorMessage="Error collecting video data." [editable]="true">
+    <mat-step [stepControl]="stepOne.youtubeVideoDataForm" errorMessage="Error collecting video data." [editable]="true" >
       <ng-template matStepLabel>{{ INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL }}</ng-template>
       
-      <app-edit-training-session-step-one [editTrainingSessionStepper]="editTrainingSessionStepper" #stepOne></app-edit-training-session-step-one>
+      <app-edit-training-session-step-one [editTrainingSessionStepper]="editTrainingSessionStepper" [existingTrainingSessionData$]="existingTrainingSessionData$" #stepOne></app-edit-training-session-step-one>
       
       <div class="stepper-buttons step-one-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
       

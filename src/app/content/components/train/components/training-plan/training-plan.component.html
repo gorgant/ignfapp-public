@@ -15,7 +15,7 @@
   <div class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
       <div class="training-session-card-container" *cdkVirtualFor="let planSessionFragment of combinedData.planSessionFragments" fxLayout="column" fxLayoutGap="8px">
-        <app-training-session-card [trainingSesssionData]="planSessionFragment" fxLayout="column" (click)="onSelectTrainingSession(planSessionFragment)"></app-training-session-card>
+        <app-training-session-card [trainingSesssionData]="planSessionFragment" fxLayout="column"></app-training-session-card>
       </div>
     </cdk-virtual-scroll-viewport>
   </div>

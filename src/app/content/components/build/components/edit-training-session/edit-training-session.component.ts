@@ -1,9 +1,9 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { map, withLatestFrom } from 'rxjs/operators';
+import { map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
+import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable } from 'rxjs';
@@ -59,6 +59,11 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   updateTrainingSessionError$!: Observable<{} | null>;
   updateTrainingSessionSubmitted!: boolean;
 
+  existingTrainingSessionData$!: Observable<TrainingSession | undefined>;
+  fetchTrainingSessionProcessing$!: Observable<boolean>;
+  fetchTrainingSessionError$!: Observable<{} | null>;
+  singleTrainingSessionRequested!: boolean;
+
   serverRequestProcessing$!: Observable<boolean>;
 
   @ViewChild('stepOne') stepOne!: EditTrainingSessionStepOneComponent;
@@ -94,6 +99,9 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.updateTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectUpdateTrainingSessionProcessing);
     this.updateTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectUpdateTrainingSessionError);
 
+    this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
+    this.fetchTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionError);
+
     this.serverRequestProcessing$ = combineLatest(
       [
         this.createTrainingSessionProcessing$,
@@ -121,6 +129,9 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   private checkIfNewSession(): void {
     this.isNewSession = !this.getExistingSessionId();
+    if (!this.isNewSession) {
+      this.getExistingTrainingSessionData();
+    }
   }
 
   private getExistingSessionId(): string | null {
@@ -130,6 +141,45 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
       return sessionId
     }
     return null;
+  }
+
+  private getExistingTrainingSessionData() {
+    // Check if id params are available
+    const idParamName = 'id';
+    const trainingSessionId = this.route.snapshot.params[idParamName];
+    if (trainingSessionId) {
+      console.log('Session id found in url params', trainingSessionId);
+
+      this.existingTrainingSessionData$ = this.fetchTrainingSessionProcessing$
+        .pipe(
+          withLatestFrom(
+            this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)), 
+            this.fetchTrainingSessionError$
+          ),
+          map(([fetchProcessing, trainingSession, loadError]) => {
+            if (loadError) {
+              console.log('Error loading trainingSession in component', loadError);
+              this.singleTrainingSessionRequested = false;
+              const queryParams: ViewTrainingSessionsUlrParams = {
+                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+              };
+              const navigationExtras: NavigationExtras = {queryParams};
+              this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+            }
+            if (!trainingSession && !fetchProcessing && !this.singleTrainingSessionRequested && !loadError) {
+              console.log(`Session ${trainingSessionId} not in store, fetching from database`);
+              this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
+              this.singleTrainingSessionRequested = true;
+            }
+            return trainingSession;
+          }),
+          tap(trainingSession => {
+            if (trainingSession) {
+              this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession.videoData}));
+            }
+          })
+        )
+    }
   }
 
   onSubmitTrainingSessionForm(stepTwoData: EditTrainingSessionStepTwoComponent): void {
@@ -314,6 +364,14 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     if (this.updateTrainingSessionSubscription) {
       this.updateTrainingSessionSubscription.unsubscribe();
     }
+
+    this.fetchTrainingSessionError$
+      .pipe(take(1))
+      .subscribe((fetchTrainingSessionError) => {
+        if (fetchTrainingSessionError) {
+          this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
+        }
+      })
 
   }
 

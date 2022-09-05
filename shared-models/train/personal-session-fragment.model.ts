@@ -31,6 +31,6 @@ export enum PersonalSessionFragmentKeys {
 export interface ViewPersonalSessionFragmentUrlParams extends Params {
   [PersonalSessionFragmentKeys.CANONICAL_ID]: string;
   [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
-  id: string;
-  [PersonalSessionFragmentKeys.USER_ID]: string;
+  // id: string;
+  // [PersonalSessionFragmentKeys.USER_ID]: string;
 }
