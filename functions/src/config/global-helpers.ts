@@ -133,9 +133,9 @@ export const submitHttpRequest = async (config: Axios.AxiosRequestConfig): Promi
 export const fetchUserByEmail = async (email: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PrelaunchUser | PublicUser | undefined> => {
 
   const userCollectionRef = await userCollection
-  .where(PublicUserKeys.EMAIL, '==', email)
-  .get()
-  .catch(err => {functions.logger.log(`Failed to fetch prelaunchUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+    .where(PublicUserKeys.EMAIL, '==', email)
+    .get()
+    .catch(err => {functions.logger.log(`Failed to fetch prelaunchUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
 
   // Return empty if user doesn't exist
   if (userCollectionRef.empty) {

@@ -121,12 +121,18 @@ const executeActions = async (emailEvents: EmailEvent[]) => {
   const recordId = emailEvents[0].sg_message_id;
 
   // TODO: SWITCH TO publicUser collection ONCE APP IS LIVE
-  const userCollection = publicFirestore.collection(PublicCollectionPaths.PRELAUNCH_USERS);
+  let userCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
   
-  const userData = await fetchUserByEmail(userEmail, userCollection); 
+  let userData = await fetchUserByEmail(userEmail, userCollection); 
+
+  // If no public user, check prelaunch user
+  if (!userData) {
+    userCollection = publicFirestore.collection(PublicCollectionPaths.PRELAUNCH_USERS);
+    userData = await fetchUserByEmail(userEmail, userCollection); 
+  }
 
   if (!userData) {
-    functions.logger.error(`Error updating email record, prelaunchUser with email ${userEmail} not found`);
+    functions.logger.error(`Error updating email record, user with email ${userEmail} not found`);
     functions.logger.log('HAVE YOU SWITCHED TO publicUser COLLECTION YET?')
     throw new functions.https.HttpsError('internal', `Error updating email record, user with email ${userEmail} not found`);
   }
