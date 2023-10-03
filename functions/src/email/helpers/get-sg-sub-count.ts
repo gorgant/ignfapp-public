@@ -1,8 +1,11 @@
-import { sendgridMarketingContactsApiUrl, sendgridSecret } from '../config';
-import * as functions from 'firebase-functions';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
+import { sendgridMarketingContactsApiUrl } from '../config';
+
 import { SendgridGetContactCountResponse } from '../../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../../config/global-helpers';
 import * as Axios from 'axios';
+import { sendgridApiSecret } from '../../config/api-key-config';
 
 /**
  * Query sendgrid API for total contact count
@@ -16,17 +19,17 @@ export const getSgContactCount = async (): Promise<number> => {
     headers: 
       { 
         'content-type': 'application/json',
-        authorization: `Bearer ${sendgridSecret}` 
+        authorization: `Bearer ${sendgridApiSecret.value()}` 
       }
   };
 
-  functions.logger.log('Getting getSendgridContactCount with these options', requestOptions);
+  logger.log('Getting getSendgridContactCount with these options', requestOptions);
 
   const searchResponse = await submitHttpRequest(requestOptions)
-    .catch(err => {functions.logger.log(`Error with Sendgrid contact count request:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error with Sendgrid contact count request:`, err); throw new HttpsError('internal', err);});
   
   const contactCount = (searchResponse as SendgridGetContactCountResponse).contact_count;
-  functions.logger.log('Found this many contacts in SG:', contactCount);
+  logger.log('Found this many contacts in SG:', contactCount);
   
   return contactCount;
 

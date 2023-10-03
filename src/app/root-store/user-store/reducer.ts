@@ -60,30 +60,6 @@ export const userStoreReducer = createReducer(
     }
   }),
 
-  // Fetch Prelaunch User
-
-  on(UserStoreActions.fetchPrelaunchUserRequested, (state, action) => {
-    return {
-      ...state,
-      fetchPrelaunchUserProcessing: true,
-      fetchPrelaunchUserError: null
-    }
-  }),
-  on(UserStoreActions.fetchPrelaunchUserCompleted, (state, action) => {
-    return {
-      ...state,
-      fetchPrelaunchUserProcessing: false,
-      prelaunchUserData: action.prelaunchUser
-    }
-  }),
-  on(UserStoreActions.fetchPrelaunchUserFailed, (state, action) => {
-    return {
-      ...state,
-      fetchPrelaunchUserProcessing: false,
-      fetchPrelaunchUserError: action.error
-    }
-  }),
-
   // Fetch Public User
 
   on(UserStoreActions.fetchPublicUserRequested, (state, action) => {
@@ -134,30 +110,6 @@ export const userStoreReducer = createReducer(
     }
   }),
 
-  // Register Prelaunch User
-
-  on(UserStoreActions.registerPrelaunchUserRequested, (state, action) => {
-    return {
-      ...state,
-      registerPrelaunchUserProcessing: true,
-      registerPrelaunchUserError: null
-    }
-  }),
-  on(UserStoreActions.registerPrelaunchUserCompleted, (state, action) => {
-    return {
-      ...state,
-      registerPrelaunchUserProcessing: false,
-      prelaunchUserData: action.prelaunchUser
-    }
-  }),
-  on(UserStoreActions.registerPrelaunchUserFailed, (state, action) => {
-    return {
-      ...state,
-      registerPrelaunchUserProcessing: false,
-      registerPrelaunchUserError: action.error
-    }
-  }),
-
   // Resize Avatar
 
   on(UserStoreActions.resizeAvatarRequested, (state, action) => {
@@ -181,30 +133,29 @@ export const userStoreReducer = createReducer(
     }
   }),
 
-  // Update Prelaunch User
-  
-  on(UserStoreActions.updatePrelaunchUserRequested, (state, action) => {
+  // Send Update Email Confirmation
+
+  on(UserStoreActions.sendUpdateEmailConfirmationRequested, (state, action) => {
     return {
       ...state,
-      updatePrelaunchUserProcessing: true,
-      updatePrelaunchUserError: null
+      sendUpdateEmailConfirmationProcessing: true,
+      sendUpdateEmailConfirmationError: null
     }
   }),
-  on(UserStoreActions.updatePrelaunchUserCompleted, (state, action) => {
+  on(UserStoreActions.sendUpdateEmailConfirmationCompleted, (state, action) => {
     return {
       ...state,
-      updatePrelaunchUserProcessing: false,
-      prelaunchUserData: action.updatedPrelaunchUser
+      sendUpdateEmailConfirmationProcessing: false,
     }
   }),
-  on(UserStoreActions.updatePrelaunchUserFailed, (state, action) => {
+  on(UserStoreActions.sendUpdateEmailConfirmationFailed, (state, action) => {
     return {
       ...state,
-      updatePrelaunchUserProcessing: false,
-      updatePrelaunchUserError: action.error
+      sendUpdateEmailConfirmationProcessing: false,
+      sendUpdateEmailConfirmationError: action.error
     }
   }),
-  
+
   // Update Public User
   
   on(UserStoreActions.updatePublicUserRequested, (state, action) => {

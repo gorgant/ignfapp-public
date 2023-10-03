@@ -1,34 +1,36 @@
-import * as functions from 'firebase-functions';
+import { Request, onRequest } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import { EmailEvent } from '../../../shared-models/email/email-event.model';
 import { updateEmailRecord } from './helpers/handlers';
-import { EmailCategories } from '../../../shared-models/email/email-vars.model';
-import { catchErrors } from '../config/global-helpers';
+import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model';
+import { Response } from 'express';
 
 
-const isSandbox = (events: EmailEvent[], req: functions.Request, res: functions.Response): Promise<boolean> => {
+const isSandbox = (events: EmailEvent[], req: Request, res: Response<any>): Promise<boolean> => {
   
-  functions.logger.log('Opening exitIfSandbox function');
+  logger.log('Opening exitIfSandbox function');
 
   const sandboxCheck = new Promise<boolean> ((resolve, reject) => {
 
     if (!events) {
-      functions.logger.log('No events present');
+      logger.log('No events present');
       resolve(false);
       return;
     }
 
     events.forEach(event => {
       if (!event.category) {
-        functions.logger.log('No event category present');
+        logger.log('No event category present');
         resolve(false);
         return;
       }
 
-      functions.logger.log('Scanning this event category list', event.category)
+      logger.log('Scanning this event category list', event.category)
 
       // Since category can be a single string, first check for that
-      if (typeof event.category === 'string' && event.category === EmailCategories.TEST_SEND) {
-        functions.logger.log(`Sandbox mode based on this event category: ${event.category}, canceling function, received this data`, req.body);
+      if (typeof event.category === 'string' && event.category === EmailIdentifiers.TEST_SEND) {
+        logger.log(`Sandbox mode based on this event category: ${event.category}, canceling function, received this data`, req.body);
         res.sendStatus(200);
         resolve(true);
         return;
@@ -36,8 +38,8 @@ const isSandbox = (events: EmailEvent[], req: functions.Request, res: functions.
 
       // Otherwise must be array, so loop through that
       (event.category as string[]).forEach(category => {
-        if (category === EmailCategories.TEST_SEND) {
-          functions.logger.log(`Sandbox mode based on this event category: ${category}, canceling function, received this data`, req.body);
+        if (category === EmailIdentifiers.TEST_SEND) {
+          logger.log(`Sandbox mode based on this event category: ${category}, canceling function, received this data`, req.body);
           resolve(true);
           return;
         }
@@ -54,9 +56,12 @@ const isSandbox = (events: EmailEvent[], req: functions.Request, res: functions.
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-export const onReqSgEmailWebhookEndpoint = functions.https.onRequest(
+// TODO: Figure out if I need to whitelist the Sendgrid domain before enforcing appCheck here
+// const callableOptions: CallableOptions = {
+//   enforceAppCheck: true
+// };
 
-  async (req, res) => {
+export const onReqSgEmailWebhookEndpoint = onRequest( async (req, res) => {
 
     const events: EmailEvent[] = req.body;
 
@@ -68,12 +73,12 @@ export const onReqSgEmailWebhookEndpoint = functions.https.onRequest(
       res.sendStatus(200);
       return;
     }
-    functions.logger.log('No sandbox found');
+    logger.log('No sandbox found');
     
     try {
-      functions.logger.log('Sending webhook data to handler', events);
-      catchErrors(updateEmailRecord(events))
-        .catch(error => error);
+      logger.log('Sending webhook data to handler', events);
+      updateEmailRecord(events)
+        .catch(err => {logger.log(`Failed to update email record based on the events`, err); throw new HttpsError('internal', err);});
       res.sendStatus(200);
     } catch (err) {
       res.status(400).send(err);

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { Storage, StorageReference, ref, uploadBytesResumable, UploadTask, getDownloadURL, }  from '@angular/fire/storage';
 import { catchError, from, map, Observable,of,take,throwError } from 'rxjs';
@@ -11,10 +11,10 @@ import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-
 })
 export class ImageService {
 
-  constructor(
-    private storage: Storage,
-    private fns: Functions,
-  ) { }
+  private storage = inject(Storage);
+  private functions = inject(Functions);
+
+  constructor() { }
 
   private async fetchDownloadUrl(storageRef: StorageReference, task?: UploadTask): Promise<string> {
     if (task) {
@@ -29,7 +29,7 @@ export class ImageService {
     console.log('Submitting request to server to resize avatar');
 
     const resizeAvatarHttpCall: (data: AvatarImageMetaData) => Observable<string> = httpsCallableData(
-      this.fns,
+      this.functions,
       PublicFunctionNames.ON_CALL_RESIZE_AVATAR
     );
     const res = resizeAvatarHttpCall(imageMetaData)

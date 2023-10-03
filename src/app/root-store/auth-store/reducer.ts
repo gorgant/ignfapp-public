@@ -206,9 +206,9 @@ export const authStoreReducer = createReducer(
       confirmPasswordProcessing: false,
       deleteAuthUserError: null,
       deleteAuthUserProcessing: false,
-      emailVerified: false,
-      emailVerificationError: null,
-      emailVerificationProcessing: false,
+      verifyEmailSucceeded: false,
+      verifyEmailError: null,
+      verifyEmailProcessing: false,
       reloadAuthDataError: null, 
       reloadAuthDataProcessing: false,
       resetPasswordError: null,
@@ -234,6 +234,7 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       reloadAuthDataProcessing: false,
+      authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.reloadAuthDataFailed, (state, action) => {
@@ -273,20 +274,23 @@ export const authStoreReducer = createReducer(
     return {
       ...state,
       updateEmailProcessing: true,
-      updateEmailError: null
+      updateEmailError: null,
+      updateEmailSucceeded: false,
     }
   }),
   on(AuthStoreActions.updateEmailCompleted, (state, action) => {
     return {
       ...state,
       updateEmailProcessing: false,
+      updateEmailSucceeded: action.updateEmailSucceeded,
     }
   }),
   on(AuthStoreActions.updateEmailFailed, (state, action) => {
     return {
       ...state,
       updateEmailProcessing: false,
-      updateEmailError: action.error
+      updateEmailError: action.error,
+      updateEmailSucceeded: false,
     }
   }),
 
@@ -295,22 +299,24 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.verifyEmailRequested, (state, action) => {
     return {
       ...state,
-      emailVerificationProcessing: true,
-      emailVerificationError: null
+      verifyEmailProcessing: true,
+      verifyEmailError: null,
+      verifyEmailSucceeded: false,
     }
   }),
   on(AuthStoreActions.verifyEmailCompleted, (state, action) => {
     return {
       ...state,
-      emailVerificationProcessing: false,
-      emailVerified: action.emailVerified,
+      verifyEmailProcessing: false,
+      verifyEmailSucceeded: action.verifyEmailSucceeded,
     }
   }),
   on(AuthStoreActions.verifyEmailFailed, (state, action) => {
     return {
       ...state,
-      emailVerificationProcessing: false,
-      emailVerificationError: action.error
+      verifyEmailProcessing: false,
+      verifyEmailError: action.error,
+      verifyEmailSucceeded: false,
     }
   }),
 

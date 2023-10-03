@@ -1,18 +1,16 @@
-import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, AbstractControl } from '@angular/forms';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { Store, select } from '@ngrx/store';
-import { combineLatest, map, Observable, Subscription, withLatestFrom } from 'rxjs';
-import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
+import { combineLatest, map, Observable, Subscription, switchMap, tap } from 'rxjs';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
 import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
-import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { RootStoreState, UserStoreSelectors, UserStoreActions, AuthStoreSelectors, AuthStoreActions } from 'src/app/root-store';
+import { UserStoreSelectors, UserStoreActions, AuthStoreSelectors, AuthStoreActions } from 'src/app/root-store';
 import { EditNameDialogueComponent } from '../edit-name-dialogue/edit-name-dialogue.component';
 
 @Component({
@@ -26,42 +24,49 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   stepperOrientation!: StepperOrientation;
   
-  passwordForm!: UntypedFormGroup;
-  emailForm!: UntypedFormGroup;
-  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
-
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
+  CONFIRM_NEW_EMAIL_BLURB = GlobalFieldValues.CONFIRM_NEW_EMAIL;
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
-  UPDATE_EMAIL_BUTTON_VALUE = GlobalFieldValues.UPDATE_EMAIL;
-  UPDATE_EMAIL_STEP_LABEL = GlobalFieldValues.UPDATE_EMAIL;
-  UPDATE_EMAIL_TITLE_VALUE = GlobalFieldValues.UPDATE_EMAIL;
+  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
+  IVE_CONFIRMED_MY_EMAIL_BUTTON_VALUE = GlobalFieldValues.IVE_CONFIRMED_MY_EMAIL;
+  SEND_UPDATE_EMAIL_CONFIRMATION = GlobalFieldValues.SEND_UPDATE_EMAIL_CONFIRMATION;
+  UPDATE_EMAIL_BUTTON_VALUE = GlobalFieldValues.SEND_UPDATE_EMAIL_CONFIRMATION;
+  UPDATE_EMAIL_TITLE_VALUE = GlobalFieldValues.SEND_UPDATE_EMAIL_CONFIRMATION;
   VERIFY_PASSWORD_BUTTON_VALUE = GlobalFieldValues.VERIFY_PASSWORD;
   VERIFY_PASSWORD_STEP_LABEL = GlobalFieldValues.VERIFY_PASSWORD;
 
-  passwordConfirmationProcessing$!: Observable<boolean>;
-  passwordConfirmationSubscription!: Subscription;
-  passwordConfirmationError$!: Observable<{} | null>;
-  passwordConfirmationSubmitted!: boolean;
+  private passwordConfirmationProcessing$!: Observable<boolean>;
+  private passwordConfirmationSubscription!: Subscription;
+  private passwordConfirmationError$!: Observable<{} | null>;
+  private passwordConfirmationSubmitted!: boolean;
 
-  authEmailUpdateProcessing$!: Observable<boolean>;
-  authEmailUpdateSubscription!: Subscription;
-  authEmailUpdateError$!: Observable<{} | null>;
-  authEmailUpdateSubmitted!: boolean;
-  
-  userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | null>;
-  userUpdateSubscription!: Subscription;
-  userUpdateSubmitted!: boolean;
+  private sendUpdateEmailConfirmationProcessing$!: Observable<boolean>;
+  private sendUpdateEmailConfirmationSubscription!: Subscription;
+  private sendUpdateEmailConfirmationError$!: Observable<{} | null>;
+  private sendUpdateEmailConfirmationSubmitted!: boolean;
+  sendUpdateEmailConfirmationSucceded!: boolean;
   
   authOrUserUpdateProcessing$!: Observable<boolean>;
 
-  constructor(
-    private fb: UntypedFormBuilder,
-    private dialogRef: MatDialogRef<EditNameDialogueComponent>,
-    @Inject(MAT_DIALOG_DATA) public userData: PublicUser,
-    private store$: Store<RootStoreState.AppState>,
-    private uiService: UiService
-  ) { }
+  private userData$!: Observable<PublicUser>;
+
+  private fb = inject(FormBuilder);
+  private dialogRef = inject(MatDialogRef<EditNameDialogueComponent>);
+  private store$ = inject(Store);
+  private uiService = inject(UiService);
+  private userData: PublicUser = inject(MAT_DIALOG_DATA);
+
+  passwordForm = this.fb.group({
+    [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required]],
+  });
+
+  emailForm = this.fb.group({
+    [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
+  });
+  
+  
+    
+  constructor() { }
 
   ngOnInit() {
     this.initForm();
@@ -70,15 +75,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   private initForm(): void {
-    
-    this.passwordForm = this.fb.group({
-      [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required]],
-    });
-
-    this.emailForm = this.fb.group({
-      [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
-    });
-
     // Patch in existing data if it exists
     this.emailForm.patchValue({
       [PublicUserKeys.EMAIL]: this.userData.email,
@@ -87,24 +83,20 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
 
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
+
     this.passwordConfirmationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordProcessing));
     this.passwordConfirmationError$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordError));
     
-    this.authEmailUpdateProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailProcessing));
-    this.authEmailUpdateError$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailError));
+    this.sendUpdateEmailConfirmationProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationProcessing));
+    this.sendUpdateEmailConfirmationError$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationError));
 
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
-
-    this.authOrUserUpdateProcessing$ = combineLatest(
-      [
+    this.authOrUserUpdateProcessing$ = combineLatest([
         this.passwordConfirmationProcessing$,
-        this.authEmailUpdateProcessing$,
-        this.userUpdateProcessing$
-      ]
-    ).pipe(
-        map(([confirmingPassword, updatingAuth, updatingUser]) => {
-          if (confirmingPassword || updatingAuth || updatingUser) {
+        this.sendUpdateEmailConfirmationProcessing$,
+      ]).pipe(
+        map(([confirmingPassword, sendingEmail]) => {
+          if (confirmingPassword || sendingEmail) {
             return true
           }
           return false
@@ -134,32 +126,31 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   
   private postPasswordConfirmationActions() {
 
-    this.passwordConfirmationSubscription = this.passwordConfirmationProcessing$
+    this.passwordConfirmationSubscription = combineLatest([this.passwordConfirmationProcessing$, this.passwordConfirmationError$])
       .pipe(
-        withLatestFrom(this.passwordConfirmationError$)
+        tap(([passwordUpdateProcessing, authError]) => {
+          if (passwordUpdateProcessing) {
+            this.passwordConfirmationSubmitted = true;
+          }
+  
+          // If error in auth, cancel operation
+          if (authError) {
+            console.log('Error confirming password in auth, resetting form');
+            this.passwordConfirmationSubscription.unsubscribe();
+            this.passwordConfirmationSubmitted = false;
+            this.passwordForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+            return;
+          }
+          
+          // If password confirmation succeeds, proceed to next step
+          if (this.passwordConfirmationSubmitted && !passwordUpdateProcessing) {
+            console.log('Password confirmation successful');
+            this.passwordConfirmationSubscription.unsubscribe(); // Clear subscription no longer needed
+            this.proceedToNextStep();
+          }  
+        })
       )
-      .subscribe(([passwordUpdateProcessing, authError]) => {
-        
-        if (passwordUpdateProcessing) {
-          this.passwordConfirmationSubmitted = true;
-        }
-
-        // If error in auth, cancel operation
-        if (authError) {
-          console.log('Error confirming password in auth, resetting form');
-          this.passwordConfirmationSubscription.unsubscribe();
-          this.passwordConfirmationSubmitted = false;
-          this.passwordForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
-          return;
-        }
-        
-        // If password confirmation succeeds, proceed to next step
-        if (this.passwordConfirmationSubmitted && !passwordUpdateProcessing) {
-          console.log('Password confirmation successful');
-          this.passwordConfirmationSubscription.unsubscribe(); // Clear subscription no longer needed
-          this.proceedToNextStep();
-        }
-      })
+      .subscribe();
   }
 
   // Programatically trigger the stepper to move to the next step
@@ -167,99 +158,45 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
     this.updateEmailStepper.next()
   }
 
-  onUpdateEmail() {
-    this.updateEmailInAuth();
-  }
-
-  private updateEmailInAuth() {
-    const emailUpdateData: EmailUpdateData = {
-      newEmail: this.email.value
-    }
-
-    this.store$.dispatch(AuthStoreActions.updateEmailRequested({emailUpdateData}));
-    this.updateEmailInFirebase();
-  }
-  
-  private updateEmailInFirebase() {
-
-    this.authEmailUpdateSubscription = this.authEmailUpdateProcessing$
+  onSendUpdateEmailConfirmation() {
+    this.sendUpdateEmailConfirmationSubscription = combineLatest([this.userData$, this.sendUpdateEmailConfirmationProcessing$])
       .pipe(
-        withLatestFrom(this.authEmailUpdateError$)
-      )
-      .subscribe(([authUpdateProcessing, authError]) => {
-        
-        if (authUpdateProcessing) {
-          this.authEmailUpdateSubmitted = true;
-        }
-
-        // If error in auth, cancel operation
-        if (authError) {
-          console.log('Error updating email in auth, resetting form');
-          this.authEmailUpdateSubscription.unsubscribe();
-          this.authEmailUpdateSubmitted = false;
-          return;
-        }
-        
-        // If auth email update succeeds, proceed to update user in database
-        if (this.authEmailUpdateSubmitted && !authUpdateProcessing) {
-          console.log('Auth email update complete, updating user in database');
-          
-          const userData: Partial<PublicUser> = {
-            id: this.userData.id,
-            email: this.email.value,
+        switchMap(([userData, sendEmailProcessing]) => {
+          if (!this.sendUpdateEmailConfirmationSubmitted && !sendEmailProcessing) {
+            // Provide the new email to the user data
+            const updatedUserData: PublicUser = {
+              ...userData,
+              [PublicUserKeys.EMAIL]: this.email.value
+            }
+            this.store$.dispatch(UserStoreActions.sendUpdateEmailConfirmationRequested({userData: updatedUserData}));
           }
-      
-          const userUpdateData: UserUpdateData = {
-            userData,
-            updateType: UserUpdateType.EMAIL_UPDATE
-          };
-      
-          this.authEmailUpdateSubscription.unsubscribe(); // Clear subscription no longer needed
-
-          this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-          this.postUserUpdateActions();
-        }
-      })
-  }
-
-  private postUserUpdateActions() {
-    this.userUpdateSubscription = this.userUpdateProcessing$
-      .pipe(
-        withLatestFrom(this.userUpdateError$)
-      )
-      .subscribe(([updateProcessing, updateError]) => {
-
-        if (updateProcessing) {
-          this.userUpdateSubmitted = true;
-        }
-        
-        // If error updating user in database, cancel operation and revert previous auth changes
-        if (updateError) {
-          console.log('Error updating email in user database, resetting form');
-          this.userUpdateSubscription.unsubscribe();
-          this.userUpdateSubmitted = false;
-        
-          this.revertAuthToOriginalEmail();
-          return;
-        }
-        
-        if (!updateProcessing && this.userUpdateSubmitted) {
-          console.log('Closing dialogue box');
-          this.dialogRef.close(true);
-        }
-        
-      })
-  }
-
-  // Revert auth to previous email in the event of a database update error
-  private revertAuthToOriginalEmail() {
-    console.log('Reverting auth to original email');
-    const emailUpdateData: EmailUpdateData = {
-      newEmail: this.userData.email // User's original email
-    }
-    this.store$.dispatch(AuthStoreActions.updateEmailRequested({emailUpdateData}));
-  }
+          return combineLatest([this.sendUpdateEmailConfirmationProcessing$, this.sendUpdateEmailConfirmationError$])
+        }),
+        tap(([sendEmailProcessing, sendEmailError]) => {
+          if (sendEmailProcessing) {
+            this.sendUpdateEmailConfirmationSubmitted = true;
+          }
   
+          // If error in auth, cancel operation
+          if (sendEmailError) {
+            console.log('Error sending email, resetting form');
+            this.sendUpdateEmailConfirmationSubscription.unsubscribe();
+            this.sendUpdateEmailConfirmationSubmitted = false;
+            this.emailForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+            return;
+          }
+          
+          // If password confirmation succeeds, proceed to next step
+          if (this.passwordConfirmationSubmitted && !sendEmailProcessing) {
+            console.log('sendUpdateEmailConfirmation succeeded');
+            this.sendUpdateEmailConfirmationSubscription.unsubscribe();
+            this.sendUpdateEmailConfirmationSucceded = true;
+          }
+        })
+      )
+      .subscribe();
+  }
+
   // These getters are used for easy access in the HTML template
   get password() { return this.passwordForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
   get email() { return this.emailForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
@@ -270,12 +207,8 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
       this.passwordConfirmationSubscription.unsubscribe();
     }
 
-    if (this.userUpdateSubscription) {
-      this.userUpdateSubscription.unsubscribe();
-    }
-
-    if (this.authEmailUpdateSubscription) {
-      this.authEmailUpdateSubscription.unsubscribe();
+    if (this.sendUpdateEmailConfirmationSubscription) {
+      this.sendUpdateEmailConfirmationSubscription.unsubscribe();
     }
 
   }

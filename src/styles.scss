@@ -1,39 +1,26 @@
-@use '@angular/material' as mat;
+// Custom themeing guide: https://indepth.dev/tutorials/angular/angular-material-theming-system-complete-guide
 
 // Custom Theming for Angular Material
 // For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
 // Plus imports for other components in your app.
+@use "./styles/themes/light";
+@use "./styles/typography/config" as typography;
+
+
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&display=swap');
 
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
 @include mat.core();
 
-// Courtesy of https://indepth.dev/posts/1320/custom-theme-for-angular-material-components-series-part-1-create-a-theme
-
-// import our custom theme
-@import "./theme.scss";
-
-// import custom component themes
-@import "./custom-component-themes.scss";
-
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include mat.all-component-themes($ignfapp-public-theme);
-@include custom-components-theme($ignfapp-public-theme);
-
-// Include the dark color styles inside of a block with a CSS class. You can make this
-// CSS class whatever you want. In this example, any component inside of an element with
-// `.dark-theme` will be affected by this alternate dark theme instead of the default theme.
-
-.dark-theme {
-  @include mat.all-component-colors($dark-theme);
-}
-
-// Override typography for all Angular Material, including mat-base-typography and all components.
-@include mat.all-component-typographies($typography);
+@include mat.all-component-themes(light.$ignfapp-public-light-theme);
+@include mat.all-component-typographies(typography.$ignfapp-public-typography);
 
 /* You can add global styles to this file, and also import other style files */
 

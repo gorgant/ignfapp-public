@@ -1,10 +1,10 @@
 # IgnfappPublic
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.2.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.1.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
 ## Code scaffolding
 
@@ -12,7 +12,14 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Currently this only compiles with the following Firebase package combo: `npm i @angular/fire firebase@^9.23.0 rxfire@6.0.3`. Remove all of those packages and re-run if app throws a compile error or you get a firebase collection reference error. This should be resolved in future patches.
+
+1. Run `firebase use production` or `firebase use development` to select the appropriate Firebase workspace
+2. Run `FIREBASE_FRAMEWORKS_BUILD_TARGET=production firebase deploy` or `FIREBASE_FRAMEWORKS_BUILD_TARGET=development firebase deploy` depending on which workspace is active, which will build the app with the appropriate configuration. 
+
+Note that, currently, only running `firebase deploy` will always default to building the app using the production environment config, which is problematic for the development build. This may get resolved in the future.
+
+The build artifacts will be stored in the `dist/` directory.
 
 ## Running unit tests
 
@@ -20,7 +27,7 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 
 ## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
 ## Further help
 

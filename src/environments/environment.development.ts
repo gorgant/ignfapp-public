@@ -7,5 +7,7 @@ export const environment = {
     storageBucket: "ignfapp-sandbox-public.appspot.com",
     messagingSenderId: "1031772571014",
     appId: "1:1031772571014:web:65f037ceba4cf5cd365807"
-  }
-}
+  },
+  reCaptchaEnterpriseProviderKey: '6Ld4_xAoAAAAADCzZquuxkptHuSrxlJ_Wflcqton',
+  appCheckDebugTokenActive: true
+};

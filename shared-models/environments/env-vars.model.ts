@@ -61,4 +61,5 @@ export enum StripePublishableKeys {
 
 export enum SecretsManagerKeyNames {
   YOUTUBE_DATA_API_V3_FETCH = 'YOUTUBE_DATA_API_V3_FETCH',
+  SENDGRID = 'SENDGRID'
 }

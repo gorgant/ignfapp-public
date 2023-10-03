@@ -13,9 +13,12 @@ export enum PublicFunctionNames {
   ON_CALL_REGISTER_PRELAUNCH_USER = 'onCallRegisterPrelaunchUser',
   ON_CALL_REMOVE_USER_FROM_SG_CONTACT_LIST = 'onCallRemoveUserFromSgContactList',
   ON_CALL_RESIZE_AVATAR = 'onCallResizeAvatar',
+  ON_CALL_UPDATE_EMAIL = 'onCallUpdateEmail',
   ON_CALL_UPDATE_PRELAUNCH_USER = 'onCallUpdatePrelaunchUser',
   ON_CALL_UPDATE_PUBLIC_USER = 'onCallUpdatePublicUser',
   ON_CALL_UPDATE_SESSION_RATING = 'onCallUpdateSessionRating',
+  ON_CALL_SEND_UPDATE_EMAIL_CONFIRMATION = 'onCallSendUpdateEmailConfirmation',
+  ON_CALL_TEST_FUNCTION = 'onCallTestFunction',
   ON_CALL_VERIFY_EMAIL = 'onCallVerifyEmail',
   ON_DELETE_REMOVE_PUBLIC_USER_DATA = 'onDeleteRemovePublicUserData',
   ON_PUB_CREATE_OR_UPDATE_SG_CONTACT = 'onPubCreateOrUpdateSgContact',
@@ -23,8 +26,8 @@ export enum PublicFunctionNames {
   ON_PUB_DISPATCH_EMAIL = 'onPubDispatchEmail',
   ON_PUB_REMOVE_USER_FROM_SG_CONTACT_LIST = 'onPubRemoveUserFromSgContactList',
   ON_PUB_RESIZE_AVATAR = 'onPubResizeAvatar',
-  ON_REQ_SG_EMAIL_WEBHOOK_ENDPOINT = 'onReqSgEmailWebhookEndpoint',
   ON_PUB_UPDATE_SESSION_RATING = 'onPubUpdateSessionRating',
+  ON_REQ_SG_EMAIL_WEBHOOK_ENDPOINT = 'onReqSgEmailWebhookEndpoint',
 }
 
 export enum PublicTopicNames {

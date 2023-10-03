@@ -9,9 +9,9 @@ const getConfirmPasswordError = (state: AuthState) => state.confirmPasswordError
 const getConfirmPasswordProcessing = (state: AuthState) => state.confirmPasswordProcessing;
 const getDeleteAuthUserError = (state: AuthState) => state.deleteAuthUserError;
 const getDeleteAuthUserProcessing = (state: AuthState) => state.deleteAuthUserProcessing;
-const getEmailVerificationError = (state: AuthState) => state.emailVerificationError;
-const getEmailVerificationProcessing = (state: AuthState) => state.emailVerificationProcessing;
-const getEmailVerified = (state: AuthState) => state.emailVerified;
+const getVerifyEmailError = (state: AuthState) => state.verifyEmailError;
+const getVerifyEmailProcessing = (state: AuthState) => state.verifyEmailProcessing;
+const getVerifyEmailSucceeded = (state: AuthState) => state.verifyEmailSucceeded;
 const getReloadAuthDataError = (state: AuthState) => state.reloadAuthDataError;
 const getReloadAuthDataProcessing = (state: AuthState) => state.reloadAuthDataProcessing;
 const getResetPasswordError = (state: AuthState) => state.resetPasswordError;
@@ -20,6 +20,7 @@ const getSignUpError = (state: AuthState) => state.signupError;
 const getSignupProcessing = (state: AuthState) => state.signupProcessing;
 const getUpdateEmailError = (state: AuthState) => state.updateEmailError;
 const getUpdateEmailProcessing = (state: AuthState) => state.updateEmailProcessing;
+const getUpdateEmailSucceeded = (state: AuthState) => state.updateEmailSucceeded;
 
 const selectAuthState = createFeatureSelector<AuthState>(PublicStoreFeatureKeys.AUTH);
 
@@ -61,19 +62,19 @@ export const selectDeleteAuthUserProcessing = createSelector(
 );
 
 
-export const selectEmailVerificationError = createSelector(
+export const selectVerifyEmailError = createSelector(
   selectAuthState,
-  getEmailVerificationError
+  getVerifyEmailError
 );
 
-export const selectEmailVerificationProcessing = createSelector(
+export const selectVerifyEmailProcessing = createSelector(
   selectAuthState,
-  getEmailVerificationProcessing
+  getVerifyEmailProcessing
 );
 
-export const selectEmailVerified = createSelector(
+export const selectVerifyEmailSucceeded = createSelector(
   selectAuthState,
-  getEmailVerified
+  getVerifyEmailSucceeded
 );
 
 export const selectIsLoggedIn = createSelector(
@@ -119,4 +120,9 @@ export const selectUpdateEmailError = createSelector(
 export const selectUpdateEmailProcessing = createSelector(
   selectAuthState,
   getUpdateEmailProcessing
+);
+
+export const selectUpdateEmailSucceeded = createSelector(
+  selectAuthState,
+  getUpdateEmailSucceeded
 );

@@ -1,1 +1,9 @@
-<p>train-dashboard works!</p>
+<div *ngIf="personalSessionFragmentData$ | async as personalSessionFragmentData" class="content-container" fxLayout="column" fxLayoutAlign="center center">
+  <div class="personal-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+    <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
+      <div class="training-session-card-container" *cdkVirtualFor="let personalSessionFragment of personalSessionFragmentData" fxLayout="column" fxLayoutGap="8px">
+        <app-training-session-card [trainingSesssionData]="personalSessionFragment" fxLayout="column"></app-training-session-card>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>

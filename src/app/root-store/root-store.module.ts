@@ -40,14 +40,8 @@ import { TrainingSessionStoreModule } from './training-session-store';
         }
       }),
       EffectsModule.forRoot([]),
-      !environment.production ? StoreDevtoolsModule.instrument() : [], // TODO: Figure out why this doesn't work when deployed to server
-      StoreRouterConnectingModule.forRoot(
-        { 
-          stateKey: 'router',
-          routerState: RouterState.Minimal,
-          serializer: CustomSerializer
-        }
-      ),
+      StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: !environment.production }),
+      StoreRouterConnectingModule.forRoot({ serializer: CustomSerializer }),
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

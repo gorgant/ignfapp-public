@@ -1,8 +1,8 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, withLatestFrom } from 'rxjs';
+import { Observable, Subscription, combineLatest, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
@@ -16,7 +16,7 @@ import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/ro
 })
 export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
-  nameForm!: UntypedFormGroup;
+
   FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
   TITLE_FIELD_VALUE = GlobalFieldValues.EDIT_NAME;
@@ -27,16 +27,22 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | null>;
-  userUpdateSubscription!: Subscription;
-  updateSubmitted!: boolean;
+  private userUpdateError$!: Observable<{} | null>;
+  private userUpdateSubscription!: Subscription;
+  private updateSubmitted!: boolean;
+  
+  private fb = inject(FormBuilder);
+  private dialogRef = inject(MatDialogRef<EditNameDialogueComponent>);
+  private store$ = inject(Store<RootStoreState.AppState>);
+  private userData: PublicUser = inject(MAT_DIALOG_DATA);
 
-  constructor(
-    private fb: UntypedFormBuilder,
-    private dialogRef: MatDialogRef<EditNameDialogueComponent>,
-    @Inject(MAT_DIALOG_DATA) private userData: PublicUser,
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  nameForm = this.fb.group({
+    [PublicUserKeys.FIRST_NAME]: ['', [Validators.required]],
+    [PublicUserKeys.LAST_NAME]: [''],
+    [PublicUserKeys.DISPLAY_NAME]: ['']
+  });
+
+  constructor() { }
 
   ngOnInit() {
     this.initForm();
@@ -44,12 +50,6 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   }
 
   private initForm(): void {
-    this.nameForm = this.fb.group({
-      [PublicUserKeys.FIRST_NAME]: ['', [Validators.required]],
-      [PublicUserKeys.LAST_NAME]: ['', [Validators.required]],
-      [PublicUserKeys.DISPLAY_NAME]: ['', [Validators.required]]
-    });
-
     // Patch in existing data if it exists
     this.nameForm.patchValue({
       [PublicUserKeys.FIRST_NAME]: this.userData.firstName,
@@ -82,28 +82,27 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   }
 
   postSubmitActions() {
-    this.userUpdateSubscription = this.userUpdateProcessing$
+    this.userUpdateSubscription = combineLatest([this.userUpdateProcessing$, this.userUpdateError$]) 
       .pipe(
-        withLatestFrom(this.userUpdateError$)
+        tap(([updateProcessing, updateError]) => {
+          if (updateProcessing) {
+            this.updateSubmitted = true;
+          }
+  
+          if (updateError) {
+            console.log('Error updating name, resetting form');
+            this.userUpdateSubscription.unsubscribe();
+            this.updateSubmitted = false;
+            return;
+          }
+          
+          if (!updateProcessing && this.updateSubmitted) {
+            console.log('User update succeeded, closing dialog');
+            this.dialogRef.close(true);
+          }
+        })
       )
-      .subscribe(([updateProcessing, updateError]) => {
-
-        if (updateProcessing) {
-          this.updateSubmitted = true;
-        }
-
-        if (updateError) {
-          console.log('Error updating name, resetting form');
-          this.userUpdateSubscription.unsubscribe();
-          this.updateSubmitted = false;
-          return;
-        }
-        
-        if (!updateProcessing && this.updateSubmitted) {
-          this.dialogRef.close(true);
-        }
-        
-      })
+      .subscribe()
   }
   
   // These getters are used for easy access in the HTML template

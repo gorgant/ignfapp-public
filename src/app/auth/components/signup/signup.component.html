@@ -18,7 +18,12 @@
       {{ AUTH_PROCESSING_BLURB }}
     </h2>
   </div>
-  <div class="verify-email" *ngIf="(userData$ | async) && !(userData$ | async)?.emailVerified && !(authOrUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutGap="64px">
+  <div 
+    *ngIf="(userData$ | async) && 
+      (!(userData$ | async)?.emailVerified || !(authData$ | async)?.emailVerified) && 
+      !(authOrUserUpdateProcessing$ | async)" 
+    class="verify-email" fxLayout="column" fxLayoutGap="32px"
+  >
     <p>{{ CHECK_INBOX_BLURB_1 }}, {{(userData$ | async)?.firstName}}. {{ CHECK_INBOX_BLURB_2 }} <span class="verify-text">{{ CHECK_INBOX_BLURB_3 }}</span>.</p>
     <p>{{ CHECK_SPAM_BLURB_1 }} <span class="trusted-sender-text">{{ TRUSTED_EMAIL_SENDER }}</span> {{ CHECK_SPAM_BLURB_2 }}.</p>
   </div>

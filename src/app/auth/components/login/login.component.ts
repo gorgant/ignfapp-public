@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
@@ -28,16 +29,15 @@ export class LoginComponent implements OnInit {
   CHECK_SPAM_BLURB_1 = GlobalFieldValues.CHECK_SPAM_1;
   CHECK_SPAM_BLURB_2 = GlobalFieldValues.CHECK_SPAM_2;
 
-  authStatus$!: Observable<boolean>;
   authOrUserUpdateProcessing$!: Observable<boolean>;
-  
   userData$!: Observable<PublicUser>;
+  authData$!: Observable<AuthResultsData>;
 
   useEmailLogin: boolean = false;
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  private store$ = inject(Store);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.checkAuthStatus();
@@ -48,7 +48,6 @@ export class LoginComponent implements OnInit {
   }
 
   private checkAuthStatus() {
-    this.authStatus$ = this.store$.pipe(select(AuthStoreSelectors.selectIsLoggedIn));
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
         this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing)),
@@ -67,6 +66,7 @@ export class LoginComponent implements OnInit {
     );
     
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
+    this.authData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
   }
 
 

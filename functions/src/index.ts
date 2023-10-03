@@ -1,10 +1,10 @@
 export { onCallCreatePublicUser } from './user/on-call-create-public-user';
+export { onCallUpdateEmail } from './auth/on-call-update-email';
 export { onCallDeletePublicUser } from './user/on-call-delete-public-user';
 export { onCallFetchYoutubeVideoData } from './training/on-call-fetch-youtube-video-data';
-export { onCallRegisterPrelaunchUser } from './auth/on-call-register-prelaunch-user';
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
 export { onCallResizeAvatar } from './user/on-call-resize-avatar';
-export { onCallUpdatePrelaunchUser } from './user/on-call-update-prelaunch-user';
+export { onCallSendUpdateEmailConfirmation } from './user/on-call-send-update-email-confirmation';
 export { onCallUpdatePublicUser } from './user/on-call-update-public-user';
 export { onCallUpdateSessionRating } from './training/on-call-update-session-rating';
 export { onCallVerifyEmail } from './auth/on-call-verify-email';
@@ -16,3 +16,4 @@ export { onPubRemoveUserFromSgContactList } from './email/on-pub-remove-user-fro
 export { onPubResizeAvatar } from './user/on-pub-resize-avatar';
 export { onReqSgEmailWebhookEndpoint } from './email/on-req-sg-email-webhook-endpoint';
 export { onPubUpdateSessionRating } from './training/on-pub-update-session-rating';
+export { onCallTestFunction } from './test/test-function';

@@ -1,7 +1,7 @@
 import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
 import { AuthFormData, AuthResultsData } from "shared-models/auth/auth-data.model";
-import { EmailUpdateData } from "shared-models/auth/email-update-data.model";
+import { EmailUpdateData } from "shared-models/email/email-update-data.model";
 import { PasswordConfirmationData } from "shared-models/auth/password-confirmation-data.model";
 import { EmailVerificationData } from "shared-models/email/email-verification-data";
 
@@ -139,12 +139,12 @@ export const logout = createAction(
 
 // Reload Auth Data
 export const reloadAuthDataRequested = createAction(
-  '[Login Form | Signup Form] Reload AuthData Requested'
+  '[Login Form | Signup Form | Login With Third Party] Reload AuthData Requested'
 );
 
 export const reloadAuthDataCompleted = createAction(
   '[Auth Service] Reload AuthData Completed',
-  props<{authDataReloaded: boolean}>()
+  props<{authResultsData: AuthResultsData}>()
 );
 
 export const reloadAuthDataFailed = createAction(
@@ -176,7 +176,7 @@ export const updateEmailRequested = createAction(
 
 export const updateEmailCompleted = createAction(
   '[Auth Service] Update Email Completed',
-  props<{emailUpdated: boolean}>()
+  props<{updateEmailSucceeded: boolean}>()
 );
 
 export const updateEmailFailed = createAction(
@@ -192,7 +192,7 @@ export const verifyEmailRequested = createAction(
 
 export const verifyEmailCompleted = createAction(
   '[User Service] Verify Email Completed',
-  props<{emailVerified: boolean}>()
+  props<{verifyEmailSucceeded: boolean}>()
 );
 
 export const verifyEmailFailed = createAction(

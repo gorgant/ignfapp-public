@@ -58,27 +58,6 @@ export class UserStoreEffects {
     ),
   );
 
-  fetchPrelaunchUserEffect$ = createEffect(() => this.actions$
-    .pipe(
-      ofType(UserStoreActions.fetchPrelaunchUserRequested),
-      switchMap(action => 
-        this.userService.fetchPrelaunchUser(action.prelaunchUserId).pipe(
-          map(prelaunchUser => {
-            return UserStoreActions.fetchPrelaunchUserCompleted({prelaunchUser});
-          }),
-          catchError(error => {
-            const fbError: FirebaseError = {
-              code: error.code,
-              message: error.message,
-              name: error.name
-            };
-            return of(UserStoreActions.fetchPrelaunchUserFailed({error: fbError}));
-          })
-        )
-      ),
-    ),
-  );
-
   fetchPublicUserEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(UserStoreActions.fetchPublicUserRequested),
@@ -94,27 +73,6 @@ export class UserStoreEffects {
               name: error.name
             };
             return of(UserStoreActions.fetchPublicUserFailed({error: fbError}));
-          })
-        )
-      ),
-    ),
-  );
-
-  registerPrelaunchUserEffect$ = createEffect(() => this.actions$
-    .pipe(
-      ofType(UserStoreActions.registerPrelaunchUserRequested),
-      concatMap(action => 
-        this.userService.registerPrelaunchUser(action.emailUserData).pipe(
-          map(prelaunchUser => {
-            return UserStoreActions.registerPrelaunchUserCompleted({prelaunchUser});
-          }),
-          catchError(error => {
-            const fbError: FirebaseError = {
-              code: error.code,
-              message: error.message,
-              name: error.name
-            };
-            return of(UserStoreActions.registerPrelaunchUserFailed({error: fbError}));
           })
         )
       ),
@@ -142,13 +100,13 @@ export class UserStoreEffects {
     ),
   );
 
-  updatePrelaunchUserEffect$ = createEffect(() => this.actions$
+  sendUpdateEmailConfirmationEffect$ = createEffect(() => this.actions$
     .pipe(
-      ofType(UserStoreActions.updatePrelaunchUserRequested),
+      ofType(UserStoreActions.sendUpdateEmailConfirmationRequested),
       concatMap(action => 
-        this.userService.updatePrelaunchUser(action.userUpdateData).pipe(
-          map(updatedPrelaunchUser => {
-            return UserStoreActions.updatePrelaunchUserCompleted({updatedPrelaunchUser});
+        this.userService.sendUpdateEmailConfirmation(action.userData).pipe(
+          map(emailUpdated => {
+            return UserStoreActions.sendUpdateEmailConfirmationCompleted({emailUpdated});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -156,7 +114,7 @@ export class UserStoreEffects {
               message: error.message,
               name: error.name
             };
-            return of(UserStoreActions.updatePrelaunchUserFailed({error: fbError}));
+            return of(UserStoreActions.sendUpdateEmailConfirmationFailed({error: fbError}));
           })
         )
       ),

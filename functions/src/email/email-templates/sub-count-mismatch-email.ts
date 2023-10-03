@@ -1,16 +1,18 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import { getSgMail } from "../config";
-import { EmailSenderAddresses, EmailSenderNames, EmailCategories, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
+import { EmailSenderAddresses, EmailSenderNames, EmailIdentifiers, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
 import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
-import * as functions from 'firebase-functions';
+
 import { SubCountMatchData } from "../../../../shared-models/email/sub-count-match-data";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchData ) => {
   
-  functions.logger.log('Sending Subscriber Count Mismatch Email to admin');
+  logger.log('Sending Subscriber Count Mismatch Email to admin');
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
@@ -34,15 +36,15 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH];
+      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailIdentifiers.TEST_SEND];
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailIdentifiers.TEST_SEND];
       break;
   }
 
@@ -58,7 +60,7 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
     categories
   };
   await sgMail.send(msg)
-    .catch(err => {functions.logger.log(`Error sending email: ${msg} because:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error sending email: ${msg} because:`, err); throw new HttpsError('internal', err);});
 
-  functions.logger.log('Email sent', msg);
+  logger.log('Email sent', msg);
 }

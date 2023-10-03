@@ -1,28 +1,27 @@
-import { Injectable } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
+import { Injectable, inject } from '@angular/core';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch, Timestamp } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, takeUntil } from 'rxjs/operators';
-import { PersonalSessionFragment, PersonalSessionFragmentNoId } from 'shared-models/train/personal-session-fragment.model';
+import { PersonalSessionFragment, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
-import { Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PersonalSessionFragmentService {
 
-  constructor(
-    private afs: Firestore,
-    private authService: AuthService,
-    private uiService: UiService,
-  ) { }
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private uiService = inject(UiService);
+  
+  constructor() { }
 
   batchModifyPersonalSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PersonalSessionFragment>[]): Observable<Update<PersonalSessionFragment>[]> {
-    const batch = writeBatch(this.afs);
+    const batch = writeBatch(this.firestore);
 
     planSessionFragmentUpdates.forEach(singlePersonalSessionFragmentUpdate => {
       const changesWithTimestamp: Partial<PersonalSessionFragment> = {
@@ -54,7 +53,7 @@ export class PersonalSessionFragmentService {
       );
   }
 
-  createPersonalSessionFragment(userId: string, personalSessionFragmentNoIdOrTimestamp: PersonalSessionFragmentNoId): Observable<PersonalSessionFragment> {
+  createPersonalSessionFragment(userId: string, personalSessionFragmentNoIdOrTimestamp: PersonalSessionFragmentNoIdOrTimestamp): Observable<PersonalSessionFragment> {
     const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewPersonalSessionFragmentDocumentId(userId);
@@ -250,7 +249,7 @@ export class PersonalSessionFragmentService {
 
   private getPersonalSessionFragmentCollection(userId: string): CollectionReference<PersonalSessionFragment> {
     // Note that personalSessionFragment is nested in Public User document
-    return collection(this.afs, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PERSONAL_SESSION_FRAGMENTS}`) as CollectionReference<PersonalSessionFragment>;
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PERSONAL_SESSION_FRAGMENTS}`) as CollectionReference<PersonalSessionFragment>;
   }
 
   private getPersonalSessionFragmentDoc(userId: string, personalSessionFragmentId: string): DocumentReference<PersonalSessionFragment> {

@@ -5,21 +5,33 @@
   padding-bottom: 72px;
 }
 
-// router-outlet {
-//   padding-bottom: 200px;
-// }
-
 .footer-container {
   width: 100%;
 }
 
 app-nav-bar {
-  // background-color: #333;
   overflow: hidden;
   position: fixed;
   bottom: 0;
   width: 100%;
   z-index: 1;
+}
+
+.spinner-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+
+}
+
+.processing-spinner {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
 }
 
 @media screen and (min-width: $mobile-cutoff-width) {

@@ -1,4 +1,3 @@
-import { CanDeactivate } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
@@ -15,7 +14,7 @@ export interface ComponentCanDeactivate {
 @Injectable({
   providedIn: 'root'
 }) 
-export class UnsavedChangesGuard implements CanDeactivate<ComponentCanDeactivate> {
+export class UnsavedChangesGuard {
 
   constructor(
     private dialog: MatDialog,

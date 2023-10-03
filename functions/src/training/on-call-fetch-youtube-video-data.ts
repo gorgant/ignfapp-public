@@ -1,18 +1,22 @@
-import * as functions from 'firebase-functions';
-import { SecretsManagerKeyNames } from '../../../shared-models/environments/env-vars.model';
-import * as Axios from 'axios';
+import { logger } from 'firebase-functions/v2';
+import { CallableOptions, CallableRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
 import { submitHttpRequest } from '../config/global-helpers';
 import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from '../../../shared-models/youtube/youtube-video-data.model';
 import { findSessionByVideoId } from './find-session-by-video-id';
 import { SocialUrlPrefixes } from '../../../shared-models/meta/social-urls.model';
 import { Duration } from 'luxon';
+import { youtubeApiSecret } from '../config/api-key-config';
+import { AxiosRequestConfig } from 'axios';
 
 const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => {
-  const youtubeApiKey = process.env[SecretsManagerKeyNames.YOUTUBE_DATA_API_V3_FETCH];
+  // Guide to setting secrets using firebase CLI: https://firebase.google.com/docs/functions/config-env
+  // const youtubeApiKey = process.env[SecretsManagerKeyNames.YOUTUBE_DATA_API_V3_FETCH];
   // See api here: // https://developers.google.com/youtube/v3/docs/videos/list
-  const requestUrl = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&id=${videoId}&key=${youtubeApiKey}`;
+  const requestUrl = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&id=${videoId}&key=${youtubeApiSecret.value()}`;
 
-  const requestOptions: Axios.AxiosRequestConfig = {
+  // logger.log(`Snippit of YT Key ${youtubeApiSecret.value().substring(1,3)}...`, );
+
+  const requestOptions: AxiosRequestConfig = {
     method: 'GET',
     url: requestUrl,
     headers: 
@@ -21,10 +25,10 @@ const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => 
       }
   };
   
-  functions.logger.log('Getting Youtube video data with these options', requestOptions);
+  logger.log('Getting Youtube video data with these options', requestOptions);
 
   const youtubeApiResponse = await submitHttpRequest(requestOptions)
-    .catch(err => {functions.logger.log(`Error with Youtube API request:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error with Youtube API request:`, err); throw new HttpsError('internal', err);});
 
   return youtubeApiResponse as YoutubeVideoDataRaw;
 }
@@ -57,29 +61,31 @@ const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): Youtube
     videoUrl: `${SocialUrlPrefixes.YOUTUBE_VIDEO}/${rawVideoData.items[0].id}`
   }
 
-  functions.logger.log('Compact video data created', compactVideoData);
+  logger.log('Compact video data created', compactVideoData);
   return compactVideoData;
 }
 
 
 /////// DEPLOYABLE FUNCTIONS ///////
-const functionConfig: functions.RuntimeOptions = {
-  secrets: [SecretsManagerKeyNames.YOUTUBE_DATA_API_V3_FETCH]
-}
+const callableOptions: CallableOptions = {
+  secrets: [youtubeApiSecret],
+  enforceAppCheck: true
+};
 
-export const onCallFetchYoutubeVideoData = functions.runWith(functionConfig).https.onCall( async (videoId: string): Promise<YoutubeVideoDataCompact | null> => {
+export const onCallFetchYoutubeVideoData = onCall(callableOptions, async (request: CallableRequest<string>): Promise<YoutubeVideoDataCompact | null> => {
 
-  functions.logger.log(`Fetch Youtube Video data request received with this data`, videoId);
+  const videoId = request.data;
+  logger.log(`Fetch Youtube Video data request received with this data`, videoId);
 
   const existingTrainingSession = await findSessionByVideoId(videoId);
 
   // Exit function if training session with that videoId already exists (prevents duplicates)
   if (existingTrainingSession) {
-    functions.logger.log('Matching training session found, exiting function', existingTrainingSession);
+    logger.log('Matching training session found, exiting function', existingTrainingSession);
     return null;
   }
 
-  functions.logger.log('No matching training session exists, proceeding to fetch Youtube Video Data');
+  logger.log('No matching training session exists, proceeding to fetch Youtube Video Data');
 
   const rawYoutubeVideoData =  await executeActions(videoId);
 

@@ -1,19 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updateEmail, User, reload, deleteUser } from '@angular/fire/auth';
+import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, User, reload, deleteUser } from '@angular/fire/auth';
 import { Functions, httpsCallableData }  from '@angular/fire/functions';
 import { UiService } from 'src/app/core/services/ui.service';
 import { from, Observable, Subject, throwError } from 'rxjs';
-import { take, map, catchError, switchMap, takeUntil } from 'rxjs/operators';
+import { take, map, catchError, switchMap, takeUntil, filter, shareReplay } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, getAdditionalUserInfo } from 'firebase/auth';
-import { EmailUpdateData } from 'shared-models/auth/email-update-data.model';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { Store } from '@ngrx/store';
-import { PersonalSessionFragmentStoreActions, PlanSessionFragmentStoreActions, RootStoreState, TrainingPlanStoreActions, TrainingRecordStoreActions, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
+import { PersonalSessionFragmentStoreActions, PlanSessionFragmentStoreActions, TrainingPlanStoreActions, TrainingRecordStoreActions, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
+import { EmailUpdateData } from 'shared-models/email/email-update-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,24 +21,26 @@ import { PersonalSessionFragmentStoreActions, PlanSessionFragmentStoreActions, R
 export class AuthService {
 
   private ngUnsubscribe$: Subject<void> = new Subject();
+  
+  private functions = inject(Functions);
+  private router = inject(Router);
+  private uiService = inject(UiService);
+  private auth = inject(Auth);
+  private store$ = inject(Store);
+  private authCheckInitialized = false;
 
-  constructor(
-    private router: Router,
-    private fns: Functions,
-    private uiService: UiService,
-    private auth: Auth,
-    private store$: Store<RootStoreState.AppState>
-  ) {
+  constructor() {
 
     // If auth credentials are ever removed (eg. on a separate browser), immediately route user to login (disable for prod prelaunch mode)
     authState(this.auth)
       .subscribe(authState => {
         // Disable this for email verification route
-        if (!authState && !router.url.includes(PublicAppRoutes.EMAIL_VERIFICATION)) {
+        if (!authState && !this.router.url.includes(PublicAppRoutes.EMAIL_VERIFICATION) && this.authCheckInitialized) {
           console.log('Auth state auto logout initialized')
           this.router.navigate([PublicAppRoutes.LOGIN]);
           this.logout();
         }
+        this.authCheckInitialized = true; // prevents this logout from triggering on the initial load, which was canceling out the returnUrl param from the Authguard
       });
   }
 
@@ -215,17 +217,29 @@ export class AuthService {
     signOut(this.auth);
   }
 
-  reloadAuthData(): Observable<boolean> {
+  reloadAuthData(): Observable<AuthResultsData> {
     const authResponse = from(
       authState(this.auth).pipe(
-        take(1),
-        switchMap((user) => {
+        filter(user => !!user),
+        switchMap(user => {
           return reload(user!);
         }),
-        map((empty) => {
-          console.log('Auth data reloaded');
-          return true;
+        switchMap(empty => {
+          return authState(this.auth);
         }),
+        filter(user => !!user),
+        map(user => {
+          console.log('Auth data reloaded', user);
+          const authResultsData: AuthResultsData = {
+            avatarUrl: user?.photoURL as string,
+            displayName: user?.displayName?.split(' ')[0] as string,
+            email: user?.email as string,
+            emailVerified: user?.emailVerified as boolean,
+            id: user?.uid as string
+          };
+          return authResultsData;
+        }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error reloading auth data', error);
@@ -284,31 +298,31 @@ export class AuthService {
     );
   };
 
-  // Note email must also be updated separately in the Firestore database via the User Auth service
-  // Note first confirm password using the separate function before updating email
-  updateEmailInAuth(emailUpdateData: EmailUpdateData): Observable<boolean> {
+  updateEmail(emailUpdateData: EmailUpdateData): Observable<boolean> {
 
-    const authResponse = from(
-      authState(this.auth).pipe(
+    console.log('Submitting email to server for updating');
+
+    const updateEmailHttpCall: (data: EmailUpdateData) => Observable<boolean> = httpsCallableData(
+      this.functions,
+      PublicFunctionNames.ON_CALL_UPDATE_EMAIL
+    );
+    const res = updateEmailHttpCall(emailUpdateData)
+      .pipe(
         take(1),
-        switchMap((user) => {
-          return updateEmail(user as User, emailUpdateData.newEmail);
-          // console.log('Email updated in Auth');
-          // return true;
-        }),
-        map((empty) => {
-          console.log('Email updated in Auth');
-          return true
+        map(emailUpdated => {
+          console.log('Email update outcome:', emailUpdated);
+          if (!emailUpdated) {
+            throw new Error(`Error updating email: ${emailUpdated}`);
+          }
+          return emailUpdated;
         }),
         catchError(error => {
-          this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating user email in auth', error);
+          console.log('Error updating email', error);
           return throwError(() => new Error(error));
         })
-      )
-    );
+      );
 
-    return authResponse;
+    return res;
   }
 
   verifyEmail(emailVerificationData: EmailVerificationData): Observable<boolean> {
@@ -316,7 +330,7 @@ export class AuthService {
     console.log('Submitting email to server for verification');
 
     const verifyEmailHttpCall: (data: EmailVerificationData) => Observable<boolean> = httpsCallableData(
-      this.fns,
+      this.functions,
       PublicFunctionNames.ON_CALL_VERIFY_EMAIL
     );
     const res = verifyEmailHttpCall(emailVerificationData)

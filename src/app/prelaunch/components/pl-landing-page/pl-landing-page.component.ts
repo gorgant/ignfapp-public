@@ -8,8 +8,10 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 })
 export class PlLandingPageComponent implements OnInit {
 
+  bodyStatement = GlobalFieldValues.LP_BODY;
+  callToAction = GlobalFieldValues.LP_YOURE_ON_THE_WAITLIST;
   leadStatement = GlobalFieldValues.LP_COMING_SOON;
-  callToAction = GlobalFieldValues.LP_JOIN_WAITLIST;
+
 
   constructor() { }
 

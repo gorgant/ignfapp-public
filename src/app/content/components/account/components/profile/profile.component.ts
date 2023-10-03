@@ -1,14 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { Router } from '@angular/router';
 import { Store, select } from '@ngrx/store';
-import { Observable, Subscription, take, withLatestFrom } from 'rxjs';
+import { Observable, Subscription, combineLatest, filter, switchMap, take, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { AuthStoreActions, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { AuthStoreActions, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { EditAvatarDialogueComponent } from './edit-avatar-dialogue/edit-avatar-dialogue.component';
@@ -30,21 +29,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
   DELETE_PUBLIC_USER_CONF_TITLE = GlobalFieldValues.DELETE_PUBLIC_USER_CONF_TITLE;
 
   userData$!: Observable<PublicUser>;
-  loading$!: Observable<boolean>;
 
   defaultProfileImage = PublicImagePaths.DEFAULT_PROFILE_IMAGE_ICON;
 
- deletePublicUserProcessing$!: Observable<boolean>;
- deletePublicUserSubscription!: Subscription;
- deletePublicUserError$!: Observable<{} | null>;
- deletePublicUserSubmitted!: boolean;
+  private deletePublicUserProcessing$!: Observable<boolean>;
+  private deletePublicUserSubscription!: Subscription;
+  private deletePublicUserError$!: Observable<{} | null>;
+  private deletePublicUserSubmitted!: boolean;
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private dialog: MatDialog,
-    private uiService: UiService,
-    private router: Router
-  ) { }
+  private defaultMatDialogConfigOptions: MatDialogConfig = {
+    disableClose: false,
+    width: '90%',
+    maxWidth: '600px',
+    autoFocus: false
+  };
+
+  private store$ = inject(Store);
+  private dialog = inject(MatDialog);
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.fetchUserData();
@@ -61,133 +65,97 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onEditName() {
-
     this.userData$
-      .pipe(take(1))
-      .subscribe(user => {
-        const dialogConfig = new MatDialogConfig();
-
-        dialogConfig.disableClose = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-
-        dialogConfig.data = user;
-
-        const dialogRef = this.dialog.open(EditNameDialogueComponent, dialogConfig);
-      });
+      .pipe(
+        take(1),
+        tap(user => {
+          const dialogConfig = this.defaultMatDialogConfigOptions;
+          dialogConfig.data = user;
+          const dialogRef = this.dialog.open(EditNameDialogueComponent, dialogConfig);  
+        })
+      )
+      .subscribe();
   }
 
   onEditEmail() {
-
     this.userData$
-      .pipe(take(1))
-      .subscribe(user => {
-        const dialogConfig = new MatDialogConfig();
-
-        dialogConfig.disableClose = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-
-        dialogConfig.data = user;
-
-        dialogConfig.autoFocus = false;
-
-        const dialogRef = this.dialog.open(EditEmailDialogueComponent, dialogConfig);
-      });
+      .pipe(
+        take(1),
+        tap(user => {
+          const dialogConfig = this.defaultMatDialogConfigOptions;
+          dialogConfig.data = user;
+          const dialogRef = this.dialog.open(EditEmailDialogueComponent, dialogConfig);  
+        })
+      )
+      .subscribe();
   }
 
   onEditPassword() {
-
     this.userData$
-      .pipe(take(1))
-      .subscribe(user => {
-        const dialogConfig = new MatDialogConfig();
-
-        dialogConfig.disableClose = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-
-        dialogConfig.data = user;
-
-        const dialogRef = this.dialog.open(EditPasswordDialogueComponent, dialogConfig);
-      });
+      .pipe(
+        take(1),
+        tap(user => {
+          const dialogConfig = this.defaultMatDialogConfigOptions;
+          dialogConfig.data = user;
+          const dialogRef = this.dialog.open(EditPasswordDialogueComponent, dialogConfig);
+        })
+      )
+      .subscribe();
   }
 
   onEditAvatar() {
-
     this.userData$
-      .pipe(take(1))
-      .subscribe(user => {
-        const dialogConfig = new MatDialogConfig();
-
-        dialogConfig.disableClose = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-
-        dialogConfig.data = user;
-        dialogConfig.autoFocus = false;
-
-        const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
-      });
+      .pipe(
+        take(1),
+        tap(user => {
+          const dialogConfig = this.defaultMatDialogConfigOptions;
+          dialogConfig.data = user;
+          const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
+        })
+      )
+      .subscribe();
   }
 
   onDeletePublicUser() {
-    this.userData$
-      .pipe(take(1))
-      .subscribe(user => {
-        const dialogConfig = new MatDialogConfig();
-
-        dialogConfig.disableClose = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-
-        dialogConfig.data = user;
-        dialogConfig.autoFocus = false;
-
-        const actionConfData: ActionConfData = {
-          title: this.DELETE_PUBLIC_USER_CONF_TITLE,
-          body: this.DELETE_PUBLIC_USER_CONF_BODY,
-        };
-    
-        dialogConfig.data = actionConfData;
-
-        const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
-        
-        dialogRef.afterClosed().subscribe(confirmed => {
-          if (confirmed) {
-            this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: user.id}));
-            this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
-            this.postDeletePublicUserActions();
-          }
-        });
-      });
-  }
-
-  private postDeletePublicUserActions() {
-    this.deletePublicUserSubscription = this.deletePublicUserProcessing$
+    this.deletePublicUserSubscription = this.userData$
       .pipe(
-        withLatestFrom(
-          this.deletePublicUserError$,
-        ),
+        switchMap(user => {
+          const dialogConfig = this.defaultMatDialogConfigOptions;
+          const actionConfData: ActionConfData = {
+            title: this.DELETE_PUBLIC_USER_CONF_TITLE,
+            body: this.DELETE_PUBLIC_USER_CONF_BODY,
+          };
+          dialogConfig.data = actionConfData;
+          const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
+          const dialogClosedResponse$ = dialogRef.afterClosed() as Observable<boolean>
+          return combineLatest([dialogClosedResponse$, this.userData$])
+        }),
+        filter(([deletionConfirmed, userData]) => deletionConfirmed),
+        switchMap(([deletionConfirmed, userData]) => {
+          console.log('Delete public user confirmed', deletionConfirmed);
+          this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: userData.id}));
+          this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
+          return combineLatest([this.deletePublicUserProcessing$, this.deletePublicUserError$]);
+        }),
+        tap(([deletionProcessing, deletionError]) => {
+          if (deletionProcessing) {
+            this.deletePublicUserSubmitted = true;
+          }
+  
+          if (deletionError) {
+            console.log('Error deleting publicUser in database, terminating function');
+            this.deletePublicUserSubscription.unsubscribe();
+            this.deletePublicUserSubmitted = false;
+            return;
+          }
+  
+          if (!deletionProcessing && this.deletePublicUserSubmitted) {
+            console.log('delete publicUser successful.');
+            this.uiService.showSnackBar(`User Deleted!`, 5000);
+          }
+        })
       )
-      .subscribe(([deletionProcessing, deletionError]) => {
-        if (deletionProcessing) {
-          this.deletePublicUserSubmitted = true;
-        }
-
-        if (deletionError) {
-          console.log('Error deleting publicUser in database, terminating function');
-          this.deletePublicUserSubscription.unsubscribe();
-          this.deletePublicUserSubmitted = false;
-          return;
-        }
-
-        if (!deletionProcessing && this.deletePublicUserSubmitted) {
-          console.log('delete publicUser successful.');
-          this.uiService.showSnackBar(`User Deleted!`, 5000);
-          this.deletePublicUserSubscription.unsubscribe();
-        }
-      })
+      .subscribe();
   }
 
   ngOnDestroy(): void {

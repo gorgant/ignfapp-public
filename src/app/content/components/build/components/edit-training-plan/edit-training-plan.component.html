@@ -12,7 +12,7 @@
     <form class="training-plan-form" [fxHide]="!editTrainingPlanDetails" [formGroup]="trainingPlanForm" fxLayout="column" fxLayoutAlign="center center">
       <div class="form-title"> {{ isNewPlan ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
       <mat-form-field class="edit-title-field">
-        <mat-placeholder>{{ TITLE_FIELD_VALUE }}</mat-placeholder>
+        <mat-label>{{ TITLE_FIELD_VALUE }}</mat-label>
         <input class="edit-title-input" [formControl]="title" matInput type="text">
         <mat-hint>{{ title.value.length }}/{{ TITLE_MAX_LENGTH }}</mat-hint>
       </mat-form-field>

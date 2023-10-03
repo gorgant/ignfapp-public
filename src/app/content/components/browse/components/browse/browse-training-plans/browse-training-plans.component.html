@@ -5,7 +5,7 @@
   <div class="search-options-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutAlign.gt-xs="center center">
     <mat-form-field class="search-form-field">
       <mat-icon *ngIf="!searchInput.focused" matPrefix class="search-icon">search</mat-icon>
-      <mat-placeholder>{{ SEARCH_PLAN_OR_CHANNEL_TITLE_PLACEHOLDER }}</mat-placeholder>
+      <mat-label>{{ SEARCH_PLAN_OR_CHANNEL_TITLE_PLACEHOLDER }}</mat-label>
       <input matInput type="text" [(ngModel)]="searchText" class="search-input" #searchInput="matInput">
       <button class="close-search-button" *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
         <mat-icon>close</mat-icon>

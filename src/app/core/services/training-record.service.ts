@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
@@ -16,11 +16,11 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class TrainingRecordService {
 
-  constructor(
-    private afs: Firestore,
-    private authService: AuthService,
-    private uiService: UiService,
-  ) { }
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   createTrainingRecord(userId: string, trainingRecordNoIdOrTimestamp: TrainingRecordNoIdOrTimestamp): Observable<TrainingRecord> {
 
@@ -254,7 +254,7 @@ export class TrainingRecordService {
 
   private getTrainingRecordCollection(userId: string): CollectionReference<TrainingRecord> {
     // Note that trainingRecord is nested in Public User document
-    return collection(this.afs, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.TRAINING_RECORDS}`) as CollectionReference<TrainingRecord>;
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.TRAINING_RECORDS}`) as CollectionReference<TrainingRecord>;
   }
 
   private getTrainingRecordDoc(userId: string, trainingRecordId: string): DocumentReference<TrainingRecord> {

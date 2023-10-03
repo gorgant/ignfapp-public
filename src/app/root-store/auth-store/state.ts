@@ -9,9 +9,9 @@ export interface AuthState {
   confirmPasswordProcessing: boolean;
   deleteAuthUserError: FirebaseError | Error | null;
   deleteAuthUserProcessing: boolean;
-  emailVerified: boolean,
-  emailVerificationError: FirebaseError | Error | null,
-  emailVerificationProcessing: boolean,
+  verifyEmailSucceeded: boolean,
+  verifyEmailError: FirebaseError | Error | null,
+  verifyEmailProcessing: boolean,
   reloadAuthDataError: FirebaseError | Error | null, 
   reloadAuthDataProcessing: boolean,
   resetPasswordError: FirebaseError | Error | null,
@@ -20,6 +20,7 @@ export interface AuthState {
   signupProcessing: boolean,
   updateEmailError: FirebaseError | Error | null,
   updateEmailProcessing: boolean,
+  updateEmailSucceeded: boolean,
   authResultsData: AuthResultsData | null,
 }
 
@@ -31,9 +32,9 @@ export const initialAuthState: AuthState = {
   confirmPasswordProcessing: false,
   deleteAuthUserError: null,
   deleteAuthUserProcessing: false,
-  emailVerified: false,
-  emailVerificationError: null,
-  emailVerificationProcessing: false,
+  verifyEmailSucceeded: false,
+  verifyEmailError: null,
+  verifyEmailProcessing: false,
   reloadAuthDataError: null, 
   reloadAuthDataProcessing: false,
   resetPasswordError: null,
@@ -42,5 +43,6 @@ export const initialAuthState: AuthState = {
   signupProcessing: false,
   updateEmailError: null,
   updateEmailProcessing: false,
+  updateEmailSucceeded: false,
   authResultsData: null,
 }

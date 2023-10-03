@@ -1,5 +1,10 @@
 <div class="app-content">
+  <!-- <button mat-raised-button (click)="onTestFunction()">Test Function</button> -->
   <router-outlet></router-outlet>
+</div>
+<div *ngIf="uiService.$routeGuardProcessing()" class="spinner-container">
+  <mat-spinner class="processing-spinner"></mat-spinner>
+  <div class="spinner-message">Verifying credentials...</div>
 </div>
 
 <app-nav-bar *ngIf="showNavBar$ | async"></app-nav-bar>

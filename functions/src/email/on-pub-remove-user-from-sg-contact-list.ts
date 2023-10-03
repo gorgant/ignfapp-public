@@ -1,19 +1,22 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+import { CloudEvent, logger } from 'firebase-functions/v2';
 
-import * as functions from 'firebase-functions';
-import * as Axios from 'axios';
-import admin = require('firebase-admin');
+import { AxiosRequestConfig } from 'axios';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { SgContactListRemovalData } from '../../../shared-models/email/sg-contact-list-removal-data';
 import { SendgridContactListId } from '../../../shared-models/email/email-vars.model';
-import { sendgridMarketingListsApiUrl, sendgridSecret } from './config';
+import { sendgridMarketingListsApiUrl } from './config';
 import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../config/global-helpers';
 import { getSgContactId } from './helpers/get-sg-contact-id';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
-import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { publicFirestore } from '../config/db-config';
-import { Timestamp } from '@google-cloud/firestore';;
+import { Timestamp } from '@google-cloud/firestore';
+import { sendgridApiSecret } from '../config/api-key-config';
+import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
+import { FieldValue } from 'firebase-admin/firestore';
+;
 
 // Courtesy of https://sendgrid.api-docs.io/v3.0/contacts-api-lists/delete-a-single-recipient-from-a-single-list
 
@@ -25,16 +28,16 @@ const removeUserFromSendgridContactList = async (listId: SendgridContactListId, 
     contact_ids: contactId 
   };
 
-  const requestOptions: Axios.AxiosRequestConfig = {
+  const requestOptions: AxiosRequestConfig = {
     method: 'DELETE',
     url: requestUrl,
     params: queryParams,
     headers: {
-      authorization: `Bearer ${sendgridSecret}`
+      authorization: `Bearer ${sendgridApiSecret.value()}`
     }
   }
 
-  functions.logger.log(`Transmitting request to remove user from contact list "${listId}" with these options`, requestOptions);
+  logger.log(`Transmitting request to remove user from contact list "${listId}" with these options`, requestOptions);
   
   const sgJobResponse: SendgridStandardJobResponse = await submitHttpRequest(requestOptions) as SendgridStandardJobResponse;
 
@@ -52,26 +55,26 @@ const bulkContactListUpdate = async (sgContactListRemovalData: SgContactListRemo
   })
 
   await Promise.all(listUpdateQueue);
-  functions.logger.log(`User removed from ${listsToUpdate.length} SG contact list(s)`);
+  logger.log(`User removed from ${listsToUpdate.length} SG contact list(s)`);
 }
 
 const updateUserListsOnFirestore = async (sgContactListRemovalData: SgContactListRemovalData) => {
   const userData = sgContactListRemovalData.emailUserData;
   const listsToUpdate = sgContactListRemovalData.listsToUpdate;
   
-  const userUpdate: Partial<PublicUser | PrelaunchUser> = {
-    emailSendgridContactListArray: admin.firestore.FieldValue.arrayRemove(...listsToUpdate) as any, // This spread operator deconstructs the array into comma separated values
+  const userUpdate: Partial<PublicUser> = {
+    emailSendgridContactListArray: FieldValue.arrayRemove(...listsToUpdate) as any, // This spread operator deconstructs the array into comma separated values
     lastModifiedTimestamp: Timestamp.now() as any,
   }
 
-  const userCollectionPath = userData.isPrelaunchUser ? PublicCollectionPaths.PRELAUNCH_USERS : PublicCollectionPaths.PUBLIC_USERS;
+  const userCollectionPath = PublicCollectionPaths.PUBLIC_USERS;
   
-  functions.logger.log(`Updating list array of this user: "${userData.id}"`);
+  logger.log(`Updating list array of this user: "${userData.id}"`);
 
   const subFbRes = await publicFirestore.collection(userCollectionPath).doc(userData.id).update(userUpdate)
-    .catch(err => {functions.logger.log(`Failed to update subscriber:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to update subscriber:`, err); throw new HttpsError('internal', err);});
   
-  functions.logger.log(`Removed these lists from user profile`, listsToUpdate);
+  logger.log(`Removed these lists from user profile`, listsToUpdate);
   return subFbRes;
 }
 
@@ -82,7 +85,7 @@ const executeActions = async (sgContactListRemovalData: SgContactListRemovalData
 
   // Abort function if SG user can't be found
   if (!sgContactId) {
-    functions.logger.error('Failed to retreive SG contact ID, aborting list removal');
+    logger.error('Failed to retreive SG contact ID, aborting list removal');
     return;
   }
 
@@ -92,12 +95,14 @@ const executeActions = async (sgContactListRemovalData: SgContactListRemovalData
 }
 
 /////// DEPLOYABLE FUNCTIONS ///////
-
+const pubSubOptions: PubSubOptions = {
+  topic: PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC,
+  secrets: [sendgridApiSecret]
+};
 // Listen for pubsub message
-export const onPubRemoveUserFromSgContactList = functions.pubsub.topic(PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC).onPublish( async (message, context) => {
-  const sgContactListRemovalData = message.json as SgContactListRemovalData;
-  functions.logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC} request received with this data:`, sgContactListRemovalData);
-  functions.logger.log('Context from pubsub:', context);
+export const onPubRemoveUserFromSgContactList = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<SgContactListRemovalData>>) => {
+  const sgContactListRemovalData = event.data.message.json;
+  logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC} request received with this data:`, sgContactListRemovalData);
 
   await executeActions(sgContactListRemovalData);
 });

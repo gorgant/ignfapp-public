@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError, take, catchError, map, takeUntil, Subject, combineLatest } from 'rxjs';
+import { from, Observable, throwError, catchError, map, takeUntil, Subject } from 'rxjs';
 import { TrainingPlan, TrainingPlanNoIdOrTimestamp } from 'shared-models/train/training-plan.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -16,11 +16,11 @@ export class TrainingPlanService {
 
   deleteTrainingPlanRequested$: Subject<void> = new Subject();
 
-  constructor(
-    private afs: Firestore,
-    private authService: AuthService,
-    private uiService: UiService,
-  ) {}
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private uiService = inject(UiService);
+
+  constructor() {}
 
   createTrainingPlan(trainingPlanNoIdOrTimestamp: TrainingPlanNoIdOrTimestamp): Observable<TrainingPlan> {
 
@@ -226,7 +226,7 @@ export class TrainingPlanService {
 
   private getTrainingPlanCollection(): CollectionReference<TrainingPlan> {
     // Note that plan is nested in Public User document
-    return collection(this.afs, `${PublicCollectionPaths.TRAINING_PLANS}`) as CollectionReference<TrainingPlan>;
+    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}`) as CollectionReference<TrainingPlan>;
   }
 
   private getTrainingPlanDoc(planId: string): DocumentReference<TrainingPlan> {

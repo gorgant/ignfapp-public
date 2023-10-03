@@ -2,13 +2,13 @@ import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
-import { PersonalSessionFragment, PersonalSessionFragmentNoId } from "shared-models/train/personal-session-fragment.model";
+import { PersonalSessionFragment, PersonalSessionFragmentNoIdOrTimestamp } from "shared-models/train/personal-session-fragment.model";
 
 // Create Personal Session Fragment
 
 export const createPersonalSessionFragmentRequested = createAction(
   '[AppWide] Create Personal Session Fragment Requested',
-  props<{userId: string, personalSessionFragmentNoId: PersonalSessionFragmentNoId}>()
+  props<{userId: string, personalSessionFragmentNoId: PersonalSessionFragmentNoIdOrTimestamp}>()
 );
 
 export const createPersonalSessionFragmentCompleted = createAction(
@@ -42,7 +42,7 @@ export const deletePersonalSessionFragmentFailed = createAction(
 
 export const fetchAllPersonalSessionFragmentsRequested = createAction(
   '[AppWide] Fetch All Personal Session Fragments Requested',
-  props<{userId: string, queryParams: FirestoreCollectionQueryParams}>()
+  props<{userId: string}>()
 );
 
 export const fetchAllPersonalSessionFragmentsCompleted = createAction(

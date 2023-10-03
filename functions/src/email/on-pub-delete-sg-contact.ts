@@ -1,18 +1,20 @@
-import * as functions from 'firebase-functions';
-import * as Axios from 'axios';
+import { CloudEvent, logger } from 'firebase-functions/v2';
+import { AxiosRequestConfig } from 'axios';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { getSgContactId } from './helpers/get-sg-contact-id';
-import { sendgridMarketingContactsApiUrl, sendgridSecret } from './config';
+import { sendgridMarketingContactsApiUrl } from './config';
 import { submitHttpRequest } from '../config/global-helpers';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
+import { sendgridApiSecret } from '../config/api-key-config';
+import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
 
 const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridStandardJobResponse | null> => {
 
   const contactId = getSgContactId(userData);
 
   if (!contactId) {
-    functions.logger.log('No contact id available, aborting deleteSendgridContact with null value');
+    logger.log('No contact id available, aborting deleteSendgridContact with null value');
     return null;
   }
 
@@ -22,16 +24,16 @@ const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridS
 
   const requestUrl = sendgridMarketingContactsApiUrl;
 
-  const requestOptions: Axios.AxiosRequestConfig = {
+  const requestOptions: AxiosRequestConfig = {
     method: 'DELETE',
     url: requestUrl,
     params: queryParams,
     headers: {
-      authorization: `Bearer ${sendgridSecret}`
+      authorization: `Bearer ${sendgridApiSecret.value()}`
     }
   }
 
-  functions.logger.log('Transmitting delete request with these options', requestOptions);
+  logger.log('Transmitting delete request with these options', requestOptions);
   
   const sgJobResponse: SendgridStandardJobResponse = await submitHttpRequest(requestOptions) as SendgridStandardJobResponse;
 
@@ -40,13 +42,15 @@ const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridS
 }
 
 /////// DEPLOYABLE FUNCTIONS ///////
-
+const pubSubOptions: PubSubOptions = {
+  topic: PublicTopicNames.DELETE_SG_CONTACT_TOPIC,
+  secrets: [sendgridApiSecret]
+};
 
 // Listen for pubsub message
-export const onPubDeleteSgContact = functions.pubsub.topic(PublicTopicNames.DELETE_SG_CONTACT_TOPIC).onPublish( async (message, context) => {
-  const userData = message.json as EmailUserData;
-  functions.logger.log('Create or update SG Contact request received with this data:', userData);
-  functions.logger.log('Context from pubsub:', context);
+export const onPubDeleteSgContact = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<EmailUserData>>) =>  {
+  const userData = event.data.message.json;
+  logger.log(`${PublicTopicNames.DELETE_SG_CONTACT_TOPIC} request received with this data:`, userData);
 
   return deleteSendgridContact(userData);
 

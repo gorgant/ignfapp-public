@@ -11,7 +11,7 @@
   <div *ngIf="!trainingPlanBuilderRequest" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <button *ngIf="!videoInitialized" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
-    <button *ngIf="!videoInitialized" mat-stroked-button color="primary" (click)="onAddToQueue()">{{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>
+    <app-add-training-session-to-personal-queue-button *ngIf="!videoInitialized" [trainingSessionData]="sessionData" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
     <button *ngIf="!videoInitialized" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized && !sessionPaused" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized && sessionPaused" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
@@ -21,7 +21,7 @@
 
   <div *ngIf="trainingPlanBuilderRequest" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <app-add-training-session-to-plan-button [trainingSessionData]="sessionData" #addTrainingSessionToPlanButton></app-add-training-session-to-plan-button>
-    <button *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing | async)" mat-stroked-button color="primary" (click)="onNavigateToTrainingSessionSelection()">{{ GO_BACK_BUTTON_VALUE }}</button>
+    <button *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onNavigateToTrainingSessionSelection()">{{ GO_BACK_BUTTON_VALUE }}</button>
   </div>
 
 </div>

@@ -1,9 +1,7 @@
 import { FirebaseError } from "@angular/fire/app";
 import { createAction, props } from "@ngrx/store";
-import { EmailUserData } from "shared-models/email/email-user-data.model";
 import { AvatarImageData } from "shared-models/images/avatar-image-data.model";
 import { AvatarImageMetaData } from "shared-models/images/image-metadata.model";
-import { PrelaunchUser } from "shared-models/user/prelaunch-user.model";
 import { PublicUser } from "shared-models/user/public-user.model";
 import { UserUpdateData } from "shared-models/user/user-update.model";
 
@@ -41,23 +39,6 @@ export const deletePublicUserFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Fetch Prelaunch User
-
-export const fetchPrelaunchUserRequested = createAction(
-  '[AppWide] Fetch Prelaunch User Requested',
-  props<{prelaunchUserId: string}>()
-);
-
-export const fetchPrelaunchUserCompleted = createAction(
-  '[User Service] Fetch Prelaunch User Completed',
-  props<{prelaunchUser: PrelaunchUser}>()
-);
-
-export const fetchPrelaunchUserFailed = createAction(
-  '[User Service] Fetch Prelaunch User Failed',
-  props<{error: FirebaseError}>()
-);
-
 // Fetch Public User
 
 export const fetchPublicUserRequested = createAction(
@@ -81,23 +62,6 @@ export const purgePublicUserData = createAction(
   '[AppWide] Purge Public User Data'
 );
 
-// Register Prelaunch User
-
-export const registerPrelaunchUserRequested = createAction(
-  '[Prelaunch Form] Register Prelaunch User Requested',
-  props<{emailUserData: EmailUserData}>()
-);
-
-export const registerPrelaunchUserCompleted = createAction(
-  '[User Service] Register Prelaunch User Completed',
-  props<{prelaunchUser: PrelaunchUser}>()
-);
-
-export const registerPrelaunchUserFailed = createAction(
-  '[User Service] Register Prelaunch User Failed',
-  props<{error: FirebaseError}>()
-);
-
 // Resize Avatar
 
 export const resizeAvatarRequested = createAction(
@@ -114,20 +78,19 @@ export const resizeAvatarFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Update Prelaunch User
-
-export const updatePrelaunchUserRequested = createAction(
-  '[AppWide] Update Prelaunch User Requested',
-  props<{userUpdateData: UserUpdateData}>()
+// Send Update Email Confirmation
+export const sendUpdateEmailConfirmationRequested = createAction(
+  '[Edit Email Dialogue] Send Update Email Confirmation Requested',
+  props<{userData: PublicUser}>()
 );
 
-export const updatePrelaunchUserCompleted = createAction(
-  '[User Service] Update Prelaunch User Completed',
-  props<{updatedPrelaunchUser: PrelaunchUser}>()
+export const sendUpdateEmailConfirmationCompleted = createAction(
+  '[Auth Service] Send Update Email Confirmation Completed',
+  props<{emailUpdated: boolean}>()
 );
 
-export const updatePrelaunchUserFailed = createAction(
-  '[User Service] Update Prelaunch User Failed',
+export const sendUpdateEmailConfirmationFailed = createAction(
+  '[Auth Service] Send Update Email Confirmation Failed',
   props<{error: FirebaseError}>()
 );
 

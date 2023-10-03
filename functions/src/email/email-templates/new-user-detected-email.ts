@@ -1,16 +1,18 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import { getSgMail } from "../config";
-import { EmailSenderAddresses, EmailSenderNames, EmailCategories, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
+import { EmailSenderAddresses, EmailSenderNames, EmailIdentifiers, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
 import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
-import * as functions from 'firebase-functions';
+
 import { EmailUserData } from "../../../../shared-models/email/email-user-data.model";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
   
-  functions.logger.log('Sending Prelaunch Signup Detected Email to admin');
+  logger.log('Sending Prelaunch Signup Detected Email to admin');
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
@@ -42,7 +44,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'MD'
         }
       ];
-      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP];
+      categories = [EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = [
@@ -51,7 +53,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'Greg'
         }
       ]
-      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP, EmailIdentifiers.TEST_SEND];
       break;
     default:
       recipientData = [
@@ -60,7 +62,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
           name: 'Greg'
         }
       ]
-      categories = [EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP, EmailIdentifiers.TEST_SEND];
       break;
   }
 
@@ -76,7 +78,7 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
     categories
   };
   await sgMail.send(msg)
-    .catch(err => {functions.logger.log(`Error sending email: ${msg} because:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error sending email: ${msg} because:`, err); throw new HttpsError('internal', err);});
 
-  functions.logger.log('Email sent', msg);
+  logger.log('Email sent', msg);
 }

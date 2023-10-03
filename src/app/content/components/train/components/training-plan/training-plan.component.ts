@@ -56,14 +56,14 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
     this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError);
   }
 
-  private getSessionIdFromParams(): string {
+  private getTrainingPlanIdFromParams(): string {
     const idParamName = 'id';
     const trainingPlanId = this.route.snapshot.params[idParamName];
     return trainingPlanId;
   }
 
   private loadTrainingPlanData() {
-    const trainingPlanId = this.getSessionIdFromParams();
+    const trainingPlanId = this.getTrainingPlanIdFromParams();
     this.existingTrainingPlanData$ = this.fetchSingleTrainingPlanProcessing$
       .pipe(
         withLatestFrom(

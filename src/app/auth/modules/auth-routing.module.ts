@@ -1,23 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginGuard } from 'src/app/core/route-guards/login.guard';
 import { EmailVerificationComponent } from '../components/email-verification/email-verification.component';
 import { LoginComponent } from '../components/login/login.component';
 import { SignupComponent } from '../components/signup/signup.component';
+import { loginGuardCanActivate } from 'src/app/core/route-guards/login.guard';
 
 const routes: Routes = [
   {
     path: 'signup',
     component: SignupComponent,
-    canActivate: [LoginGuard]
+    canActivate: [loginGuardCanActivate]
    },
   {
     path: 'login',
     component: LoginComponent,
-    canActivate: [LoginGuard]
+    canActivate: [loginGuardCanActivate]
    },
    {
-    path: 'email-verification/:uId/:eId/:isPl',
+    path: 'email-verification',
     component: EmailVerificationComponent,
    },
 ];

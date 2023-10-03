@@ -1,7 +1,7 @@
 {
   "projects": {
-    "default": "ignfapp-public",
-    "sandbox-public": "ignfapp-sandbox-public"
+    "production": "ignfapp-public",
+    "development": "ignfapp-sandbox-public"
   },
   "targets": {
     "ignfapp-public": {
@@ -18,5 +18,6 @@
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }

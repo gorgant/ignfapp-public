@@ -1,125 +1,120 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, CanLoad, Router, ActivatedRouteSnapshot, RouterStateSnapshot, Route, UrlSegment } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, Route, UrlSegment, CanActivateFn, UrlTree, CanMatchFn } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { RootStoreState, UserStoreSelectors, AuthStoreActions, UserStoreActions } from 'src/app/root-store';
-import { switchMap, catchError, take, withLatestFrom } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { UserStoreSelectors, AuthStoreActions, UserStoreActions } from 'src/app/root-store';
+import { switchMap, catchError, take, withLatestFrom, map, filter } from 'rxjs/operators';
+import { Observable, combineLatest, of, throwError } from 'rxjs';
 import { UiService } from '../services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AuthService } from '../services/auth.service';
+import { PublicUser } from 'shared-models/user/public-user.model';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate, CanLoad {
+// Collect segments and convert to a return url string
+const covertSegmentsToReturnUrl = (segments: UrlSegment[]) => {
+  const segmentArray = segments.map(segment => segment.path);
+  const returnUrl = segmentArray.join('/');
+  console.log('Produced this returnUrl', returnUrl);
+  return returnUrl;
+}
 
-  constructor(
-    private router: Router,
-    private store$: Store<RootStoreState.AppState>,
-    private uiService: UiService,
-    private authService: AuthService
-  ) { }
-
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean|Observable<boolean> {
-
-    console.log('Authguard canActivate triggered');
-
-    return this.authService.fetchCachedUserData()
-      .pipe(
-        switchMap(authResults => {
-          // Inspired by https://stackoverflow.com/a/46386082/6572208
-          return new Observable<boolean>(observer => {
-            if (authResults && authResults.emailVerified) {
-              this.store$.select(UserStoreSelectors.selectPublicUserData)
-                .pipe(
-                  take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing)))
-                )
-                .subscribe(([userData, isFetchingUser]) => {
-                  if (!userData && !isFetchingUser) {
-                    console.log('AuthGuard canActivate: creds present and email verified, fetching user data');
-                    this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
-                  }
-                  this.store$.dispatch(AuthStoreActions.authGuardValidated());
-                  observer.next(true);
-                  observer.complete();
-                });
-            } else {
-              // If user not authenticated or email not verified, route to login
-              console.log('AuthGuard canActivate: user not authenticated, routing to login screen');
-              this.router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl: state.url }});
-              if (authResults && !authResults.emailVerified) {
-                this.uiService.showSnackBar('Please verify your email to continue.', 6000);  
-              } else {
-                this.uiService.showSnackBar('Please login to continue.', 6000);
-              }
-              observer.next(false);
-              observer.complete();
-            }
-          })
-        }),
-        catchError(error => {
-          this.store$.dispatch(AuthStoreActions.authGuardFailed({error}));
-          this.uiService.showSnackBar('AuthGuard error. Please refresh the page and try again.', 10000);
-          return of(error);
-        })
-      );
-
-  }
-
-  canLoad(route: Route, segments: UrlSegment[]): boolean | Observable<boolean> {
-
-    console.log('Authguard canLoad triggered');
-
-    return this.authService.fetchCachedUserData()
-      .pipe(
-        switchMap(authResults => {
-          // Inspired by https://stackoverflow.com/a/46386082/6572208
-          return new Observable<boolean>(observer => {
-            if (authResults && authResults.emailVerified) {
-              this.store$.select(UserStoreSelectors.selectPublicUserData)
-                .pipe(
-                  take(1),
-                  withLatestFrom(this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing)))
-                )
-                .subscribe(([userData, isFetchingUser]) => {
-                  if (!userData && !isFetchingUser) {
-                    console.log('AuthGuard canLoad: creds present and email verified, fetching user data');
-                    this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: authResults?.id as string})); // Establish a realtime link to user data in store to mointor email verification status
-                  }
-                  this.store$.dispatch(AuthStoreActions.authGuardValidated());
-                  observer.next(true);
-                  observer.complete();
-                });
-            } else {
-              // If user not authenticated, route to login
-              console.log('AuthGuard canLoad: user not authenticated, routing to login screen');
-              const returnUrl = this.covertSegmentsToReturnUrl(segments);
-              this.router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl }});
-              if (authResults && !authResults.emailVerified) {
-                this.uiService.showSnackBar('Please verify your email to continue.', 6000);  
-              } else {
-                this.uiService.showSnackBar('Please login to continue.', 6000);
-              }
-              observer.next(false);
-              observer.complete();
-            }
-          })
-        }),
-        catchError(error => {
-          this.store$.dispatch(AuthStoreActions.authGuardFailed({error}));
-          this.uiService.showSnackBar('AuthGuard error. Please refresh the page and try again.', 10000);
-          return of(error);
-        })
-
+const fetchUserData = (publicUserId: string, store$: Store): Observable<PublicUser> => {
+  return store$.select(UserStoreSelectors.selectPublicUserData)
+    .pipe(
+      withLatestFrom(store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing))),
+      map(([userData, isFetchingUser]) => {
+        if (!userData && !isFetchingUser) {
+          console.log('No user data in store, fetching from database');
+          store$.dispatch(UserStoreActions.fetchPublicUserRequested({ publicUserId }));
+        }
+        return userData;
+      }),
+      filter(userData => !!userData),
+      map(userData => userData!)
     );
+} 
 
+const redirectToLogin = (returnUrl: string, router: Router) => {
+  // This if-statement prevents an infinite loop
+  if (`/${returnUrl}` !== PublicAppRoutes.LOGIN) {
+    console.log('Redirecting to this returnUrl', returnUrl);
+    router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl } });
+  } else {
+    console.log('Return url is already login!');
   }
+}
 
-  // Collect segments and convert to a return url string
-  private covertSegmentsToReturnUrl(segments: UrlSegment[]) {
-    const segmentArray = segments.map(segment => segment.path);
-    const returnUrl = segmentArray.join('/');
-    return returnUrl;
-  }
+let loopProtectionCount = 0;
+
+const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLoad') => {
+  console.log(`Authguard ${guardType}: triggered`);
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const uiService = inject(UiService);
+  const store$ = inject(Store);
+
+  // Prevents unauthorized users from accessing the app
+  // Fetch cached data if it exists, if so, fetch user db data, and either way process the routes accordingly
+  return authService.fetchCachedUserData()
+    .pipe(
+      switchMap(authResults => {
+        uiService.$routeGuardProcessing.set(true);
+        let userData: Observable<PublicUser | undefined> = of(undefined);
+        if (authResults?.id) {
+          userData = fetchUserData(authResults.id, store$);
+        }
+        return combineLatest([userData, of(authResults)]); // If this isn't pushing authResults through, then try withLatestFrom instead
+      }),
+      map(([userData, authResults]) => {
+        loopProtectionCount++;
+
+        if (loopProtectionCount > 4) {
+          console.log('Loop protection triggered');
+          uiService.$routeGuardProcessing.set(false);
+          throw Error('Loop protection triggered, halting function');
+        }
+
+        const userLoggedIn = authResults && userData;
+        const emailVerifiedInAuth = authResults?.emailVerified;
+        const emailVerifiedInDb = userData?.emailVerified;
+
+        // Redirect to login if no auth present
+        if (!userLoggedIn) {
+          console.log(`AuthGuard ${guardType}: user not authenticated, routing to login screen`);
+          uiService.showSnackBar('Please login to continue.', 6000);
+          redirectToLogin(returnUrl, router);
+          uiService.$routeGuardProcessing.set(false);
+          return false;
+        }
+
+        // Redirect to login if email not verified
+        if (!emailVerifiedInAuth || !emailVerifiedInDb) {
+          console.log(`AuthGuard ${guardType}: email not verified, routing to login screen`);
+          uiService.showSnackBar('Please verify your email to continue. Check your inbox.', 10000);
+          redirectToLogin(returnUrl, router);
+          uiService.$routeGuardProcessing.set(false);
+          return false;
+        }
+
+        console.log(`AuthGuard ${guardType}: auth present and email verified in both auth and db, proceeding with route request`);
+
+        // Otherwise proceed
+        uiService.$routeGuardProcessing.set(false);
+        return true;
+      }),
+      catchError(error => {
+          store$.dispatch(AuthStoreActions.authGuardFailed({ error }));
+          uiService.showSnackBar(`AuthGuard ${guardType} error. Please refresh the page and try again.`, 10000);
+          return throwError(() => new Error(error));
+      })
+    );
+} 
+
+export const authGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree => {
+  const returnUrl = state.url;
+  return getAuthGuardResult(returnUrl, 'canActivate');
+}
+
+export const authGuardCanLoad: CanMatchFn = (route: Route, segments: UrlSegment[]): boolean | UrlTree | Observable<boolean | UrlTree> | Promise<boolean | UrlTree> => {
+  const returnUrl = covertSegmentsToReturnUrl(segments);
+  return getAuthGuardResult(returnUrl, 'canLoad');
 }

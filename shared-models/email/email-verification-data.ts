@@ -1,5 +1,10 @@
 export interface EmailVerificationData {
   userId: string;
   email: string;
-  isPrelaunchUser?: boolean;
+}
+
+export enum EmailVerificationUrlParamKeys {
+  USER_ID = 'uId',
+  EMAIL = 'eId',
+  IS_EMAIL_UPDATE = 'eUp'
 }

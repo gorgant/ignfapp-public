@@ -12,15 +12,15 @@
         <form [fxHide]="!editDuration" [formGroup]="trainingRecordForm">
           <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
             <mat-form-field class="edit-time-field">
-              <mat-placeholder>{{ HOURS_FIELD_VALUE }}</mat-placeholder>
+              <mat-label>{{ HOURS_FIELD_VALUE }}</mat-label>
               <input class="edit-time-input" [formControl]="hours" matInput type="number">
             </mat-form-field>
             <mat-form-field class="edit-time-field">
-              <mat-placeholder>{{ MINUTES_FIELD_VALUE }}</mat-placeholder>
+              <mat-label>{{ MINUTES_FIELD_VALUE }}</mat-label>
               <input class="edit-time-input" [formControl]="minutes" matInput type="number">
             </mat-form-field>
             <mat-form-field class="edit-time-field">
-              <mat-placeholder>{{ SECONDS_FIELD_VALUE }}</mat-placeholder>
+              <mat-label>{{ SECONDS_FIELD_VALUE }}</mat-label>
               <input class="edit-time-input" [formControl]="seconds" matInput type="number">
             </mat-form-field>
           </div>

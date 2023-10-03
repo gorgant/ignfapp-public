@@ -1,5 +1,4 @@
-import { SendgridContactListId } from "./email-vars.model";
-import { SgContactCustomFieldData } from "./sg-contact-custom-field-data.model";
+import { SendgridContactListId, SgContactCustomFieldData } from "./email-vars.model";
 
 export interface SendgridStandardJobResponse {
   job_id: string;

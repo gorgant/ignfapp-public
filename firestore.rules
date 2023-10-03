@@ -8,6 +8,17 @@ service cloud.firestore {
     match /publicUsers/{userId} {
       // Users can only see their profile if it belongs to them
       allow read: if isOwner(userId) || isAdmin();
+
+      match /personalSessionFragments/{fragmentId} {
+          // User can read a personalSessionFragment if is owner or admin
+          allow read: if isPersonalSessionFragmentOwner() || isAdmin();
+          // User can create a personalSessionFragment if is owner or admin
+          allow create: if isPersonalSessionFragmentOwner() || isAdmin();
+          // User can update a personalSessionFragment if is owner or admin
+          allow update: if isPersonalSessionFragmentOwner() || isAdmin();
+          // Only admin can delete a personalSessionFragment
+          allow delete: if isPersonalSessionFragmentOwner() || isAdmin();
+        }
     }
 
     match /trainingSessions/{sessionId} {
@@ -31,16 +42,16 @@ service cloud.firestore {
       // Only admin can delete a trainingPlan
       allow delete: if isAdmin();
 
-        match /planSessionFragments/{fragmentId} {
-          // User can read a planSessionFragment if authenticated
-          allow read: if isAuth();
-          // User can create a planSessionFragment if is owner or admin
-          allow create: if isPlanSessionFragmentOwner() || isAdmin();
-          // User can update a planSessionFragment if is owner or admin
-          allow update: if isPlanSessionFragmentOwner() || isAdmin();
-          // Only admin can delete a planSessionFragment
-          allow delete: if isAdmin();
-        }
+      match /planSessionFragments/{fragmentId} {
+        // User can read a planSessionFragment if authenticated
+        allow read: if isAuth();
+        // User can create a planSessionFragment if is owner or admin
+        allow create: if isPlanSessionFragmentOwner() || isAdmin();
+        // User can update a planSessionFragment if is owner or admin
+        allow update: if isPlanSessionFragmentOwner() || isAdmin();
+        // Only admin can delete a planSessionFragment
+        allow delete: if isAdmin();
+      }
     }
 
     
@@ -71,17 +82,22 @@ service cloud.firestore {
     	return isAuth() && getUserData().isAdmin == true;
     }
 
-    // Determine if user is session owner
+    // Determine if user is trainingSession owner
     function isTrainingSessionOwner() {
       return isAuth() && request.resource.data.creatorId == request.auth.uid;
     }
 
-    // Determine if user is session owner
+    // Determine if user is personalSessionFragment owner
+    function isPersonalSessionFragmentOwner() {
+      return isAuth() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Determine if user is planSessionFragment owner
     function isPlanSessionFragmentOwner() {
       return isAuth() && request.resource.data.planOwnerId == request.auth.uid;
     }
 
-    // Determine if user is session owner
+    // Determine if user is trainingPlan owner
     function isTrainingPlanOwner() {
       return isAuth() && request.resource.data.creatorId == request.auth.uid;
     }

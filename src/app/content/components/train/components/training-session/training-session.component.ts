@@ -231,7 +231,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           trainingSession: trainingSessionData!,
           sessionDuration: this.sessionDuration!,
           userId: userData!.id,
-          personalSessionFragmentId: this.personalSessionFragmentQueryParams?.id
+          personalSessionFragmentId: this.personalSessionFragmentQueryParams?.[PersonalSessionFragmentKeys.CANONICAL_ID] // TODO: Confirm that this is the correct id
         }
 
         const dialogConfig = new MatDialogConfig();
@@ -284,7 +284,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   onAddToQueue() {
-    // TODO: Add to the user personalSessionFragment collection
+    // TODO: Add to the user personalSessionFragment collection (use similar approach as add-training-session-to-plan-button)
+    
   }
 
   onEditTrainingSession(sessionId: string) {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -30,18 +30,17 @@ export class AccountComponent implements OnInit {
 
   DEFAULT_PROFILE_IMAGE = PublicImagePaths.DEFAULT_PROFILE_IMAGE_ICON;
 
-  
-  constructor(
-    private store: Store<RootStoreState.AppState>
-  ) { }
+  private store$ = inject(Store);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.fetchUserData();
   }
 
   private fetchUserData(): void {
-    this.userData$ = this.store.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
-    this.loading$ = this.store.pipe(select(selectFetchPublicUserProcessing));
+    this.userData$ = this.store$.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
+    this.loading$ = this.store$.pipe(select(selectFetchPublicUserProcessing));
   }
 
 }

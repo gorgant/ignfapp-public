@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { FirebaseError } from 'firebase/app';
+import { Observable, combineLatest, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
+import { EmailUpdateData } from 'shared-models/email/email-update-data.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
-import { EmailVerificationData } from 'shared-models/email/email-verification-data';
+import { EmailVerificationData, EmailVerificationUrlParamKeys } from 'shared-models/email/email-verification-data';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
+import { AuthStoreActions, AuthStoreSelectors } from 'src/app/root-store';
+
+// TODO: Figure out why this isn't showing when running the update email flow
 
 @Component({
   selector: 'app-email-verification',
@@ -19,19 +22,27 @@ export class EmailVerificationComponent implements OnInit {
   CONFIRMING_EMAIL_BLURB = GlobalFieldValues.EC_CONFIRMING_EMAIL;
   VERIFICATION_FAILED_BLURB = GlobalFieldValues.EC_VERIFICATION_FAILED;
   EMAIL_CONFIRMED_BLURB = GlobalFieldValues.EC_EMAIL_CONFIRMED;
-  
   SUPPORT_EMAIL = EmailSenderAddresses.IGNFAPP_SUPPORT;
 
-  emailVerified$!: Observable<boolean>;
-  emailVerificationProcessing$!: Observable<boolean>;
-  emailVerficationSubscription!: Subscription;
+  verifyEmailSucceeded$!: Observable<boolean>;
+  verifyEmailProcessing$!: Observable<boolean>;
+  verifyEmailError$!: Observable<FirebaseError | Error | null>;
+
+  updateEmailProcessing$!: Observable<boolean>;
+  updateEmailError$!: Observable<FirebaseError | Error | null>;
+  updateEmailSucceeded$!: Observable<boolean>;
+
+  verificationOrUpdateProcessing$!: Observable<boolean>;
+  verificationOrUpdateError$!: Observable<boolean>;
+  verificationOrUpdateSucceeded$!: Observable<boolean>;
+
   dispatchedEmailVerificationRequest = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private store$: Store<RootStoreState.AppState>,
-    private router: Router,
-  ) { }
+  private store$ = inject(Store);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  constructor() { }
 
   ngOnInit() {
     this.monitorStoreState();
@@ -39,57 +50,79 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   private monitorStoreState() {
-    this.emailVerified$ = this.store$.pipe(select(AuthStoreSelectors.selectEmailVerified));
-    this.emailVerificationProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectEmailVerificationProcessing));
+    this.verifyEmailSucceeded$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailSucceeded));
+    this.verifyEmailProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailProcessing));
+    this.verifyEmailError$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailError));
+
+    this.updateEmailSucceeded$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailSucceeded));
+    this.updateEmailProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailProcessing));
+    this.updateEmailError$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailError));
+
+    this.verificationOrUpdateProcessing$ = combineLatest([
+      this.verifyEmailProcessing$,
+      this.updateEmailProcessing$,
+    ])
+      .pipe(
+        map(([verifyingEmail, updatingEmail]) => {
+          if (verifyingEmail || updatingEmail) {
+            return true
+          }
+          return false
+        })
+      );
+
+    this.verificationOrUpdateError$ = combineLatest([
+      this.verifyEmailError$,
+      this.updateEmailError$,
+    ])
+      .pipe(
+        map(([verificationError, updateError]) => {
+          if (verificationError || updateError) {
+            return true
+          }
+          return false
+        })
+      );
+
+    this.verificationOrUpdateSucceeded$ = combineLatest([
+        this.verifyEmailSucceeded$,
+        this.updateEmailSucceeded$,
+      ])
+        .pipe(
+          map(([verificationSuccess, updateSuccess]) => {
+            if (verificationSuccess || updateSuccess) {
+              return true
+            }
+            return false
+          })
+        );
   }
 
   private verifyUserEmail() {
     console.log('Initiating user email verification process');
     
     // Check if id params are available
-    const userIdParamName = 'uId';
-    const emailParamName = 'eId';
-    const isPrelaunchUserParamName = 'isPl';
+    const userIdParamKey = EmailVerificationUrlParamKeys.USER_ID;
+    const emailParamKey = EmailVerificationUrlParamKeys.EMAIL;
+    const isEmailUpdateParamKey = EmailVerificationUrlParamKeys.IS_EMAIL_UPDATE;
 
+    const email: string = this.route.snapshot.queryParams[emailParamKey];
+    const userId: string = this.route.snapshot.queryParams[userIdParamKey];
+    const isEmailUpdate: boolean = this.route.snapshot.queryParams[isEmailUpdateParamKey];
 
-    const email: string = this.route.snapshot.params[emailParamName];
-    const userId: string = this.route.snapshot.params[userIdParamName];
-    const isPrelaunchUser: boolean = this.route.snapshot.params[isPrelaunchUserParamName] ? JSON.parse(this.route.snapshot.params[isPrelaunchUserParamName]) : false;
-    let emailVerificationData: EmailVerificationData;
-
-    // Generate the verification data based on user type
-    if (email && userIdParamName) {
-      if (isPrelaunchUser) {
-        emailVerificationData = {
-          userId,
-          email,
-          isPrelaunchUser
-        };
-      } else {
-        emailVerificationData = {
-          userId,
-          email,
-          isPrelaunchUser: false
-        };
-      }
-
-      console.log('marking subscriber confirmed with this id data', emailVerificationData);
-      this.store$.dispatch(AuthStoreActions.verifyEmailRequested({emailVerificationData}));
-      
-      this.postVerificationActions();
+    // Dispatch the corresponding action, either an update or an verification
+    if (isEmailUpdate) {
+      const emailUpdateData: EmailUpdateData = { userId, email, isEmailUpdate };
+      console.log(`updating user ${userId} email to new email:`, emailUpdateData.email);
+      this.store$.dispatch(AuthStoreActions.updateEmailRequested({emailUpdateData}));
+      return;
     }
-  }
 
-  private postVerificationActions() {
-    this.emailVerficationSubscription = this.emailVerified$
-      .pipe(
-        withLatestFrom(this.emailVerificationProcessing$)
-      )
-      .subscribe(([emailVerified, isProcessing]) => {
-        if (isProcessing) {
-          this.dispatchedEmailVerificationRequest = true; // Prevents the error icon from popping prematurely
-        }
-      });
+    if (!isEmailUpdate) {
+      const emailVerificationData: EmailVerificationData = { userId, email };
+      console.log(`verifying user ${userId} with email:`, emailVerificationData.email);
+      this.store$.dispatch(AuthStoreActions.verifyEmailRequested({emailVerificationData}));
+    }
   }
 
   onEnterApp() {
@@ -97,9 +130,6 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   ngOnDestroy() {
-    if (this.emailVerficationSubscription) {
-      this.emailVerficationSubscription.unsubscribe();
-    }
   }
 
 }

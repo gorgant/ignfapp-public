@@ -4,10 +4,6 @@ mat-stepper {
   width: 100%;
 }
 
-form {
-  width: 100%;
-}
-
 mat-form-field {
   width: 100%;
   max-width: $desktop-form-width-standard;
@@ -22,6 +18,10 @@ mat-form-field {
 button {
   width: $mobile-button-width;
   max-width: $desktop-button-width;
+}
+
+.new-email-container {
+  width: 100%;
 }
 
 @media screen and (max-width: $mobile-cutoff-width) {

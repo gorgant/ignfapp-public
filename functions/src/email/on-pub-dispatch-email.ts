@@ -1,29 +1,32 @@
-import * as functions from 'firebase-functions';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { CloudEvent, logger } from 'firebase-functions/v2';
 import { EmailPubMessage } from '../../../shared-models/email/email-pub-message.model';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
-import { EmailCategories } from '../../../shared-models/email/email-vars.model';
+import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model';
 import { EmailLogEntry } from '../../../shared-models/email/email-log-entry.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { sendOnboardingWelcomeEmail } from './email-templates/onboarding-welcome-email';
 import { sendEmailVerificationEmail } from './email-templates/email-verification-email';
 import { sendContactFormConfirmationEmail } from './email-templates/contact-form-email';
 import { sendWebpageDataLoadFailureEmail } from './email-templates/webpage-data-load-failure-email';
-import { sendPrelaunchWelcomeEmail } from './email-templates/prelaunch-welcome-email';
 import { sendNewUserDetectedEmail } from './email-templates/new-user-detected-email';
 import { publicFirestore } from '../config/db-config';
-import { Timestamp } from '@google-cloud/firestore';;
+import { Timestamp } from '@google-cloud/firestore';
+import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
+import { sendgridApiSecret } from '../config/api-key-config';
+import { sendUpdateEmailConfirmationEmail } from './email-templates/update-email-confirmation-email';
 
 // Store the email record in the database
 const addEmailLogEntry = async (emailData: EmailPubMessage) => {
   
   if (!emailData.userData) {
-    functions.logger.log(`No user data provided, skipping email log entry`);
+    logger.log(`No user data provided, skipping email log entry`);
     return;
   }
 
   const autoNoticeString = 'auto-notice';
   if (emailData.emailCategory.includes(autoNoticeString)) {
-    functions.logger.log(`"${autoNoticeString}" detected in email category, skipping email log entry`);
+    logger.log(`"${autoNoticeString}" detected in email category, skipping email log entry`);
     return;
   }
 
@@ -41,66 +44,66 @@ const executeActions = async (emailData: EmailPubMessage) => {
 
   if (!emailData.emailCategory) {
     const errMsg: string = `No email category found in pubsub message`;
-    functions.logger.log(errMsg);
-    throw new functions.https.HttpsError('internal', errMsg);
+    logger.log(errMsg);
+    throw new HttpsError('internal', errMsg);
   }
 
   const emailCategory = emailData.emailCategory;
 
   switch(emailCategory) {
     
-    case EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP:
+    case EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP:
         if (!emailData.userData) {
-          const errMsg: string = `No user data provided, failed to send ${EmailCategories.AUTO_NOTICE_NEW_USER_SIGNUP} email`;
-          functions.logger.log(errMsg);
-          throw new functions.https.HttpsError('internal', errMsg);
+          const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP} email`;
+          logger.log(errMsg);
+          throw new HttpsError('internal', errMsg);
         }
         return sendNewUserDetectedEmail(emailData.userData);
     
-    case EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE:
+    case EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE:
       if (!emailData.webpageLoadFailureData) {
-        const errMsg: string = `No webpage load failiure data provided, failed to send ${EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE} email`;
-        functions.logger.log(errMsg);
-        throw new functions.https.HttpsError('internal', errMsg);
+        const errMsg: string = `No webpage load failiure data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
       }
       return sendWebpageDataLoadFailureEmail(emailData.webpageLoadFailureData);
     
-    case EmailCategories.CONTACT_FORM_CONFIRMATION:
+    case EmailIdentifiers.CONTACT_FORM_CONFIRMATION:
       if (!emailData.contactForm) {
-        const errMsg: string = `No contact form provided, failed to send ${EmailCategories.CONTACT_FORM_CONFIRMATION} email`;
-        functions.logger.log(errMsg);
-        throw new functions.https.HttpsError('internal', errMsg);
+        const errMsg: string = `No contact form provided, failed to send ${EmailIdentifiers.CONTACT_FORM_CONFIRMATION} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
       }
       return sendContactFormConfirmationEmail(emailData.contactForm);
 
-    case EmailCategories.EMAIL_VERIFICATION:
+    case EmailIdentifiers.EMAIL_VERIFICATION:
       if (!emailData.userData) {
-        const errMsg: string = `No user data provided, failed to send ${EmailCategories.EMAIL_VERIFICATION} email`;
-        functions.logger.log(errMsg);
-        throw new functions.https.HttpsError('internal', errMsg);
+        const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.EMAIL_VERIFICATION} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
       }
       return sendEmailVerificationEmail(emailData.userData);
     
-    case EmailCategories.ONBOARDING_GUIDE:
+    case EmailIdentifiers.ONBOARDING_WELCOME:
       if (!emailData.userData) {
-        const errMsg: string = `No user data provided, failed to send ${EmailCategories.ONBOARDING_GUIDE} email`;
-        functions.logger.log(errMsg);
-        throw new functions.https.HttpsError('internal', errMsg);
+        const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.ONBOARDING_WELCOME} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
       }
       return sendOnboardingWelcomeEmail(emailData.userData);
-    
-    case EmailCategories.PRELAUNCH_WELCOME:
+
+    case EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION:
       if (!emailData.userData) {
-        const errMsg: string = `No user data provided, failed to send ${EmailCategories.PRELAUNCH_WELCOME} email`;
-        functions.logger.log(errMsg);
-        throw new functions.https.HttpsError('internal', errMsg);
+        const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
       }
-      return sendPrelaunchWelcomeEmail(emailData.userData);
+      return sendUpdateEmailConfirmationEmail(emailData.userData);
     
     default:
       const defaultErrorMsg: string = `No matching email category for ${emailCategory}`;
-      functions.logger.log(defaultErrorMsg);
-      throw new functions.https.HttpsError('internal', defaultErrorMsg);
+      logger.log(defaultErrorMsg);
+      throw new HttpsError('internal', defaultErrorMsg);
   }
 
   
@@ -108,12 +111,15 @@ const executeActions = async (emailData: EmailPubMessage) => {
 }
 
 /////// DEPLOYABLE FUNCTIONS ///////
+const pubSubOptions: PubSubOptions = {
+  topic: PublicTopicNames.DISPATCH_EMAIL_TOPIC,
+  secrets: [sendgridApiSecret]
+};
 
 // Listen for pubsub message
-export const onPubDispatchEmail = functions.pubsub.topic(PublicTopicNames.DISPATCH_EMAIL_TOPIC).onPublish( async (message, context) => {
-  const emailData = message.json as EmailPubMessage;
-  functions.logger.log('Trigger email request received with this data:', emailData);
-  functions.logger.log('Context from pubsub:', context);
+export const onPubDispatchEmail = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<EmailPubMessage>>) => {
+  const emailData = event.data.message.json;
+  logger.log(`${PublicTopicNames.DISPATCH_EMAIL_TOPIC} request received with this data:`, emailData);
 
   await executeActions(emailData);
   await addEmailLogEntry(emailData);

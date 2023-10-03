@@ -1,21 +1,20 @@
-import * as functions from 'firebase-functions';
-import { adminFirestore } from '../config/db-config';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import * as sendGridMail from '@sendgrid/mail';
-import { publicAppUrl } from '../config/environments-config';
 import { PublicAppRoutes } from '../../../shared-models/routes-and-paths/app-routes.model';
-
-// Iniitialize Cloud Firestore Database
-export const db = adminFirestore;
-const settings = { timestampsInSnapshots: true };
-db.settings(settings);
-
-// ENV Variables
-export const sendgridSecret: string = functions.config().sendgrid.secret;
+import { sendgridApiSecret } from '../config/api-key-config';
+import { publicAppUrl } from '../config/app-config';
 
 // Initialize SG and export
 export const getSgMail = () => {
+  logger.log('Initializing Sendgrid Mail service');
   const sendgrid = sendGridMail;
-  sendGridMail.setApiKey(sendgridSecret);
+  const sgSecret = sendgridApiSecret.value();
+  if (!sgSecret) {
+    const err = `Error initializing Sendgrid Mail service. No sendgridSecret value available.`;
+    logger.log(err); throw new HttpsError('failed-precondition', err);
+  }
+  sendGridMail.setApiKey(sgSecret);
   return sendgrid;
 }
 

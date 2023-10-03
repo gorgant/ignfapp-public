@@ -1,16 +1,18 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import { getSgMail } from "../config";
-import { EmailSenderAddresses, EmailSenderNames, EmailCategories, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
+import { EmailSenderAddresses, EmailSenderNames, EmailIdentifiers, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
 import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 import { WebpageLoadFailureData } from '../../../../shared-models/diagnostics/webpage-load-failure-data.model';
-import * as functions from 'firebase-functions';
+
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
 
 export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: WebpageLoadFailureData ) => {
   
-  functions.logger.log('Sending Webpage Data Load Failure Email to admin');
+  logger.log('Sending Webpage Data Load Failure Email to admin');
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
@@ -33,15 +35,15 @@ export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: We
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE];
+      categories = [EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailIdentifiers.TEST_SEND];
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_GREG;
-      categories = [EmailCategories.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE, EmailIdentifiers.TEST_SEND];
       break;
   }
 
@@ -57,7 +59,7 @@ export const sendWebpageDataLoadFailureEmail = async (webpageLoadFailureData: We
     categories
   };
   await sgMail.send(msg)
-    .catch(err => {functions.logger.log(`Error sending email: ${msg} because:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error sending email: ${msg} because:`, err); throw new HttpsError('internal', err);});
 
-  functions.logger.log('Email sent', msg);
+  logger.log('Email sent', msg);
 }

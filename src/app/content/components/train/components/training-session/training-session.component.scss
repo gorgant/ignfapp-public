@@ -14,7 +14,7 @@ button {
   max-width: $desktop-button-width;
 }
 
-app-add-training-session-to-plan-button {
-  width: 100%;
+app-add-training-session-to-plan-button, app-add-training-session-to-personal-queue-button {
+  width: $mobile-button-width;
   max-width: $desktop-button-width;
 }

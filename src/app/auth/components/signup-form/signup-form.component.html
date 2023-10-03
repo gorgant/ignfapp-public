@@ -10,7 +10,7 @@
     <mat-form-field color="accent">
       <input color="accent" class="first-name-input" matInput formControlName="firstName">
       <mat-icon class="input-icon" matPrefix>face</mat-icon>
-      <mat-placeholder class="input-placeholder">{{ FIRST_NAME_FIELD_VALUE }}</mat-placeholder>
+      <mat-label class="input-placeholder">{{ FIRST_NAME_FIELD_VALUE }}</mat-label>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
         <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
       </mat-error>
@@ -18,7 +18,7 @@
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
       <mat-icon class="input-icon" matPrefix>email</mat-icon>
-      <mat-placeholder class="input-placeholder">{{ EMAIL_FIELD_VALUE }}</mat-placeholder>
+      <mat-label class="input-placeholder">{{ EMAIL_FIELD_VALUE }}</mat-label>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
         <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
       </mat-error>
@@ -26,7 +26,7 @@
     <mat-form-field color="accent">
       <input formControlName="password" matInput type="password">
       <mat-icon class="input-icon" matPrefix>lock</mat-icon>
-      <mat-placeholder class="input-placeholder">{{ PASSWORD_FIELD_VALUE }}</mat-placeholder>
+      <mat-label class="input-placeholder">{{ PASSWORD_FIELD_VALUE }}</mat-label>
       <mat-hint>{{ PASSWORD_HINT }}</mat-hint>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.password">
         <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 8</span> </mat-error>
@@ -42,3 +42,4 @@
     </button>
   </form>
 </div>
+

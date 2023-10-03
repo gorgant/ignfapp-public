@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
@@ -19,16 +19,17 @@ export class UiService {
   private screenIsMobile$ = new BehaviorSubject(true);
   private window: Window;
   private history: string[] = []
+  $routeGuardProcessing = signal(false);
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private snackbar: MatSnackBar,
-    private breakpointObserver: BreakpointObserver,
-    private router: Router,
-    @Inject(DOCUMENT) private document: Document,
-    private location: Location,
-    private route: ActivatedRoute,
-  ) {
+  private store$ = inject(Store<RootStoreState.AppState>);
+  private snackbar = inject(MatSnackBar);
+  private breakpointObserver = inject(BreakpointObserver);
+  private router = inject(Router);
+  private document = inject(DOCUMENT);
+  private location = inject(Location);
+  private route = inject(ActivatedRoute);
+
+  constructor() {
     this.monitorScreenSize();
     this.evaluateNavBarVisibility();
     this.monitorNavigationHistory();
@@ -64,8 +65,6 @@ export class UiService {
       });
 
   }
-
-
 
   get screenWidth() {
     return this.window.innerWidth;

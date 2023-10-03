@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, AbstractControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
+import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
@@ -30,52 +30,29 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   PASSWORD_HINT = GlobalFieldValues.LI_PASSWORD_HINT;
   TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
-  authSignUpProcessing$!: Observable<boolean>;
-  authSignUpSubscription!: Subscription;
-  authSignUpError$!: Observable<{} | null>;
-  authSignUpSubmitted!: boolean;
+  private authSubscription!: Subscription;
+  private authData$!: Observable<AuthResultsData>;
+  private userData$!: Observable<PublicUser>;
+  private authReloadProcessing$!: Observable<boolean>;
 
-  createUserProcessing$!: Observable<boolean>;
-  createUserSubscription!: Subscription;
-  createUserError$!: Observable<{} | null>;
-  createUserSubmitted!: boolean;
+  private reloadAuthDataTriggered!: boolean;
 
-  fetchUserProcessing$!: Observable<boolean>;
-  fetchUserSubscription!: Subscription;
-  fetchUserError$!: Observable<{} | null>;
+  private store$ = inject(Store);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private fb = inject(UntypedFormBuilder);
 
-  reloadAuthDataProcessing$!: Observable<boolean>;
-  reloadAuthDataSubscription!: Subscription;
-  reloadAuthDataError$!: Observable<{} | null>;
-  reloadAuthDataSubmitted!: boolean;
-
-  userData$!: Observable<PublicUser>;
-  userFetched: boolean = false;
-
-  constructor(
-    private fb: UntypedFormBuilder,
-    private store$: Store<RootStoreState.AppState>,
-    private router: Router
-  ) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.initForm();
-    this.checkAuthStatus();
+    this.monitorUserStatus();
   }
 
-  private checkAuthStatus() {
-    this.authSignUpProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing));
-    this.authSignUpError$ = this.store$.pipe(select(AuthStoreSelectors.selectSignUpError));
-
-    this.createUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserProcessing));
-    this.createUserError$ = this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserError));
-
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing));
-    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserError));
+  private monitorUserStatus() {
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
-
-    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
-    this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
+    this.authData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.authReloadProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing)) as Observable<boolean>;
   }
 
   private initForm(): void {
@@ -98,39 +75,40 @@ export class SignupFormComponent implements OnInit, OnDestroy {
     this.postAuthActions();
   }
 
-  // Update user data and navigate to dashboard
+  // Create user in auth and DB and then navigate to dashboard
   private postAuthActions() {
-
-    this.authSignUpSubscription = this.authSignUpProcessing$
+    this.authSubscription = this.authData$
       .pipe(
-        withLatestFrom(
-          this.authSignUpError$,
-          this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData))
-        )
+        filter(authData => !!authData), // Only proceed once auth data is available
+        switchMap(authData => {
+          console.log('Auth data received', authData);
+          console.log('New user detected in auth, creating new user in DB', authData);
+          this.createUserInFirebase(authData!);
+          return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
+        }),
+        filter(([userData, authData, authReloadProcessing]) => !!userData && !!authData && !authReloadProcessing), // Only proceed once user data is available
+        tap(([userData, authData, authReloadProcessing]) => {
+          if (!userData.emailVerified) {
+            console.log(`User has not verified email. Waiting for verification for ${userData.email}`);
+          }
+          // Auth data needs to be reloaded after email verification is complete in order for user page to update
+          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered) {
+            console.log(`User email verified but auth not yet updated. Submitting auth refresh request.`);
+            this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
+            this.reloadAuthDataTriggered = true;
+          }
+          if (userData.emailVerified && authData.emailVerified) {
+            console.log('User email verified in db and auth, routing user to requested route.');
+            this.redirectUserToRequestedRoute();
+          }
+        }),
+        catchError(error => {
+          console.log('Error authorizing user, logging out', error);
+          this.store$.dispatch(AuthStoreActions.logout());
+          return throwError(() => new Error(error));
+        })
       )
-      .subscribe(([authProcessing, authError, authData]) => {
-
-        if (authProcessing) {
-          this.authSignUpSubmitted = true;
-        }
-
-        // If error in auth, cancel operation
-        if (authError) {
-          console.log('Error signing up user in Auth, resetting form');
-          this.authSignUpSubscription.unsubscribe();
-          this.authSignUpSubmitted = false;
-          this.registerUserForm.reset();
-          return;
-        }
-
-        // If auth succeeds, create user in Firebase
-        if (this.authSignUpSubmitted && !authProcessing && authData) {
-          console.log('Auth sign up successful, creating user in database');
-          this.authSignUpSubscription.unsubscribe(); // Clear subscription no longer needed
-          this.createUserInFirebase(authData);
-          this.postCreateUserActions(authData.id as string);
-        }
-      })
+      .subscribe(); 
   };
 
   private createUserInFirebase(authData: AuthResultsData) {
@@ -142,129 +120,24 @@ export class SignupFormComponent implements OnInit, OnDestroy {
     this.store$.dispatch(UserStoreActions.createPublicUserRequested({partialNewPublicUserData: partialNewUserData}));
   }
 
-  // Fetch user and navigate to requested route
-  private postCreateUserActions(userId: string) {
-
-    this.createUserSubscription = this.createUserProcessing$
-      .pipe(
-        withLatestFrom(this.createUserError$)
-      )
-      .subscribe(([creatingUser, creationError]) => {
-
-        if (creatingUser) {
-          this.createUserSubmitted = true;
-        }
-
-        // If error creating user in database, cancel operation and delete auth user
-        if (creationError) {
-          console.log('Error creating user in database, deleting auth user');
-          this.createUserSubscription.unsubscribe();
-          this.createUserSubmitted = false;
-          this.store$.dispatch(AuthStoreActions.deleteAuthUserRequested());
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!creatingUser && this.createUserSubmitted) {
-          console.log('User creation successful, fetching user data');
-          this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId: userId}));
-          this.createUserSubscription.unsubscribe();
-          this.confirmUserEmailVerified();
-        }
-      })
-  }
-
-  private confirmUserEmailVerified() {
-    // Keep this subscription open until component destroyed since user needs to take an action in a separate window if not confirmed
-    // Once email is verified, server will update user which will trigger this subscription
-    this.fetchUserSubscription = this.userData$
-      .pipe(
-        withLatestFrom(
-          this.fetchUserProcessing$,
-          this.fetchUserError$
-        )
-      )
-      .subscribe(([userData, fetchProcessing, fetchError]) => {
-
-        // If error fetching user, cancel operation and log out user
-        if (fetchError) {
-          console.log('Error fetching user in database, logging out user');
-          this.fetchUserSubscription.unsubscribe();
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!fetchProcessing && userData) {
-          
-          console.log('User data fetched, checking for email verification status');
-          
-          // If email is verified, proceed to dashboard (otherwise email verification request is provided)
-          if (userData.emailVerified) {
-            console.log('Email verified, reloading auth data');
-            this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
-            this.reloadAuthData();
-            
-          } else {
-            // FYI Prompt is shown in parent container
-            console.log(`User has not verified email. Requesting verification for ${userData.email}`);
-          }
-
-        }
-
-      })
-  }
-
-  // Auth data needs to be reloaded after email verification is complete in order for user page to update
-  private reloadAuthData(): void {
-    
-    this.reloadAuthDataSubscription = this.reloadAuthDataProcessing$
-      .pipe(
-        withLatestFrom(this.reloadAuthDataError$)
-      )
-      .subscribe(([reloadProcessing, reloadError]) => {
-        
-        if (reloadProcessing) {
-          this.reloadAuthDataSubmitted = true;
-        }
-
-        // If error updating user in database, cancel operation and log out user
-        if (reloadError) {
-          console.log('Error reloading auth data, logging out user');
-          this.reloadAuthDataSubscription.unsubscribe();
-          this.reloadAuthDataSubmitted = false;
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!reloadProcessing && this.reloadAuthDataSubmitted) {
-          console.log('Auth data reloaded, redirecting user to requested route');
-          this.reloadAuthDataSubscription.unsubscribe();
-          this.redirectUserToRequestedRoute();
-        }
-      })
-  }
-
-  // After the signup flow is complete, redirect user to the requested route or otherwise to Workouts
+  // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
   private redirectUserToRequestedRoute(): void {
-    this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+
+    if (returnUrl && returnUrl !== '/') {
+      console.log('returnURL is not root, navigating to:', returnUrl);
+      this.router.navigate([returnUrl]);
+    } else {
+      console.log('returnUrl is root, navigating to train');
+      this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
+    }
   }
+
+
 
   ngOnDestroy(): void {
-
-    if (this.authSignUpSubscription) {
-      this.authSignUpSubscription.unsubscribe();
-    }
-
-    if (this.createUserSubscription) {
-      this.createUserSubscription.unsubscribe();
-    }
-
-    if (this.fetchUserSubscription) {
-      this.fetchUserSubscription.unsubscribe();
-    }
-
-    if (this.reloadAuthDataSubscription) {
-      this.reloadAuthDataSubscription.unsubscribe();
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
     }
   }
 

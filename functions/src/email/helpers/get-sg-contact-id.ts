@@ -1,9 +1,10 @@
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 import * as Axios from 'axios';
-import { sendgridMarketingContactsApiUrl, sendgridSecret } from "../config";
+import { sendgridMarketingContactsApiUrl } from "../config";
 import { SendgridSearchContactsResponse } from '../../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../../config/global-helpers';
 import { EmailUserData } from '../../../../shared-models/email/email-user-data.model';
+import { sendgridApiSecret } from '../../config/api-key-config';
 
 // Queries sendgrid for a specific email address and returns the user ID
 export const getSgContactId = async (userData: EmailUserData): Promise<string | undefined> => {
@@ -23,22 +24,22 @@ export const getSgContactId = async (userData: EmailUserData): Promise<string | 
     headers: 
       { 
         'content-type': 'application/json',
-        authorization: `Bearer ${sendgridSecret}` 
+        authorization: `Bearer ${sendgridApiSecret.value()}` 
       },
     data: requestBody
   };
 
-  functions.logger.log('Searching SG for contact with these options', requestOptions);
+  logger.log('Searching SG for contact with these options', requestOptions);
 
   const searchResponse: SendgridSearchContactsResponse = await submitHttpRequest(requestOptions) as SendgridSearchContactsResponse;
   
   if (searchResponse.contact_count < 1) {
-    functions.logger.log('No contacts found, aborting getSendgridContactId with null value');
+    logger.log('No contacts found, aborting getSendgridContactId with null value');
     return undefined;
   }
 
   const subId = searchResponse.result[0].id;
-  functions.logger.log('Found contact with this id:', subId);
+  logger.log('Found contact with this id:', subId);
   
   return subId;
 

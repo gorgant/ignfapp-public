@@ -176,8 +176,8 @@ export class AuthStoreEffects {
       ofType(AuthStoreActions.reloadAuthDataRequested),
       switchMap(action => 
         this.authService.reloadAuthData().pipe(
-          map(authDataReloaded => {
-            return AuthStoreActions.reloadAuthDataCompleted({authDataReloaded});
+          map(authResultsData => {
+            return AuthStoreActions.reloadAuthDataCompleted({authResultsData});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -217,9 +217,9 @@ export class AuthStoreEffects {
     .pipe(
       ofType(AuthStoreActions.updateEmailRequested),
       concatMap(action => 
-        this.authService.updateEmailInAuth(action.emailUpdateData).pipe(
+        this.authService.updateEmail(action.emailUpdateData).pipe(
           map(emailUpdated => {
-            return AuthStoreActions.updateEmailCompleted({emailUpdated});
+            return AuthStoreActions.updateEmailCompleted({updateEmailSucceeded: emailUpdated});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -240,7 +240,7 @@ export class AuthStoreEffects {
       switchMap(action => 
         this.authService.verifyEmail(action.emailVerificationData).pipe(
           map(emailVerified => {
-            return AuthStoreActions.verifyEmailCompleted({emailVerified});
+            return AuthStoreActions.verifyEmailCompleted({verifyEmailSucceeded: emailVerified});
           }),
           catchError(error => {
             const fbError: FirebaseError = {

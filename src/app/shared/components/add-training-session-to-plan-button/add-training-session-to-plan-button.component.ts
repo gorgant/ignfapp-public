@@ -45,13 +45,13 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   updateTrainingPlanSubscription!: Subscription;
 
 
-  serverRequestProcessing!: Observable<boolean>;
+  serverRequestProcessing$!: Observable<boolean>;
 
   addTrainingSessionSubscription!: Subscription;
 
-  databaseCategoryType!: TrainingSessionDatabaseCategoryTypes;
-  planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
-  personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
+  // databaseCategoryType!: TrainingSessionDatabaseCategoryTypes;
+  // planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
+  // personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
 
   unsubAllRequested$: Subject<void> = new Subject();
   unsubButtonRequested$: Subject<void> = new Subject();
@@ -90,7 +90,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     this.updateTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanError)
       .pipe(takeUntil(this.unsubAllRequested$));
 
-    this.serverRequestProcessing = combineLatest(
+    this.serverRequestProcessing$ = combineLatest(
       [
         this.createPlanSessionFragmentProcessing$,
         this.fetchSingleTrainingPlanProcessing$,
@@ -107,32 +107,31 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   }
 
-  // Pulls data from params if source is a planSessionFragment or personalSessionFragment
-  private checkForAdditionalViewSessionData() {
-    const databaseCategoryType = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.DATABASE_CATEGORY);
-    if (databaseCategoryType) {
-      console.log('Alternate database category detected');
-      this.databaseCategoryType = databaseCategoryType as TrainingSessionDatabaseCategoryTypes;
-      if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT) {
-        this.planSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPlanSessionFragmentUrlParams;
-      }
-      if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PERSONAL_FRAGMENT) {
-        this.personalSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPersonalSessionFragmentUrlParams;
-      }
-    }
-  }
+  // // Pulls data from params if source is a planSessionFragment or personalSessionFragment
+  // private checkForAdditionalViewSessionData() {
+  //   const databaseCategoryType = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.DATABASE_CATEGORY);
+  //   if (databaseCategoryType) {
+  //     console.log('Alternate database category detected');
+  //     this.databaseCategoryType = databaseCategoryType as TrainingSessionDatabaseCategoryTypes;
+  //     if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT) {
+  //       this.planSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPlanSessionFragmentUrlParams;
+  //     }
+  //     if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PERSONAL_FRAGMENT) {
+  //       this.personalSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPersonalSessionFragmentUrlParams;
+  //     }
+  //   }
+  // }
 
   private monitorAllPlanSessionFragments(trainingPlanId: string) {
     this.planSessionFragmentData$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore)
       .pipe(
         takeUntil(this.unsubAllRequested$),
         withLatestFrom(
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing),
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError),
+          this.fetchAllPlanSessionFragmentsProcessing$,
+          this.fetchAllPlanSessionFragmentsError$,
           this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched),
         ),
         map(([planSessionFragments, loadingPlanSessionFragments, loadError, allPlanSessionFragmentsFetched]) => {
-          console.log('planSessionFragment subscription fired with this value', planSessionFragments);
           if (loadError) {
             console.log('Error loading planSessionFragments in component', loadError);
             this.planSessionFragmentsLoaded = false;
@@ -153,8 +152,8 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
       .pipe(
         takeUntil(this.unsubAllRequested$),
         withLatestFrom(
-          this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing),
-          this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError),
+          this.fetchSingleTrainingPlanProcessing$,
+          this.fetchSingleTrainingPlanError$,
         ),
         map(([trainingPlan, loadingTrainingPlans, loadError]) => {
           console.log('trainingPlan subscription fired with this value', trainingPlan);
@@ -176,13 +175,12 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   // Gather planSessionFragment collection and trainingPlan and then use that create a planSessionFragment
   onAddTrainingSessionToPlan() {
-    console.log('Add training session clicked for ', this.trainingSessionData.id);
     if (this.createPlanSessionFragmentSubmitted) {
       console.log(`Create planSessionFragment already created for ${this.trainingSessionData.id}`, this.createPlanSessionFragmentSubmitted)
       return;
     }
 
-    this.checkForAdditionalViewSessionData();
+    // this.checkForAdditionalViewSessionData();
     this.monitorProcesses();
     
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
@@ -202,7 +200,6 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         takeUntil(this.unsubButtonRequested$)
       )
       .subscribe(([planSessionFragments, trainingPlan]) => {
-        console.log(`addTrainingSessionSubscription fired for ${this.trainingSessionData.id} with these values`, planSessionFragments, trainingPlan, this.createPlanSessionFragmentSubmitted);
         if (planSessionFragments && trainingPlan && !this.createPlanSessionFragmentSubmitted) {
           const indexOfFinalItem = planSessionFragments.length - 1;
           const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {

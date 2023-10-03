@@ -1,9 +1,10 @@
-import * as functions from 'firebase-functions';
-import * as Axios from 'axios';
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
+// import * as Axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
-import { PrelaunchUser } from '../../../shared-models/user/prelaunch-user.model';
-import { UserRecord } from 'firebase-functions/v1/auth';
-import { ignfappPublicApp } from './app-config';
+import { UserRecord, getAuth } from 'firebase-admin/auth';
+import { publicAppFirebaseInstance } from './app-config';
 
 
 
@@ -31,44 +32,6 @@ export const convertHoursMinSecToMill = (hrsMinSecStamp: string): number => {
   const sec: number = Number(hrsMinSecStamp.split(':')[2]);
 
   return ((hrs*60*60 + min*60 + sec) * 1000);
-}
-
-/**
-Sends a descriptive error response when running a callable function
-*/
-export const catchErrors = async (promise: Promise<any>) => {
-  try {
-    return await promise;
-  } catch(err) {
-    functions.logger.log('Unknown error', err);
-    throw new functions.https.HttpsError('unknown', err as string)
-  }
-}
-
-// These assertions provide error logging to console (rather than in Cloud Functions log)
-
-/**
-Validates data payload of a callable function
-*/
-export const assert = (data: any, key:string) => {
-  if (!data || !data[key]) {
-    functions.logger.log(`Error with assertion, the following data did not have ${key} property`, data);
-    throw new functions.https.HttpsError('invalid-argument', `function called without ${key} data`);
-  } else {
-    return data[key];
-  }
-}
-
-/**
-Validates auth context for callable function 
-*/
-export const assertUID = (context: functions.https.CallableContext) => {
-  if (!context.auth) {
-    functions.logger.log(`Error with assertion, http function called without context.auth`);
-    throw new functions.https.HttpsError('permission-denied', 'function called without context.auth');
-  } else {
-    return context.auth.uid;
-  }
 }
 
 /**
@@ -103,20 +66,25 @@ export const generateRoundedNumber = (number: number, digitsToRoundTo: number) =
  * @param requestOptions Request options to include
  */
 
-export const submitHttpRequest = async (config: Axios.AxiosRequestConfig): Promise<{}>  => {
+export const submitHttpRequest = async (config: AxiosRequestConfig): Promise<{}>  => {
 
-  const axios = Axios.default;
+  // const axios = Axios(.default);
 
   const response = await axios(config)
     .catch(err => {
-      const error = err as Axios.AxiosError; 
-      functions.logger.log(`Error with request: ${error.code} ${error.message}`, err); 
-      throw new functions.https.HttpsError('internal', `Error with request: ${error.code} ${error.message}`);}
+      if (axios.isAxiosError(err)) {
+        logger.log(`Error with request: ${err.code} ${err.message}`, err);
+        throw new HttpsError('internal', `Error with request: ${err.code} ${err.message}`);
+      } else {
+        logger.log('unexpected error: ', err);
+        throw new HttpsError('unknown', err);
+      }
+    }
   );
 
   const reponseData = response.data;
 
-  functions.logger.log('Body from response', reponseData);
+  logger.log('Body from response', reponseData);
 
   let parsedBody = reponseData;
       
@@ -130,33 +98,33 @@ export const submitHttpRequest = async (config: Axios.AxiosRequestConfig): Promi
   return parsedBody;
 }
 
-export const fetchUserByEmail = async (email: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PrelaunchUser | PublicUser | undefined> => {
+export const fetchUserByEmail = async (email: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PublicUser | undefined> => {
 
   const userCollectionRef = await userCollection
     .where(PublicUserKeys.EMAIL, '==', email)
     .get()
-    .catch(err => {functions.logger.log(`Failed to fetch prelaunchUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to fetch publicUser in public database:`, err); throw new HttpsError('internal', err);});
 
   // Return empty if user doesn't exist
   if (userCollectionRef.empty) {
-    functions.logger.log(`prelaunchUser with email '${email}' doesn't exist in database`);
+    logger.log(`publicUser with email '${email}' doesn't exist in database`);
     return undefined;
   }
 
-  const existingUser = userCollectionRef.docs[0].data() as PrelaunchUser | PublicUser;
-  functions.logger.log(`Found user with this data`, existingUser);
+  const existingUser = userCollectionRef.docs[0].data() as PublicUser;
+  logger.log(`Found user with this data`, existingUser);
 
   return existingUser;
 }
 
-export const fetchDbUserById = async (id: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PublicUser | PrelaunchUser> => {
+export const fetchDbUserById = async (id: string, userCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>): Promise<PublicUser> => {
   const userDoc = await userCollection.doc(id).get()
-    .catch(err => {functions.logger.log(`Failed to fetch publicUser in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to fetch publicUser in public database:`, err); throw new HttpsError('internal', err);});
   return userDoc.data() as PublicUser; // Will return undefined if doesn't exist
 }
 
 export const fetchAuthUserById = async (userId: string): Promise<UserRecord> => {
-  const userAuthData: UserRecord = await ignfappPublicApp.auth().getUser(userId)
-    .catch(err => {functions.logger.log(`Error fetching user from Auth database:`, err); throw new functions.https.HttpsError('internal', err);});
+  const userAuthData: UserRecord = await getAuth(publicAppFirebaseInstance).getUser(userId)
+    .catch(err => {logger.log(`Error fetching user from Auth database:`, err); throw new HttpsError('internal', err);});
   return userAuthData;
 }

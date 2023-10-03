@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, Subject, throwError } from 'rxjs';
@@ -17,16 +17,16 @@ export class PlanSessionFragmentService {
 
   deleteTrainingPlanRequested$: Subject<void> = new Subject();
 
-  constructor(
-    private afs: Firestore,
-    private authService: AuthService,
-    private uiService: UiService,
-  ) { }
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   batchDeletePlanSessionFragments(trainingPlanId: string, planSessionFragmentIds: string[]): Observable<string[]> {
     this.unsubscribeFetchAllPlanSessionFragments();
 
-    const batch = writeBatch(this.afs);
+    const batch = writeBatch(this.firestore);
 
     planSessionFragmentIds.forEach(planSessionFragmentId => {
       const planSessionFragmentDoc = this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId);
@@ -50,7 +50,7 @@ export class PlanSessionFragmentService {
   }
 
   batchModifyPlanSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>[]): Observable<Update<PlanSessionFragment>[]> {
-    const batch = writeBatch(this.afs);
+    const batch = writeBatch(this.firestore);
 
     planSessionFragmentUpdates.forEach(singlePlanSessionFragmentUpdate => {
       const changesWithTimestamp: Partial<PlanSessionFragment> = {
@@ -285,7 +285,7 @@ export class PlanSessionFragmentService {
 
   private getPlanSessionFragmentCollection(trainingPlanId: string): CollectionReference<PlanSessionFragment> {
     // Note that planSessionFragment is nested in Public User document
-    return collection(this.afs, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
   }
 
   private getPlanSessionFragmentDoc(trainingPlanId: string, planSessionFragmentId: string): DocumentReference<PlanSessionFragment> {

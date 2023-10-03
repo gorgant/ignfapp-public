@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
@@ -19,12 +19,12 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class TrainingSessionService {
 
-  constructor(
-    private afs: Firestore,
-    private fns: Functions,
-    private authService: AuthService,
-    private uiService: UiService,
-  ) { }
+  private firestore = inject(Firestore);
+  private functions = inject(Functions);
+  private authService = inject(AuthService);
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   createTrainingSession(trainingSessionNoIdOrTimestamp: TrainingSessionNoIdOrTimestamps): Observable<TrainingSession> {
 
@@ -199,7 +199,7 @@ export class TrainingSessionService {
 
   fetchYoutubeVideoData(videoId: string): Observable<YoutubeVideoDataCompact> {
     const fetchYoutubeDataHttpCall: (videoId: string) => 
-      Observable<YoutubeVideoDataCompact | null> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_FETCH_YOUTUBE_VIDEO_DATA);
+      Observable<YoutubeVideoDataCompact | null> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_FETCH_YOUTUBE_VIDEO_DATA);
     
     const duplicateVideoErrorMessage = `That video already exists in our database. Please try a different video.`;
 
@@ -266,7 +266,7 @@ export class TrainingSessionService {
     };
 
     const updateSessionRatingHttpCall: (trainingSessionRatingWithId: TrainingSessionRating) => 
-      Observable<string> = httpsCallableData(this.fns, PublicFunctionNames.ON_CALL_UPDATE_SESSION_RATING);
+      Observable<string> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_UPDATE_SESSION_RATING);
     
     return updateSessionRatingHttpCall(trainingSessionRatingWithIdAndTimestamp)
       .pipe(
@@ -284,7 +284,7 @@ export class TrainingSessionService {
   }
 
   private getTrainingSessionCollection(): CollectionReference<TrainingSession> {
-    return collection(this.afs, PublicCollectionPaths.TRAINING_SESSIONS) as CollectionReference<TrainingSession>;
+    return collection(this.firestore, PublicCollectionPaths.TRAINING_SESSIONS) as CollectionReference<TrainingSession>;
   }
 
   private getTrainingSessionDoc(trainingSessionId: string): DocumentReference<TrainingSession> {
@@ -296,7 +296,7 @@ export class TrainingSessionService {
   }
 
   private getSessionRatingCollection(trainingSessionId: string): CollectionReference<TrainingSessionRating> {
-    return collection(this.afs, `${PublicCollectionPaths.TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
+    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
   }
 
   private getSessionRatingDoc(trainingSessionId: string, trainingSessionRatingId: string): DocumentReference<TrainingSessionRating> {

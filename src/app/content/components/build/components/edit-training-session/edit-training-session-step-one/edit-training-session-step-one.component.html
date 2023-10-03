@@ -3,7 +3,7 @@
   <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="32px">
     <mat-form-field>
       <input formControlName="videoUrl" matInput type="videoUrl">
-      <mat-placeholder>{{ INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE }}</mat-placeholder>
+      <mat-label>{{ INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE }}</mat-label>
       <mat-hint>{{ INPUT_YOUTUBE_VIDEO_URL_HINT }}</mat-hint>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.videoUrl">
         <mat-error *ngIf="videoUrl?.hasError(validation.type) && videoUrl?.invalid && (videoUrl?.dirty || videoUrl?.touched)">{{ validation.message }}</mat-error>

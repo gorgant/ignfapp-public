@@ -1,10 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
@@ -12,7 +12,7 @@ import { UserRegistrationFormValidationMessages } from 'shared-models/forms/vali
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
-import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { AuthStoreActions, AuthStoreSelectors, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset-password-dialogue.component';
 
 @Component({
@@ -31,38 +31,22 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   CHECK_INBOX_BLURB = GlobalFieldValues.RP_CHECK_INBOX;
   LOG_IN_BUTTON_VALUE = GlobalFieldValues.LOGIN;
 
-  authProcessing$!: Observable<boolean>;
-  authSubscription!: Subscription;
-  authError$!: Observable<{} | null>;
-  authSubmitted!: boolean;
-
-  userUpdateProcessing$!: Observable<boolean>;
-  userUpdateSubscription!: Subscription;
-  userUpdateError$!: Observable<{} | null>;
-  userUpdateSubmitted!: boolean;
-
-  fetchUserProcessing$!: Observable<boolean>;
-  fetchUserSubscription!: Subscription;
-  fetchUserError$!: Observable<{} | null>;
-
-  reloadAuthDataProcessing$!: Observable<boolean>;
-  reloadAuthDataSubscription!: Subscription;
-  reloadAuthDataError$!: Observable<{} | null>;
-  reloadAuthDataSubmitted!: boolean;
-
-  userData$!: Observable<PublicUser>;
-  userFetched: boolean = false;
+  private authSubscription!: Subscription;
+  private authData$!: Observable<AuthResultsData>
+  private userData$!: Observable<PublicUser>;
+  private authReloadProcessing$!: Observable<boolean>;
   
-  showResetMessage: boolean = false;
+  private reloadAuthDataTriggered!: boolean;
+  showResetMessage = false;
+
+  private store$ = inject(Store);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private fb = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
   
   
-  constructor(
-    private fb: UntypedFormBuilder,
-    private store$: Store<RootStoreState.AppState>,
-    private router: Router,
-    private dialog: MatDialog,
-    private route: ActivatedRoute,
-  ) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.initForm();
@@ -70,20 +54,9 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   private checkAuthStatus() {
-
-    this.authProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing));
-    this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserError));
-
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
-
-    this.fetchUserProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing));
-    this.fetchUserError$ = this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserError));
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
-
-    this.reloadAuthDataProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing));
-    this.reloadAuthDataError$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataError));
-
+    this.authData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.authReloadProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing)) as Observable<boolean>;
   }
 
   private initForm(): void {
@@ -104,39 +77,39 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.postAuthActions();
   }
 
-  // Update user data
+  // After the auth is complete, update the app and database accordingly
   private postAuthActions() {
-
-    this.authSubscription = this.authProcessing$
+    this.authSubscription = this.authData$
       .pipe(
-        withLatestFrom(
-          this.authError$,
-          this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData))
-        )
+        filter(authData => !!authData), // Only proceed once auth data is available
+        switchMap(authData => {
+          console.log('Auth data received', authData);
+          this.updateUserInFirebase(authData!);
+          return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
+        }),
+        filter(([userData, authData, authReloadProcessing]) => !!userData && !!authData && !authReloadProcessing), // Only proceed once user data is available
+        tap(([userData, authData, authReloadProcessing]) => {
+          if (!userData.emailVerified) {
+            console.log(`User has not verified email. Waiting for verification for ${userData.email}`);
+          }
+          // Auth data needs to be reloaded after email verification is complete in order for user page to update
+          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered) {
+            console.log(`User email verified but auth not yet updated. Submitting auth refresh request.`);
+            this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
+            this.reloadAuthDataTriggered = true;
+          }
+          if (userData.emailVerified && authData.emailVerified) {
+            console.log('User email verified in db and auth, routing user to requested route.');
+            this.redirectUserToRequestedRoute();
+          }
+        }),
+        catchError(error => {
+          console.log('Error authorizing user, logging out', error);
+          this.store$.dispatch(AuthStoreActions.logout());
+          return throwError(() => new Error(error));
+        })
       )
-      .subscribe(([authProcessing, authError, authData]) => {
-
-        if (authProcessing) {
-          this.authSubmitted = true;
-        }
-
-        // If error in auth, cancel operation
-        if (authError) {
-          console.log('Error authorizing user, resetting form');
-          this.authSubscription.unsubscribe();
-          this.authSubmitted = false;
-          this.authUserForm.reset();
-          return;
-        }
-
-        // If auth succeeds, proceed to next step
-        if (this.authSubmitted && !authProcessing && authData) {
-          console.log('User auth successful, updating user in database');
-          this.authSubscription.unsubscribe(); // Clear subscription no longer needed
-          this.updateUserInFirebase(authData);
-          this.postUpdateUserActions(authData.id as string);
-        }
-      })
+      .subscribe();
   }
 
   private updateUserInFirebase(authData: AuthResultsData) {
@@ -151,110 +124,9 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
   }
 
-  // Fetch user and navigate to requested route
-  private postUpdateUserActions(publicUserId: string) {
-
-    this.userUpdateSubscription = this.userUpdateProcessing$
-      .pipe(
-        withLatestFrom(this.userUpdateError$)
-      )
-      .subscribe(([updateProcessing, updateError]) => {
-
-        if (updateProcessing) {
-          this.userUpdateSubmitted = true;
-        }
-
-        // If error updating user in database, cancel operation and log out user
-        if (updateError) {
-          console.log('Error updating user in database, logging out user');
-          this.userUpdateSubscription.unsubscribe();
-          this.userUpdateSubmitted = false;
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!updateProcessing && this.userUpdateSubmitted) {
-          console.log('User update successful, fetching user data');
-          this.store$.dispatch(UserStoreActions.fetchPublicUserRequested({publicUserId}));
-          this.userUpdateSubscription.unsubscribe();
-          this.confirmUserEmailVerified();
-        }
-      })
-  }
-
-  private confirmUserEmailVerified() {
-    // Keep this subscription open until component destroyed since user needs to take an action in a separate window if not confirmed
-    // Once email is verified, server will update user which will trigger this subscription
-    this.fetchUserSubscription = this.userData$
-      .pipe(
-        withLatestFrom(
-          this.fetchUserProcessing$,
-          this.fetchUserError$,
-        )
-      )
-      .subscribe(([userData, fetchProcessing, fetchError]) => {
-
-        // If error fetching user, cancel operation and log out user
-        if (fetchError) {
-          console.log('Error fetching user in database, logging out user');
-          this.fetchUserSubscription.unsubscribe();
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!fetchProcessing && userData) {
-          
-          console.log('User data fetched, checking for email verification status');
-          
-          // If email is verified, proceed to dashboard (otherwise email verification request is provided)
-          if (userData.emailVerified) {
-            console.log('Email verified, reloading auth data');
-            this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
-            this.reloadAuthData();
-            
-          } else {
-            // FYI Prompt is shown in parent container
-            console.log(`User has not verified email. Requesting verification for ${userData.email}`);
-          }
-
-        }
-
-      })
-  }
-
-  // Auth data needs to be reloaded after email verification is complete in order for user page to update
-  private reloadAuthData(): void {
-    
-    this.reloadAuthDataSubscription = this.reloadAuthDataProcessing$
-      .pipe(
-        withLatestFrom(this.reloadAuthDataError$)
-      )
-      .subscribe(([reloadProcessing, reloadError]) => {
-        
-        if (reloadProcessing) {
-          this.reloadAuthDataSubmitted = true;
-        }
-
-        // If error updating user in database, cancel operation and log out user
-        if (reloadError) {
-          console.log('Error reloading auth data, logging out user');
-          this.reloadAuthDataSubscription.unsubscribe();
-          this.reloadAuthDataSubmitted = false;
-          this.store$.dispatch(AuthStoreActions.logout());
-          return;
-        }
-
-        if (!reloadProcessing && this.reloadAuthDataSubmitted) {
-          console.log('Auth data reloaded, redirecting user to requested route');
-          this.reloadAuthDataSubscription.unsubscribe();
-          this.redirectUserToRequestedRoute();
-        }
-      })
-  }
 
   // After the login flow is complete, redirect user to the requested route or otherwise to Workouts
   private redirectUserToRequestedRoute(): void {
-
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
 
     if (returnUrl && returnUrl !== '/') {
@@ -265,18 +137,13 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   onResetPassword() {
-    
     const dialogConfig = new MatDialogConfig();
-
     dialogConfig.autoFocus = true;
     dialogConfig.width = '300px';
-
     dialogConfig.data = this.email.value;
-    
     console.log('Reset password requested with this config', dialogConfig);
 
     const dialogRef = this.dialog.open(ResetPasswordDialogueComponent, dialogConfig);
-
     dialogRef.afterClosed().subscribe(submitted => {
       if (submitted) {
         this.showResetMessage = true;
@@ -294,19 +161,6 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
-
-    if (this.userUpdateSubscription) {
-      this.userUpdateSubscription.unsubscribe();
-    }
-
-    if (this.fetchUserSubscription) {
-      this.fetchUserSubscription.unsubscribe();
-    }
-
-    if (this.reloadAuthDataSubscription) {
-      this.reloadAuthDataSubscription.unsubscribe();
-    }
-
   }
 
   // These getters are used for easy access in the HTML template

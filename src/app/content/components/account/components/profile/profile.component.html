@@ -1,9 +1,5 @@
 <div class="component-container" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
   
-  <div fxLayoutAlign="center center" *ngIf="loading$ | async">
-    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-  </div>
-
   <div fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
 
     <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">

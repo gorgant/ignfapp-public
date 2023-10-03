@@ -11,5 +11,9 @@
   "compileOnSave": true,
   "include": [
     "src"
-  ]
+  ],
+  // Added this to satisfy the angular services warning in vscode, no other reason
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+  }
 }

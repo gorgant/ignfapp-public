@@ -1,9 +1,9 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, inject } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
@@ -23,16 +23,16 @@ export class ResetPasswordDialogueComponent implements OnInit {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   resetPasswordProcessing$!: Observable<boolean>;
-  resetPasswordSubmitted!: boolean;
-  resetPasswordError$!: Observable<{} | null>;
-  resetPasswordSubscription!: Subscription;
+  private resetPasswordSubmitted!: boolean;
+  private resetPasswordError$!: Observable<{} | null>;
+  private resetPasswordSubscription!: Subscription;
 
-  constructor(
-    private fb: UntypedFormBuilder,
-    private dialogRef: MatDialogRef<ResetPasswordDialogueComponent>,
-    @Inject(MAT_DIALOG_DATA) private emailString: string,
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  private fb = inject(UntypedFormBuilder);
+  private dialogRef = inject(MatDialogRef<ResetPasswordDialogueComponent>);
+  private emailString: string = inject(MAT_DIALOG_DATA);
+  private store$ = inject(Store<RootStoreState.AppState>);
+
+  constructor() { }
 
   ngOnInit() {
     this.initForm();
@@ -68,21 +68,21 @@ export class ResetPasswordDialogueComponent implements OnInit {
   postResetActions() {
     this.resetPasswordSubscription = this.resetPasswordProcessing$
       .pipe(
-        withLatestFrom(this.resetPasswordError$)
+        withLatestFrom(this.resetPasswordError$),
+        tap(([resetProcessing, resetError]) => {
+
+          if (resetError) {
+            console.log('Error resetting password, resetting form', resetError);
+            this.resetPasswordSubmitted = false;
+            return;
+          }
+
+          if (!resetProcessing && this.resetPasswordSubmitted) {
+            this.dialogRef.close(true);
+          }
+        })
       )
-      .subscribe(([resetProcessing, resetError]) => {
-        if (resetError) {
-          console.log('Error resetting password, resetting form');
-          this.resetPasswordSubscription.unsubscribe();
-          this.resetPasswordSubmitted = false;
-          return;
-        }
-
-        if (!resetProcessing && this.resetPasswordSubmitted) {
-          this.dialogRef.close(true);
-        }
-
-      });
+      .subscribe();
   }
 
   // These getters are used for easy access in the HTML template

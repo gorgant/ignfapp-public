@@ -32,7 +32,7 @@
 
     <mat-form-field class="activity-category-container">
       <mat-label>{{ ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
-      <mat-chip-list #chipList aria-label="Training Session ActivityCategory Selection" multiple [formControl]="activityCategoryList">
+      <!-- <mat-chip-list #chipList aria-label="Training Session ActivityCategory Selection" multiple [formControl]="activityCategoryList">
         <mat-chip
           *ngFor="let activityCategory of activityCategoryList.value"
           (removed)="removeActivityCategoryChip(activityCategory)">
@@ -49,7 +49,25 @@
           [matChipInputFor]="chipList"
           [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
           (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
-      </mat-chip-list>
+      </mat-chip-list> -->
+      <mat-chip-grid #chipGrid aria-label="Training Session ActivityCategory Selection">
+        <mat-chip-row
+            *ngFor="let activityCategory of activityCategoryList.value"  
+            (removed)="removeActivityCategoryChip(activityCategory)">
+          {{ activityCategory | activityCategoryDbToUi }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+        <input
+          [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
+          #trainingSessionActivityCategoryInput
+          [formControl]="trainingSessionActivityCategoryUserInputForm"
+          [matAutocomplete]="auto"
+          [matChipInputFor]="chipGrid"
+          [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
+          (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
+      </mat-chip-grid>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addActivityCategoryChipFromAutoComplete($event)">
         <mat-option *ngFor="let activityCategory of filteredtrainingSessionActivityCategoryList | async" [value]="activityCategory.dbValue">
         {{ activityCategory.uiValue }}

@@ -1,7 +1,8 @@
-import * as functions from 'firebase-functions';
+import { CloudEvent, logger } from 'firebase-functions/v2';
+import { HttpsError } from 'firebase-functions/v2/https';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { AvatarImageMetaData } from '../../../shared-models/images/image-metadata.model';
-import * as fs from 'fs-extra'; // Mirrors the existing filesystem methods, but uses Promises
+import { ensureDir, remove } from 'fs-extra'; // Mirrors the existing filesystem methods, but uses Promises
 import { basename, dirname, join } from 'path';
 import { tmpdir } from 'os';
 import * as sharp from 'sharp';
@@ -12,7 +13,8 @@ import { EnvironmentTypes, ProductionCloudStorage, SandboxCloudStorage } from '.
 import { publicFirestore } from '../config/db-config';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
-import { Timestamp } from '@google-cloud/firestore';;
+import { Timestamp } from '@google-cloud/firestore';
+import { PubSubOptions, onMessagePublished, MessagePublishedData } from 'firebase-functions/v2/pubsub';
 
 const publicStorage = ignfappPublicStorage;
 const publicUsersBucket = currentEnvironmentType === EnvironmentTypes.PRODUCTION ? 
@@ -22,7 +24,7 @@ const publicUsersBucket = currentEnvironmentType === EnvironmentTypes.PRODUCTION
 // Exit if file is not an image.
 const objectIsValidCheck = (imageMetaData: AvatarImageMetaData): boolean => {
   if (!imageMetaData.contentType || !imageMetaData.contentType.includes('image')) {
-    functions.logger.log('Object is not an image.');
+    logger.log('Object is not an image.');
     return false;
   }
   return true
@@ -43,19 +45,19 @@ const resizeImage = async (imageMetaData: AvatarImageMetaData) => {
   const resizedImageSize = 100;
 
   const existingMetadata = await publicUsersBucket.file(filePath).getMetadata();   // Extracts existing metadata
-  functions.logger.log(`Fetched this existing metadata from cloud storage:`, existingMetadata);
+  logger.log(`Fetched this existing metadata from cloud storage:`, existingMetadata);
 
   // 1. Ensure directory exists
-  await fs.ensureDir(workingDir)
-    .catch(err => {functions.logger.log(`Error ensuring directory exists:`, err); throw new functions.https.HttpsError('internal', err);});
+  await ensureDir(workingDir)
+    .catch(err => {logger.log(`Error ensuring directory exists:`, err); throw new HttpsError('internal', err);});
     
 
   // 2. Download Source File
   await publicUsersBucket.file(filePath).download({
     destination: tmpFilePath
   })
-    .catch(err => {functions.logger.log(`Error retrieving file at ${filePath}:`, err); throw new functions.https.HttpsError('internal', err);});
-  functions.logger.log('Image downloaded locally to', tmpFilePath);
+    .catch(err => {logger.log(`Error retrieving file at ${filePath}:`, err); throw new HttpsError('internal', err);});
+  logger.log('Image downloaded locally to', tmpFilePath);
 
   // 3. Resize the image
   // Currently this is configured to REPLACE origin file, meaning only final output will exist
@@ -68,12 +70,12 @@ const resizeImage = async (imageMetaData: AvatarImageMetaData) => {
     resizedImage: 'true'
   };
 
-  functions.logger.log('Thumbnail to be saved at', destination)
+  logger.log('Thumbnail to be saved at', destination)
 
   await sharp(tmpFilePath)
     .resize(resizedImageSize, null) // Null for height, autoscale to width
     .toFile(thumbPath)
-    .catch(err => {functions.logger.log(`Error resizing source image:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error resizing source image:`, err); throw new HttpsError('internal', err);});
 
   // Upload to GCS
   const response = await publicUsersBucket.upload(thumbPath, {
@@ -81,7 +83,7 @@ const resizeImage = async (imageMetaData: AvatarImageMetaData) => {
     contentType: contentType,
     metadata: {metadata: metadata},
   })
-    .catch(err => {functions.logger.log(`Error uploading image data:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error uploading image data:`, err); throw new HttpsError('internal', err);});
 
   // Make the file publicly accessible
   await response[0].makePublic();
@@ -93,13 +95,13 @@ const resizeImage = async (imageMetaData: AvatarImageMetaData) => {
   
   // 4. Delete original image in source directory
   const deleteOriginalImage = publicUsersBucket.file(filePath).delete()
-    .catch(err => {functions.logger.log(`Error deleting original image:`, err); throw new functions.https.HttpsError('internal', err);});
-  functions.logger.log('Original file deleted', filePath);
+    .catch(err => {logger.log(`Error deleting original image:`, err); throw new HttpsError('internal', err);});
+  logger.log('Original file deleted', filePath);
 
   await deleteOriginalImage;
 
   // 5. Remove the tmp/thumbs from the filesystem
-  await fs.remove(workingDir);
+  await remove(workingDir);
 
   return avatarDownloadUrl;
 }
@@ -113,7 +115,7 @@ const updateUserAvatarUrl = async (imageMetaData: AvatarImageMetaData, downloadU
   };
 
   await publicUsersCollection.doc(userId).update(userUpdates)
-    .catch(err => {functions.logger.log(`Failed to update publicUser with id ${userId} in public database:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to update publicUser with id ${userId} in public database:`, err); throw new HttpsError('internal', err);});
 }
 
 
@@ -125,12 +127,14 @@ const executeActions = async (imageMetaData: AvatarImageMetaData) => {
 }
 
 /////// DEPLOYABLE FUNCTIONS ///////
+const pubSubOptions: PubSubOptions = {
+  topic: PublicTopicNames.RESIZE_AVATAR_TOPIC,
+};
 
 // Listen for pubsub message
-export const onPubResizeAvatar = functions.pubsub.topic(PublicTopicNames.RESIZE_AVATAR_TOPIC).onPublish( async (message, context) => {
-  const imageMetaData = message.json as AvatarImageMetaData;
-  functions.logger.log(`${PublicTopicNames.RESIZE_AVATAR_TOPIC} request received with this data:`, imageMetaData);
-  functions.logger.log('Context from pubsub:', context);
+export const onPubResizeAvatar = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<AvatarImageMetaData>>) => {
+  const imageMetaData = event.data.message.json;
+  logger.log(`${PublicTopicNames.RESIZE_AVATAR_TOPIC} request received with this data:`, imageMetaData);
 
   // Exit function if invalid object
   if(!objectIsValidCheck(imageMetaData)) {

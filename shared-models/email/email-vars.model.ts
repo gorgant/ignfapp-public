@@ -1,39 +1,32 @@
 import { ShorthandBusinessNames } from "../meta/business-info.model";
 import { WebDomains } from "../meta/web-urls.model";
 
-export enum EmailCategories {
-  APP_FEATURES_AND_NEWS = 'app-features-and-news',
+export enum EmailIdentifiers {
   AUTO_NOTICE_NEW_USER_SIGNUP = 'auto-notice-new-user-signup',
   AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH = 'auto-notice-subscriber-count-mismatch',
   AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE = 'auto-notice-webpage-data-load-failure',
   CONTACT_FORM_CONFIRMATION = 'contact-form-confirmation',
   EMAIL_VERIFICATION = 'email-verification',
-  HEALTH_AND_FITNESS_NEWSLETTER = 'health-and-fitness-newsletter',
-  ONBOARDING_GUIDE = 'onboarding-guide',
-  PRELAUNCH_WELCOME = 'prelaunch-welcome',
+  FEATURES_AND_NEWS = 'features-and-news',
+  ONBOARDING_WELCOME = 'onboarding-welcome',
   TEST_SEND = 'test-send',
+  UPDATE_EMAIL_CONFIRMATION = 'update-email-confirmation'
 }
 
 // Ids sourced from Sendgrid template system
 export enum SendgridEmailTemplateIds {
   IGNFAPP_CONTACT_FORM_CONFIRMATION = 'tbd',
-  IGNFAPP_EMAIL_VERIFICATION = 'd-2654be8a32fb4266af9ded864e951355',
-  IGNFAPP_ONBOARDING_WELCOME_EMAIL = 'd-0ddd98bc9e0042ef971a6347763b2974',
-  IGNFAPP_PRELAUNCH_WELCOME_EMAIL = 'd-bff2b48a51f648a79b19b6e4bc365ffd',
+  IGNFAPP_EMAIL_VERIFICATION = 'd-c12615f9f735408bb2b3097a040fe138',
+  IGNFAPP_ONBOARDING_WELCOME = 'd-06c7b8c5076e4ebcac0e91209cf4e8c2',
+  IGNFAPP_UPDATE_EMAIL_CONFIRMATION = 'd-67c80cb2ac4a4ebe92a58f8151f515e9'
 }
 
 export enum SendgridContactListId {
-  IGNFAPP_APP_FEATURES_AND_NEWS = '0f27347d-7c8e-4ca1-a587-3ca45da3f0b8',
-  IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER = '0c035799-fbd6-44e8-9a6b-fc4ffa621a89',
-  IGNFAPP_ONBOARDING_GUIDE = 'f4cf7b97-ac80-4109-8017-a64042da4b81',
-  IGNFAPP_PRELAUNCH_WAIT_LIST = 'd9d4bbee-cc84-4989-b387-a1f3ee6ae241',
+  IGNFAPP_FEATURES_AND_NEWS = '4583cd9a-6b32-474e-a99c-eb11885662b8',
 }
 
 export enum SendgridEmailUnsubscribeGroupIds {
-  IGNFAPP_APP_FEATURES_AND_NEWS = 18275,
-  IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER = 18276,
-  IGNFAPP_ONBOARDING_GUIDE = 18278,
-  IGNFAPP_PRELAUNCH_WAIT_LIST = 18277,
+  IGNFAPP_FEATURES_AND_NEWS = 21757,
 }
 
 // The UnsubGroupId/ContactListId pair
@@ -49,21 +42,9 @@ export interface UnsubIdContactListPairingList {
 
 // Allows for addition and removal of contact lists from user profile when subscribing or unsubscribing
 export const SendgridUnsubGroupIdContactListPairings: UnsubIdContactListPairingList = {
-  [SendgridEmailUnsubscribeGroupIds.IGNFAPP_APP_FEATURES_AND_NEWS]: {
-    unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_APP_FEATURES_AND_NEWS,
-    contactListId: SendgridContactListId.IGNFAPP_APP_FEATURES_AND_NEWS
-  },
-  [SendgridEmailUnsubscribeGroupIds.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER]: {
-    unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER,
-    contactListId: SendgridContactListId.IGNFAPP_HEALTH_AND_FITNESS_NEWSLETTER
-  },
-  [SendgridEmailUnsubscribeGroupIds.IGNFAPP_ONBOARDING_GUIDE]: {
-    unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_ONBOARDING_GUIDE,
-    contactListId: SendgridContactListId.IGNFAPP_ONBOARDING_GUIDE
-  },
-  [SendgridEmailUnsubscribeGroupIds.IGNFAPP_PRELAUNCH_WAIT_LIST]: {
-    unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_PRELAUNCH_WAIT_LIST,
-    contactListId: SendgridContactListId.IGNFAPP_PRELAUNCH_WAIT_LIST
+  [SendgridEmailUnsubscribeGroupIds.IGNFAPP_FEATURES_AND_NEWS]: {
+    unsubGroupId: SendgridEmailUnsubscribeGroupIds.IGNFAPP_FEATURES_AND_NEWS,
+    contactListId: SendgridContactListId.IGNFAPP_FEATURES_AND_NEWS
   },
 }
 
@@ -87,3 +68,15 @@ export const AdminEmailAddresses = {
   IGNFAPP_DEFAULT: `hello@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_ADMIN: `greg@${WebDomains.IGNFAPP_EMAIL}`
 };
+
+export type SgContactCustomFieldData = {
+  [key in SgContactCustomFieldIds]: string | number | Date;
+}
+
+// Sendgrid uses these custom IDs for the custom fields
+// To get these ids use postman GET https://api.sendgrid.com/v3/marketing/field_definitions
+export enum SgContactCustomFieldIds {
+  APP_UID = 'e2_T',
+  CREATED_TIMESTAMP = 'e3_D',
+  OPT_IN_TIMESTAMP = 'e4_D'
+}

@@ -1,16 +1,19 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import { getSgMail, EmailWebsiteLinks } from "../config";
-import { EmailSenderAddresses, EmailSenderNames, EmailCategories, SendgridEmailTemplateIds, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
+import { EmailSenderAddresses, EmailSenderNames, EmailIdentifiers, SendgridEmailTemplateIds, AdminEmailAddresses } from "../../../../shared-models/email/email-vars.model";
 import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
-import * as functions from 'firebase-functions';
 import { EmailUserData } from "../../../../shared-models/email/email-user-data.model";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
+import { EmailVerificationUrlParamKeys } from '../../../../shared-models/email/email-verification-data';
+import { PublicUserKeys } from '../../../../shared-models/user/public-user.model';
 
 
 export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
   
-  functions.logger.log('Sending Email Verification Email to this user', userData.email);
+  logger.log('Sending Email Verification Email to this user', userData.email);
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
@@ -19,8 +22,13 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
   let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_EMAIL_VERIFICATION;
   let categories: string[];
-  // Add email, user ID, and prelaunchUser status for verification purposes
-  const optInConfirmationUrl = `${EmailWebsiteLinks.EMAIL_VERIFICATION_URL_NO_PARAMS}/${userData.id}/${userData.email}/${userData.isPrelaunchUser ? userData.isPrelaunchUser : 'false'}`;
+  // Add email, user ID, and other params for verification purposes
+  const urlBuilder = new URL(EmailWebsiteLinks.EMAIL_VERIFICATION_URL_NO_PARAMS);
+  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.USER_ID, userData[PublicUserKeys.ID]);
+  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.EMAIL, userData[PublicUserKeys.EMAIL]);
+  const optInConfirmationUrl = urlBuilder.href;
+
+  console.log('Producing this verification url', optInConfirmationUrl);
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
@@ -30,17 +38,17 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
           name: userData.firstName
         }
       ];
-      categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER];
+      categories = [EmailIdentifiers.EMAIL_VERIFICATION];
       bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.EMAIL_VERIFICATION, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailCategories.EMAIL_VERIFICATION, EmailCategories.HEALTH_AND_FITNESS_NEWSLETTER, EmailCategories.TEST_SEND];
+      categories = [EmailIdentifiers.EMAIL_VERIFICATION, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;
   }
@@ -60,7 +68,7 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
     categories
   };
   await sgMail.send(msg)
-    .catch(err => {functions.logger.log(`Error sending email: ${msg} because:`, err); throw new functions.https.HttpsError('internal', err);});
+    .catch(err => {logger.log(`Error sending email: ${msg} because:`, err); throw new HttpsError('internal', err);});
 
-  functions.logger.log('Email sent', msg);
+  logger.log('Email sent', msg);
 }
