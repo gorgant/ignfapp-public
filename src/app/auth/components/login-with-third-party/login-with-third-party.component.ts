@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
@@ -10,6 +10,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
+import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -26,16 +27,19 @@ export class LoginWithThirdPartyComponent implements OnInit {
   CONTINUE_WITH_GOOGLE_BUTTON_VALUE = GlobalFieldValues.LI_CONTINUE_WITH_GOOGLE;
   CONTINUE_WITH_FACEBOOK_BUTTON_VALUE = GlobalFieldValues.LI_CONTINUE_WITH_FACEBOOK;
   
-  private authSubscription!: Subscription;
-  private authData$!: Observable<AuthResultsData>
-  private userData$!: Observable<PublicUser>;
+  private authData$!: Observable<AuthResultsData>;
+  private authError$!: Observable<{} | null>;
   private authReloadProcessing$!: Observable<boolean>;
+  private authSubscription!: Subscription;
   
-  private reloadAuthDataTriggered!: boolean;
+  private userData$!: Observable<PublicUser>;
+  
+  private reloadAuthDataTriggered = signal(false);
 
   private store$ = inject(Store);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private uiService = inject(UiService);
 
   constructor() { }
 
@@ -46,6 +50,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
   private monitorUserStatus() {
     this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
     this.authData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.authError$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserError));
     this.authReloadProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing)) as Observable<boolean>;
   }
 
@@ -63,19 +68,29 @@ export class LoginWithThirdPartyComponent implements OnInit {
 
   // After the auth is complete, update the app and database accordingly
   private postAuthActions() {
-    this.authSubscription = this.authData$
+    this.authSubscription = this.authError$
       .pipe(
-        filter(authData => !!authData), // Only proceed once auth data is available
-        switchMap(authData => {
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.authSubscription?.unsubscribe();
+            this.resetComponentActionState();
+            this.store$.dispatch(AuthStoreActions.logout());
+          }
+          return combineLatest([this.authData$, this.authError$]);
+        }),
+        filter(([authData, processingError]) => !processingError ), // Halts function if processingError detected
+        filter(([authData, processingError]) => !!authData), // Only proceed once auth data is available
+        switchMap(([authData, processingError]) => {
           console.log('Auth data received', authData);
 
           // Create new user or update existing user
           if (authData!.isNewUser) {
             console.log('New user detected in auth, creating new user in DB');
-            this.createUserInFirebase(authData!);
+            this.createUserInFirebase(authData);
           } else {
             console.log('Existing user detected in auth, updating user in DB');
-            this.updateUserInFirebase(authData!);
+            this.updateUserInFirebase(authData);
           }
           return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
         }),
@@ -85,10 +100,10 @@ export class LoginWithThirdPartyComponent implements OnInit {
             console.log(`User has not verified email. Waiting for verification for ${userData.email}`);
           }
           // Auth data needs to be reloaded after email verification is complete in order for user page to update
-          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered) {
+          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered()) {
             console.log(`User email verified but auth not yet updated. Submitting auth refresh request.`);
             this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
-            this.reloadAuthDataTriggered = true;
+            this.reloadAuthDataTriggered.set(true);
           }
           if (userData.emailVerified && authData.emailVerified) {
             console.log('User email verified in db and auth, routing user to requested route.');
@@ -96,7 +111,10 @@ export class LoginWithThirdPartyComponent implements OnInit {
           }
         }),
         catchError(error => {
-          console.log('Error authorizing user, logging out', error);
+          console.log('Error in component:', error);
+          this.authSubscription?.unsubscribe();
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentActionState();
           this.store$.dispatch(AuthStoreActions.logout());
           return throwError(() => new Error(error));
         })
@@ -139,10 +157,12 @@ export class LoginWithThirdPartyComponent implements OnInit {
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
   }
 
+  private resetComponentActionState() {
+    this.reloadAuthDataTriggered.set(false);
+  }
+
   ngOnDestroy(): void {
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
+    this.authSubscription?.unsubscribe();
   }
 
 }

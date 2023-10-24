@@ -11,6 +11,7 @@ const getFetchPublicUserError = (state: UserState) => state.fetchPublicUserError
 const getFetchPublicUserProcessing = (state: UserState) => state.fetchPublicUserProcessing;
 const getResizeAvatarError = (state: UserState) => state.resizeAvatarError;
 const getResizeAvatarProcessing = (state: UserState) => state.resizeAvatarProcessing;
+const getResizeAvatarSucceeded = (state: UserState) => state.resizeAvatarSucceeded;
 const getUpdatePublicUserError = (state: UserState) => state.updatePublicUserError;
 const getUpdatePublicUserProcessing = (state: UserState) => state.updatePublicUserProcessing;
 const getUploadAvatarError = (state: UserState) => state.uploadAvatarError;
@@ -64,6 +65,11 @@ export const selectResizeAvatarError = createSelector(
 export const selectResizeAvatarProcessing = createSelector(
   selectUserState,
   getResizeAvatarProcessing
+);
+
+export const selectResizeAvatarSucceeded = createSelector(
+  selectUserState,
+  getResizeAvatarSucceeded
 );
 
 export const selectUpdatePublicUserError = createSelector(

@@ -1,7 +1,7 @@
 import { logger } from 'firebase-functions/v2';
 import { CallableOptions, CallableRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
 import { publicFirestore } from '../config/db-config';
-import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
+import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { EmailVerificationData } from '../../../shared-models/email/email-verification-data';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
@@ -11,7 +11,7 @@ import { createOrUpdateSgContact } from '../email/helpers/create-or-update-sg-co
 import { EnvironmentTypes } from '../../../shared-models/environments/env-vars.model';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import { fetchAuthUserById } from '../config/global-helpers';
+import { convertPublicUserDataToEmailUserData, fetchAuthUserById } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { publicAppFirebaseInstance } from '../config/app-config';
@@ -76,23 +76,8 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   logger.log(`Marked user "${emailVerificationData.userId}" as opted in and email verified`);
   
   // Provide complete user data to the email
-  const emailUserData: EmailUserData = {
-    createdTimestamp: userDataInDb[PublicUserKeys.CREATED_TIMESTAMP],
-    email: userDataInDb[PublicUserKeys.EMAIL], 
-    emailGroupUnsubscribes: userDataInDb[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
-    emailGlobalUnsubscribe: userDataInDb[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-    emailLastSubSource: userDataInDb[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
-    emailOptInConfirmed: userDataInDb[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
-    emailOptInTimestamp: userDataInDb[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
-    emailSendgridContactId: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
-    emailSendgridContactListArray: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
-    emailSendgridContactCreatedTimestamp: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
-    emailVerified: userDataInDb[PublicUserKeys.EMAIL_VERIFIED],
-    firstName: userDataInDb[PublicUserKeys.FIRST_NAME],
-    id: userDataInDb[PublicUserKeys.ID],
-    lastModifiedTimestamp: userDataInDb[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
-    lastName: userDataInDb[PublicUserKeys.LAST_NAME],
-    onboardingWelcomeEmailSent: userDataInDb[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
+  const emailUserData = {
+    ...convertPublicUserDataToEmailUserData(userDataInDb),
     ...updatedUserData
   };
 

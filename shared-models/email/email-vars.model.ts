@@ -80,3 +80,7 @@ export enum SgContactCustomFieldIds {
   CREATED_TIMESTAMP = 'e3_D',
   OPT_IN_TIMESTAMP = 'e4_D'
 }
+
+export enum SgWebhookSignatureVerificationKeys {
+  PRIMARY_KEY = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8hdNto0zp1Z7VcuaI6p5aOdW8b9zjgdTZQf3p9WvNwnvKRRoOZowD1E1NCzcjlKqjfCfi5g/Dt5JuhD2WnM0bA==`
+}

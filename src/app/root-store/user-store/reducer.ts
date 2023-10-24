@@ -90,22 +90,18 @@ export const userStoreReducer = createReducer(
       ...state,
       createPublicUserError: null,
       createPublicUserProcessing: false,
-      fetchPrelaunchUserError: null,
-      fetchPrelaunchUserProcessing: false,
       fetchPublicUserError: null,
       fetchPublicUserProcessing: false,
-      registerPrelaunchUserError: null,
-      registerPrelaunchUserProcessing: false,
       resizeAvatarError: null,
       resizeAvatarProcessing: false,
-      updatePrelaunchUserError: null,
-      updatePrelaunchUserProcessing: false,
+      resizeAvatarSucceeded: false,
       updatePublicUserError: null,
       updatePublicUserProcessing: false,
       uploadAvatarError: null,
       uploadAvatarProcessing: false,
+      sendUpdateEmailConfirmationError: null,
+      sendUpdateEmailConfirmationProcessing: false,
       avatarDownloadUrl: null,
-      prelaunchUserData: null,
       publicUserData: null,
     }
   }),
@@ -116,20 +112,23 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       resizeAvatarProcessing: true,
-      resizeAvatarError: null
+      resizeAvatarError: null,
+      resizeAvatarSucceeded: false,
     }
   }),
   on(UserStoreActions.resizeAvatarCompleted, (state, action) => {
     return {
       ...state,
       resizeAvatarProcessing: false,
+      resizeAvatarSucceeded: action.resizeAvatarSucceeded
     }
   }),
   on(UserStoreActions.resizeAvatarFailed, (state, action) => {
     return {
       ...state,
       resizeAvatarProcessing: false,
-      resizeAvatarError: action.error
+      resizeAvatarError: action.error,
+      resizeAvatarSucceeded: false,
     }
   }),
 

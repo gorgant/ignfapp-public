@@ -15,6 +15,7 @@
   "main": "lib/functions/src/index.js",
   "dependencies": {
     "@google-cloud/pubsub": "^4.0.5",
+    "@sendgrid/eventwebhook": "^7.7.0",
     "@sendgrid/helpers": "^7.7.0",
     "@sendgrid/mail": "^7.7.0",
     "axios": "^1.5.0",

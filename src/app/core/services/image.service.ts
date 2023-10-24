@@ -5,6 +5,7 @@ import { catchError, from, map, Observable,of,take,throwError } from 'rxjs';
 import { AvatarImageData } from 'shared-models/images/avatar-image-data.model';
 import { AvatarImageMetaData } from 'shared-models/images/image-metadata.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
+import { UiService } from './ui.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,7 @@ export class ImageService {
 
   private storage = inject(Storage);
   private functions = inject(Functions);
+  private uiService = inject(UiService);
 
   constructor() { }
 
@@ -25,7 +27,7 @@ export class ImageService {
     return url;
   }
 
-  resizeAvatarImage(imageMetaData: AvatarImageMetaData): Observable<string> {
+  resizeAvatarImage(imageMetaData: AvatarImageMetaData): Observable<boolean> {
     console.log('Submitting request to server to resize avatar');
 
     const resizeAvatarHttpCall: (data: AvatarImageMetaData) => Observable<string> = httpsCallableData(
@@ -40,10 +42,11 @@ export class ImageService {
           if (!publishedMsgId) {
             throw new Error(`Error publishing resize avatar: ${publishedMsgId}`);
           }
-          return publishedMsgId;
+          return true;
         }),
         catchError(error => {
           console.log('Error publishing resize avatar', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
           return throwError(() => new Error(error));
         })
       );
@@ -67,6 +70,7 @@ export class ImageService {
         }),
         catchError(error => {
           console.log('Error fetching download url', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
           return throwError(() => new Error(error));
         })
       );

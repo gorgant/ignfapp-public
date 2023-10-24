@@ -3,12 +3,12 @@
   <div fxHide [fxShow]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async)" class="login-options" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <app-login-with-third-party></app-login-with-third-party>
     <div class="or-divider">{{ OR_BLURB }}</div>
-    <button *ngIf="!useEmailLogin" type="button" class="email-button" mat-raised-button (click)="onUseEmail()">
+    <button *ngIf="!useEmailLogin()" type="button" class="email-button" mat-raised-button (click)="onUseEmail()">
       <mat-icon class="email-button-icon">email</mat-icon>
       {{ SIGN_UP_WITH_EMAIL_BUTTON_VALUE }}
     </button>
-    <app-signup-form *ngIf="useEmailLogin"></app-signup-form>
-    <div *ngIf="useEmailLogin" class="toggle-login-signup" fxLayout="column" fxLayoutAlign="center center">
+    <app-signup-form *ngIf="useEmailLogin()"></app-signup-form>
+    <div *ngIf="useEmailLogin()" class="toggle-login-signup" fxLayout="column" fxLayoutAlign="center center">
       <a [routerLink]="LOGIN_PATH">{{ ALREADY_HAVE_ACCOUNT_BUTTON_VALUE }}</a>
     </div>
   </div>

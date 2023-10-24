@@ -4,7 +4,7 @@
   <mat-dialog-content fxLayout="column" fxLayoutAlign="center center" >
     
     <div class="avatar-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-      <img [src]="userData.avatarUrl ? userData.avatarUrl : DEFAULT_PROFILE_IMAGE" class="avatar">
+      <img [src]="(userData$ | async)?.avatarUrl || DEFAULT_PROFILE_IMAGE" class="avatar">
     </div>
 
   </mat-dialog-content>

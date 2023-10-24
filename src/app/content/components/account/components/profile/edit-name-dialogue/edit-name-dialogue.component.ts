@@ -1,12 +1,13 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, tap } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, filter, switchMap, tap, throwError } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
+import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -29,12 +30,13 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   userUpdateProcessing$!: Observable<boolean>;
   private userUpdateError$!: Observable<{} | null>;
   private userUpdateSubscription!: Subscription;
-  private updateSubmitted!: boolean;
+  private updateSubmitted = signal(false);
   
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<EditNameDialogueComponent>);
   private store$ = inject(Store<RootStoreState.AppState>);
   private userData: PublicUser = inject(MAT_DIALOG_DATA);
+  private uiService = inject(UiService);
 
   nameForm = this.fb.group({
     [PublicUserKeys.FIRST_NAME]: ['', [Validators.required]],
@@ -78,31 +80,42 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
     };
 
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
+    this.updateSubmitted.set(true);
     this.postSubmitActions();
   }
 
   postSubmitActions() {
-    this.userUpdateSubscription = combineLatest([this.userUpdateProcessing$, this.userUpdateError$]) 
+    this.userUpdateSubscription = this.userUpdateError$ 
       .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating dialog', processingError);
+            this.resetComponentActionState();
+            this.dialogRef.close(false);
+          }
+          return combineLatest([this.userUpdateProcessing$, this.userUpdateError$]);
+        }),
+        filter(([updateProcessing, processingError]) => !processingError ), // Halts function if processingError detected
         tap(([updateProcessing, updateError]) => {
-          if (updateProcessing) {
-            this.updateSubmitted = true;
-          }
-  
-          if (updateError) {
-            console.log('Error updating name, resetting form');
-            this.userUpdateSubscription.unsubscribe();
-            this.updateSubmitted = false;
-            return;
-          }
-          
-          if (!updateProcessing && this.updateSubmitted) {
+          if (!updateProcessing && this.updateSubmitted()) {
             console.log('User update succeeded, closing dialog');
             this.dialogRef.close(true);
           }
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentActionState();
+          this.dialogRef.close(false);
+          return throwError(() => new Error(error));
         })
       )
       .subscribe()
+  }
+
+  private resetComponentActionState() {
+    this.updateSubmitted.set(false);
   }
   
   // These getters are used for easy access in the HTML template
@@ -111,10 +124,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   get displayName() { return this.nameForm.get(PublicUserKeys.DISPLAY_NAME) as AbstractControl; }
 
   ngOnDestroy(): void {
-    
-    if (this.userUpdateSubscription) {
-      this.userUpdateSubscription.unsubscribe();
-    }
+    this.userUpdateSubscription?.unsubscribe();
   }
 
 }

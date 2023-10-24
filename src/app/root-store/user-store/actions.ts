@@ -70,7 +70,8 @@ export const resizeAvatarRequested = createAction(
 );
 
 export const resizeAvatarCompleted = createAction(
-  '[Image Service] Resize Avatar Completed'
+  '[Image Service] Resize Avatar Completed',
+  props<{resizeAvatarSucceeded: boolean}>()
 );
 
 export const resizeAvatarFailed = createAction(

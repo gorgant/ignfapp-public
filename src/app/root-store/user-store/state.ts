@@ -11,6 +11,7 @@ export interface UserState {
   fetchPublicUserProcessing: boolean,
   resizeAvatarError: FirebaseError | Error | null,
   resizeAvatarProcessing: boolean;
+  resizeAvatarSucceeded: boolean;
   updatePublicUserError: FirebaseError | Error | null,
   updatePublicUserProcessing: boolean,
   uploadAvatarError: FirebaseError | Error | null,
@@ -28,6 +29,7 @@ export const initialUserState: UserState = {
   fetchPublicUserProcessing: false,
   resizeAvatarError: null,
   resizeAvatarProcessing: false,
+  resizeAvatarSucceeded: false,
   updatePublicUserError: null,
   updatePublicUserProcessing: false,
   uploadAvatarError: null,

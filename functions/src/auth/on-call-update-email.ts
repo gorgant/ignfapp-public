@@ -4,12 +4,11 @@ import { publicFirestore } from '../config/db-config';
 import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
 import { EmailUpdateData } from '../../../shared-models/email/email-update-data.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { currentEnvironmentType } from '../config/environments-config';
 import { createOrUpdateSgContact } from '../email/helpers/create-or-update-sg-contact';
 import { EnvironmentTypes } from '../../../shared-models/environments/env-vars.model';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import { fetchAuthUserById } from '../config/global-helpers';
+import { convertPublicUserDataToEmailUserData, fetchAuthUserById } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { publicAppFirebaseInstance } from '../config/app-config';
@@ -75,23 +74,8 @@ const updateEmailInAuthAndDb = async (emailUpdateData: EmailUpdateData): Promise
   logger.log(`Marked user "${emailUpdateData.userId}" as opted in and email verified`);
 
   // Use this object to create a new sg contact
-  const updatedEmailUserData: EmailUserData = {
-    createdTimestamp: userDataInDb[PublicUserKeys.CREATED_TIMESTAMP],
-    email: userDataInDb[PublicUserKeys.EMAIL], 
-    emailGroupUnsubscribes: userDataInDb[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
-    emailGlobalUnsubscribe: userDataInDb[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-    emailLastSubSource: userDataInDb[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
-    emailOptInConfirmed: userDataInDb[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
-    emailOptInTimestamp: userDataInDb[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
-    emailSendgridContactId: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
-    emailSendgridContactListArray: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
-    emailSendgridContactCreatedTimestamp: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
-    emailVerified: userDataInDb[PublicUserKeys.EMAIL_VERIFIED],
-    firstName: userDataInDb[PublicUserKeys.FIRST_NAME],
-    id: userDataInDb[PublicUserKeys.ID],
-    lastModifiedTimestamp: userDataInDb[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
-    lastName: userDataInDb[PublicUserKeys.LAST_NAME],
-    onboardingWelcomeEmailSent: userDataInDb[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
+  const updatedEmailUserData = {
+    ...convertPublicUserDataToEmailUserData(userDataInDb),
     ...updatedUserData
   };
   const sgCreateOrUpdateContactData: SgCreateOrUpdateContactData = {
@@ -99,7 +83,7 @@ const updateEmailInAuthAndDb = async (emailUpdateData: EmailUpdateData): Promise
     isNewContact: true,
   };
 
-  const oldEmailUserData: EmailUserData = {
+  const oldEmailUserData = {
     ...updatedEmailUserData,
     email: oldEmailInDb
   };

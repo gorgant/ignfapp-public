@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -33,7 +33,7 @@ export class SignupComponent implements OnInit {
   userData$!: Observable<PublicUser>;
   authData$!: Observable<AuthResultsData>;
 
-  useEmailLogin: boolean = false;
+  useEmailLogin = signal(false);
 
   private store$ = inject(Store);
 
@@ -44,7 +44,7 @@ export class SignupComponent implements OnInit {
   }
 
   onUseEmail() {
-    this.useEmailLogin = true;
+    this.useEmailLogin.set(true);
   }
 
   private checkAuthStatus() {

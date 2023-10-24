@@ -3,6 +3,8 @@ import { of, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { EnvironmentTypes } from 'shared-models/environments/env-vars.model';
 import { SanitizedFileData } from 'shared-models/utils/sanitized-file-data.model';
+import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
+import { EmailUserData } from 'shared-models/email/email-user-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -78,6 +80,28 @@ export class HelperService {
       fileExt,
       fullFileName
     };
+  }
+
+  convertPublicUserDataToEmailUserData(userData: PublicUser): EmailUserData {
+    const emailUserData: EmailUserData = {
+      createdTimestamp: userData[PublicUserKeys.CREATED_TIMESTAMP],
+      email: userData[PublicUserKeys.EMAIL], 
+      emailGroupUnsubscribes: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
+      emailGlobalUnsubscribe: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
+      emailLastSubSource: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
+      emailOptInConfirmed: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
+      emailOptInTimestamp: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
+      emailSendgridContactId: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
+      emailSendgridContactListArray: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
+      emailSendgridContactCreatedTimestamp: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
+      emailVerified: userData[PublicUserKeys.EMAIL_VERIFIED],
+      firstName: userData[PublicUserKeys.FIRST_NAME],
+      id: userData[PublicUserKeys.ID],
+      lastModifiedTimestamp: userData[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
+      lastName: userData[PublicUserKeys.LAST_NAME],
+      onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
+    };
+    return emailUserData;
   }
 
   // Avoid using this whenever possible, default to using the firebase API

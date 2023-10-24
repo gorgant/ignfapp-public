@@ -53,6 +53,7 @@ export enum GlobalFieldValues {
   FOCUS_SECONDARY = `Other Focus`,
   GO_BACK = `Go Back`,
   HOURS_SHORT = `Hrs`,
+  INPUT_NEW_EMAIL = `Input New Email`,
   INPUT_SESSION_DATA = `Input Session Data`,
   INPUT_YOUTUBE_VIDEO_URL_TITLE = `Input YouTube Video Url`,
   INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE = `Video Url`,
@@ -82,6 +83,7 @@ export enum GlobalFieldValues {
   PASSWORD = `Password`,
   PAUSE_TRAINING = `Pause Training`,
   PLANS =  `Plans`,
+  PROCEED = `Proceed`,
   PROFILE = `Profile`,
   PROCESSING_SUBMISSION = `Processing your submission, please wait...`,
   REMOVE_TRAINING_SESSION_CONF_BODY = `Are you sure you'd like to remove this training session from this plan?`,
@@ -107,6 +109,7 @@ export enum GlobalFieldValues {
   TITLE = `Title`,
   TRAINING_SESSIONS = `Training Sessions`,
   UPLOAD_IMAGE= `Upload Image`,
+  UPDATE_EMAIL = `Update Email`,
   VERIFY_PASSWORD = `Verify Password`,
   YES = `Yes`,
 }

@@ -2,10 +2,11 @@
 
   <h2 class="section-header" mat-dialog-title>{{ UPDATE_EMAIL_TITLE_VALUE }}</h2>
 
-  <mat-stepper [orientation]="stepperOrientation" linear="true" labelPosition="bottom" #updateEmailStepper>
+  <mat-stepper [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #updateEmailStepper>
 
     <!-- Step 1 -->
-    <mat-step [stepControl]="passwordForm" errorMessage="Error verifying password." [editable]="false">
+    <!-- No stepControl here, instead we use the "completed" api for async validation -->
+    <mat-step errorMessage="Error verifying password." [completed]="false" [editable]="false">
       <form [formGroup]="passwordForm">
         
         <ng-template matStepLabel>{{ VERIFY_PASSWORD_STEP_LABEL }}</ng-template>
@@ -20,12 +21,11 @@
           
           <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="8px" fxLayout.gt-md="row">
             
-            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" [disabled]="emailForm.invalid" (click)="onConfirmPasswordInAuth()">{{ VERIFY_PASSWORD_BUTTON_VALUE }}</button>
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" [disabled]="passwordForm.invalid" (click)="onConfirmPasswordInAuth()">{{ VERIFY_PASSWORD_BUTTON_VALUE }}</button>
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
             <div *ngIf="(authOrUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
               <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
             </div>
-          
           </div>
         </div>
 
@@ -33,14 +33,14 @@
     </mat-step>
   
     <!-- Step 2 -->
-    <mat-step [stepControl]="emailForm" errorMessage="Error updating email.">
+    <mat-step errorMessage="Error updating email.">
       <form [formGroup]="emailForm" fxLayout="column" fxLayoutAlign="center center">
 
-        <ng-template matStepLabel>{{ SEND_UPDATE_EMAIL_CONFIRMATION }}</ng-template>
+        <ng-template matStepLabel>{{ INPUT_NEW_EMAIL_STEP_LABLE }}</ng-template>
         
-        <div class="new-email-container" [fxHide]="sendUpdateEmailConfirmationSucceded" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
+        <div class="new-email-container" [fxHide]="sendUpdateEmailConfirmationSucceded()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
           <mat-form-field>
-            <input formControlName="email" matInput type="text" placeholder="Email">
+            <input formControlName="email" matInput type="text" placeholder="Your new email...">
             <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
               <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
             </mat-error>
@@ -48,7 +48,7 @@
           
           <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="8px" fxLayout.gt-md="row">
             
-            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" (click)="onSendUpdateEmailConfirmation()">{{ UPDATE_EMAIL_BUTTON_VALUE }}</button>
+            <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" (click)="onSendUpdateEmailConfirmation()">{{ SEND_UPDATE_EMAIL_BUTTON_VALUE }}</button>
             <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
             <div *ngIf="(authOrUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
               <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div [fxShow]="sendUpdateEmailConfirmationSucceded" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
+        <div [fxShow]="sendUpdateEmailConfirmationSucceded()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
           <div>{{ CONFIRM_NEW_EMAIL_BLURB }}</div>
           <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" [mat-dialog-close]="true">
             {{ IVE_CONFIRMED_MY_EMAIL_BUTTON_VALUE }}

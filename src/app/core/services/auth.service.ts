@@ -252,7 +252,6 @@ export class AuthService {
   }
 
   sendResetPasswordEmail(email: string): Observable<boolean> {
-
     const authResponse = from(
       sendPasswordResetEmail(this.auth, email)
     );

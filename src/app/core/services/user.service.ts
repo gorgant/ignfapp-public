@@ -8,11 +8,12 @@ import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-re
 import { UnsubscribeRecord, UnsubscribeRecordList } from 'shared-models/email/unsubscribe-record.model';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
 import { UserUpdateData } from 'shared-models/user/user-update.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
 import { Timestamp } from '@angular/fire/firestore';
+import { HelperService } from './helpers.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class UserService {
   private functions = inject(Functions);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+  private helperService = inject(HelperService);
 
   constructor() { }
 
@@ -112,6 +114,7 @@ export class UserService {
         }),
         catchError(error => {
           console.log('Error fetching publicUser', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
           return throwError(() => new Error(error));
         })
       );
@@ -141,24 +144,7 @@ export class UserService {
 
     console.log('Submitting email to server to be updated');
     
-    const emailUserData: EmailUserData = {
-      createdTimestamp: userData[PublicUserKeys.CREATED_TIMESTAMP],
-      email: userData[PublicUserKeys.EMAIL], 
-      emailGroupUnsubscribes: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
-      emailGlobalUnsubscribe: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-      emailLastSubSource: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
-      emailOptInConfirmed: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
-      emailOptInTimestamp: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
-      emailSendgridContactId: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
-      emailSendgridContactListArray: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
-      emailSendgridContactCreatedTimestamp: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
-      emailVerified: userData[PublicUserKeys.EMAIL_VERIFIED],
-      firstName: userData[PublicUserKeys.FIRST_NAME],
-      id: userData[PublicUserKeys.ID],
-      lastModifiedTimestamp: userData[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
-      lastName: userData[PublicUserKeys.LAST_NAME],
-      onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
-    };
+    const emailUserData = this.helperService.convertPublicUserDataToEmailUserData(userData);
 
     const sendUpdateEmailConfirmationHttpCall: (data: EmailUserData) => Observable<string> = httpsCallableData(
       this.functions,
@@ -176,6 +162,7 @@ export class UserService {
         }),
         catchError(error => {
           console.log('Error confirming subscriber', error);
+          this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
           return throwError(() => new Error(error));
         })
       );

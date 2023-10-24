@@ -8,9 +8,9 @@ import { ignfappPublicStorage } from '../config/storage-config';
 import { getAuth } from 'firebase-admin/auth';
 import { DeleteFilesOptions } from '@google-cloud/storage';
 import { onDocumentDeleted } from 'firebase-functions/v2/firestore';
-import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
+import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { deleteSgContact } from '../email/helpers/delete-sg-contact';
-import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
+import { convertPublicUserDataToEmailUserData } from '../config/global-helpers';
 
 const publicStorage = ignfappPublicStorage;
 const publicUsersBucket = currentEnvironmentType === EnvironmentTypes.PRODUCTION ? 
@@ -44,24 +44,7 @@ const removeContactFromSg = async (deletedUser: PublicUser) => {
     logger.log('Sandbox environment detected, aborting deleteSgContact request');
     return;
   }
-  const userEmailData: EmailUserData = {
-    createdTimestamp: deletedUser[PublicUserKeys.CREATED_TIMESTAMP],
-    email: deletedUser[PublicUserKeys.EMAIL], 
-    emailGroupUnsubscribes: deletedUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
-    emailGlobalUnsubscribe: deletedUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-    emailLastSubSource: deletedUser[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
-    emailOptInConfirmed: deletedUser[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
-    emailOptInTimestamp: deletedUser[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
-    emailSendgridContactId: deletedUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
-    emailSendgridContactListArray: deletedUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
-    emailSendgridContactCreatedTimestamp: deletedUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
-    emailVerified: deletedUser[PublicUserKeys.EMAIL_VERIFIED],
-    firstName: deletedUser[PublicUserKeys.FIRST_NAME],
-    id: deletedUser[PublicUserKeys.ID],
-    lastModifiedTimestamp: deletedUser[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
-    lastName: deletedUser[PublicUserKeys.LAST_NAME],
-    onboardingWelcomeEmailSent: deletedUser[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
-  };
+  const userEmailData = convertPublicUserDataToEmailUserData(deletedUser);
   await deleteSgContact(userEmailData)
     .catch(err => {logger.log(`deleteSgContact failed":`, err); throw new HttpsError('internal', err);});
 }

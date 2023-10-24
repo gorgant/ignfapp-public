@@ -84,8 +84,8 @@ export class UserStoreEffects {
       ofType(UserStoreActions.resizeAvatarRequested),
       concatMap(action => 
         this.imageService.resizeAvatarImage(action.imageMetaData).pipe(
-          map(serverResponse => {
-            return UserStoreActions.resizeAvatarCompleted();
+          map(resizeAvatarSucceeded => {
+            return UserStoreActions.resizeAvatarCompleted({resizeAvatarSucceeded});
           }),
           catchError(error => {
             const fbError: FirebaseError = {

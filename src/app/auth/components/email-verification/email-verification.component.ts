@@ -10,8 +10,6 @@ import { EmailVerificationData, EmailVerificationUrlParamKeys } from 'shared-mod
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AuthStoreActions, AuthStoreSelectors } from 'src/app/root-store';
 
-// TODO: Figure out why this isn't showing when running the update email flow
-
 @Component({
   selector: 'app-email-verification',
   templateUrl: './email-verification.component.html',

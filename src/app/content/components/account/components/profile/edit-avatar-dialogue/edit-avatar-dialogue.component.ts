@@ -1,7 +1,7 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { combineLatest, map, Observable, Subscription, withLatestFrom } from 'rxjs';
+import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ProductionCloudStorage, SandboxCloudStorage } from 'shared-models/environments/env-vars.model';
 import { AvatarImageData } from 'shared-models/images/avatar-image-data.model';
@@ -29,35 +29,33 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   UPLOAD_IMAGE_BUTTON_VALUE = GlobalFieldValues.UPLOAD_IMAGE;
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
-  uploadAvatarProcessing$!: Observable<boolean>;
-  uploadAvatarSubscription!: Subscription;
-  uploadAvatarError$!: Observable<{} | null>;
-  uploadAvatarSubmitted!: boolean;
-  uploadAvatarConfirmed!: boolean;
-  avatarDownloadUrl$!: Observable<string | null>;
+  private avatarImageData!: AvatarImageData;
+  private avatarImageDataSubmitted = signal(false);
+  private avatarDownloadUrl$!: Observable<string | null>;
+  private processAvatarImageSubscription!: Subscription;
+  
+  private uploadAvatarProcessing$!: Observable<boolean>;
+  private uploadAvatarError$!: Observable<{} | null>;
 
-  resizeAvatarProcessing$!: Observable<boolean>;
-  resizeAvatarSubscription!: Subscription;
-  resizeAvatarError$!: Observable<{} | null>;
-  resizeAvatarSubmitted!: boolean;
-  resizeAvatarConfirmed!: boolean;
+  private resizeAvatarError$!: Observable<{} | null>;
+  private resizeAvatarProcessing$!: Observable<boolean>;
+  private resizeAvatarSubmitted = signal(false);
+  private resizeAvatarSucceeded$!: Observable<boolean>;
 
-  userUpdateProcessing$!: Observable<boolean>;
-  userUpdateError$!: Observable<{} | null>;
-  userUpdateSubscription!: Subscription;
-  userUpdateSubmitted!: boolean;
+  userData$!: Observable<PublicUser>;
+  private userUpdateError$!: Observable<{} | null>;
+  private userUpdateProcessing$!: Observable<boolean>;
+  private userUpdateSubmitted = signal(false);
 
   avatarUploadOrUserUpdateProcessing$!: Observable<boolean>;
+  avatarUploadOrUserUpdateError$!: Observable<boolean>;
 
-  avatarImageData!: AvatarImageData;
+  private dialogRef = inject(MatDialogRef<EditAvatarDialogueComponent>);
+  private store$ = inject(Store<RootStoreState.AppState>);
+  private uiService = inject(UiService);
+  private helperService = inject(HelperService);
 
-  constructor(
-    private dialogRef: MatDialogRef<EditAvatarDialogueComponent>,
-    @Inject(MAT_DIALOG_DATA) public userData: PublicUser,
-    private uiService: UiService,
-    private helperService: HelperService,
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorUpdateRequests();
@@ -65,15 +63,17 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
 
-    this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarProcessing));
-    this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
     this.avatarDownloadUrl$ = this.store$.pipe(select(UserStoreSelectors.selectAvatarDownloadUrl));
-    
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
+    this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
+    this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarProcessing));
 
-    this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
+    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
+    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+
     this.resizeAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarError));
+    this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
+    this.resizeAvatarSucceeded$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarSucceeded));
 
     this.avatarUploadOrUserUpdateProcessing$ = combineLatest(
       [
@@ -89,32 +89,130 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
           return false
         })
     );
+
+    this.avatarUploadOrUserUpdateError$ = combineLatest(
+      [
+        this.uploadAvatarError$,
+        this.userUpdateError$,
+        this.resizeAvatarError$,
+      ]
+    ).pipe(
+        map(([uploadError, updateError, resizeError]) => {
+          if (uploadError || updateError || resizeError) {
+            return true
+          }
+          return false
+        })
+    );
   }
   
-
   onSubmit(event: Event) {
     const fileList: FileList | null = (event.target as HTMLInputElement).files;
-    const file: File | null = fileList ? fileList[0] : null;
+    const imageFile: File | null = fileList ? fileList[0] : null;
+    const isValidImage = this.isValidImage(imageFile);
+    if (!imageFile || !isValidImage) {
+      return;
+    }
+    this.processAvatarImage(imageFile);
+  }
 
+  private processAvatarImage(imageFile: File) {
+    // 1) Get user data 2) add avatar URL to user in DB 3) resize avatar image in cloud function 4) close dialogue
+    this.processAvatarImageSubscription = this.avatarUploadOrUserUpdateError$
+      .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating dialog', processingError);
+            this.resetComponentActionState();
+            this.dialogRef.close(false);
+          }
+          return combineLatest([this.userData$, this.avatarUploadOrUserUpdateError$]);
+        }),
+        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
+        switchMap(([userData, processingError]) => {
+          console.log('processAvatarImage triggered');
+          if (!this.avatarImageDataSubmitted()) {
+            const avatarData = this.generateImageData(imageFile, userData);
+            if (!avatarData) {
+              throw new Error('Error generating avatar image data!');
+            }
+            this.avatarImageData = avatarData;
+            this.store$.dispatch(UserStoreActions.uploadAvatarRequested({avatarData}));
+            this.avatarImageDataSubmitted.set(true);
+          }
+          return this.avatarDownloadUrl$
+        }),
+        filter(downloadUrl => !!downloadUrl),
+        withLatestFrom(this.userData$),
+        switchMap(([downloadUrl, userData]) => {
+          if (downloadUrl && !this.userUpdateSubmitted()) {
+            const userUpdateData: UserUpdateData = {
+              userData: { 
+                id: userData.id,
+                avatarUrl: downloadUrl 
+              },
+              updateType: UserUpdateType.BIO_UPDATE
+            };
+            console.log(`Updating avatar with this url: ${downloadUrl}`);
+            this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
+            this.userUpdateSubmitted.set(true);
+          }
+          return combineLatest([this.userData$, this.userUpdateProcessing$, this.avatarDownloadUrl$]);
+          
+        }),
+        filter(([userData, userUpdateProcessing, downloadUrl]) => !userUpdateProcessing && this.userUpdateSubmitted()),
+        switchMap(([userData, downloadUrl]) => {
+          if (!this.resizeAvatarSubmitted()) {
+            console.log('User update suceeded, submitting resize avatar request');
+            const imageMetaData = this.avatarImageData.imageMetadata;
+            this.store$.dispatch(UserStoreActions.resizeAvatarRequested({imageMetaData}));
+            this.resizeAvatarSubmitted.set(true);
+          }
+          return this.resizeAvatarSucceeded$;
+        }),
+        filter(resizeSucceeded => resizeSucceeded),
+        tap(resizeSucceeded => {
+          console.log('Avatar resize request submitted, closing dialogue box');
+          this.dialogRef.close(true);
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentActionState();
+          this.dialogRef.close(false);
+          return throwError(() => new Error(error));
+        })
+      )
+      .subscribe();
+  }
+
+  private isValidImage(file: File | null): boolean {
+    if (!file) {
+      return false;
+    }
     // Confirm valid file type
     if (file?.type.split('/')[0] !== 'image') {
       this.uiService.showSnackBar('Invalid file type. Please try again.', 7000);
-      return;
+      return false;
     }
 
     if (file?.size > (10 * 1000000)) {
       this.uiService.showSnackBar('Image is too large. Please choose an image that is less than 10MB.', 7000);
-      return;
+      return false;
     }
+    return true;
+  }
 
+  private generateImageData(file: File, userData: PublicUser): AvatarImageData | undefined {
     const imageMetadata: AvatarImageMetaData = {
       contentType: file.type,
       customMetadata: {
         fileExt: this.helperService.sanitizeFileName(file).fileExt,
         fileNameNoExt: ImageType.AVATAR,
-        filePath: this.generateAvatarImagePath(file, this.userData),
+        filePath: this.generateAvatarImagePath(file, userData),
         imageType: ImageType.AVATAR,
-        publicUserId: this.userData.id,
+        publicUserId: userData.id,
         resizedImage: 'false',
         storageBucket: this.getPublicUsersBucketBasedOnEnvironment()
       }
@@ -125,110 +223,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
       imageMetadata
     };
 
-    this.avatarImageData = avatarData;
-
-    this.store$.dispatch(UserStoreActions.uploadAvatarRequested({avatarData}));
-    this.postSubmitActions();
-  }
-
-  postSubmitActions() {
-    this.uploadAvatarSubscription = this.avatarDownloadUrl$
-      .pipe(
-        withLatestFrom(this.uploadAvatarProcessing$, this.uploadAvatarError$)
-      )
-      .subscribe(([downloadUrl, uploadAvatarProcessing, uploadError]) => {
-        
-        if (uploadAvatarProcessing) {
-          this.uploadAvatarSubmitted = true;
-        }
-
-        // If error in upload, cancel operation
-        if (uploadError) {
-          console.log('Error uploading avatar, terminating process.');
-          this.uploadAvatarSubscription.unsubscribe();
-          this.uploadAvatarSubmitted = false;
-          return;
-        }
-        
-        // If upload succeeds, proceed to next step
-        if (downloadUrl) {
-          this.uploadAvatarConfirmed = true;
-
-          const userUpdateData: UserUpdateData = {
-            userData: { 
-              id: this.userData.id,
-              avatarUrl: downloadUrl 
-            },
-            updateType: UserUpdateType.BIO_UPDATE
-          };
-
-          console.log(`Updating avatar with this url: ${downloadUrl}`);
-
-          this.uploadAvatarSubscription.unsubscribe(); // Clear subscription no longer needed
-          
-          this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-          this.postUserUpdateActions();
-        }
-      })
-  }
-
-  private postUserUpdateActions() {
-    this.userUpdateSubscription = this.userUpdateProcessing$
-      .pipe(
-        withLatestFrom(this.userUpdateError$)
-      )
-      .subscribe(([updateProcessing, updateError]) => {
-
-        if (updateProcessing) {
-          this.userUpdateSubmitted = true;
-        }
-        
-        // If error updating user in database, cancel operation and revert previous auth changes
-        if (updateError) {
-          console.log('Error updating avatar url in user database, terminating process');
-          this.userUpdateSubscription.unsubscribe();
-          this.userUpdateSubmitted = false;
-          return;
-        }
-        
-        if (!updateProcessing && this.userUpdateSubmitted) {
-          console.log('User update suceeded, submitting resize avatar request');
-
-          const imageMetaData = this.avatarImageData.imageMetadata;
-          
-          this.store$.dispatch(UserStoreActions.resizeAvatarRequested({imageMetaData}));
-
-          this.postResizeAvatarActions();
-        }
-        
-      })
-  }
-
-  private postResizeAvatarActions() {
-    this.resizeAvatarSubscription = this.resizeAvatarProcessing$
-      .pipe(
-        withLatestFrom(this.resizeAvatarError$)
-      )
-      .subscribe(([resizeProcessing, resizeError]) => {
-
-        if (resizeProcessing) {
-          this.resizeAvatarSubmitted = true;
-        }
-        
-        // If error submitting resize avatar, cancel operation
-        if (resizeError) {
-          console.log('Error submitting resize avatar request, terminating process');
-          this.resizeAvatarSubscription.unsubscribe();
-          this.resizeAvatarSubmitted = false;
-          return;
-        }
-        
-        if (!resizeProcessing && this.resizeAvatarSubmitted) {
-          console.log('Avatar resize request submitted, closing dialogue box');
-          this.dialogRef.close(true);
-        }
-        
-      })
+    return avatarData;
   }
 
   private generateAvatarImagePath(file: File, userData: PublicUser): string {
@@ -244,19 +239,14 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     return storageBucket;
   }
 
+  private resetComponentActionState() {
+    this.avatarImageDataSubmitted.set(false);
+    this.userUpdateSubmitted.set(false);
+    this.resizeAvatarSubmitted.set(false);
+  }
+
   ngOnDestroy(): void {
-    if (this.uploadAvatarSubscription) {
-      this.uploadAvatarSubscription.unsubscribe();
-    }
-
-    if (this.userUpdateSubscription) {
-      this.userUpdateSubscription.unsubscribe();
-    }
-
-    if (this.resizeAvatarSubscription) {
-      this.resizeAvatarSubscription.unsubscribe();
-    }
-
+    this.processAvatarImageSubscription?.unsubscribe();
   }
 
 }

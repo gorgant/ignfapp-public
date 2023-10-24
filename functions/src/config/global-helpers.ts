@@ -5,6 +5,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
 import { UserRecord, getAuth } from 'firebase-admin/auth';
 import { publicAppFirebaseInstance } from './app-config';
+import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 
 
 
@@ -127,4 +128,26 @@ export const fetchAuthUserById = async (userId: string): Promise<UserRecord> => 
   const userAuthData: UserRecord = await getAuth(publicAppFirebaseInstance).getUser(userId)
     .catch(err => {logger.log(`Error fetching user from Auth database:`, err); throw new HttpsError('internal', err);});
   return userAuthData;
+}
+
+export const convertPublicUserDataToEmailUserData = (userData: PublicUser): EmailUserData => {
+  const emailUserData: EmailUserData = {
+    createdTimestamp: userData[PublicUserKeys.CREATED_TIMESTAMP],
+    email: userData[PublicUserKeys.EMAIL], 
+    emailGroupUnsubscribes: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
+    emailGlobalUnsubscribe: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
+    emailLastSubSource: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
+    emailOptInConfirmed: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
+    emailOptInTimestamp: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
+    emailSendgridContactId: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
+    emailSendgridContactListArray: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
+    emailSendgridContactCreatedTimestamp: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
+    emailVerified: userData[PublicUserKeys.EMAIL_VERIFIED],
+    firstName: userData[PublicUserKeys.FIRST_NAME],
+    id: userData[PublicUserKeys.ID],
+    lastModifiedTimestamp: userData[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
+    lastName: userData[PublicUserKeys.LAST_NAME],
+    onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
+  };
+  return emailUserData;
 }

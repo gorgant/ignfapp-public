@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Store, select } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, filter, switchMap, take, tap } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, filter, switchMap, take, tap, throwError } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
@@ -35,7 +35,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private deletePublicUserProcessing$!: Observable<boolean>;
   private deletePublicUserSubscription!: Subscription;
   private deletePublicUserError$!: Observable<{} | null>;
-  private deletePublicUserSubmitted!: boolean;
+  private deletePublicUserSubmitted = signal(false);
 
   private defaultMatDialogConfigOptions: MatDialogConfig = {
     disableClose: false,
@@ -91,35 +91,28 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onEditPassword() {
-    this.userData$
-      .pipe(
-        take(1),
-        tap(user => {
-          const dialogConfig = this.defaultMatDialogConfigOptions;
-          dialogConfig.data = user;
-          const dialogRef = this.dialog.open(EditPasswordDialogueComponent, dialogConfig);
-        })
-      )
-      .subscribe();
+    const dialogConfig = this.defaultMatDialogConfigOptions;
+    const dialogRef = this.dialog.open(EditPasswordDialogueComponent, dialogConfig);
   }
 
   onEditAvatar() {
-    this.userData$
-      .pipe(
-        take(1),
-        tap(user => {
-          const dialogConfig = this.defaultMatDialogConfigOptions;
-          dialogConfig.data = user;
-          const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
-        })
-      )
-      .subscribe();
+    const dialogConfig = this.defaultMatDialogConfigOptions;
+    const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
   }
 
   onDeletePublicUser() {
-    this.deletePublicUserSubscription = this.userData$
+    this.deletePublicUserSubscription = this.deletePublicUserError$
       .pipe(
-        switchMap(user => {
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.deletePublicUserSubscription?.unsubscribe();
+            this.resetComponentActionState();
+          }
+          return combineLatest([this.userData$, this.deletePublicUserError$]);
+        }),
+        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
+        switchMap(([user, processingError]) => {
           const dialogConfig = this.defaultMatDialogConfigOptions;
           const actionConfData: ActionConfData = {
             title: this.DELETE_PUBLIC_USER_CONF_TITLE,
@@ -134,34 +127,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
         switchMap(([deletionConfirmed, userData]) => {
           console.log('Delete public user confirmed', deletionConfirmed);
           this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: userData.id}));
-          this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
-          return combineLatest([this.deletePublicUserProcessing$, this.deletePublicUserError$]);
+          this.deletePublicUserSubmitted.set(true);
+          return this.deletePublicUserProcessing$;
         }),
-        tap(([deletionProcessing, deletionError]) => {
-          if (deletionProcessing) {
-            this.deletePublicUserSubmitted = true;
-          }
-  
-          if (deletionError) {
-            console.log('Error deleting publicUser in database, terminating function');
-            this.deletePublicUserSubscription.unsubscribe();
-            this.deletePublicUserSubmitted = false;
-            return;
-          }
-  
-          if (!deletionProcessing && this.deletePublicUserSubmitted) {
+        tap(deletionProcessing => {
+          if (!deletionProcessing && this.deletePublicUserSubmitted()) {
+            this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
             console.log('delete publicUser successful.');
             this.uiService.showSnackBar(`User Deleted!`, 5000);
           }
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.deletePublicUserSubscription?.unsubscribe();
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentActionState();
+          return throwError(() => new Error(error));
         })
       )
       .subscribe();
   }
 
+  private resetComponentActionState() {
+    this.deletePublicUserSubmitted.set(false);
+  }
+
   ngOnDestroy(): void {
-    if (this.deletePublicUserSubscription) {
-      this.deletePublicUserSubscription.unsubscribe();
-    }
+      this.deletePublicUserSubscription?.unsubscribe();
   }
 
 

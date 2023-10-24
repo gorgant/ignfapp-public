@@ -217,6 +217,7 @@ export const authStoreReducer = createReducer(
       signupProcessing: false,
       updateEmailError: null,
       updateEmailProcessing: false,
+      updateEmailSucceeded: false,
       authResultsData: null,
     }
   }),

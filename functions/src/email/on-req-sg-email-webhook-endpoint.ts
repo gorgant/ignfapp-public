@@ -3,8 +3,10 @@ import { HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 import { EmailEvent } from '../../../shared-models/email/email-event.model';
 import { updateEmailRecord } from './helpers/handlers';
-import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model';
+import { EmailIdentifiers, SgWebhookSignatureVerificationKeys } from '../../../shared-models/email/email-vars.model';
 import { Response } from 'express';
+import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook';
+
 
 
 const isSandbox = (events: EmailEvent[], req: Request, res: Response<any>): Promise<boolean> => {
@@ -56,14 +58,39 @@ const isSandbox = (events: EmailEvent[], req: Request, res: Response<any>): Prom
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-// TODO: Figure out if I need to whitelist the Sendgrid domain before enforcing appCheck here
+// I don't think AppCheck works on a request (since it's coming from outside Firebase)
+// And anyhow, we verify the webhook another way below
 // const callableOptions: CallableOptions = {
 //   enforceAppCheck: true
 // };
 
 export const onReqSgEmailWebhookEndpoint = onRequest( async (req, res) => {
 
-    const events: EmailEvent[] = req.body;
+  const sgWebhookHelpers = new EventWebhook;
+
+  // For more info on SG webhook verification process, see: https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook-security-features
+  const sgWebhookPublicKey = sgWebhookHelpers.convertPublicKeyToECDSA(SgWebhookSignatureVerificationKeys.PRIMARY_KEY);
+  const sgWebhookPayload = req.rawBody; // Use the raw body rather than the parsed body
+  const sgWebhookSignature = req.header(EventWebhookHeader.SIGNATURE());
+  const sgWebhookTimestamp = req.header(EventWebhookHeader.TIMESTAMP());
+
+  if (!sgWebhookPayload || !sgWebhookSignature || !sgWebhookTimestamp) {
+    logger.log('Sg webhook request missing SG verification data, terminating function');
+    res.status(403).send('Webhook request missing SG verification data, terminating function');
+    return;
+  };
+  
+  const validWebhookRequest = sgWebhookHelpers.verifySignature(sgWebhookPublicKey, sgWebhookPayload, sgWebhookSignature, sgWebhookTimestamp);
+
+  if (!validWebhookRequest) {
+    logger.log('Sg webhook request verification failed, terminating function');
+    res.status(403).send('Sg webhook request verification failed, terminating function');
+    return;
+  };
+
+  logger.log('SG webhook request verified', validWebhookRequest);
+    
+  const events: EmailEvent[] = req.body;
 
     const isTestEmail = await isSandbox(events, req, res);
 
