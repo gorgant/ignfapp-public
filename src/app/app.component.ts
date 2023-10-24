@@ -13,7 +13,7 @@ import { UiService } from './core/services/ui.service';
 })
 export class AppComponent implements OnInit {
   TITLE = 'ignfapp-public';
-  APP_VERSION = '0.2.0'
+  APP_VERSION = '0.2.1'
 
   showNavBar$!: Observable<boolean>;
   productionEnvironment: boolean = environment.production;
