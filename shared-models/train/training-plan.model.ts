@@ -4,7 +4,7 @@ import { Timestamp } from '@angular/fire/firestore';
 
 export interface TrainingPlan extends TrainingPlanNoIdOrTimestamp {
   createdTimestamp: number | Timestamp,
-  id: string,
+  [TrainingPlanKeys.ID]: string,
   lastModifiedTimestamp: number | Timestamp,
 }
 export interface TrainingPlanNoIdOrTimestamp {
@@ -16,7 +16,8 @@ export interface TrainingPlanNoIdOrTimestamp {
 }
 
 export enum TrainingPlanKeys {
-  TITLE = 'title'
+  TITLE = 'title',
+  ID = 'id'
 }
 
 export interface TrainingPlanForm {

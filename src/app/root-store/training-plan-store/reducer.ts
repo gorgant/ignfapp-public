@@ -83,7 +83,8 @@ export const trainingPlanStoreReducer = createReducer(
     return {
       ...state,
       fetchAllTrainingPlansProcessing: false,
-      fetchAllTrainingPlansError: action.error
+      fetchAllTrainingPlansError: action.error,
+      allTrainingPlansFetched: false,
     }
   }),
 

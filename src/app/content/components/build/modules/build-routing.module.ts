@@ -4,6 +4,8 @@ import { UnsavedChangesGuard } from 'src/app/core/route-guards/unsaved-changes.g
 import { TrainDashboardComponent } from '../../train/components/train-dashboard/train-dashboard.component';
 import { EditTrainingPlanComponent } from '../components/edit-training-plan/edit-training-plan.component';
 import { EditTrainingSessionComponent } from '../components/edit-training-session/edit-training-session.component';
+import { TrainingPlanKeys } from 'shared-models/train/training-plan.model';
+import { TrainingSessionKeys } from 'shared-models/train/training-session.model';
 
 const routes: Routes = [
   {
@@ -16,7 +18,7 @@ const routes: Routes = [
     canDeactivate: [UnsavedChangesGuard]
   },
   {
-    path: 'edit-training-session/:id',
+    path: `edit-training-session/:${TrainingSessionKeys.ID}`,
     component: EditTrainingSessionComponent,
     canDeactivate: [UnsavedChangesGuard]
   },
@@ -25,7 +27,7 @@ const routes: Routes = [
     component: EditTrainingPlanComponent,
   },
   {
-    path: 'edit-training-plan/:id',
+    path: `edit-training-plan/:${TrainingPlanKeys.ID}`,
     component: EditTrainingPlanComponent,
   },
 ];

@@ -1,8 +1,7 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { MatTabGroup } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 
@@ -21,18 +20,16 @@ export class BrowseComponent implements OnInit, AfterViewInit {
 
   @ViewChild('matTabGroup') matTabGroup!: MatTabGroup;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router
-  ) { }
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.checkForAdditionalUrlParams();
   }
   
   ngAfterViewInit(): void {
-    //Called after ngAfterContentInit when the component's view has been initialized. Applies to components only.
-    //Add 'implements AfterViewInit' to the class.
     this.addParamsIfViewingSessions();
     
   }

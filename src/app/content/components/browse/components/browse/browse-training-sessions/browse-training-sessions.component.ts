@@ -1,13 +1,13 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
+import { Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { distinctUntilChanged, Observable, Subscription } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
-import { TrainingSession, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { RootStoreState, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionFiltersComponent } from '../training-session-filters/training-session-filters.component';
 
 @Component({
@@ -39,11 +39,11 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   
   trainingSessionFilterFormSubscription!: Subscription;
 
-  constructor(
-    private router: Router,
-    private store$: Store<RootStoreState.AppState>,
-    private route: ActivatedRoute,
-  ) { }
+  private router = inject(Router);
+  private store$ = inject(Store);
+  private route = inject(ActivatedRoute);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.setTrainingSessionCardHeight();
@@ -127,9 +127,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.trainingSessionFilterFormSubscription) {
-      this.trainingSessionFilterFormSubscription.unsubscribe();
-    }
+    this.trainingSessionFilterFormSubscription?.unsubscribe();
   }
 
 }

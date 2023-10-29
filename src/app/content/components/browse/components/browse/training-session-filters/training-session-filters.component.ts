@@ -1,15 +1,15 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { MatButtonToggle, MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatButtonToggle, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
-import { distinctUntilChanged, Observable, Subscription, withLatestFrom } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryDbOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupObject, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupDbOption } from 'shared-models/train/muscle-group.model';
 import { TrainingSessionComplexityObject, TrainingSessionComplexityList, TrainingSessionComplexityDbOption } from 'shared-models/train/training-complexity.model';
 import { TrainingSessionIntensityObject, TrainingSessionIntensityList, TrainingSessionIntensityDbOption } from 'shared-models/train/training-intensity.model';
 import { TrainingSession, TrainingSessionFilterForm, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
-import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-training-session-filters',
@@ -25,14 +25,13 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
 
-  fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
-  fetchAllTrainingSesssionsError$!: Observable<{} | null>;
-  trainingSessionsSubscription!: Subscription;
-  trainingSessionsLoaded!: boolean;
+  private fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
+  private fetchAllTrainingSesssionsError$!: Observable<{} | null>;
+  private allTrainingSessionsFetched$!: Observable<boolean>;
+  private allTrainingSessions$!: Observable<TrainingSession[]>;
+  private trainingSessionsSubscription!: Subscription;
 
-  unfilteredTrainingSessions!: TrainingSession[];
-  filteredTrainingSessions!: TrainingSession[];
-  filterTransitionContainer!: TrainingSession[];
+  filteredTrainingSessions = signal([] as TrainingSession[]); // Accessed by parent Browse Training Sessions Component
 
   trainingSessionFilterForm = new FormGroup<TrainingSessionFilterForm>({
     [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: new FormControl([]),
@@ -49,61 +48,66 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
   trainingSessionFilterFormSubscription!: Subscription;
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  private store$ = inject(Store);
+
+  constructor() { }
 
   ngOnInit(): void {
+    this.initializeStoreData();
     this.monitorfilterChanges();
     this.fetchInitialTrainingSessionBatch();
   }
 
+  private initializeStoreData() {
+    this.fetchAllTrainingSesssionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
+    this.fetchAllTrainingSesssionsError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError);
+    this.allTrainingSessionsFetched$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsFetched);
+    this.allTrainingSessions$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
+    
+  }
+
   private fetchInitialTrainingSessionBatch() {
-    this.trainingSessionsSubscription = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore)
+    this.trainingSessionsSubscription = this.allTrainingSessions$
       .pipe(
         withLatestFrom(
-          this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing),
-          this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError),
-          this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsFetched),
-        )
+          this.fetchAllTrainingSesssionsProcessing$,
+          this.fetchAllTrainingSesssionsError$,
+          this.allTrainingSessionsFetched$,
+        ),
+        switchMap(([trainingSessions, loadingSessions, loadError, allSessionsFetched]) => {
+          if (loadError) {
+            console.log('Error loading training sessions in component', loadError);
+          }
+          // Check if sessions are loaded, if not fetch from server
+          if (!loadingSessions && !allSessionsFetched) {
+            this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
+          }
+          return combineLatest([this.allTrainingSessions$, this.allTrainingSessionsFetched$]);
+        }),
+        filter(([trainingSessions, allSessionsFetched]) => !!trainingSessions && allSessionsFetched ),
+        tap(([trainingSessions, allSessionsFetched]) => {
+          this.filteredTrainingSessions.set(trainingSessions);
+        })
       )
-      .subscribe(([trainingSessions, loadingSessions, loadError, allSessionsFetched]) => {
-        if (loadError) {
-          console.log('Error loading training sessions in component', loadError);
-          this.trainingSessionsLoaded = false;
-        }
-
-        // Check if sessions are loaded, if not fetch from server
-        if (!loadingSessions && !this.trainingSessionsLoaded && !allSessionsFetched) {
-          this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
-          this.trainingSessionsLoaded = true;
-        }
-        if (trainingSessions) {
-          this.unfilteredTrainingSessions = trainingSessions;
-          this.filteredTrainingSessions = trainingSessions;
-        }
-      })
+      .subscribe()
   }
 
   private monitorfilterChanges() {
     this.trainingSessionFilterFormSubscription = this.trainingSessionFilterForm.valueChanges
       .pipe(
         distinctUntilChanged(),
+        withLatestFrom(this.allTrainingSessions$),
+        filter(([value, unfilteredTrainingSessions]) => !this.complexityOnlyMinMaxValueSelected() && !this.intensityOnlyMinMaxValueSelected()), // prevents infinite loop since either one of these will trigger a new subscription value
+        tap(([value, unfilteredTrainingSessions]) => {
+          this.filteredTrainingSessions.set(unfilteredTrainingSessions); // Initialize with all sessions, then apply latest filters
+          this.applyActivityCategoryFilter();
+          this.applyComplexityFilter();
+          this.applyEquipmentFilter();
+          this.applyIntensityFilter();
+          this.applyMuscleGroupFilter();
+        })
       )
-      .subscribe((value) => {
-
-        if (this.complexityOnlyMinMaxValueSelected() || this.intensityOnlyMinMaxValueSelected() ) {
-          return; // Exit function to prevent infinite loop since either one of these will trigger a new subscription value
-        }
-
-        this.filterTransitionContainer = this.unfilteredTrainingSessions; // Initialize with all sessions
-        this.applyActivityCategoryFilter();
-        this.applyComplexityFilter();
-        this.applyEquipmentFilter();
-        this.applyIntensityFilter();
-        this.applyMuscleGroupFilter();
-        this.filteredTrainingSessions = this.filterTransitionContainer;
-      })
+      .subscribe();
 
   }
 
@@ -149,13 +153,15 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     if (activityCategoryFilterArray.length < 1) {
       return;
     }
-    this.filterTransitionContainer = this.filterTransitionContainer.filter(session => {
-      const sessionActivityCategoryArray = session.activityCategoryList;
-      const hasMatchingActivityCategory = sessionActivityCategoryArray.some(category => {
-        return activityCategoryFilterArray.includes(category);
+    this.filteredTrainingSessions.update(currentValue => {
+      return currentValue.filter(session => {
+        const sessionActivityCategoryArray = session.activityCategoryList;
+        const hasMatchingActivityCategory = sessionActivityCategoryArray.some(category => {
+          return activityCategoryFilterArray.includes(category);
+        });
+        return hasMatchingActivityCategory;
       });
-      return hasMatchingActivityCategory;
-    })
+    });
   }
 
   private applyComplexityFilter() {
@@ -171,27 +177,27 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     complexityFilterArray.forEach(value => {
       switch (value) {
         case TrainingSessionComplexityDbOption.LOW_COMPLEXITY:
-          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin ;
-          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax ;
+          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin;
+          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax;
           break;          
         case TrainingSessionComplexityDbOption.MODERATE_COMPLEXITY:
-          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin ;
-          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax ;
+          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin;
+          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax;
           break;
         case TrainingSessionComplexityDbOption.HIGH_COMPLEXITY:
-          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin ;
-          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax ;
+          filterComplexityMin = value < filterComplexityMin ? value : filterComplexityMin;
+          filterComplexityMax = value > filterComplexityMax ? value : filterComplexityMax;
           break;
       }
     });
 
-    // console.log(`Filtering complexity between ${filterComplexityMin} - ${filterComplexityMax} `);
-
-    this.filterTransitionContainer = this.filterTransitionContainer.filter(session => {
-      const roundedSessionComplexity = Math.round(session.complexityAverage);
-      const withinFilterRange = filterComplexityMin <= roundedSessionComplexity && filterComplexityMax >= roundedSessionComplexity;
-      return withinFilterRange;
-    })
+    this.filteredTrainingSessions.update(currentValue => {
+      return currentValue.filter(session => {
+        const roundedSessionComplexity = Math.round(session.complexityAverage);
+        const withinFilterRange = filterComplexityMin <= roundedSessionComplexity && filterComplexityMax >= roundedSessionComplexity;
+        return withinFilterRange;
+      });
+    });
   }
 
   onEquipmentToggle(event: MatButtonToggleChange) {
@@ -221,7 +227,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
       return;
     }
     const equipmentFilterValue = this.equipmentFilterArray.value[0];
-    this.filterTransitionContainer = this.filterTransitionContainer.filter(session => session.equipment === equipmentFilterValue);
+    this.filteredTrainingSessions.update(currentValue => currentValue.filter(session => session.equipment === equipmentFilterValue));
   }
 
   private applyIntensityFilter() {
@@ -237,27 +243,29 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     intensityFilterArray.forEach(value => {
       switch (value) {
         case TrainingSessionIntensityDbOption.LOW_INTENSITY:
-          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin ;
-          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax ;
+          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin;
+          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax;
           break;          
         case TrainingSessionIntensityDbOption.MODERATE_INTENSITY:
-          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin ;
-          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax ;
+          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin;
+          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax;
           break;
         case TrainingSessionIntensityDbOption.HIGH_INTENSITY:
-          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin ;
-          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax ;
+          filterIntensityMin = value < filterIntensityMin ? value : filterIntensityMin;
+          filterIntensityMax = value > filterIntensityMax ? value : filterIntensityMax;
           break;
       }
     });
 
     // console.log(`Filtering intensity between ${filterIntensityMin} - ${filterIntensityMax} `);
 
-    this.filterTransitionContainer = this.filterTransitionContainer.filter(session => {
-      const roundedSessionIntensity = Math.round(session.intensityAverage);
-      const withinFilterRange = filterIntensityMin <= roundedSessionIntensity && filterIntensityMax >= roundedSessionIntensity;
-      return withinFilterRange;
-    })
+    this.filteredTrainingSessions.update(currentValue => {
+      return currentValue.filter(session => {
+        const roundedSessionIntensity = Math.round(session.intensityAverage);
+        const withinFilterRange = filterIntensityMin <= roundedSessionIntensity && filterIntensityMax >= roundedSessionIntensity;
+        return withinFilterRange;
+      });
+    });
   }
 
   private applyMuscleGroupFilter() {
@@ -268,22 +276,17 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.filterTransitionContainer = this.filterTransitionContainer.filter(session => {
-      const sessionMuscleGroup = session.muscleGroup;
-      return muscleGroupFilterArray.includes(sessionMuscleGroup);
-    })
+    this.filteredTrainingSessions.update(currentValue => {
+      return currentValue.filter(session => {
+        const sessionMuscleGroup = session.muscleGroup;
+        return muscleGroupFilterArray.includes(sessionMuscleGroup);
+      });
+    });
   }
 
   ngOnDestroy(): void {
-
-    if (this.trainingSessionsSubscription) {
-      this.trainingSessionsSubscription.unsubscribe();
-    }
-
-    if (this.trainingSessionFilterFormSubscription) {
-      this.trainingSessionFilterFormSubscription.unsubscribe();
-    }
-    
+    this.trainingSessionsSubscription?.unsubscribe();
+    this.trainingSessionFilterFormSubscription?.unsubscribe();
   }
 
   // These getters are used for easy access in the HTML template

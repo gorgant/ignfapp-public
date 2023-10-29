@@ -9,7 +9,7 @@ import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
 
 export interface TrainingSession extends TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.CREATED_TIMESTAMP]: number | Timestamp,
-  id: string,
+  [TrainingSessionKeys.ID]: string,
   [TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp,
 }
 
@@ -59,6 +59,7 @@ export enum TrainingSessionKeys {
   CREATED_TIMESTAMP = 'createdTimestamp',
   DATABASE_CATEGORY = 'databaseCategory',
   EQUIPMENT = 'equipment',
+  ID = 'id',
   INTENSITY_AVERAGE = 'intensityAverage',
   INTENSITY_DEFAULT = 'intensityDefault',
   INTENSITY_RATING_COUNT = 'intensityRatingCount',

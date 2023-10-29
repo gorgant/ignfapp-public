@@ -26,12 +26,12 @@
     </div>
   </div>
   <cdk-virtual-scroll-viewport *ngIf="!trainingPlanBuilderRequest" [itemSize]="trainingSessionCardHeight" class="scrolling-container">
-    <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *cdkVirtualFor="let session of trainingSessionFilters.filteredTrainingSessions | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
+    <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *cdkVirtualFor="let session of trainingSessionFilters.filteredTrainingSessions() | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
       <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="trainingPlanBuilderRequest" fxLayout="column" ></app-training-session-card>
     </div>
   </cdk-virtual-scroll-viewport>
   <ng-container *ngIf="trainingPlanBuilderRequest">
-    <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *ngFor="let session of trainingSessionFilters.filteredTrainingSessions | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
+    <div class="training-session-card-container" [ngClass]="{'plan-builder': trainingPlanBuilderRequest}" *ngFor="let session of trainingSessionFilters.filteredTrainingSessions() | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
       <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="trainingPlanBuilderRequest" fxLayout="column" ></app-training-session-card>
     </div>
   </ng-container>

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, Observable, withLatestFrom } from 'rxjs';
@@ -28,10 +28,10 @@ export class BrowseTrainingPlansComponent implements OnInit {
 
   searchText = ''; // Used in template for ngModel
 
-  constructor(
-    private router: Router,
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  private router = inject(Router);
+  private store$ = inject(Store);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorProcesses();

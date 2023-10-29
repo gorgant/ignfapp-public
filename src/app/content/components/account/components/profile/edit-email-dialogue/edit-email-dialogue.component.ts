@@ -164,7 +164,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
           }
           return combineLatest([this.userData$, this.sendUpdateEmailConfirmationError$]);
         }),
-        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
+        filter(([userData, processingError]) => !processingError), // Halts function if processingError detected
         switchMap(([userData, processingError]) => {
           if (!this.sendUpdateEmailConfirmationSubmitted()) {
             // Provide the new email to the user data

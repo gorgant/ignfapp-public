@@ -82,7 +82,8 @@ export const personalSessionFragmentStoreReducer = createReducer(
     return {
       ...state,
       fetchAllPersonalSessionFragmentsProcessing: false,
-      fetchAllPersonalSessionFragmentsError: action.error
+      fetchAllPersonalSessionFragmentsError: action.error,
+      allPersonalSessionFragmentsFetched: false,
     }
   }),
 

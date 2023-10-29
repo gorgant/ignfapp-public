@@ -3,7 +3,7 @@ import { select, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthStoreActions, RootStoreState, UserStoreActions } from 'src/app/root-store';
+import { AuthStoreActions, RootStoreState } from 'src/app/root-store';
 import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 
 @Component({
@@ -31,6 +31,5 @@ export class SettingsComponent implements OnInit {
   onLogout(): void {
     console.log('Logging out user');
     this.store$.dispatch(AuthStoreActions.logout());
-    // this.store$.dispatch(UserStoreActions.purgeUserData());
   }
 }

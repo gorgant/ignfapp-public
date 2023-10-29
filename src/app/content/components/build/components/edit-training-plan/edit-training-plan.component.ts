@@ -1,17 +1,17 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { combineLatest, map, Observable, Subscription, withLatestFrom, take, tap, Subject, takeUntil } from 'rxjs';
+import { combineLatest, map, Observable, Subscription, withLatestFrom, take, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingPlanFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AddTrainingSessionUrlParams, TrainingPlan, TrainingPlanForm, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { Update } from '@ngrx/entity';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PlanSessionFragment, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
+import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
@@ -46,53 +46,72 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     [TrainingPlanKeys.TITLE]: new FormControl('', [Validators.required, Validators.minLength(this.TITLE_MIN_LENGTH), Validators.maxLength(this.TITLE_MAX_LENGTH)]),
   });
 
-  userDataSubscription!: Subscription;
-  userData$!: Observable<PublicUser>;
+  private userData$!: Observable<PublicUser>;
 
-  createTrainingPlanProcessing$!: Observable<boolean>;
-  createTrainingPlanSubscription!: Subscription;
-  createTrainingPlanError$!: Observable<{} | null>;
-  createTrainingPlanSubmitted!: boolean;
+  private createTrainingPlanError$!: Observable<{} | null>;
+  private createTrainingPlanProcessing$!: Observable<boolean>;
+  private createTrainingPlanSubmitted = signal(false);
+  private createNewTrainingPlanSubscription!: Subscription;
 
-  updateTrainingPlanProcessing$!: Observable<boolean>;
-  updateTrainingPlanSubscription!: Subscription;
-  updateTrainingPlanError$!: Observable<{} | null>;
-  updateTrainingPlanSubmitted!: boolean;
+  private updateTrainingPlanProcessing$!: Observable<boolean>;
+  private updateTrainingPlanSubscription!: Subscription;
+  private updateTrainingPlanError$!: Observable<{} | null>;
+  private updateTrainingPlanSubmitted = signal(false);
 
   serverRequestProcessing$!: Observable<boolean>;
+  batchRequestProcessing$!: Observable<boolean>;
 
-  existingTrainingPlanData$!: Observable<TrainingPlan | undefined>;
-  fetchSingleTrainingPlanProcessing$!: Observable<boolean>;
-  fetchSingleTrainingPlanError$!: Observable<{} | null>;
-  singleTrainingPlanRequested!: boolean;
+  $currentTrainingPlan = signal(undefined as TrainingPlan | undefined);
+  $currentTrainingPlanId = signal(undefined as string | undefined);
+  private fetchSingleTrainingPlanProcessing$!: Observable<boolean>;
+  private fetchSingleTrainingPlanError$!: Observable<{} | null>;
+  private singleTrainingPlanRequested = signal(false);
 
-  planSessionFragmentData$!: Observable<PlanSessionFragment[]>;
-  fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
-  fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
-  planSessionFragmentsRequested!: boolean;
+  $currentPlanSessionFragments = signal(undefined as PlanSessionFragment[] | undefined);
+  allPlanSessionFragments$!: Observable<PlanSessionFragment[]>;
+  private fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
+  private fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
+  private planSessionFragmentsRequested = signal(false);
+  private planSessionFragmentsFetched$!: Observable<boolean>;
 
-  combinedTrainingPlanAndPlanSessionFragmentData$!: Observable<{trainingPlan: TrainingPlan | undefined, planSessionFragments: PlanSessionFragment[]}>;
-  localPlanSessionFragments!: PlanSessionFragment[]; // Used to manage optimistic reordering in the UI (vs waiting for updates in databse)
 
-  isNewPlan = true;
-  editTrainingPlanDetails!: boolean;
+  private batchModifyPlanSessionFragmentsProcessing$!: Observable<boolean>;
+  private batchModifyPlanSessionFragmentsError$!: Observable<{} | null>;
+  
+  private batchDeletePlanSessionFragmentsProcessing$!: Observable<boolean>;
+  private batchDeletePlanSessionFragmentsError$!: Observable<{} | null>;
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private route: ActivatedRoute,
-    private uiService: UiService,
-    private router: Router,
-    private dialog: MatDialog,
-  ) { }
+  combinedTrainingDataSubscription!: Subscription;
+  fetchCombinedTrainingDataError$!: Observable<boolean>;
+
+  isNewPlan = signal(false);
+  editTrainingPlanDetails = signal(false);
+
+  private debounceDragDropServerCall$ = new Subject<void>();
+  private debounceDragDropServerCallSubscription!: Subscription;
+
+  private store$ = inject(Store) ;
+  private route = inject(ActivatedRoute) ;
+  private uiService = inject(UiService) ;
+  private router = inject(Router) ;
+  private dialog = inject(MatDialog) ;
+  
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorProcesses();
     this.checkIfNewPlan();
-    
+    this.initializeDebounceDragDropServerCallObserver();
   }
 
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
+
+    this.batchModifyPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchModifyPlanSessionFragmentsProcessing);
+    this.batchModifyPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchModifyPlanSessionFragmentsError);
+    
+    this.batchDeletePlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchDeletePlanSessionFragmentsProcessing);
+    this.batchDeletePlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchDeletePlanSessionFragmentsError);
 
     this.createTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanProcessing);
     this.createTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanError);
@@ -103,255 +122,265 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
     this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
 
+    this.allPlanSessionFragments$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore);
     this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
     this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError);
+    this.planSessionFragmentsFetched$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched);
 
     this.serverRequestProcessing$ = combineLatest(
       [
         this.createTrainingPlanProcessing$,
         this.updateTrainingPlanProcessing$,
         this.fetchSingleTrainingPlanProcessing$,
-        this.fetchAllPlanSessionFragmentsProcessing$
+        this.fetchAllPlanSessionFragmentsProcessing$,
+        this.batchDeletePlanSessionFragmentsProcessing$,
+        this.batchModifyPlanSessionFragmentsProcessing$
       ]
     ).pipe(
-        map(([creatingTrainingPlan, updatingTrainingPlan, fetchSingleTrainingPlanProcessing, fetchAllPlanSessionFragmentProcessing]) => {
-          if (creatingTrainingPlan || updatingTrainingPlan || fetchSingleTrainingPlanProcessing || fetchAllPlanSessionFragmentProcessing) {
-            return true
+        map(([
+          creatingTrainingPlan, 
+          updatingTrainingPlan, 
+          fetchSingleTrainingPlanProcessing, 
+          fetchAllPlanSessionFragmentProcessing,
+          batchDeletePlanSessionFragmentsProcessing,
+          batchModifyPlanSessionFragmentsProcessing,
+        ]) => {
+          if (
+            creatingTrainingPlan || 
+            updatingTrainingPlan || 
+            fetchSingleTrainingPlanProcessing || 
+            fetchAllPlanSessionFragmentProcessing ||
+            batchDeletePlanSessionFragmentsProcessing ||
+            batchModifyPlanSessionFragmentsProcessing
+            ) {
+            return true;
           }
-          return false
+          return false;
         })
-    );
-    
+      );
+
+    this.batchRequestProcessing$ = combineLatest(
+      [
+        this.batchDeletePlanSessionFragmentsProcessing$,
+        this.batchModifyPlanSessionFragmentsProcessing$
+      ]
+    ).pipe(
+        map(([
+          batchDeletePlanSessionFragmentsProcessing,
+          batchModifyPlanSessionFragmentsProcessing,
+        ]) => {
+          if (
+            batchDeletePlanSessionFragmentsProcessing ||
+            batchModifyPlanSessionFragmentsProcessing
+            ) {
+            return true;
+          }
+          return false;
+        })
+      );
+
+    this.fetchCombinedTrainingDataError$ = combineLatest(
+      [
+        this.fetchSingleTrainingPlanError$,
+        this.fetchAllPlanSessionFragmentsError$
+      ]
+    ).pipe(
+        map(([fetchPlanError, fetchSessionsError]) => {
+          if (fetchPlanError || fetchSessionsError) {
+            return true;
+          }
+          return false;
+        })
+      );
+
   }
 
   private checkIfNewPlan(): void {
-    const trainingPlanId = this.getExistingTrainingPlanId();
-    this.isNewPlan = !trainingPlanId;
-    if (this.isNewPlan) {
-      this.editTrainingPlanDetails = true;
-    } 
+    this.setTrainingPlanId();
+    const trainingPlanId = this.$currentTrainingPlanId();
+    this.isNewPlan.set(!!trainingPlanId);
+    this.editTrainingPlanDetails.set(this.isNewPlan());
     if (trainingPlanId) {
       this.patchExistingDataIntoForm(trainingPlanId);
     }
   }
 
-  private getExistingTrainingPlanId(): string | null {
-    const idParamName = 'id';
-    const trainingPlanId = this.route.snapshot.params[idParamName];
+  private setTrainingPlanId() {
+    const trainingPlanId = this.route.snapshot.params[TrainingPlanKeys.ID];
     if (trainingPlanId) {
-      return trainingPlanId
+      this.$currentTrainingPlanId.set(trainingPlanId);
     }
-    return null;
   }
 
   private patchExistingDataIntoForm(trainingPlanId: string) {
-    this.existingTrainingPlanData$ = this.fetchSingleTrainingPlanProcessing$
+    this.combinedTrainingDataSubscription = this.fetchCombinedTrainingDataError$
       .pipe(
-        withLatestFrom(
-          this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId)),
-          this.fetchSingleTrainingPlanError$
-        ),
-        map(([fetchProcessing, trainingPlan, loadError]) => {
-          if (loadError) {
-            console.log('Error loading trainingPlan in component', loadError);
-            this.singleTrainingPlanRequested = false;
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.singleTrainingPlanRequested.set(false);
             this.onNavigateUserToBrowse();
           }
-
-          if (!fetchProcessing && !this.singleTrainingPlanRequested && !loadError) {
+          const singleTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
+          return combineLatest([singleTrainingPlan$, this.fetchSingleTrainingPlanProcessing$, this.fetchCombinedTrainingDataError$]);
+        }),
+        filter(([trainingPlan, fetchProcessing, processingError]) => !processingError),
+        switchMap(([trainingPlan, fetchProcessing, processingError]) => {
+          if (!trainingPlan && !fetchProcessing && !this.singleTrainingPlanRequested()) {
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
             this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
-            this.singleTrainingPlanRequested = true;
+            this.singleTrainingPlanRequested.set(true);
           }
-          return trainingPlan;
+          return of(trainingPlan);
         }),
+        filter(trainingPlan => !!trainingPlan),
         tap(trainingPlan => {
-          if (trainingPlan) {
-            this.title.setValue(trainingPlan.title);
-          }
-        })
-      );
-
-    this.planSessionFragmentData$ = this.fetchAllPlanSessionFragmentsProcessing$
-      .pipe(
-        withLatestFrom(
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore),
-          this.fetchAllPlanSessionFragmentsError$,
-          this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched),
-          this.fetchSingleTrainingPlanError$
-        ),
-        map(([loadingPlanSessionFragments, planSessionFragments, loadError, allPlanSessionFragmentsFetched, trainingPlanLoadError]) => {
-          if (loadError) {
-            console.log('Error loading planSessionFragments in component', loadError);
-            this.planSessionFragmentsRequested = false;
-            this.onNavigateUserToBrowse();
-          }
-
-          if (trainingPlanLoadError) {
-            console.log('Upstream error loading trainingPlan', loadError);
-            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsFailed({error: { name: 'upstream error', message: 'failed to load planSessionFragments due to trainingPlan load error', code: 'internal'}}));
-            this.planSessionFragmentsRequested = false;
-            this.onNavigateUserToBrowse();
-          }
-  
-          // Check if sessions are loaded, if not fetch from server
-          if (!loadingPlanSessionFragments && !this.planSessionFragmentsRequested && !allPlanSessionFragmentsFetched && !(trainingPlanLoadError || loadError)) {
-            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
-            this.planSessionFragmentsRequested = true;
-          }
-          return planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
+          this.$currentTrainingPlan.set(trainingPlan!); // Load the current trainingPlan into the instance variable
+          console.log('Set currentTrainingPlan', this.$currentTrainingPlan());
+          this.title.setValue(trainingPlan!.title); // Update the form title
+        }), 
+        switchMap(trainingPlan => {
+          
+          return combineLatest([this.allPlanSessionFragments$, this.fetchAllPlanSessionFragmentsProcessing$, this.planSessionFragmentsFetched$]);
         }),
-        tap(planSessionFragments => {
-          if (planSessionFragments) {
-            this.localPlanSessionFragments = planSessionFragments;
+        switchMap(([planSessionFragments, fetchProcessing, allPlanSessionFragmentsFetched]) => {
+          if (!fetchProcessing && !this.planSessionFragmentsRequested() && !allPlanSessionFragmentsFetched) {
+            console.log('planSessionFragments not in store, fetching from database');
+            this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
+            this.planSessionFragmentsRequested.set(true);
           }
+          return combineLatest([of(planSessionFragments), this.planSessionFragmentsFetched$]);
+        }),
+        filter(([planSessionFragments, planSessionFragmentsFetched]) => planSessionFragmentsFetched),
+        map(([planSessionFragments, planSessionFragmentsFetched]) => {
+          const filteredFragments = (planSessionFragments).filter(fragment => fragment.trainingPlanId === trainingPlanId);
+          this.$currentPlanSessionFragments.set(filteredFragments) // Load the planSessionFragments into the instance variable
+          console.log('Set planSessionFragments', this.$currentPlanSessionFragments());
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
         })
-      );
+      ).subscribe();
 
-    this.combinedTrainingPlanAndPlanSessionFragmentData$ = combineLatest([this.existingTrainingPlanData$, this.planSessionFragmentData$])
-      .pipe(
-        map(([trainingPlan, planSessionFragments]) => {
-          console.log('Combined data subscription firing with these values', trainingPlan, planSessionFragments);
-          return {
-            trainingPlan,
-            planSessionFragments
-          }
-        })
-      )
   }
 
-  // This reveales the plan details form
+  // This toggles visibility of the trainingPlan title edit view
   onEditTrainingPlanDetails() {
-    this.editTrainingPlanDetails = true;
+    this.editTrainingPlanDetails.set(true);
   }
 
   onSubmitTrainingPlanForm(): void {
-
-    console.log('Submit trainingPlanForm detected');
-
-    if (this.isNewPlan) {
-      this.createNewTrainingPlan();
-    } else {
-      this.updateExistingTrainingPlan();
-    }
+    this.isNewPlan() ? this.createNewTrainingPlan() : this.updateExistingTrainingPlan();
   }
 
   private createNewTrainingPlan() {
-    this.userDataSubscription = this.userData$
-      .subscribe(userData => {
-        const trainingPlanNoId: TrainingPlanNoIdOrTimestamp = {
-          creatorId: userData.id,
-          [TrainingPlanKeys.TITLE]: this.title.value,
-          trainingSessionCount: 0
-        };
-        console.log('trainingPlan Data', trainingPlanNoId);
-        this.store$.dispatch(TrainingPlanStoreActions.createTrainingPlanRequested({trainingPlanNoId}));
-        this.postCreateTrainingPlanActions();
-      })
+    this.createNewTrainingPlanSubscription = this.createTrainingPlanError$
+      .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating dialog');
+            this.createTrainingPlanSubmitted.set(false);
+            this.store$.dispatch(TrainingPlanStoreActions.purgeNewTrainingPlanId());
+          }
+          return combineLatest([this.userData$, this.createTrainingPlanError$]);
+        }),
+        filter(([userData, processingError]) => !processingError), // Halts function if processingError detected
+        switchMap(([userData, processingError]) => {
+          if (!this.createTrainingPlanSubmitted()) {
+            const trainingPlanNoId: TrainingPlanNoIdOrTimestamp = {
+              creatorId: userData.id,
+              [TrainingPlanKeys.TITLE]: this.title.value,
+              trainingSessionCount: 0
+            };
+            console.log('trainingPlan Data', trainingPlanNoId);
+            this.store$.dispatch(TrainingPlanStoreActions.createTrainingPlanRequested({trainingPlanNoId}));
+            this.createTrainingPlanSubmitted.set(true);
+          }
+          const newTrainingPlanId = this.store$.select(TrainingPlanStoreSelectors.selectNewTrainingPlanId);
+          return combineLatest([this.createTrainingPlanProcessing$, newTrainingPlanId])
+        }),
+        filter(([createTrainingPlanProcessing, newTrainingPlanId]) => !!newTrainingPlanId && !createTrainingPlanProcessing),
+        tap(([createTrainingPlanProcessing, newTrainingPlanId]) => {
+          console.log('trainingPlan creation successful.');
+          this.uiService.showSnackBar(`Plan Created!`, 5000);
+          this.store$.dispatch(TrainingPlanStoreActions.purgeNewTrainingPlanId()); // Clears this out of working memory since it isn't needed anymore
+          this.router.navigate([PublicAppRoutes.TRAINING_PLAN_EDIT, newTrainingPlanId!]); // Switches mode from createTrainingPlan to editTrainingPlan 
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
+  
   }
 
   private updateExistingTrainingPlan() {
-    const trainingPlanId = this.getExistingTrainingPlanId() as string;
-    this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId))
-      .pipe(take(1))
-      .subscribe(trainingPlan => {
-        if (trainingPlan) {
+    const trainingPlanId = this.$currentTrainingPlanId();
+    this.updateTrainingPlanSubscription = this.updateTrainingPlanError$
+    .pipe(
+      switchMap(processingError => {
+        if (processingError) {
+          console.log('processingError detected, terminating dialog');
+          this.updateTrainingPlanSubmitted.set(false);
+        }
+        return this.updateTrainingPlanError$;
+      }),
+      filter(processingError => !processingError), // Halts function if processingError detected
+      switchMap(processingError => {
+        const trainingPlan = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId!))
+        return trainingPlan;
+      }),
+      filter(trainingPlan => !!trainingPlan),
+      switchMap(trainingPlan => {
+        if (!this.updateTrainingPlanSubmitted()) {
           const updatedTrainingPlan: Update<TrainingPlan> = {
-            id: trainingPlan.id,
+            id: trainingPlan!.id,
             changes: {
               [TrainingPlanKeys.TITLE]: this.title.value,
             }            
           };
-          console.log('trainingPlan Updates', updatedTrainingPlan);
+          console.log('trainingPlan Updates to submit', updatedTrainingPlan);
           this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates: updatedTrainingPlan}));
-          this.postUpdateTrainingPlanActions();
+          this.updateTrainingPlanSubmitted.set(true);
         }
+        return this.updateTrainingPlanProcessing$;
+      }),
+      filter(updateProcessing => !updateProcessing && this.updateTrainingPlanSubmitted()),
+      tap(updateProcessing => {
+        console.log('trainingPlan update successful.');
+        this.uiService.showSnackBar(`Training Plan updated!`, 5000);
+        this.updateTrainingPlanSubscription?.unsubscribe();
+        this.editTrainingPlanDetails.set(false);
+      }),
+      // Catch any local errors
+      catchError(error => {
+        console.log('Error in component:', error);
+        this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+        return throwError(() => new Error(error));
       })
-  }
-
-  private postCreateTrainingPlanActions() {
-    this.createTrainingPlanSubscription = this.createTrainingPlanProcessing$
-      .pipe(
-        withLatestFrom(
-          this.createTrainingPlanError$,
-          this.store$.select(TrainingPlanStoreSelectors.selectNewTrainingPlanId)
-        ),
-      )
-      .subscribe(([creatingTrainingPlan, creationError, newTrainingPlanId]) => {
-        if (creatingTrainingPlan) {
-          this.createTrainingPlanSubmitted = true;
-        }
-
-        if (creationError) {
-          console.log('Error creating training plan in database, terminating function');
-          this.createTrainingPlanSubscription.unsubscribe();
-          this.createTrainingPlanSubmitted = false;
-          return;
-        }
-
-        if (!creatingTrainingPlan && this.createTrainingPlanSubmitted) {
-          console.log('trainingPlan creation successful.');
-          this.uiService.showSnackBar(`Plan Created!`, 5000);
-          this.createTrainingPlanSubscription.unsubscribe();
-          this.editTrainingPlanDetails = false;
-          if (newTrainingPlanId) {
-            this.store$.dispatch(TrainingPlanStoreActions.purgeNewTrainingPlanId());
-            this.navigateUserToEditTrainingPlan(newTrainingPlanId); 
-          }
-        }
-      })
-  }
-
-  private postUpdateTrainingPlanActions() {
-    this.updateTrainingPlanSubscription = this.updateTrainingPlanProcessing$
-      .pipe(
-        withLatestFrom(this.updateTrainingPlanError$)
-      )
-      .subscribe(([updatingTrainingPlan, updateError]) => {
-        if (updatingTrainingPlan) {
-          this.updateTrainingPlanSubmitted = true;
-        }
-
-        if (updateError) {
-          console.log('Error updating training plan in database, terminating function');
-          this.updateTrainingPlanSubscription.unsubscribe();
-          this.updateTrainingPlanSubmitted = false;
-          return;
-        }
-
-        if (!updatingTrainingPlan && this.updateTrainingPlanSubmitted) {
-          console.log('trainingPlan update successful.');
-          this.uiService.showSnackBar(`trainingPlan updated!`, 5000);
-          this.updateTrainingPlanSubscription.unsubscribe();
-          this.editTrainingPlanDetails = false;
-        }
-      })
-
-  }
-
-  // Navigates user to same page with the edit URL and id parameters active
-  navigateUserToEditTrainingPlan(trainingPlanId: string): void {
-    this.router.navigate([PublicAppRoutes.TRAINING_PLAN_EDIT, trainingPlanId]);
+    ).subscribe();
+   
   }
 
   onNavigateUserToBrowse(): void {
     this.router.navigate([PublicAppRoutes.BROWSE]);
   }
 
+  // Dictates the behavior when the user aborts editing the trainingPlan title
   onCancelTitleUpdate() {
-    if (this.isNewPlan) {
-      this.uiService.routeUserToPreviousPage();
+    if (this.isNewPlan()) {
+      // This effectively aborts the plan creation process
+      this.uiService.routeUserToPreviousPage(); 
     } else {
       // Hide the title editing interface
-      this.editTrainingPlanDetails = false;
-      // If any edits were made, revert to original title value
-      this.existingTrainingPlanData$
-        .pipe(take(1))
-        .subscribe(trainingPlan => {
-          if (trainingPlan) {
-            this.title.setValue(trainingPlan.title)
-          }
-        })
+      this.editTrainingPlanDetails.set(false);
+      // If any edits were made, revert to original title value (otherwise edits will be visible when clicking edit button again)
+      this.title.setValue(this.$currentTrainingPlan()!.title);
     }
   }
 
@@ -383,7 +412,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   onListItemDrop(event: CdkDragDrop<PlanSessionFragment[]>) {
-    const tempPlanSessionFragmentList = [...this.localPlanSessionFragments];
+    
     const previousIndex = event.previousIndex;
     const currentIndex = event.currentIndex;
 
@@ -392,64 +421,77 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const planSessionFragmentUpdates = [] as Update<PlanSessionFragment>[]; // This will be used to send batch update to database
-
-    // Part 1
-    // Move item in local array and update trainingPlanIndex
-    // Basic splice/move logic courtesy of https://stackoverflow.com/a/6470794/6572208
-    const itemToMove = tempPlanSessionFragmentList[previousIndex]; // Fetch item to move
-    tempPlanSessionFragmentList.splice(previousIndex, 1); // Remove item from the array
-    const itemWithUpdatedIndex = {...itemToMove}; // Create a mutatable copy of item
-    itemWithUpdatedIndex.trainingPlanIndex = currentIndex; // Update item index
-    tempPlanSessionFragmentList.splice(currentIndex, 0, itemWithUpdatedIndex); // Insert updated item in new position
-
-    // Create item update object to push to database
-    const itemUpdateObject: Update<PlanSessionFragment> = {
-      id: itemWithUpdatedIndex.id,
-      changes: {
-        trainingPlanIndex: itemWithUpdatedIndex.trainingPlanIndex
+    // Update the signal locally in real-time
+    this.$currentPlanSessionFragments.update(planSessessionFragments => {
+      if (previousIndex === currentIndex) {
+        return planSessessionFragments; // No movement needed
       }
-    };
-    planSessionFragmentUpdates.push(itemUpdateObject); // Push the item update object to the update array
-
-    // Part 2
-    // Once the item has been moved and updated, then update all the other affected items between the previous index and the current index
-    const indexChangeSize = (currentIndex - previousIndex);
-    const itemMovedDown = indexChangeSize > 0;
-    const qtyOfOtherAffectedItems = itemMovedDown ? indexChangeSize : (indexChangeSize * -1);
-    
-    // Start loop either at the previous location of the moved item (if item moved down the list) or at the location of the next item (if moved up the list)
-    const startingIndex = itemMovedDown ? previousIndex : currentIndex + 1; 
-    // End loop either at the affected item count after the previous location of the item (if item moved down the list) or that count after the new location of the moved item (if moved up the list)
-    const endingIndex = itemMovedDown ? previousIndex + qtyOfOtherAffectedItems : startingIndex + qtyOfOtherAffectedItems; 
-
-    // Initiate the loop to update the affected items
-    for (let i = startingIndex; i < endingIndex; i++) {
-      const affectedItemToUpdate: PlanSessionFragment = {...tempPlanSessionFragmentList[i]}; // Create a mutateable copy
-      const affectedItemId = affectedItemToUpdate.id;
-      affectedItemToUpdate.trainingPlanIndex = i; // Set the trainingPlanIndex value to match the array index
-      tempPlanSessionFragmentList.splice(i, 1, affectedItemToUpdate); // Swap updated item into local array (removing original item)
+  
+      const movedItem = { ...planSessessionFragments![previousIndex] }; // Clone the item to be moved
+      const altUpdatedArray = [...planSessessionFragments!]; // Clone the original array
       
-      // Create item update object to push to database
-      const affectedItemUpdateObject: Update<PlanSessionFragment> = {
-        id: affectedItemId,
-        changes: {
-          trainingPlanIndex: affectedItemToUpdate.trainingPlanIndex
-        }
-      };
-      planSessionFragmentUpdates.push(affectedItemUpdateObject); // Push the item update object to the update array
-    }
+      // Remove the item from its old position
+      altUpdatedArray.splice(previousIndex, 1);
+      
+      // Insert it into its new position
+      altUpdatedArray.splice(currentIndex, 0, movedItem);
 
-    // Part 3
-    // Update the local array for the UI
-    this.localPlanSessionFragments = tempPlanSessionFragmentList; 
-    // Dispatch updates to database
-    const trainingPlanId = this.getExistingTrainingPlanId() as string;
-    this.store$.dispatch(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested({trainingPlanId, planSessionFragmentUpdates}));
+      // Update the indexes of the affected items
+      const start = Math.min(previousIndex, currentIndex);
+      const end = Math.max(previousIndex, currentIndex);
+      for (let i = start; i <= end; i++) {
+        const currentItem = {...altUpdatedArray[i]};
+        currentItem[PlanSessionFragmentKeys.TRAINING_PLAN_INDEX] = i;
+        altUpdatedArray[i] = currentItem;
+      }
+  
+      return altUpdatedArray;
+    })
+
+    // Trigger server update request to be processed according to the debounce policy
+    this.debounceDragDropServerCall$.next();
   }
 
-  onDeletePlanSessionFragment(selectedPlanSessionFragment: PlanSessionFragment, trainingPlan: TrainingPlan | undefined) {
+  // This limits server calls when rapid changes are made to the UI
+  private initializeDebounceDragDropServerCallObserver() {
+    this.debounceDragDropServerCallSubscription = this.debounceDragDropServerCall$
+      .pipe(
+        debounceTime(3000), // Determines how frequently updates are sent to the server
+        withLatestFrom(this.allPlanSessionFragments$),
+        switchMap(([empty, serverPlanSessionFragments]) => {
+          return of(this.buildAndDispatchReorderRequest(serverPlanSessionFragments));
+        })
+      ).subscribe();
+  }
 
+  private buildAndDispatchReorderRequest(serverPlanSessionFragments: PlanSessionFragment[]) {
+    // Filter the serverPlanSessionFragments for the currrent plan
+    const trainingPlanId = this.$currentTrainingPlanId();
+    const filteredServerFragments = (serverPlanSessionFragments).filter(fragment => fragment.trainingPlanId === trainingPlanId!);
+
+    // Build an array of server updates that only updates the items that have changed
+    const planSessionFragmentUpdates = [] as Update<PlanSessionFragment>[]; // This will be used to send batch update to database
+    this.$currentPlanSessionFragments()?.forEach((itemToUpdate, index) => {
+      // If current item matches the server item of the same index, no update is necessary, so don't push to server
+      if (itemToUpdate.id === filteredServerFragments[index].id) {
+        return;
+      }
+      // Otherwise, create an update object and push it to the update array
+      const altAffectedItemUpdateObject: Update<PlanSessionFragment> = {
+        id: itemToUpdate.id,
+        changes: {
+          trainingPlanIndex: itemToUpdate.trainingPlanIndex
+        }
+      };
+      planSessionFragmentUpdates.push(altAffectedItemUpdateObject);
+    })
+
+    console.log('planSessionFragmentUpdates', planSessionFragmentUpdates);
+    // Dispatch update array to the server
+    this.store$.dispatch(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested({trainingPlanId: trainingPlanId!, planSessionFragmentUpdates}));
+  } 
+
+  onDeletePlanSessionFragment(selectedPlanSessionFragment: PlanSessionFragment, trainingPlan: TrainingPlan | undefined) {
     const dialogConfig = new MatDialogConfig();
     const actionConfData: ActionConfData = {
       title: this.REMOVE_TRAINING_SESSION_CONF_TITLE,
@@ -460,99 +502,104 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     
     const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
 
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
-        const trainingPlanId = this.getExistingTrainingPlanId() as string;
-        const planSessionFragmentId = selectedPlanSessionFragment.id;
-        const trainingPlanData = trainingPlan as TrainingPlan;
-        const deletedPlanSessionFragmentPictureIsThumbnail = trainingPlanData.thumbnailUrlSmall === selectedPlanSessionFragment.videoData.thumbnailUrlSmall;
-    
-        // Update the training plan count
-        let trainingPlanUpdates: Update<TrainingPlan> = {
-          id: trainingPlanId,
-          changes: {
-            trainingSessionCount: trainingPlanData.trainingSessionCount - 1,
+    dialogRef.afterClosed()
+      .pipe(
+        take(1),
+        tap(confirmed => {
+          if (!confirmed) {
+            console.log('Deletion requestion canceled');
+            return;
           }
-        };
-    
-        // If the plan's current thumbnail matches the deleted item, add a new one using the first plan in the queue (or second if the first is being deleted)
-        if (deletedPlanSessionFragmentPictureIsThumbnail) {
-          if (selectedPlanSessionFragment.trainingPlanIndex !== 0) {
-            trainingPlanUpdates = {
-              ...trainingPlanUpdates,
-              changes: {
+          const trainingPlanId = this.$currentTrainingPlanId();
+          const planSessionFragmentId = selectedPlanSessionFragment.id;
+          const trainingPlanData = trainingPlan as TrainingPlan;
+          const indexOfItemToDelete = selectedPlanSessionFragment[PlanSessionFragmentKeys.TRAINING_PLAN_INDEX];
+          const deletedPlanSessionFragmentPictureIsThumbnail = trainingPlanData.thumbnailUrlSmall === selectedPlanSessionFragment.videoData.thumbnailUrlSmall;
+      
+          // Step 1: Update the sessionPlan to account for the removed planSessionFragment
+
+          // Decrement the trainingSessionCount in the trainingPlan since we're deleting an item
+          let trainingPlanUpdates: Update<TrainingPlan> = {
+            id: trainingPlanId!,
+            changes: {
+              trainingSessionCount: trainingPlanData.trainingSessionCount - 1,
+            }
+          };
+      
+          // If the plan's current thumbnail matches the deleted item, add a new one using the first fragment in the queue (or second if the first is being deleted)
+          if (deletedPlanSessionFragmentPictureIsThumbnail) {
+            if (selectedPlanSessionFragment.trainingPlanIndex !== 0) {
+              // If deleted fragment isn't the first, use the image from the first fragment
+              trainingPlanUpdates = {
+                ...trainingPlanUpdates,
+                changes: {
+                  ...trainingPlanUpdates.changes,
+                  thumbnailUrlSmall: this.$currentPlanSessionFragments()![0].videoData.thumbnailUrlSmall,
+                  thumbnailUrlLarge: this.$currentPlanSessionFragments()![0].videoData.thumbnailUrlLarge,
+                }
+              };
+            } else if (this.$currentPlanSessionFragments()!.length > 1) {
+              // If deleted fragment is the first, use the image from the second fragment
+              trainingPlanUpdates = {
+                ...trainingPlanUpdates,
+                changes: {
                 ...trainingPlanUpdates.changes,
-                thumbnailUrlSmall: this.localPlanSessionFragments[0].videoData.thumbnailUrlSmall,
-                thumbnailUrlLarge: this.localPlanSessionFragments[0].videoData.thumbnailUrlLarge,
+                thumbnailUrlSmall: this.$currentPlanSessionFragments()![1].videoData.thumbnailUrlSmall,
+                thumbnailUrlLarge: this.$currentPlanSessionFragments()![1].videoData.thumbnailUrlLarge,
+                }
               }
-            };
-          } else if (this.localPlanSessionFragments.length > 1) {
-            trainingPlanUpdates = {
-              ...trainingPlanUpdates,
-              changes: {
-              ...trainingPlanUpdates.changes,
-              thumbnailUrlSmall: this.localPlanSessionFragments[1].videoData.thumbnailUrlSmall,
-              thumbnailUrlLarge: this.localPlanSessionFragments[1].videoData.thumbnailUrlLarge,
-              }
-            }
-          } else {
-            trainingPlanUpdates = {
-              ...trainingPlanUpdates,
-              changes: {
-              ...trainingPlanUpdates.changes,
-              thumbnailUrlSmall: null,
-              thumbnailUrlLarge: null,
+            } else {
+              // If this is the only fragment in the plan, revert to the no-image default
+              trainingPlanUpdates = {
+                ...trainingPlanUpdates,
+                changes: {
+                ...trainingPlanUpdates.changes,
+                thumbnailUrlSmall: null,
+                thumbnailUrlLarge: null,
+                }
               }
             }
           }
-        }
-    
-        // Update the remaining trainingPlanIndexes
-        const planSessionFragmentUpdates = [] as Update<PlanSessionFragment>[]; // This will be used to send batch update to database
-    
-        // Part 1
-        // Remove item from local array
-        const tempPlanSessionFragmentList = [...this.localPlanSessionFragments];
-        const indexOfItemToDelete = selectedPlanSessionFragment.trainingPlanIndex;
-        tempPlanSessionFragmentList.splice(indexOfItemToDelete, 1); // Remove item from the array
-    
-        // Part 2
-        // Once the item has been removed, update all the other affected items between the previous index and the current index (if they exist)
-        
-        if (this.localPlanSessionFragments.length > 1) {
-          // Start loop either at the previous location of the moved item (if item moved down the list) or at the location of the next item (if moved up the list)
-          const startingIndex = indexOfItemToDelete; 
-          // End loop either at the affected item count after the previous location of the item (if item moved down the list) or that count after the new location of the moved item (if moved up the list)
-          const endingIndex = tempPlanSessionFragmentList.length - indexOfItemToDelete;
-    
-          // Initiate the loop to update the affected items
-          for (let i = startingIndex; i < endingIndex; i++) {
-            const affectedItemToUpdate: PlanSessionFragment = {...tempPlanSessionFragmentList[i]}; // Create a mutateable copy
-            const affectedItemId = affectedItemToUpdate.id;
-            affectedItemToUpdate.trainingPlanIndex = i; // Set the trainingPlanIndex value to match the array index
-            tempPlanSessionFragmentList.splice(i, 1, affectedItemToUpdate); // Swap updated item into local array (removing original item)
-            
-            // Create item update object to push to database
-            const affectedItemUpdateObject: Update<PlanSessionFragment> = {
-              id: affectedItemId,
-              changes: {
-                trainingPlanIndex: affectedItemToUpdate.trainingPlanIndex
+
+          // Step 2: Update the planSessionFragment array in the UI and the server
+
+          // This does two things: 1) updates the local UI 2) prepares a batch update for the server database
+          const planSessionFragmentUpdates = [] as Update<PlanSessionFragment>[]; // This will be used to send batch update to database
+          this.$currentPlanSessionFragments.update(planSessionFragments => {
+            // Get a mutable array of planSessionFragments for current trainingPlan
+            const updatedArray = [...planSessionFragments!];
+            // Remove item from the array
+            updatedArray.splice(indexOfItemToDelete, 1); 
+            // Update the indexes of the remaining items
+
+            updatedArray.forEach((planSessionFragment, index) => {
+              const itemToUpdate = {...planSessionFragment};
+              itemToUpdate[PlanSessionFragmentKeys.TRAINING_PLAN_INDEX] = index;
+              updatedArray[index] = itemToUpdate;
+              // If itemToUpdate matches the UI item of the same index, no update is necessary, so don't push to server
+              if (itemToUpdate.id === this.$currentPlanSessionFragments()![index].id) {
+                return;
               }
-            };
-            planSessionFragmentUpdates.push(affectedItemUpdateObject); // Push the item update object to the update array
-          }
-    
-          // Part 3
-          // Update the local array for the UI
-          this.localPlanSessionFragments = tempPlanSessionFragmentList; 
-        }
-    
-        // Dispatch all requests to database
-        this.store$.dispatch(PlanSessionFragmentStoreActions.deletePlanSessionFragmentRequested({trainingPlanId, planSessionFragmentId}));
-        this.store$.dispatch(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested({trainingPlanId, planSessionFragmentUpdates}));
-        this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates}));
-      }
-    });
+              // Otherwise, create an update object and push it to the update array
+              const altAffectedItemUpdateObject: Update<PlanSessionFragment> = {
+                id: itemToUpdate.id,
+                changes: {
+                  trainingPlanIndex: itemToUpdate.trainingPlanIndex
+                }
+              };
+              planSessionFragmentUpdates.push(altAffectedItemUpdateObject);
+            })
+            return updatedArray; // This updated array will replace the UI's current array in the signal
+          })
+          console.log('Alt planSessionFragmentsUpdate', planSessionFragmentUpdates);
+          
+          // Dispatch all requests to database
+          this.store$.dispatch(PlanSessionFragmentStoreActions.deletePlanSessionFragmentRequested({trainingPlanId: trainingPlanId!, planSessionFragmentId}));
+          this.store$.dispatch(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested({trainingPlanId: trainingPlanId!, planSessionFragmentUpdates}));
+          this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates}));
+        })
+      )
+    .subscribe();
   }
 
   onDeleteTrainingPlan() {
@@ -566,44 +613,43 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     
     const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
 
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
-        const trainingPlanId = this.getExistingTrainingPlanId() as string;
-        const planSessionFragmentIds = this.localPlanSessionFragments.map(planSessionFragment => planSessionFragment.id);
-        this.store$.dispatch(TrainingPlanStoreActions.deleteTrainingPlanRequested({trainingPlanId}));
-        this.store$.dispatch(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested({trainingPlanId, planSessionFragmentIds}));
-        this.onNavigateUserToBrowse();
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(
+        take(1),
+        tap(confirmed => {
+          if (confirmed) {
+            const trainingPlanId = this.$currentTrainingPlanId();
+            const planSessionFragmentIds = this.$currentPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
+            this.store$.dispatch(TrainingPlanStoreActions.deleteTrainingPlanRequested({trainingPlanId: trainingPlanId!})); // Delete trainingPlan
+            if (planSessionFragmentIds.length > 0) {
+              this.store$.dispatch(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested({trainingPlanId: trainingPlanId!, planSessionFragmentIds})); // Batch delete all the associated fragments
+            }
+            this.onNavigateUserToBrowse();
+          }
+        })
+      )
+    .subscribe();
   }
 
   ngOnDestroy(): void {
+    this.combinedTrainingDataSubscription?.unsubscribe();
+    this.createNewTrainingPlanSubscription?.unsubscribe();
+    this.updateTrainingPlanSubscription?.unsubscribe();
+    this.debounceDragDropServerCallSubscription?.unsubscribe();
     
-    if (this.userDataSubscription) {
-      this.userDataSubscription.unsubscribe();
-    }
-
-    if (this.createTrainingPlanSubscription) {
-      this.createTrainingPlanSubscription.unsubscribe();
-    }
-
-    if (this.updateTrainingPlanSubscription) {
-      this.updateTrainingPlanSubscription.unsubscribe();
-    }
-    
-    // If error exists, clear the errors before destroying components
-    this.fetchSingleTrainingPlanError$
+    // If fetch error exists, clear the errors before destroying components so that it doesn't interfere with other components
+    combineLatest([this.fetchSingleTrainingPlanError$, this.fetchAllPlanSessionFragmentsError$])
       .pipe(
-        withLatestFrom(this.fetchAllPlanSessionFragmentsError$),
-        take(1))
-      .subscribe(([fetchSingleTrainingPlanError, fetchAllPlanSessionFragmentsError]) => {
-        if (fetchSingleTrainingPlanError) {
-          this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanData());
-        }
-        if (fetchAllPlanSessionFragmentsError) {
-          this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentData());
-        }
-      });
+        take(1),
+        tap(([fetchSingleTrainingPlanError, fetchAllPlanSessionFragmentsError]) => {
+          if (fetchSingleTrainingPlanError) {
+            this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanData());
+          }
+          if (fetchAllPlanSessionFragmentsError) {
+            this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentData());
+          }
+        })
+      ).subscribe();
   }
 
   get title() { return this.trainingPlanForm.get(TrainingPlanKeys.TITLE) as FormControl<string>; }

@@ -82,7 +82,8 @@ export const trainingSessionStoreReducer = createReducer(
     return {
       ...state,
       fetchAllTrainingSessionsProcessing: false,
-      fetchAllTrainingSessionsError: action.error
+      fetchAllTrainingSessionsError: action.error,
+      allTrainingSessionsFetched: false,
     }
   }),
 

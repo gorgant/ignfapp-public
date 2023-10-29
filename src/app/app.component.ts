@@ -51,13 +51,4 @@ export class AppComponent implements OnInit {
         console.log('Received this env type in component', envType);
       })
   }
-
-  // onTestFirestore() {
-  //   const demoUserId = '8muEsGdd9xXYHuS6xcXW6mN41AR2';
-  //   this.testService.fetchPublicUser(demoUserId)
-  //     .pipe(take(1))
-  //     .subscribe(publicUser => {
-  //       console.log('Public user', publicUser);
-  //     })
-  // }
 }
