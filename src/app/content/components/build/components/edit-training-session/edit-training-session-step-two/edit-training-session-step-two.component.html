@@ -9,7 +9,9 @@
 
     <div class="slider-container">
       <div class="slider-label">{{ COMPLEXITY_FIELD_VALUE }}</div>
-      <mat-slider [formControl]="complexityDefault" [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+      <mat-slider [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true">
+        <input matSliderThumb [formControl]="complexityDefault">
+      </mat-slider>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.complexityDefault">
         <mat-error *ngIf="complexityDefault?.hasError(validation.type) && complexityDefault?.invalid && (complexityDefault?.dirty || complexityDefault?.touched)">{{ validation.message }}</mat-error>
       </mat-error>
@@ -17,7 +19,9 @@
 
     <div class="slider-container">
       <div class="slider-label">{{ INTENSITY_FIELD_VALUE }}</div>
-      <mat-slider [formControl]="intensityDefault" [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+      <mat-slider [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true">
+        <input matSliderThumb [formControl]="intensityDefault">
+      </mat-slider>
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.intensityDefault">
         <mat-error *ngIf="intensityDefault?.hasError(validation.type) && intensityDefault?.invalid && (intensityDefault?.dirty || intensityDefault?.touched)">{{ validation.message }}</mat-error>
       </mat-error>
@@ -32,24 +36,6 @@
 
     <mat-form-field class="activity-category-container">
       <mat-label>{{ ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
-      <!-- <mat-chip-list #chipList aria-label="Training Session ActivityCategory Selection" multiple [formControl]="activityCategoryList">
-        <mat-chip
-          *ngFor="let activityCategory of activityCategoryList.value"
-          (removed)="removeActivityCategoryChip(activityCategory)">
-          {{ activityCategory | activityCategoryDbToUi }}
-          <button matChipRemove>
-            <mat-icon>cancel</mat-icon>
-          </button>
-        </mat-chip>
-        <input
-          [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
-          #trainingSessionActivityCategoryInput
-          [formControl]="trainingSessionActivityCategoryUserInputForm"
-          [matAutocomplete]="auto"
-          [matChipInputFor]="chipList"
-          [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
-          (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
-      </mat-chip-list> -->
       <mat-chip-grid #chipGrid aria-label="Training Session ActivityCategory Selection">
         <mat-chip-row
             *ngFor="let activityCategory of activityCategoryList.value"  

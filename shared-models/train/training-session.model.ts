@@ -29,15 +29,6 @@ export interface TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact
 }
 
-export interface TrainingSessionForm {
-  [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: FormControl<TrainingSessionActivityCategoryDbOption[] | null>,
-  [TrainingSessionKeys.COMPLEXITY_DEFAULT]: FormControl<number | null>, // the starting value set by the creator
-  [TrainingSessionKeys.EQUIPMENT]: FormControl<boolean | null>,
-  [TrainingSessionKeys.INTENSITY_DEFAULT]: FormControl<number | null>, // the starting value set by the creator
-  [TrainingSessionKeys.MUSCLE_GROUP]: FormControl<TrainingSessionMuscleGroupDbOption | null>,
-  [TrainingSessionKeys.VIDEO_PLATFORM]: FormControl<TrainingSessionVideoPlatform | null>,
-}
-
 export enum TrainingSessionDatabaseCategoryTypes {
   CANONICAL = 'canonical',
   PLAN_FRAGMENT = 'planFragment',

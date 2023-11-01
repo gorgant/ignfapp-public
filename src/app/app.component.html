@@ -6,7 +6,7 @@
   <div class="spinner-message">Verifying credentials...</div>
 </div>
 
-<app-nav-bar *ngIf="showNavBar$ | async"></app-nav-bar>
+<app-nav-bar *ngIf="!uiService.$hideNavBar()"></app-nav-bar>
 
 
 

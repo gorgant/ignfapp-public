@@ -1,24 +1,24 @@
 <div class="component-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <h2 class="section-header" mat-dialog-title>{{ isNewSession ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
+  <h2 class="section-header" mat-dialog-title>{{ $isNewSession() ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
 
-  <mat-stepper class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
+  <mat-stepper *ngIf="$isNewSession() || $currentTrainingSession()" class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
 
     <!-- Step 1 -->
     <mat-step [stepControl]="stepOne.youtubeVideoDataForm" errorMessage="Error collecting video data." [editable]="true" >
       <ng-template matStepLabel>{{ INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL }}</ng-template>
       
-      <app-edit-training-session-step-one [editTrainingSessionStepper]="editTrainingSessionStepper" [existingTrainingSessionData$]="existingTrainingSessionData$" #stepOne></app-edit-training-session-step-one>
+      <app-edit-training-session-step-one [editTrainingSessionStepper]="editTrainingSessionStepper" [$currentTrainingSession]="$currentTrainingSession" #stepOne></app-edit-training-session-step-one>
       
       <div class="stepper-buttons step-one-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
       
-        <button *ngIf="isNewSession" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
+        <button *ngIf="$isNewSession() && !(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
           {{ FETCH_VIDEO_DATA_BUTTON_VALUE }}
         </button>
         <div *ngIf="(getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
           <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
         </div>
 
-        <button *ngIf="(youtubeVideoData$ | async) && !isNewSession" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" matStepperNext>
+        <button *ngIf="(youtubeVideoData$ | async) && !$isNewSession()" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" matStepperNext>
           {{ EDIT_SESSION_BUTTON_VALUE }}
         </button>
         
@@ -33,12 +33,12 @@
     <mat-step [stepControl]="stepTwo.trainingSessionForm" errorMessage="Form is not complete.">
       <ng-template matStepLabel>{{ INPUT_SESSION_DATA_STEP_LABEL }}</ng-template>
 
-      <app-edit-training-session-step-two #stepTwo></app-edit-training-session-step-two>
+      <app-edit-training-session-step-two [$currentTrainingSession]="$currentTrainingSession" #stepTwo></app-edit-training-session-step-two>
       
       <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px" fxLayout.gt-md="row" fxLayoutGap.gt-md="16px">
             
         <button *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!stepTwo.trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm(stepTwo)">
-          {{ isNewSession ? CREATE_SESSION_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
+          {{ $isNewSession() ? CREATE_SESSION_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
         </button>
         <button *ngIf="!(serverRequestProcessing$ | async)" color="primary" mat-stroked-button type="button" backButton>
           {{ CANCEL_BUTTON_VALUE }}

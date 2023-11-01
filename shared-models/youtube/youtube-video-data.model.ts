@@ -76,11 +76,6 @@ export interface YoutubeVideoDataCompact {
   videoUrl: string;
 }
 
-export interface YoutubeVideoDataForm {
-  [YoutubeVideoDataKeys.VIDEO_URL]: FormControl<string | null>,
-  [YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: FormControl<boolean | null>,
-}
-
 export enum YoutubeVideoDataKeys {
   ID = 'id',
   VIDEO_ID = 'videoId',

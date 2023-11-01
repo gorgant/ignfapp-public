@@ -1,12 +1,12 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
-import { combineLatest, Observable } from 'rxjs';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { combineLatest, Observable, throwError } from 'rxjs';
 import { StepperOrientation } from '@angular/material/stepper';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -46,45 +46,47 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   TITLE_BLURB = GlobalFieldValues.TITLE;
 
-  userDataSubscription!: Subscription;
-  userData$!: Observable<PublicUser>;
+  private userData$!: Observable<PublicUser>;
 
-  createTrainingSessionProcessing$!: Observable<boolean>;
-  createTrainingSessionSubscription!: Subscription;
-  createTrainingSessionError$!: Observable<{} | null>;
-  createTrainingSessionSubmitted!: boolean;
+  private createTrainingSessionProcessing$!: Observable<boolean>;
+  private createTrainingSessionSubscription!: Subscription;
+  private createTrainingSessionError$!: Observable<{} | null>;
+  private createTrainingSessionSubmitted = signal(false);
 
-  updateTrainingSessionProcessing$!: Observable<boolean>;
-  updateTrainingSessionSubscription!: Subscription;
-  updateTrainingSessionError$!: Observable<{} | null>;
-  updateTrainingSessionSubmitted!: boolean;
+  private updateTrainingSessionProcessing$!: Observable<boolean>;
+  private updateTrainingSessionSubscription!: Subscription;
+  private updateTrainingSessionError$!: Observable<{} | null>;
+  private updateTrainingSessionSubmitted = signal(false);
 
-  existingTrainingSessionData$!: Observable<TrainingSession | undefined>;
-  fetchTrainingSessionProcessing$!: Observable<boolean>;
-  fetchTrainingSessionError$!: Observable<{} | null>;
-  singleTrainingSessionRequested!: boolean;
+  $currentTrainingSession = signal(undefined as TrainingSession | undefined);
+  private $currentTrainingSessionId = signal(undefined as string | undefined);
+  private fetchTrainingSessionProcessing$!: Observable<boolean>;
+  private fetchTrainingSessionError$!: Observable<{} | null>;
+  private $singleTrainingSessionRequested = signal(false);
+  private currentTrainingSessionSubscription!: Subscription;
 
   serverRequestProcessing$!: Observable<boolean>;
 
-  @ViewChild('stepOne') stepOne!: EditTrainingSessionStepOneComponent;
-  @ViewChild('stepTwo') stepTwo!: EditTrainingSessionStepTwoComponent;
+  @ViewChild('stepOne') private stepOne!: EditTrainingSessionStepOneComponent;
+  @ViewChild('stepTwo') private stepTwo!: EditTrainingSessionStepTwoComponent;
 
-  isNewSession = true;
+  $isNewSession = signal(false);
 
   getYoutubeVideoDataProcessing$!: Observable<boolean>;
   youtubeVideoData$!: Observable<YoutubeVideoDataCompact | null>;
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private uiService: UiService,
-    private router: Router,
-    private route: ActivatedRoute,
-  ) { }
+  private store$ = inject(Store);
+  private route = inject(ActivatedRoute);
+  private uiService = inject(UiService);
+  private router = inject(Router);
+  
+
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorProcesses();
     this.setStepperOrientation();
-    this.checkIfNewSession();
+    this.configureTrainingSessionInterface();
   }
 
   private monitorProcesses() {
@@ -115,215 +117,182 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           return false
         })
     );
+
+
   }
 
   private setStepperOrientation(): void {
-    this.uiService.screenIsMobile.subscribe(isMobile => {
-      if (isMobile) {
-        this.stepperOrientation = 'vertical'
-      } else {
-        this.stepperOrientation = 'horizontal'
-      }
-    })
+    this.uiService.$screenIsMobile() ? this.stepperOrientation = 'vertical' : this.stepperOrientation = 'horizontal';
   }
 
-  private checkIfNewSession(): void {
-    this.isNewSession = !this.getExistingSessionId();
-    if (!this.isNewSession) {
-      this.getExistingTrainingSessionData();
-    }
+  private configureTrainingSessionInterface(): void {
+    this.setTrainingSessionId();
+    const trainingSessionId = this.$currentTrainingSessionId();
+    console.log('Is new trainingSession', !this.$currentTrainingSessionId());
+    trainingSessionId ? this.setCurrentTrainingSessionData() : this.$isNewSession.set(true);
   }
 
-  private getExistingSessionId(): string | null {
-    const idParamName = 'id';
-    const sessionId = this.route.snapshot.params[idParamName];
+  private setTrainingSessionId(): void {
+    const idParamName = TrainingSessionKeys.ID;
+    const sessionId = this.route.snapshot.params[idParamName] as string | undefined;
     if (sessionId) {
-      return sessionId
+      this.$currentTrainingSessionId.set(sessionId);
     }
-    return null;
   }
 
-  private getExistingTrainingSessionData() {
-    // Check if id params are available
-    const idParamName = 'id';
-    const trainingSessionId = this.route.snapshot.params[idParamName];
-    if (trainingSessionId) {
-      console.log('Session id found in url params', trainingSessionId);
-
-      this.existingTrainingSessionData$ = this.fetchTrainingSessionProcessing$
-        .pipe(
-          withLatestFrom(
-            this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)), 
-            this.fetchTrainingSessionError$
-          ),
-          map(([fetchProcessing, trainingSession, loadError]) => {
-            if (loadError) {
-              console.log('Error loading trainingSession in component', loadError);
-              this.singleTrainingSessionRequested = false;
-              const queryParams: ViewTrainingSessionsUlrParams = {
-                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true,
-              };
-              const navigationExtras: NavigationExtras = {queryParams};
-              this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
-            }
-            if (!trainingSession && !fetchProcessing && !this.singleTrainingSessionRequested && !loadError) {
-              console.log(`Session ${trainingSessionId} not in store, fetching from database`);
-              this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
-              this.singleTrainingSessionRequested = true;
-            }
-            return trainingSession;
-          }),
-          tap(trainingSession => {
-            if (trainingSession) {
-              this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession.videoData}));
-            }
-          })
-        )
-    }
+  private setCurrentTrainingSessionData() {
+    const trainingSessionId = this.$currentTrainingSessionId() as string;
+    console.log('Session id found in url params', trainingSessionId);
+    this.currentTrainingSessionSubscription = this.fetchTrainingSessionError$
+      .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.$singleTrainingSessionRequested.set(false);
+            this.navigateUserToBrowseTrainingSessions();
+          }
+          const singleTrainingSession$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)); 
+          return combineLatest([singleTrainingSession$, this.fetchTrainingSessionProcessing$, this.fetchTrainingSessionError$]);
+        }),
+        filter(([trainingSession, fetchProcessing, processingError]) => !processingError),
+        map(([trainingSession, fetchProcessing, processingError]) => {
+          if (!trainingSession && !fetchProcessing && !this.$singleTrainingSessionRequested()) {
+            console.log(`Session ${trainingSessionId} not in store, fetching from database`);
+            this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
+            this.$singleTrainingSessionRequested.set(true);
+          }
+          return trainingSession;
+        }),
+        filter(trainingSession => !!trainingSession),
+        tap(trainingSession => {
+          this.$currentTrainingSession.set(trainingSession);
+          this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession!.videoData}));
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
   }
 
   onSubmitTrainingSessionForm(stepTwoData: EditTrainingSessionStepTwoComponent): void {
-
     console.log('Submit training session form detected');
-
-    if (this.isNewSession) {
-      this.createNewSession(stepTwoData);
-    } else {
-      this.updateExistingSession(stepTwoData);
-    }
+    this.$isNewSession() ? this.createNewSession(stepTwoData) : this.updateExistingSession(stepTwoData);
   }
 
   private createNewSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
-    this.userDataSubscription = this.userData$
+    this.createTrainingSessionSubscription = this.createTrainingSessionError$
       .pipe(
-        withLatestFrom(
-          this.store$.select(TrainingSessionStoreSelectors.selectYoutubeVideoData),
-        )
-      )
-      .subscribe(([userData, videoData]) => {
-
-        if (!videoData) {
-          console.log(`No video data, terminating function`);
-          this.userDataSubscription.unsubscribe();
-          this.createTrainingSessionSubmitted = false;
-          this.updateTrainingSessionSubmitted = false;
-          return;
-        }
-
-        const trainingSessionNoId: TrainingSessionNoIdOrTimestamps = {
-          [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
-          complexityAverage: stepTwoData.complexityDefault.value,
-          [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
-          complexityRatingCount: 1,
-          creatorId: userData.id,
-          databaseCategory: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-          [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-          intensityAverage: stepTwoData.intensityDefault.value,
-          [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
-          intensityRatingCount: 1,
-          [TrainingSessionKeys.MUSCLE_GROUP]: stepTwoData.muscleGroup.value,
-          [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
-          videoData
-        };
-        console.log('Training Session Data', trainingSessionNoId);
-        this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId}));
-        this.postCreateTrainingSessionActions();
-      })
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.createTrainingSessionSubmitted.set(false);
+          }
+          return combineLatest([this.userData$, this.youtubeVideoData$, this.createTrainingSessionError$]);
+        }),
+        filter(([userData, videoData, processingError]) => !processingError && !!videoData),
+        switchMap(([userData, videoData, processingError]) => {
+          if (!this.createTrainingSessionSubmitted()) {
+            this.createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
+            const trainingSessionNoId: TrainingSessionNoIdOrTimestamps = {
+              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
+              complexityAverage: stepTwoData.complexityDefault.value,
+              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
+              complexityRatingCount: 1,
+              creatorId: userData.id,
+              databaseCategory: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+              [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
+              intensityAverage: stepTwoData.intensityDefault.value,
+              [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
+              intensityRatingCount: 1,
+              [TrainingSessionKeys.MUSCLE_GROUP]: stepTwoData.muscleGroup.value,
+              [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
+              videoData: videoData!
+            };
+            console.log('Training Session Data', trainingSessionNoId);
+            this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId}));
+            
+          }
+          return this.createTrainingSessionProcessing$;
+        }),
+        filter( creationProcessing => !creationProcessing && this.createTrainingSessionSubmitted()),
+        tap(creationProcessing => {
+          console.log('Training session creation successful.');
+          this.uiService.showSnackBar(`Training session created!`, 5000);
+          this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
+          this.navigateUserToBrowseTrainingSessions();
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
   }
 
   private updateExistingSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
-    const sessionId = this.getExistingSessionId() as string;
-    this.userDataSubscription = this.userData$
+    const sessionId = this.$currentTrainingSessionId() as string;
+    const currentTrainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<TrainingSession>;
+
+    this.updateTrainingSessionSubscription = this.updateTrainingSessionError$
       .pipe(
-        withLatestFrom(
-          this.youtubeVideoData$,
-          this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<TrainingSession>,
-        )
-      )
-      .subscribe(([userData, videoData, existingTrainingData]) => {
-
-        if (!videoData) {
-          console.log(`No video data, terminating function`);
-          this.userDataSubscription.unsubscribe();
-          this.createTrainingSessionSubmitted = false;
-          this.updateTrainingSessionSubmitted = false;
-          return;
-        }
-
-        const updatedTrainingSession: Update<TrainingSession> = {
-          id: existingTrainingData.id,
-          changes: {
-            [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
-            [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-            [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...stepTwoData.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
-            [TrainingSessionKeys.MUSCLE_GROUP]: (stepTwoData.muscleGroup.value),
-            [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
-          }            
-        };
-        console.log('Training Session Updates', updatedTrainingSession);
-        this.store$.dispatch(TrainingSessionStoreActions.updateTrainingSessionRequested({trainingSessionUpdates: updatedTrainingSession}));
-        this.postUpdateTrainingSessionActions();
-      })
-  }
-
-  private postCreateTrainingSessionActions() {
-    this.createTrainingSessionSubscription = this.createTrainingSessionProcessing$
-      .pipe(
-        withLatestFrom(this.createTrainingSessionError$)
-      )
-      .subscribe(([creatingSession, creationError]) => {
-        if (creatingSession) {
-          this.createTrainingSessionSubmitted = true;
-        }
-
-        if (creationError) {
-          console.log('Error creating training session in database, terminating function');
-          this.createTrainingSessionSubscription.unsubscribe();
-          this.createTrainingSessionSubmitted = false;
-          return;
-        }
-
-        if (!creatingSession && this.createTrainingSessionSubmitted) {
-          console.log('Training session creation successful.');
-          this.uiService.showSnackBar(`Training session created!`, 5000);
-          this.createTrainingSessionSubscription.unsubscribe();
-          this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
-          this.navigateUserToBrowse();
-        }
-      })
-  }
-
-  private postUpdateTrainingSessionActions() {
-    this.updateTrainingSessionSubscription = this.updateTrainingSessionProcessing$
-      .pipe(
-        withLatestFrom(this.updateTrainingSessionError$)
-      )
-      .subscribe(([updatingSession, updateError]) => {
-        if (updatingSession) {
-          this.updateTrainingSessionSubmitted = true;
-        }
-
-        if (updateError) {
-          console.log('Error updating training session in database, terminating function');
-          this.updateTrainingSessionSubscription.unsubscribe();
-          this.updateTrainingSessionSubmitted = false;
-          return;
-        }
-
-        if (!updatingSession && this.updateTrainingSessionSubmitted) {
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.updateTrainingSessionSubmitted.set(false);
+          }
+          return combineLatest([currentTrainingSessionData$, this.youtubeVideoData$, this.updateTrainingSessionError$]);
+        }),
+        filter(([currentTrainingSessionData, videoData, processingError]) => !processingError && !!videoData),
+        switchMap(([currentTrainingSessionData, videoData, processingError]) => {
+          console.log('Processing error', processingError);
+          if (!this.updateTrainingSessionSubmitted()) {
+            this.updateTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
+            const updatedTrainingSession: Update<TrainingSession> = {
+              id: currentTrainingSessionData.id,
+              changes: {
+                [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
+                [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
+                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...stepTwoData.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
+                [TrainingSessionKeys.MUSCLE_GROUP]: (stepTwoData.muscleGroup.value),
+                [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
+              }            
+            };
+            console.log('Training Session Updates', updatedTrainingSession);
+            this.store$.dispatch(TrainingSessionStoreActions.updateTrainingSessionRequested({trainingSessionUpdates: updatedTrainingSession}));
+          }
+          // return combineLatest([currentTrainingSessionData$, this.updateTrainingSessionProcessing$]);
+          return this.updateTrainingSessionProcessing$;
+        }),
+        // filter(([currentTrainingSessionData, updateProcessing]) => !updateProcessing && this.updateTrainingSessionSubmitted()),
+        filter(updateProcessing => !updateProcessing && this.updateTrainingSessionSubmitted()),
+        // tap(([currentTrainingSessionData, updateProcessing]) => {
+        tap(updateProcessing => {
           console.log('Training session update successful.');
           this.uiService.showSnackBar(`Training session updated!`, 5000);
-          this.updateTrainingSessionSubscription.unsubscribe();
           this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
-          this.navigateUserToBrowse();
-        }
-      })
+          this.router.navigate([PublicAppRoutes.TRAINING_SESSION, this.$currentTrainingSessionId()]);
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
 
   }
 
-  private navigateUserToBrowse(): void {
-    // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if changes detected
-    this.router.navigate([PublicAppRoutes.BROWSE]);
+  private navigateUserToBrowseTrainingSessions(): void {
+    // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
+    const queryParams: ViewTrainingSessionsUlrParams = {
+      [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
+    };
+    const navigationExtras: NavigationExtras = {queryParams};
+    this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
   }
 
   // @HostListener allows us to also CanDeactivate Guard against browser refresh, close, etc.
@@ -333,7 +302,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
                         !this.stepOne.youtubeVideoDataForm.dirty && 
                         !this.stepTwo.trainingSessionForm.touched && 
                         !this.stepTwo.trainingSessionForm.dirty;
-    const createdOrUpdatedTrainingSession = this.updateTrainingSessionSubmitted || this.createTrainingSessionSubmitted;
+    const createdOrUpdatedTrainingSession = this.updateTrainingSessionSubmitted() || this.createTrainingSessionSubmitted();
 
     const canDeactivateData: CanDeactivateData = {
       deactivationPermitted: formIsClean || createdOrUpdatedTrainingSession,
@@ -347,31 +316,25 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   ngOnDestroy(): void {
+    this.currentTrainingSessionSubscription?.unsubscribe();
+    this.createTrainingSessionSubscription?.unsubscribe();
+    this.updateTrainingSessionSubscription?.unsubscribe();
 
     // Purge if canceled operation
-    if (!this.updateTrainingSessionSubmitted) {
+    if (this.createTrainingSessionSubmitted() || this.updateTrainingSessionSubmitted()) {
       this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
-    }
-    
-    if (this.userDataSubscription) {
-      this.userDataSubscription.unsubscribe();
-    }
-
-    if (this.createTrainingSessionSubscription) {
-      this.createTrainingSessionSubscription.unsubscribe();
-    }
-    
-    if (this.updateTrainingSessionSubscription) {
-      this.updateTrainingSessionSubscription.unsubscribe();
     }
 
     this.fetchTrainingSessionError$
-      .pipe(take(1))
-      .subscribe((fetchTrainingSessionError) => {
-        if (fetchTrainingSessionError) {
-          this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
-        }
-      })
+      .pipe(
+        take(1),
+        tap(fetchError => {
+          if (fetchError) {
+            this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
+          }  
+        })
+      )
+      .subscribe();
 
   }
 

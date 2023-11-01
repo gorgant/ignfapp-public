@@ -1,14 +1,15 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSession } from 'shared-models/train/training-session.model';
-import { YoutubeVideoDataCompact, YoutubeVideoDataForm, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
-import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
+import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
+import { UiService } from 'src/app/core/services/ui.service';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-edit-training-session-step-one',
@@ -18,12 +19,8 @@ import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelect
 export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   @Input() editTrainingSessionStepper!: MatStepper;
-  @Input() existingTrainingSessionData$!: Observable<TrainingSession | undefined>;
+  @Input() $currentTrainingSession = signal(undefined as TrainingSession | undefined);
 
-  youtubeVideoDataForm = new FormGroup<YoutubeVideoDataForm>({
-    [YoutubeVideoDataKeys.VIDEO_URL]: new FormControl('', [Validators.required, Validators.pattern(/^\S*(?:https\:\/\/youtu\.be)\S*$/)]),
-    [YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: new FormControl(false, [Validators.requiredTrue])
-  });
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
@@ -31,19 +28,25 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE;
   INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_TITLE;
 
-  getYoutubeVideoDataProcessing$!: Observable<boolean>;
-  getYoutubeVideoDataSubscription!: Subscription;
-  getYoutubeVideoDataError$!: Observable<Error | null>;
-  getYoutubeVideoDataSubmitted!: boolean;
-  youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
-  videoUrlSubscription!: Subscription;
+  private getYoutubeVideoDataProcessing$!: Observable<boolean>;
+  private getYoutubeVideoDataSubscription!: Subscription;
+  private getYoutubeVideoDataError$!: Observable<Error | null>;
+  private getYoutubeVideoDataSubmitted = signal(false);
+  private youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
+  private videoUrlSubscription!: Subscription;
 
-  existingTrainingSessionDataSubscription!: Subscription;
+  private existingTrainingSessionDataSubscription!: Subscription;
 
+  private fb = inject(FormBuilder);
+  private store$ = inject(Store);
+  private uiService = inject(UiService);
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-  ) { }
+  youtubeVideoDataForm = this.fb.group({
+    [YoutubeVideoDataKeys.VIDEO_URL]: ['', [Validators.required, Validators.pattern(/^((https:\/\/www\.youtube\.com)|(https:\/\/youtu\.be))/)]],
+    [YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: [false, [Validators.requiredTrue]]
+  });
+
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorProcesses();
@@ -58,15 +61,14 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   // Note this observable is handled in the parent component
   private checkForExistingData() {
-    this.existingTrainingSessionDataSubscription = this.existingTrainingSessionData$
-      .subscribe(trainingSessionData => {
-        if (trainingSessionData) {
-        this.videoUrl.setValue(trainingSessionData.videoData.videoUrl);
-        this.videoUrl.disable();
-        this.videoDataRetreived.setValue(true);
-        this.proceedToNextStep();
-        }
-      });
+    const trainingSessionData = this.$currentTrainingSession();
+    console.log('Found this trainingSessionData in step one', trainingSessionData);
+    if (trainingSessionData) {
+      this.videoUrl.setValue(trainingSessionData.videoData.videoUrl);
+      this.videoUrl.disable();
+      this.videoDataRetreived.setValue(true);
+      this.proceedToNextStep();
+    }
   }
 
   onGetYoutubeVideoData() {
@@ -76,40 +78,42 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     if (videoId.includes('?')) {
       videoId = videoId.split('?')[0];
     }
-    this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
-    this.postGetYoutubeVideoDataActions();
-  }
-
-  private postGetYoutubeVideoDataActions() {
-
-    this.getYoutubeVideoDataSubscription = this.youtubeVideoData$
+    this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clear out any errors if they exist before proceeding
+    
+    this.getYoutubeVideoDataSubscription = this.getYoutubeVideoDataError$
       .pipe(
-        withLatestFrom(this.getYoutubeVideoDataProcessing$, this.getYoutubeVideoDataError$)
-      )
-      .subscribe(([videoData, processing, error]) => {
-        if (processing) {
-          this.getYoutubeVideoDataSubmitted = true;
-        }
-
-        // If error, cancel operation
-        if (error) {
-          console.log('Error fetching video data, resetting form');
-          this.getYoutubeVideoDataSubscription.unsubscribe();
-          this.getYoutubeVideoDataSubmitted = false;
-          this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
-          return;
-        }
-
-        // If succeeds, proceed to next step
-        if (this.getYoutubeVideoDataSubmitted && !processing) {
-          console.log('Video data retreival successful');
-          console.log('Image url', videoData.thumbnailUrlSmall);
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.getYoutubeVideoDataSubmitted.set(false);
+            this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+            this.getYoutubeVideoDataSubscription?.unsubscribe();
+          }
+          return combineLatest([this.getYoutubeVideoDataProcessing$, this.getYoutubeVideoDataError$]);
+        }),
+        filter(([videoDataProcessing, processingError]) => !processingError),
+        switchMap(([videoDataProcessing, processingError]) => {
+          if (!videoDataProcessing && !this.getYoutubeVideoDataSubmitted()) {
+            this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
+            this.getYoutubeVideoDataSubmitted.set(true);
+          }
+          return this.youtubeVideoData$;
+        }),
+        filter(videoData => !!videoData),
+        tap(videoData => {
+          console.log('Video data retreival successful', videoData);
           this.videoDataRetreived.setValue(true); // Ensures youtube data is retreived before user can proceed
-          this.getYoutubeVideoDataSubscription.unsubscribe(); // Clear subscription no longer needed
-          this.monitorYoutubeVideoUrlChange(); 
+          this.getYoutubeVideoDataSubscription?.unsubscribe(); // Clear subscription no longer needed
+          this.monitorYoutubeVideoUrlChange(); // Prevents user from proceeding if url edits are made after previous query
           this.proceedToNextStep();
-        }
-      })
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
   }
 
   private monitorYoutubeVideoUrlChange() {
@@ -123,21 +127,14 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   private proceedToNextStep() {
-    this.editTrainingSessionStepper.next()
+    console.log('Proceeding to next step');
+    this.editTrainingSessionStepper.next();
   }
 
   ngOnDestroy(): void {
-    if (this.getYoutubeVideoDataSubscription) {
-      this.getYoutubeVideoDataSubscription.unsubscribe();
-    }
-
-    if (this.videoUrlSubscription) {
-      this.videoUrlSubscription.unsubscribe();
-    }
-
-    if (this.existingTrainingSessionDataSubscription) {
-      this.existingTrainingSessionDataSubscription.unsubscribe();
-    }
+    this.getYoutubeVideoDataSubscription?.unsubscribe();
+    this.videoUrlSubscription?.unsubscribe();
+    this.existingTrainingSessionDataSubscription?.unsubscribe();
   }
 
   // These getters are used for easy access in the HTML template

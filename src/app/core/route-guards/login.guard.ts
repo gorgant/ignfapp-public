@@ -39,7 +39,7 @@ export const loginGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapsh
   return authService.fetchCachedUserData()
     .pipe(
       switchMap(authResults => {
-        uiService.$routeGuardProcessing.set(true);
+        uiService.routeGuardProcessing = true;
         let userData: Observable<PublicUser | undefined> = of(undefined);
         if (authResults?.id) {
           userData = fetchUserData(authResults.id, store$);
@@ -51,7 +51,7 @@ export const loginGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapsh
 
         if (loopProtectionCount > 4) {
           console.log('Loop protection triggered');
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           throw Error('Loop protection triggered, halting function');
         }
 
@@ -62,14 +62,14 @@ export const loginGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapsh
         // Permit user who isn't logged in to access auth page
         if (!userLoggedIn) {
           console.log('LoginGuard canActivate: no credentials present. Access to auth page permitted');
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           return true;
         }
 
         // Permit user who hasn't verified email to access auth page (will automatically display the verify email request to user)
         if (!emailVerifiedInAuth || !emailVerifiedInDb) {
           console.log('LoginGuard canActivate: credentials present but email not verified. Acccess to auth page permitted.');  
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           return true;
         }
 
@@ -83,7 +83,7 @@ export const loginGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapsh
           const returnUrl = route.queryParamMap.get('returnUrl') || '/';
           router.navigate([returnUrl]);
         }
-        uiService.$routeGuardProcessing.set(false);
+        uiService.routeGuardProcessing = false;
         return false;
       }),
     );

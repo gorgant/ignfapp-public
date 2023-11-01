@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { combineLatest, map, Observable, Subscription, withLatestFrom, take, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingPlanFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { AddTrainingSessionUrlParams, TrainingPlan, TrainingPlanForm, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParams, TrainingPlan, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { Update } from '@ngrx/entity';
@@ -42,7 +42,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   TITLE_MAX_LENGTH = TrainingPlanFormVars.titleMaxLength;
 
   FORM_VALIDATION_MESSAGES = TrainingPlanFormValidationMessages;
-  trainingPlanForm = new FormGroup<TrainingPlanForm>({
+  trainingPlanForm = new FormGroup({
     [TrainingPlanKeys.TITLE]: new FormControl('', [Validators.required, Validators.minLength(this.TITLE_MIN_LENGTH), Validators.maxLength(this.TITLE_MAX_LENGTH)]),
   });
 
@@ -50,13 +50,13 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   private createTrainingPlanError$!: Observable<{} | null>;
   private createTrainingPlanProcessing$!: Observable<boolean>;
-  private createTrainingPlanSubmitted = signal(false);
+  private $createTrainingPlanSubmitted = signal(false);
   private createNewTrainingPlanSubscription!: Subscription;
 
   private updateTrainingPlanProcessing$!: Observable<boolean>;
   private updateTrainingPlanSubscription!: Subscription;
   private updateTrainingPlanError$!: Observable<{} | null>;
-  private updateTrainingPlanSubmitted = signal(false);
+  private $updateTrainingPlanSubmitted = signal(false);
 
   serverRequestProcessing$!: Observable<boolean>;
   batchRequestProcessing$!: Observable<boolean>;
@@ -65,13 +65,13 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   $currentTrainingPlanId = signal(undefined as string | undefined);
   private fetchSingleTrainingPlanProcessing$!: Observable<boolean>;
   private fetchSingleTrainingPlanError$!: Observable<{} | null>;
-  private singleTrainingPlanRequested = signal(false);
+  private $singleTrainingPlanRequested = signal(false);
 
   $currentPlanSessionFragments = signal(undefined as PlanSessionFragment[] | undefined);
   allPlanSessionFragments$!: Observable<PlanSessionFragment[]>;
   private fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
   private fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
-  private planSessionFragmentsRequested = signal(false);
+  private $planSessionFragmentsRequested = signal(false);
   private planSessionFragmentsFetched$!: Observable<boolean>;
 
 
@@ -84,8 +84,8 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   combinedTrainingDataSubscription!: Subscription;
   fetchCombinedTrainingDataError$!: Observable<boolean>;
 
-  isNewPlan = signal(false);
-  editTrainingPlanDetails = signal(false);
+  $isNewPlan = signal(false);
+  $editTrainingPlanDetails = signal(false);
 
   private debounceDragDropServerCall$ = new Subject<void>();
   private debounceDragDropServerCallSubscription!: Subscription;
@@ -100,7 +100,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.monitorProcesses();
-    this.checkIfNewPlan();
+    this.configureTrainingPlanInterface();
     this.initializeDebounceDragDropServerCallObserver();
   }
 
@@ -195,18 +195,19 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   }
 
-  private checkIfNewPlan(): void {
+  private configureTrainingPlanInterface(): void {
     this.setTrainingPlanId();
     const trainingPlanId = this.$currentTrainingPlanId();
-    this.isNewPlan.set(!!trainingPlanId);
-    this.editTrainingPlanDetails.set(this.isNewPlan());
-    if (trainingPlanId) {
-      this.patchExistingDataIntoForm(trainingPlanId);
-    }
+    trainingPlanId ? this.patchExistingDataIntoForm(trainingPlanId) : this.configureNewPlan();
+  }
+
+  private configureNewPlan() {
+    this.$isNewPlan.set(true);
+    this.$editTrainingPlanDetails.set(true);
   }
 
   private setTrainingPlanId() {
-    const trainingPlanId = this.route.snapshot.params[TrainingPlanKeys.ID];
+    const trainingPlanId = this.route.snapshot.params[TrainingPlanKeys.ID] as string | undefined;
     if (trainingPlanId) {
       this.$currentTrainingPlanId.set(trainingPlanId);
     }
@@ -218,20 +219,20 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.singleTrainingPlanRequested.set(false);
+            this.$singleTrainingPlanRequested.set(false);
             this.onNavigateUserToBrowse();
           }
           const singleTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
           return combineLatest([singleTrainingPlan$, this.fetchSingleTrainingPlanProcessing$, this.fetchCombinedTrainingDataError$]);
         }),
         filter(([trainingPlan, fetchProcessing, processingError]) => !processingError),
-        switchMap(([trainingPlan, fetchProcessing, processingError]) => {
-          if (!trainingPlan && !fetchProcessing && !this.singleTrainingPlanRequested()) {
+        map(([trainingPlan, fetchProcessing, processingError]) => {
+          if (!trainingPlan && !fetchProcessing && !this.$singleTrainingPlanRequested()) {
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
             this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
-            this.singleTrainingPlanRequested.set(true);
+            this.$singleTrainingPlanRequested.set(true);
           }
-          return of(trainingPlan);
+          return trainingPlan;
         }),
         filter(trainingPlan => !!trainingPlan),
         tap(trainingPlan => {
@@ -244,10 +245,10 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           return combineLatest([this.allPlanSessionFragments$, this.fetchAllPlanSessionFragmentsProcessing$, this.planSessionFragmentsFetched$]);
         }),
         switchMap(([planSessionFragments, fetchProcessing, allPlanSessionFragmentsFetched]) => {
-          if (!fetchProcessing && !this.planSessionFragmentsRequested() && !allPlanSessionFragmentsFetched) {
+          if (!fetchProcessing && !this.$planSessionFragmentsRequested() && !allPlanSessionFragmentsFetched) {
             console.log('planSessionFragments not in store, fetching from database');
             this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
-            this.planSessionFragmentsRequested.set(true);
+            this.$planSessionFragmentsRequested.set(true);
           }
           return combineLatest([of(planSessionFragments), this.planSessionFragmentsFetched$]);
         }),
@@ -269,11 +270,11 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   // This toggles visibility of the trainingPlan title edit view
   onEditTrainingPlanDetails() {
-    this.editTrainingPlanDetails.set(true);
+    this.$editTrainingPlanDetails.set(true);
   }
 
   onSubmitTrainingPlanForm(): void {
-    this.isNewPlan() ? this.createNewTrainingPlan() : this.updateExistingTrainingPlan();
+    this.$isNewPlan() ? this.createNewTrainingPlan() : this.updateExistingTrainingPlan();
   }
 
   private createNewTrainingPlan() {
@@ -282,14 +283,14 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog');
-            this.createTrainingPlanSubmitted.set(false);
+            this.$createTrainingPlanSubmitted.set(false);
             this.store$.dispatch(TrainingPlanStoreActions.purgeNewTrainingPlanId());
           }
           return combineLatest([this.userData$, this.createTrainingPlanError$]);
         }),
         filter(([userData, processingError]) => !processingError), // Halts function if processingError detected
         switchMap(([userData, processingError]) => {
-          if (!this.createTrainingPlanSubmitted()) {
+          if (!this.$createTrainingPlanSubmitted()) {
             const trainingPlanNoId: TrainingPlanNoIdOrTimestamp = {
               creatorId: userData.id,
               [TrainingPlanKeys.TITLE]: this.title.value,
@@ -297,7 +298,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
             };
             console.log('trainingPlan Data', trainingPlanNoId);
             this.store$.dispatch(TrainingPlanStoreActions.createTrainingPlanRequested({trainingPlanNoId}));
-            this.createTrainingPlanSubmitted.set(true);
+            this.$createTrainingPlanSubmitted.set(true);
           }
           const newTrainingPlanId = this.store$.select(TrainingPlanStoreSelectors.selectNewTrainingPlanId);
           return combineLatest([this.createTrainingPlanProcessing$, newTrainingPlanId])
@@ -326,7 +327,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       switchMap(processingError => {
         if (processingError) {
           console.log('processingError detected, terminating dialog');
-          this.updateTrainingPlanSubmitted.set(false);
+          this.$updateTrainingPlanSubmitted.set(false);
         }
         return this.updateTrainingPlanError$;
       }),
@@ -337,7 +338,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       }),
       filter(trainingPlan => !!trainingPlan),
       switchMap(trainingPlan => {
-        if (!this.updateTrainingPlanSubmitted()) {
+        if (!this.$updateTrainingPlanSubmitted()) {
           const updatedTrainingPlan: Update<TrainingPlan> = {
             id: trainingPlan!.id,
             changes: {
@@ -346,16 +347,16 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           };
           console.log('trainingPlan Updates to submit', updatedTrainingPlan);
           this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates: updatedTrainingPlan}));
-          this.updateTrainingPlanSubmitted.set(true);
+          this.$updateTrainingPlanSubmitted.set(true);
         }
         return this.updateTrainingPlanProcessing$;
       }),
-      filter(updateProcessing => !updateProcessing && this.updateTrainingPlanSubmitted()),
+      filter(updateProcessing => !updateProcessing && this.$updateTrainingPlanSubmitted()),
       tap(updateProcessing => {
         console.log('trainingPlan update successful.');
         this.uiService.showSnackBar(`Training Plan updated!`, 5000);
         this.updateTrainingPlanSubscription?.unsubscribe();
-        this.editTrainingPlanDetails.set(false);
+        this.$editTrainingPlanDetails.set(false);
       }),
       // Catch any local errors
       catchError(error => {
@@ -373,12 +374,12 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   // Dictates the behavior when the user aborts editing the trainingPlan title
   onCancelTitleUpdate() {
-    if (this.isNewPlan()) {
+    if (this.$isNewPlan()) {
       // This effectively aborts the plan creation process
       this.uiService.routeUserToPreviousPage(); 
     } else {
       // Hide the title editing interface
-      this.editTrainingPlanDetails.set(false);
+      this.$editTrainingPlanDetails.set(false);
       // If any edits were made, revert to original title value (otherwise edits will be visible when clicking edit button again)
       this.title.setValue(this.$currentTrainingPlan()!.title);
     }

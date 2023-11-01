@@ -27,7 +27,6 @@ export class TrainingSessionService {
   constructor() { }
 
   createTrainingSession(trainingSessionNoIdOrTimestamp: TrainingSessionNoIdOrTimestamps): Observable<TrainingSession> {
-
     const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewTrainingSessionDocumentId();
@@ -65,6 +64,9 @@ export class TrainingSessionService {
       );
   }
 
+  // TODO: Add a collection group query to also remove all planSessionFragments and personalSessionFragments with the matching canonical ID (would require a bunch more updates)
+  // TODO: Alternatively, store more essential data in the fragments
+  // TODO: Alternatively, auto delete when a user accesses a deleted trainingSession
   deleteTrainingSession(trainingSessionId: string): Observable<string> {
     const trainingSessionDeleteRequest = deleteDoc(this.getTrainingSessionDoc(trainingSessionId));
 

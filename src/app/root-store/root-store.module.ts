@@ -10,7 +10,6 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { StoreRouterConnectingModule, RouterStateSerializer, RouterState } from '@ngrx/router-store';
 import { CustomSerializer } from '../core/utils/custom-route-serializer';
 import { reducers } from './root-store.state';
-import { UiStoreModule } from './ui-store';
 import { PersonalSessionFragmentStoreModule } from './personal-session-fragment-store';
 import { PlanSessionFragmentStoreModule } from './plan-session-fragment-store';
 import { TrainingPlanStoreModule } from './training-plan-store';
@@ -27,7 +26,6 @@ import { TrainingSessionStoreModule } from './training-session-store';
     TrainingPlanStoreModule,
     TrainingRecordStoreModule,
     TrainingSessionStoreModule,
-    UiStoreModule,
     UserStoreModule,
     StoreModule.forRoot(
         reducers, 

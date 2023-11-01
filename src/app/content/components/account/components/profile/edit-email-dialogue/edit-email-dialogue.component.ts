@@ -97,13 +97,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   private setStepperOrientation(): void {
-    this.uiService.screenIsMobile.subscribe(isMobile => {
-      if (isMobile) {
-        this.stepperOrientation = 'vertical'
-      } else {
-        this.stepperOrientation = 'horizontal'
-      }
-    })
+    this.uiService.$screenIsMobile() ? this.stepperOrientation = 'vertical' : this.stepperOrientation = 'horizontal';
   }
 
   onConfirmPasswordInAuth() {

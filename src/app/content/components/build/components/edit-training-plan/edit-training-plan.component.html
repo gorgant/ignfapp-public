@@ -3,14 +3,14 @@
     <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
   </div>
   <div class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
-    <div *ngIf="$currentTrainingPlan() as trainingPlanData" [fxHide]="editTrainingPlanDetails" class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
+    <div *ngIf="$currentTrainingPlan() as trainingPlanData" [fxShow]="!$editTrainingPlanDetails()" class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
       <div fxFlex="95" class="plan-title">{{ trainingPlanData.title }}</div>
       <button class="action-button" fxFlex="5" mat-icon-button (click)="onEditTrainingPlanDetails()" aria-label="Edit training session">
         <mat-icon>edit</mat-icon>
       </button>
     </div>
-    <form class="training-plan-form" [fxHide]="!editTrainingPlanDetails" [formGroup]="trainingPlanForm" fxLayout="column" fxLayoutAlign="center center">
-      <div class="form-title"> {{ isNewPlan() ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
+    <form class="training-plan-form" [fxShow]="$editTrainingPlanDetails()" [formGroup]="trainingPlanForm" fxLayout="column" fxLayoutAlign="center center">
+      <div class="form-title"> {{ $isNewPlan() ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
       <mat-form-field class="edit-title-field">
         <mat-label>{{ TITLE_FIELD_VALUE }}</mat-label>
         <input class="edit-title-input" [formControl]="title" matInput type="text">
@@ -21,7 +21,7 @@
       </mat-error>
       <div class="form-actions" fxLayout="column" fxLayoutAlign="center center" fxLayout.gt-md="row" fxLayoutGap="16px">
         <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
-          {{ isNewPlan() ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
+          {{ $isNewPlan() ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
         </button>
         <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
           {{ CANCEL_BUTTON_VALUE }}
@@ -32,7 +32,7 @@
   <div *ngIf="(serverRequestProcessing$ | async) && !(batchRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
     <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
   </div>
-  <div *ngIf="!editTrainingPlanDetails && $currentTrainingPlan() && $currentPlanSessionFragments()" class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+  <div *ngIf="!$editTrainingPlanDetails() && $currentTrainingPlan() && $currentPlanSessionFragments()" class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <div class="plan-actions-button-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async)" (click)="onAddTrainingSession($currentTrainingPlan()?.id)">
         {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}

@@ -1,9 +1,9 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription, take } from 'rxjs';
-import { distinctUntilChanged, map, withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest, of, take, throwError } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -21,6 +21,7 @@ import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys } from 'share
 import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { Timestamp } from '@angular/fire/firestore';
 import { PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
+import { UiService } from 'src/app/core/services/ui.service';
 
 @Component({
   selector: 'app-training-session',
@@ -37,6 +38,9 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   CANCEL_TRAINING_CONF_BODY = GlobalFieldValues.CANCEL_TRAINING_CONF_BODY;
   CANCEL_TRAINING_CONF_TITLE = GlobalFieldValues.CANCEL_TRAINING;
   COMPLETE_TRAINING_BUTTON_VALUE = GlobalFieldValues.COMPLETE_TRAINING;
+  DELETE_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.DELETE_TRAINING_SESSION;
+  DELETE_TRAINING_SESSION_CONF_BODY = GlobalFieldValues.DELETE_TRAINING_SESSION_CONF_BODY;
+  DELETE_TRAINING_SESSION_CONF_TITLE = GlobalFieldValues.DELETE_TRAINING_SESSION_CONF_TITLE;
   EDIT_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.EDIT_SESSION;
   GO_BACK_BUTTON_VALUE = GlobalFieldValues.GO_BACK;
   PAUSE_TRAINING_BUTTON_VALUE = GlobalFieldValues.PAUSE_TRAINING;
@@ -47,6 +51,12 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   fetchTrainingSessionProcessing$!: Observable<boolean>;
   fetchTrainingSessionError$!: Observable<{} | null>;
   singleTrainingSessionRequested!: boolean;
+
+  deleteTrainingSessionSubscription!: Subscription;
+  deleteTrainingSessionProcessing$!: Observable<boolean>;
+  deleteTrainingSessionError$!: Observable<{} | null>;
+  deleteTrainingSessionSubmitted = signal(false);
+
 
   videoInitialized: boolean = false;
 
@@ -65,6 +75,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
   personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
 
+  private uiService = inject(UiService);
+  
   constructor(
     private store$: Store<RootStoreState.AppState>,
     private route: ActivatedRoute,
@@ -109,6 +121,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
     this.fetchTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionError);
+    this.deleteTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectDeleteTrainingSessionProcessing);
+    this.deleteTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectDeleteTrainingSessionError);
   }
 
   private getSessionIdFromParams(): string {
@@ -142,7 +156,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
               console.log('Error loading trainingSession in component', loadError);
               this.singleTrainingSessionRequested = false;
               const queryParams: ViewTrainingSessionsUlrParams = {
-                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
               };
               const navigationExtras: NavigationExtras = {queryParams};
               this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
@@ -292,6 +306,56 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.router.navigate([PublicAppRoutes.TRAINING_SESSION_EDIT, sessionId]);
   }
 
+  onDeleteTrainingSession(sessionId: string) {
+    
+    const dialogConfig = new MatDialogConfig();
+    const actionConfData: ActionConfData = {
+      title: this.DELETE_TRAINING_SESSION_CONF_TITLE,
+      body: this.DELETE_TRAINING_SESSION_CONF_BODY,
+    };
+
+    dialogConfig.data = actionConfData;
+    
+    const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
+    const userConfirmedDelete$ = dialogRef.afterClosed() as Observable<boolean>;
+
+    this.deleteTrainingSessionSubscription = this.deleteTrainingSessionError$
+      .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.deleteTrainingSessionSubmitted.set(false);
+          }
+          return combineLatest([userConfirmedDelete$, this.deleteTrainingSessionProcessing$, this.deleteTrainingSessionError$]);
+        }),
+        filter(([userConfirmedDelete, deletionProcessing, deletionError]) => !deletionError),
+        switchMap(([userConfirmedDelete, deletionProcessing, deletionError]) => {
+          if (userConfirmedDelete && !this.deleteTrainingSessionSubmitted()) {
+            this.deleteTrainingSessionSubmitted.set(true);
+            this.store$.dispatch(TrainingSessionStoreActions.deleteTrainingSessionRequested({sessionId}));
+          }
+          console.log('deletionProcessing', deletionProcessing);
+          console.log('deletionSubmitted', this.deleteTrainingSessionSubmitted());
+          return this.deleteTrainingSessionProcessing$;
+        }),
+        filter(deletionProcessing => !deletionProcessing && this.deleteTrainingSessionSubmitted()),
+        tap(deletionProcessing => {
+          console.log('Training session deleted');
+          const queryParams: ViewTrainingSessionsUlrParams = {
+            [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
+          };
+          const navigationExtras: NavigationExtras = {queryParams};
+          this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
+  }
+
   onNavigateToTrainingSessionSelection() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
     const queryParams: AddTrainingSessionUrlParams = {
@@ -320,16 +384,18 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   ngOnDestroy(): void {
-    if (this.videoStateSubscription) {
-      this.videoStateSubscription.unsubscribe();
-    }
+    this.videoStateSubscription?.unsubscribe();
+    this.deleteTrainingSessionSubscription?.unsubscribe();
 
     this.fetchTrainingSessionError$
-      .pipe(take(1))
-      .subscribe((fetchTrainingSessionError) => {
-        if (fetchTrainingSessionError) {
-          this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
-        }
-      })
+      .pipe(
+        take(1),
+        tap(fetchError => {
+          if (fetchError) {
+            this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
+          }
+        })
+      )
+      .subscribe();
   }
 }

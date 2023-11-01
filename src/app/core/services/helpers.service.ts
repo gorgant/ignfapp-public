@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { of, Observable } from 'rxjs';
+import { Injectable, Signal, signal } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { EnvironmentTypes } from 'shared-models/environments/env-vars.model';
 import { SanitizedFileData } from 'shared-models/utils/sanitized-file-data.model';
@@ -11,14 +10,19 @@ import { EmailUserData } from 'shared-models/email/email-user-data.model';
 })
 export class HelperService {
 
-  private productionEnvironment: boolean = environment.production;
+  private $isProductionEvironment = signal(false);
 
-  constructor() { }
+  constructor() {
+    this.setEnvironmentType();
+   }
 
-  getEnvironmentType(): Observable<EnvironmentTypes> {
-    const envType = this.productionEnvironment ? EnvironmentTypes.PRODUCTION : EnvironmentTypes.SANDBOX;
-    console.log('Environment Type: ', envType);
-    return of(envType);
+  private setEnvironmentType() {
+    this.$isProductionEvironment.set(environment.production)
+    console.log('isProductionEnvironment:', this.$isProductionEvironment());
+  }
+
+  get isProductionEnvironment(): Signal<boolean> {
+    return this.$isProductionEvironment.asReadonly();
   }
 
   // Remove spaces from url string

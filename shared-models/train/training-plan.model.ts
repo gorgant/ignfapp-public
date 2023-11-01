@@ -20,10 +20,6 @@ export enum TrainingPlanKeys {
   ID = 'id'
 }
 
-export interface TrainingPlanForm {
-  [TrainingPlanKeys.TITLE]: FormControl<string | null>,
-}
-
 export const TrainingPlanFormVars = {
   titleMinLength: 3,
   titleMaxLength: 70, // This is the max length of a YouTube video

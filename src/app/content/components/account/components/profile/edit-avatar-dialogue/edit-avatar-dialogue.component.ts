@@ -14,7 +14,6 @@ import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.m
 import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
-import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-edit-avatar-dialogue',
@@ -235,7 +234,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   }
 
   private getPublicUsersBucketBasedOnEnvironment(): string {
-    const storageBucket = environment.production ? ProductionCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX : SandboxCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX;
+    const storageBucket = this.helperService.isProductionEnvironment() ? ProductionCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX : SandboxCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX;
     return storageBucket;
   }
 

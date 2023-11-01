@@ -1,12 +1,9 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, Signal, inject, signal } from '@angular/core';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { NoNavBarUrls } from 'shared-models/routes-and-paths/app-routes.model';
 import { filter, tap } from 'rxjs/operators';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { RootStoreState, UiStoreActions } from 'src/app/root-store';
 import { DOCUMENT, Location } from '@angular/common';
 import { AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
 
@@ -15,13 +12,12 @@ import { AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.
 })
 export class UiService {
 
-  private sideNavSignal$ = new Subject<void>();
-  private screenIsMobile$ = new BehaviorSubject(true);
-  private window: Window;
   private history: string[] = []
-  $routeGuardProcessing = signal(false);
+  private $privateHideNavBar = signal(true);
+  private $privateRouteGuardProcessing = signal(false); // Accessed by route guards to update UI loading symbol
+  private $privateScreenIsMobile = signal(false);
+  private window: Window;
 
-  private store$ = inject(Store<RootStoreState.AppState>);
   private snackbar = inject(MatSnackBar);
   private breakpointObserver = inject(BreakpointObserver);
   private router = inject(Router);
@@ -35,10 +31,6 @@ export class UiService {
     this.monitorNavigationHistory();
     this.window =this.document.defaultView as Window;
    }
-
-  dispatchSideNavClick() {
-    this.sideNavSignal$.next();
-  }
 
   showSnackBar(message: string, duration: number, action: string = 'Dismiss', ) {
     const config = new MatSnackBarConfig();
@@ -54,28 +46,30 @@ export class UiService {
 
   private monitorScreenSize() {
     this.breakpointObserver.observe(['(max-width: 959px)'])
-      .subscribe((state: BreakpointState) => {
-        if (state.matches) {
-          console.log('Mobile screen detected');
-          this.screenIsMobile$.next(true);
-        } else {
-          console.log('Desktop screen detected');
-          this.screenIsMobile$.next(false);
-        }
-      });
+      .pipe(
+        tap((state: BreakpointState) => {
+          if (state.matches) {
+            console.log('Mobile screen detected');
+            this.$privateScreenIsMobile.set(true);
+          } else {
+            console.log('Desktop screen detected');
+            this.$privateScreenIsMobile.set(false);
+          }
+        })
+      )
+      .subscribe();
 
   }
 
-  get screenWidth() {
+  get screenWidth(): number {
     return this.window.innerWidth;
   }
 
-  get screenIsMobile(): Observable<boolean> {
-    return this.screenIsMobile$;
+  get $screenIsMobile(): Signal<boolean> {
+    return this.$privateScreenIsMobile.asReadonly();
   }
 
   private evaluateNavBarVisibility() {
-
     this.router.events.pipe(
       filter(event =>
         event instanceof NavigationEnd
@@ -87,13 +81,13 @@ export class UiService {
         const addTrainingSessionRequest = addTrainingSessionString ? JSON.parse(addTrainingSessionString) as boolean : false;
         const invalidUrl = NoNavBarUrls.some(invalidUrl => url.includes(invalidUrl)); // Courtesy of: https://stackoverflow.com/a/43615512/6572208
         const hideNavBar = addTrainingSessionRequest || invalidUrl;
-        if (hideNavBar) {
-          this.store$.dispatch(UiStoreActions.hideNavBar());
-          return;
-        } 
-        this.store$.dispatch(UiStoreActions.showNavBar());
-      }),
+        this.$privateHideNavBar.set(hideNavBar);
+      })
     ).subscribe();
+  }
+
+  get $hideNavBar(): Signal<boolean> {
+    return this.$privateHideNavBar.asReadonly();
   }
 
   // Used to avoid a back naviagation request when no navigation history available (e.g., user just loaded app)
@@ -113,6 +107,14 @@ export class UiService {
     } else {
       this.router.navigateByUrl('/')
     }
+  }
+
+  set routeGuardProcessing(isProcessing: boolean) {
+    this.$privateRouteGuardProcessing.set(isProcessing);
+  }
+
+  get $routeGuardProcessing(): Signal<boolean> {
+    return this.$privateRouteGuardProcessing.asReadonly();
   }
 
 }

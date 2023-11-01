@@ -8,12 +8,7 @@
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.videoUrl">
         <mat-error *ngIf="videoUrl?.hasError(validation.type) && videoUrl?.invalid && (videoUrl?.dirty || videoUrl?.touched)">{{ validation.message }}</mat-error>
       </mat-error>
-      
     </mat-form-field>
-    <div class="video-exists-in-database-warning" *ngIf="getYoutubeVideoDataError$ | async as error">
-      {{ error.message }}
-    </div>
-    
   </div>
 
 </form>

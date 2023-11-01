@@ -57,7 +57,7 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
   return authService.fetchCachedUserData()
     .pipe(
       switchMap(authResults => {
-        uiService.$routeGuardProcessing.set(true);
+        uiService.routeGuardProcessing = true;
         let userData: Observable<PublicUser | undefined> = of(undefined);
         if (authResults?.id) {
           userData = fetchUserData(authResults.id, store$);
@@ -69,7 +69,7 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
 
         if (loopProtectionCount > 4) {
           console.log('Loop protection triggered');
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           throw Error('Loop protection triggered, halting function');
         }
 
@@ -82,7 +82,7 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
           console.log(`AuthGuard ${guardType}: user not authenticated, routing to login screen`);
           uiService.showSnackBar('Please login to continue.', 6000);
           redirectToLogin(returnUrl, router);
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           return false;
         }
 
@@ -91,14 +91,14 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
           console.log(`AuthGuard ${guardType}: email not verified, routing to login screen`);
           uiService.showSnackBar('Please verify your email to continue. Check your inbox.', 10000);
           redirectToLogin(returnUrl, router);
-          uiService.$routeGuardProcessing.set(false);
+          uiService.routeGuardProcessing = false;
           return false;
         }
 
         console.log(`AuthGuard ${guardType}: auth present and email verified in both auth and db, proceeding with route request`);
 
         // Otherwise proceed
-        uiService.$routeGuardProcessing.set(false);
+        uiService.routeGuardProcessing = false;
         return true;
       }),
       catchError(error => {

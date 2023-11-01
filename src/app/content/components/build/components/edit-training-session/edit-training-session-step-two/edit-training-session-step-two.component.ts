@@ -1,18 +1,15 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
-import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
-import { TrainingSession, TrainingSessionForm, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform } from 'shared-models/train/training-session.model';
-import { RootStoreState, TrainingSessionStoreSelectors } from 'src/app/root-store';
+import { TrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform } from 'shared-models/train/training-session.model';
 
 @Component({
   selector: 'app-edit-training-session-step-two',
@@ -21,35 +18,7 @@ import { RootStoreState, TrainingSessionStoreSelectors } from 'src/app/root-stor
 })
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
-  existingTrainingSessionData$!: Observable<TrainingSession | undefined>;
-  existingTrainingSessionDataSubscription!: Subscription
-
-  FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
-  intensityMin = TrainingSessionFormVars.complexityMin;
-  intensityMax = TrainingSessionFormVars.complexityMax;
-  complexityMin = TrainingSessionFormVars.complexityMin;
-  complexityMax = TrainingSessionFormVars.complexityMax;
-
-  // Note: Not useing formbuilder here due to typing error (will likey be fixed in a future angular forms update)
-  trainingSessionForm = new FormGroup<TrainingSessionForm>({
-    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: new FormControl([] as TrainingSessionActivityCategoryDbOption[], [Validators.required]),
-    [TrainingSessionKeys.COMPLEXITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]),
-    [TrainingSessionKeys.EQUIPMENT]: new FormControl(false, [Validators.required]),
-    [TrainingSessionKeys.INTENSITY_DEFAULT]: new FormControl(0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]),
-    [TrainingSessionKeys.MUSCLE_GROUP]: new FormControl(null, [Validators.required]),
-    [TrainingSessionKeys.VIDEO_PLATFORM]: new FormControl(TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]),
-  });
-
-  chipListSeparatorKeysCodes: number[] = [ENTER, COMMA];
-  trainingSessionActivityCategoryUserInputForm = new FormControl('');
-  filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
-
-  trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
-
-  trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
-  trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
-  trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
-  @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
+  @Input() $currentTrainingSession = signal(undefined as TrainingSession | undefined);
 
   ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
   ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
@@ -60,11 +29,38 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   EQUIPMENT_FIELD_VALUE = GlobalFieldValues.EQUIPMENT;
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
+
+  FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
+
+  intensityMin = TrainingSessionFormVars.complexityMin;
+  intensityMax = TrainingSessionFormVars.complexityMax;
+  complexityMin = TrainingSessionFormVars.complexityMin;
+  complexityMax = TrainingSessionFormVars.complexityMax;
+
+  chipListSeparatorKeysCodes: number[] = [ENTER, COMMA];
+  trainingSessionActivityCategoryUserInputForm = new FormControl('');
+  filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
+
+  trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
+
+  private trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
+  private trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
+  private trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
+  @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
+
+
+  private fb = inject(FormBuilder);
+
+  trainingSessionForm = this.fb.group({
+    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [[] as TrainingSessionActivityCategoryDbOption[], [Validators.required]],
+    [TrainingSessionKeys.COMPLEXITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]],
+    [TrainingSessionKeys.EQUIPMENT]: [false, [Validators.required]],
+    [TrainingSessionKeys.INTENSITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
+    [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
+    [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
+  });
   
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private route: ActivatedRoute
-  ) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.patchExistingDataIfExists();
@@ -72,25 +68,19 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
 
   private patchExistingDataIfExists() {
-    const idParamName = 'id';
-    const sessionId = this.route.snapshot.params[idParamName];
-    if (sessionId) {
-      // Session should already be loaded into store from step 1 so no need to fetch
-      this.existingTrainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId));
-      this.existingTrainingSessionDataSubscription = this.existingTrainingSessionData$
-        .subscribe(trainingSessionData => {
-          if (trainingSessionData) {
-            console.log('Patching training session data into Step Two');
-            this.trainingSessionForm.patchValue({
-              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.COMPLEXITY_DEFAULT],
-              [TrainingSessionKeys.EQUIPMENT]: trainingSessionData[TrainingSessionKeys.EQUIPMENT],
-              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: trainingSessionData[TrainingSessionKeys.ACTIVITY_CATEGORY_LIST],
-              [TrainingSessionKeys.INTENSITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT],
-              [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
-              [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
-            })
-          }
-        })
+    const trainingSessionData = this.$currentTrainingSession();
+    console.log('Found this trainingSessionData in step two', trainingSessionData);
+    console.log('Initialized form', this.trainingSessionForm);
+    if (trainingSessionData) {
+      console.log('Patching training session data into Step Two');
+      this.trainingSessionForm.patchValue({
+        [TrainingSessionKeys.COMPLEXITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.COMPLEXITY_DEFAULT],
+        [TrainingSessionKeys.EQUIPMENT]: trainingSessionData[TrainingSessionKeys.EQUIPMENT],
+        [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: trainingSessionData[TrainingSessionKeys.ACTIVITY_CATEGORY_LIST],
+        [TrainingSessionKeys.INTENSITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT],
+        [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
+        [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
+      });
     }
   }
 
@@ -195,9 +185,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    if (this.existingTrainingSessionDataSubscription) {
-      this.existingTrainingSessionDataSubscription.unsubscribe();
-    }
+
   }
 
   // These getters are used for easy access in the HTML template
