@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch, Timestamp } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
 import { PersonalSessionFragment, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -132,6 +132,7 @@ export class PersonalSessionFragmentService {
           console.log(`Fetched all ${personalSessionFragmentsWithUpdatedTimestamps.length} personalSessionFragments`);
           return personalSessionFragmentsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching personalSessionFragments', error);
@@ -186,6 +187,7 @@ export class PersonalSessionFragmentService {
           console.log(`Fetched all ${personalSessionFragmentsWithUpdatedTimestamps.length} personalSessionFragments`);
           return personalSessionFragmentsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching personalSessionFragments', error);
@@ -212,6 +214,7 @@ export class PersonalSessionFragmentService {
           console.log(`Fetched single personalSessionFragment`, formattedPersonalSessionFragment);
           return formattedPersonalSessionFragment;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching personalSessionFragment', error);
@@ -235,7 +238,7 @@ export class PersonalSessionFragmentService {
 
     return from(personalSessionFragmentUpdateRequest)
       .pipe(
-        map(docRef => {
+        map(emtpy => {
           console.log('Updated personalSessionFragment', changesWithTimestamp);
           return personalSessionFragmentUpdates; // Use new version with MS timestamps
         }),

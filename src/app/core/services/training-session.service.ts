@@ -3,7 +3,7 @@ import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, take, takeUntil } from 'rxjs/operators';
+import { catchError, map, shareReplay, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { TrainingSession, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
@@ -106,6 +106,7 @@ export class TrainingSessionService {
           console.log(`Fetched all ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
           return trainingSessionsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingSessions', error);
@@ -165,6 +166,7 @@ export class TrainingSessionService {
           console.log(`Fetched all ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
           return trainingSessionsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingSessions', error);
@@ -191,6 +193,7 @@ export class TrainingSessionService {
           console.log(`Fetched single trainingSession`, formattedTrainingSession);
           return formattedTrainingSession;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingSession', error);
@@ -215,6 +218,7 @@ export class TrainingSessionService {
           console.log('Video data retreived', videoData)
           return videoData;
         }),
+        shareReplay(),
         catchError(error => {
           console.log('Error fetching youtube video data', error);
           // If duplicate video error, show that specific error message

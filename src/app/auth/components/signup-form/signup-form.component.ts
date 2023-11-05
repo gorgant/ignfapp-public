@@ -3,7 +3,7 @@ import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
@@ -36,6 +36,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   private authSubscription!: Subscription;
   
   private userData$!: Observable<PublicUser>;
+  private createUserRequestSubmitted = signal(false);
 
   private reloadAuthDataTriggered = signal(false);
 
@@ -87,14 +88,17 @@ export class SignupFormComponent implements OnInit, OnDestroy {
             this.resetComponentActionState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
-          return combineLatest([this.authData$, this.authError$]);
+          return this.authData$;
         }),
+        withLatestFrom(this.authError$),
         filter(([authData, processingError]) => !processingError ), // Halts function if processingError detected
         filter(([authData, processingError]) => !!authData), // Only proceed once auth data is available
         switchMap(([authData, processingError]) => {
           console.log('Auth data received', authData);
           console.log('New user detected in auth, creating new user in DB', authData);
-          this.createUserInFirebase(authData);
+          if (!this.createUserRequestSubmitted()) {
+            this.createUserInFirebase(authData);
+          }
           return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
         }),
         filter(([userData, authData, authReloadProcessing]) => !!userData && !!authData && !authReloadProcessing), // Only proceed once user data is available
@@ -148,6 +152,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   }
 
   private resetComponentActionState() {
+    this.createUserRequestSubmitted.set(false);
     this.reloadAuthDataTriggered.set(false);
   }
 

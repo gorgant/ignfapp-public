@@ -1,13 +1,13 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingRecordFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { TrainingSessionCompletionData, TrainingRecordForm, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
-import { PersonalSessionFragmentStoreActions, RootStoreState, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions } from 'src/app/root-store';
+import { TrainingSessionCompletionData, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
+import { PersonalSessionFragmentStoreActions, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions } from 'src/app/root-store';
 import { Duration, DurationLikeObject } from 'luxon';
-import { distinctUntilChanged, Observable, Subscription, withLatestFrom } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { TrainingSessionFormVars } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
@@ -37,29 +37,30 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   complexityMin = TrainingSessionFormVars.complexityMin;
   complexityMax = TrainingSessionFormVars.complexityMax;
 
-
-  trainingRecordForm = new FormGroup<TrainingRecordForm>({
-    [TrainingRecordKeys.COMPLEXITY_RATING]: new FormControl(null, [Validators.pattern(/^[0-9]+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]),
-    [TrainingRecordKeys.HOURS]: new FormControl(null, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]),
-    [TrainingRecordKeys.INTENSITY_RATING]: new FormControl(0, [Validators.required, Validators.pattern(/^[0-9]+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]),
-    [TrainingRecordKeys.MINUTES]: new FormControl(null, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]),
-    [TrainingRecordKeys.SECONDS]: new FormControl(null, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]),
-  });
-  trainingRecordFormStatusSubscription!: Subscription;
+  private trainingRecordFormStatusSubscription!: Subscription;
 
   createTrainingRecordProcessing$!: Observable<boolean>;
-  createTrainingRecordSubscription!: Subscription;
-  createTrainingRecordError$!: Observable<{} | null>;
-  createTrainingRecordSubmitted!: boolean;
+  private createTrainingRecordSubscription!: Subscription;
+  private createTrainingRecordError$!: Observable<{} | null>;
+  private createTrainingRecordSubmitted = signal(false);
   
-  editDuration = false;
+  editDuration = signal(false);
 
-  constructor(
-    private dialogRef: MatDialogRef<TrainingSessionCompleteDialogueComponent>,
-    @Inject(MAT_DIALOG_DATA) public sessionCompletionData: TrainingSessionCompletionData,
-    private store$: Store<RootStoreState.AppState>,
-    private uiService: UiService,
-  ) { }
+  private dialogRef = inject(MatDialogRef<TrainingSessionCompleteDialogueComponent>);
+  public sessionCompletionData: TrainingSessionCompletionData = inject(MAT_DIALOG_DATA);
+  private store$ = inject(Store);
+  private uiService = inject(UiService);
+  private fb = inject(FormBuilder);
+
+  trainingRecordForm = this.fb.group({
+    [TrainingRecordKeys.COMPLEXITY_RATING]: [0, [Validators.pattern(/^[0-9]+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]],
+    [TrainingRecordKeys.HOURS]: [0, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]],
+    [TrainingRecordKeys.INTENSITY_RATING]: [0, [Validators.required, Validators.pattern(/^[0-9]+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
+    [TrainingRecordKeys.MINUTES]: [0, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]],
+    [TrainingRecordKeys.SECONDS]: [0, [Validators.pattern(/^[0-9]+$/), Validators.min(0)]],
+  });
+
+  constructor() { }
 
   ngOnInit(): void {
     this.initForm();
@@ -68,7 +69,7 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   }
 
   onEditDuration() {
-    this.editDuration = true;
+    this.editDuration.set(true);
   }
 
   private initForm(): void {
@@ -116,15 +117,14 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   }
 
   onSubmitTrainingRecord() {
-
     const userId = this.sessionCompletionData.userId;
     const personalSessionFragmentId = this.sessionCompletionData.personalSessionFragmentId;
 
     // Create a duration object and convert to ms
     let hmsObject: DurationLikeObject = {
-      hours: this.hours.value ? this.hours.value : 0,
-      minutes: this.minutes.value ? this.minutes.value : 0,
-      seconds: this.seconds.value ? this.seconds.value : 0,
+      hours: this.hours.value,
+      minutes: this.minutes.value,
+      seconds: this.seconds.value,
     };
     // If user sets all values to zero, set seconds to 1 to ensure it has a minimum duration
     if (hmsObject.hours as number <= 0 && hmsObject.minutes as number <= 0 && hmsObject.seconds as number <= 0) {
@@ -137,9 +137,8 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       duration: updatedDuration,
       intensityRating: this.intensityRating.value,
       trainingSessionData: this.sessionCompletionData.trainingSession,
-      userId: this.sessionCompletionData.userId,
+      userId,
     }
-
     console.log('Training session record data', trainingRecordNoId);
 
     const sessionRating: TrainingSessionRatingNoIdOrTimestamp = {
@@ -148,47 +147,55 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       trainingSessionId: this.sessionCompletionData.trainingSession.id,
       userId: this.sessionCompletionData.userId
     };
+    console.log('sessionRating', sessionRating);
     
-    this.store$.dispatch(TrainingSessionStoreActions.updateSessionRatingRequested({sessionRating}))
-    this.store$.dispatch(TrainingRecordStoreActions.createTrainingRecordRequested({userId: this.sessionCompletionData.userId, trainingRecordNoId}));
-    // If this was loaded from a personalSessionFragment, delete that from user's queue upon completion
-    if (personalSessionFragmentId) {
-      this.store$.dispatch(PersonalSessionFragmentStoreActions.deletePersonalSessionFragmentRequested({userId: this.sessionCompletionData.userId, personalSessionFragmentId}));
-    }
-
-    this.postCreateTrainingRecordActions();
+    this.store$.dispatch(TrainingRecordStoreActions.createTrainingRecordRequested({userId, trainingRecordNoId}));
+    this.createTrainingRecordSubmitted.set(true);
+    this.postCreateTrainingRecordActions(sessionRating);
   }
 
-  private postCreateTrainingRecordActions() {
-    this.createTrainingRecordSubscription = this.createTrainingRecordProcessing$
+  private postCreateTrainingRecordActions(sessionRating: TrainingSessionRatingNoIdOrTimestamp) {
+    
+    this.createTrainingRecordSubscription = this.createTrainingRecordError$
       .pipe(
-        withLatestFrom(this.createTrainingRecordError$)
-      )
-      .subscribe(([creatingRecord, creationError]) => {
-        if (creatingRecord) {
-          this.createTrainingRecordSubmitted = true;
-        }
-
-        if (creationError) {
-          console.log('Error creating training record in database, terminating function');
-          this.createTrainingRecordSubscription.unsubscribe();
-          this.createTrainingRecordSubmitted = false;
-          return;
-        }
-
-        if (!creatingRecord && this.createTrainingRecordSubmitted) {
-          console.log('Training Record creation successful.');
-          this.uiService.showSnackBar(`Training Record created!`, 5000);
-          this.createTrainingRecordSubscription.unsubscribe();
-          this.dialogRef.close(true);
-        }
-      })
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.createTrainingRecordSubmitted.set(false);
+            this.createTrainingRecordSubscription?.unsubscribe();
+          }
+          return this.createTrainingRecordProcessing$; 
+        }),
+        withLatestFrom(this.createTrainingRecordError$),
+        filter(([creationProcessing, processingError]) => !processingError),
+        tap(([creationProcessing, processingError]) => {
+          if (!creationProcessing && this.createTrainingRecordSubmitted()) {
+            console.log('Training Record creation successful.');
+            this.uiService.showSnackBar(`Training Record created!`, 5000);
+            // After creating the record, update the sessionRating and optionally delete the personalSessionFragment, both of which can happen asyncronously
+            this.store$.dispatch(TrainingSessionStoreActions.updateSessionRatingRequested({sessionRating}));
+            // If this was loaded from a personalSessionFragment, delete that from user's queue upon completion
+            if (this.sessionCompletionData.personalSessionFragmentId) {
+              this.store$.dispatch(PersonalSessionFragmentStoreActions.deletePersonalSessionFragmentRequested({
+                userId: this.sessionCompletionData.userId, 
+                personalSessionFragmentId: this.sessionCompletionData.personalSessionFragmentId
+              }));
+            }
+            this.dialogRef.close(true);
+          }
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.createTrainingRecordSubmitted.set(false);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe()
   }
 
   ngOnDestroy(): void {
-    if (this.trainingRecordFormStatusSubscription) {
-      this.trainingRecordFormStatusSubscription.unsubscribe();
-    }
+    this.trainingRecordFormStatusSubscription?.unsubscribe();
   }
 
 

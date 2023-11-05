@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
 import { TrainingRecord, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -112,6 +112,7 @@ export class TrainingRecordService {
           console.log(`Fetched all ${trainingRecordsWithUpdatedTimestamps.length} trainingRecords`);
           return trainingRecordsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingRecords', error);
@@ -172,6 +173,7 @@ export class TrainingRecordService {
           console.log(`Fetched all ${trainingRecordsWithUpdatedTimestamps.length} trainingRecords`);
           return trainingRecordsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingRecords', error);
@@ -204,6 +206,7 @@ export class TrainingRecordService {
           console.log(`Fetched single trainingRecord`, formattedTrainingRecord);
           return formattedTrainingRecord;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching trainingRecord', error);

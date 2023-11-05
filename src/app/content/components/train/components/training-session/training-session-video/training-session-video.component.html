@@ -1,4 +1,4 @@
 <div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
-  <youtube-player [videoId]="trainingSessionData.videoData.id" [width]="videoPlayerWidth" [height]="videoPlayerHeight" [playerVars]="videoPlayerOptions" #ytVideoPlayerApi></youtube-player>
+  <youtube-player [videoId]="trainingSessionData.videoData.id" [width]="videoPlayerWidth()" [height]="videoPlayerHeight()" [playerVars]="videoPlayerOptions()" #ytVideoPlayerApi></youtube-player>
 </div>
 

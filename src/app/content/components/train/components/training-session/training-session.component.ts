@@ -2,11 +2,11 @@ import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal }
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, of, take, throwError } from 'rxjs';
+import { Observable, Subscription, take, throwError } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
-import { RootStoreState, TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionCompleteDialogueComponent } from './training-session-complete-dialogue/training-session-complete-dialogue.component';
 import { TrainingSessionDetailsComponent } from './training-session-details/training-session-details.component';
 import { TrainingSessionVideoComponent } from './training-session-video/training-session-video.component';
@@ -18,9 +18,9 @@ import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AddTrainingSessionUrlParams, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
-import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
+import { PlanSessionFragmentKeys, ViewPlanSessionFragmentUrlParams } from 'shared-models/train/plan-session-fragment.model';
 import { Timestamp } from '@angular/fire/firestore';
-import { PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
+import { PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from 'src/app/core/services/ui.service';
 
 @Component({
@@ -47,73 +47,85 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   RESUME_TRAINING_BUTTON_VALUE = GlobalFieldValues.RESUME_TRAINING;
   START_NOW_BUTTON_VALUE = GlobalFieldValues.START_NOW;
 
-  trainingSessionData$!: Observable<TrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
-  fetchTrainingSessionProcessing$!: Observable<boolean>;
-  fetchTrainingSessionError$!: Observable<{} | null>;
-  singleTrainingSessionRequested!: boolean;
+  $currentTrainingSession = signal(undefined as TrainingSession | undefined);
+  private $currentTrainingSessionId = signal(undefined as string | undefined);
+  private fetchTrainingSessionProcessing$!: Observable<boolean>;
+  private fetchTrainingSessionError$!: Observable<{} | null>;
+  private $singleTrainingSessionRequested = signal(false);
+  private currentTrainingSessionSubscription!: Subscription;
 
-  deleteTrainingSessionSubscription!: Subscription;
+  private deleteTrainingSessionSubscription!: Subscription;
   deleteTrainingSessionProcessing$!: Observable<boolean>;
-  deleteTrainingSessionError$!: Observable<{} | null>;
-  deleteTrainingSessionSubmitted = signal(false);
+  private deleteTrainingSessionError$!: Observable<{} | null>;
+  private deleteTrainingSessionSubmitted = signal(false);
 
 
-  videoInitialized: boolean = false;
+  videoInitialized = signal(false);
 
-  @ViewChild('videoComponent') videoComponent!: TrainingSessionVideoComponent;
-  @ViewChild('detailsComponent') detailsComponent!: TrainingSessionDetailsComponent;
+  @ViewChild('videoComponent') private videoComponent!: TrainingSessionVideoComponent;
+  @ViewChild('detailsComponent') private detailsComponent!: TrainingSessionDetailsComponent;
 
-  sessionDuration!: number | null;
-  sessionStartTime!: number | null;
-  sessionEndTime!: number | null;
-  sessionPaused!: boolean;
-  sessionCompleted!: boolean;
-  videoStateSubscription!: Subscription;
+  private sessionDuration = signal(undefined as number | undefined);
+  private sessionStartTime = signal(undefined as number | undefined);
+  private sessionEndTime = signal(undefined as number | undefined);
+  sessionPaused = signal(false);
+  private sessionCompleted = signal(false);
+  private videoStateSubscription!: Subscription;
 
-  trainingPlanBuilderRequest!: boolean;
-  databaseCategoryType!: TrainingSessionDatabaseCategoryTypes;
-  planSessionFragmentQueryParams: ViewPlanSessionFragmentUrlParams | undefined;
-  personalSessionFragmentQueryParams: ViewPersonalSessionFragmentUrlParams | undefined;
+  $trainingPlanBuilderRequest = signal(false);
+  private $databaseCategoryType = signal(null as TrainingSessionDatabaseCategoryTypes | null);
+  private $planSessionFragmentQueryParams = signal(undefined as ViewPlanSessionFragmentUrlParams | undefined);
+  private $personalSessionFragmentQueryParams = signal(undefined as ViewPersonalSessionFragmentUrlParams | undefined);
 
   private uiService = inject(UiService);
+  private store$ = inject(Store);
+  private route = inject(ActivatedRoute);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
   
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private route: ActivatedRoute,
-    private dialog: MatDialog,
-    private router: Router,
-  ) { }
+  
+  constructor() { }
 
   ngOnInit(): void {
-    this.checkForAdditionalViewSessionData();
-    this.checkForAddSessionRequest();
     this.monitorProcesses();
+    this.checkForPlanBuilderRequest();
     this.getTrainingSessionData();
   }
 
-  private checkForAddSessionRequest() {
-    const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
-    if (addTrainingSessionString) {
-      const addTrainingSession = JSON.parse(addTrainingSessionString) as boolean;
-      if (addTrainingSession) {
+  private checkForPlanBuilderRequest() {
+    const builderRequestString = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+    if (builderRequestString) {
+      const isBuilderRequest = JSON.parse(builderRequestString) as boolean;
+      if (isBuilderRequest) {
         console.log('Plan builder request detected');
-        this.trainingPlanBuilderRequest = true;
+        this.$trainingPlanBuilderRequest.set(true);
       }
     }
   }
 
   // Pulls data from params if source is a planSessionFragment or personalSessionFragment
-  private checkForAdditionalViewSessionData() {
-    const databaseCategoryType = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.DATABASE_CATEGORY);
-    if (databaseCategoryType) {
-      console.log('Alternate database category detected');
-      this.databaseCategoryType = databaseCategoryType as TrainingSessionDatabaseCategoryTypes;
-      if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT) {
-        this.planSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPlanSessionFragmentUrlParams;
-      }
-      if (databaseCategoryType === TrainingSessionDatabaseCategoryTypes.PERSONAL_FRAGMENT) {
-        this.personalSessionFragmentQueryParams = this.route.snapshot.queryParams as ViewPersonalSessionFragmentUrlParams;
-      }
+  private setDatabaseCategoryType() {
+    const databaseCategoryType = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.DATABASE_CATEGORY) as TrainingSessionDatabaseCategoryTypes | null;
+    this.$databaseCategoryType.set(databaseCategoryType);
+  }
+
+  private setFragmentQueryPrams() {
+    this.setDatabaseCategoryType();
+    switch (this.$databaseCategoryType()) {
+      case TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT:
+        console.log('planSessionFragment detected');
+        this.$planSessionFragmentQueryParams.set(this.route.snapshot.queryParams as ViewPlanSessionFragmentUrlParams);
+        break;
+      case TrainingSessionDatabaseCategoryTypes.PERSONAL_FRAGMENT:
+        console.log('personalSessionFragment detected');
+        this.$personalSessionFragmentQueryParams.set(this.route.snapshot.queryParams as ViewPersonalSessionFragmentUrlParams);
+        break;
+      case TrainingSessionDatabaseCategoryTypes.CANONICAL:
+        console.log('canonical trainingSession detected');
+        break;
+      default:
+        console.log('No database category detected');
+        break;
     }
   }
   
@@ -125,149 +137,168 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.deleteTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectDeleteTrainingSessionError);
   }
 
-  private getSessionIdFromParams(): string {
-    const idParamName = 'id';
-    let trainingSessionId: string;
-
-    if (this.planSessionFragmentQueryParams) {
-      trainingSessionId = this.planSessionFragmentQueryParams[PlanSessionFragmentKeys.CANONICAL_ID];
-      return trainingSessionId;
+  private setTrainingSessionId(): void {
+    switch (this.$databaseCategoryType()) {
+      case TrainingSessionDatabaseCategoryTypes.PLAN_FRAGMENT:
+        const planSessionFragmentId = this.$planSessionFragmentQueryParams()![PlanSessionFragmentKeys.CANONICAL_ID];
+        this.$currentTrainingSessionId.set(planSessionFragmentId);
+        break;
+      case TrainingSessionDatabaseCategoryTypes.PERSONAL_FRAGMENT:
+        const personalSessionFragmentId = this.$personalSessionFragmentQueryParams()![PersonalSessionFragmentKeys.CANONICAL_ID];
+        this.$currentTrainingSessionId.set(personalSessionFragmentId);
+        break;
+      case TrainingSessionDatabaseCategoryTypes.CANONICAL:
+        const trainingSessionId = this.route.snapshot.params[TrainingSessionKeys.ID];
+        this.$currentTrainingSessionId.set(trainingSessionId);
+        break;
+      default:
+        const deafultTrainingSessionId = this.route.snapshot.params[TrainingSessionKeys.ID];
+        this.$currentTrainingSessionId.set(deafultTrainingSessionId);
     }
-
-    if (this.personalSessionFragmentQueryParams) {
-      trainingSessionId = this.personalSessionFragmentQueryParams[PersonalSessionFragmentKeys.CANONICAL_ID];
-      return trainingSessionId;
-    }
-
-    trainingSessionId = this.route.snapshot.params[idParamName];
-    return trainingSessionId;
   }
 
   private getTrainingSessionData() {
-    const trainingSessionId = this.getSessionIdFromParams();
-    this.trainingSessionData$ = this.fetchTrainingSessionProcessing$
-        .pipe(
-          withLatestFrom(
-            this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)), 
-            this.fetchTrainingSessionError$
-          ),
-          map(([fetchProcessing, trainingSession, loadError]) => {
-            if (loadError) {
-              console.log('Error loading trainingSession in component', loadError);
-              this.singleTrainingSessionRequested = false;
-              const queryParams: ViewTrainingSessionsUlrParams = {
-                [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
-              };
-              const navigationExtras: NavigationExtras = {queryParams};
-              this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
-            }
-            if (!trainingSession && !fetchProcessing && !this.singleTrainingSessionRequested && !loadError) {
-              console.log(`Session ${trainingSessionId} not in store, fetching from database`);
-              this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
-              this.singleTrainingSessionRequested = true;
-            }
-            return trainingSession;
-          })
-        )
+    this.setFragmentQueryPrams();
+    this.setTrainingSessionId();
+    const trainingSessionId = this.$currentTrainingSessionId() as string;
+    this.currentTrainingSessionSubscription = this.fetchTrainingSessionError$
+      .pipe(
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.$singleTrainingSessionRequested.set(false);
+            this.onNavigateToBrowseWithTrainingSessionSelection();
+          }
+          const singleTrainingSession$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)); 
+          return singleTrainingSession$;
+        }),
+        withLatestFrom(this.fetchTrainingSessionError$),
+        filter(([trainingSession, processingError]) => !processingError),
+        map(([trainingSession, processingError]) => {
+          if (!trainingSession && !this.$singleTrainingSessionRequested()) {
+            console.log(`Session ${trainingSessionId} not in store, fetching from database`);
+            this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
+            this.$singleTrainingSessionRequested.set(true);
+          }
+          return trainingSession;
+        }),
+        filter(trainingSession => !!trainingSession),
+        tap(trainingSession => {
+          this.$currentTrainingSession.set(trainingSession);
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.$singleTrainingSessionRequested.set(false);
+          return throwError(() => new Error(error));
+        })
+      ).subscribe();
   }
 
   // Update training status if user interacts with video widget directly
   private monitorVideoState() {
     this.videoStateSubscription = this.videoComponent.ytVideoPlayerApi.stateChange
-      .pipe(distinctUntilChanged())
-      .subscribe(event => {
-        const currentState = event.data;
+      .pipe(
+        distinctUntilChanged(),
+        tap(event => {
+          const currentState = event.data;
 
-        switch (currentState) {
-          case YT.PlayerState.PAUSED: {
-            if (!this.sessionPaused) {
-              this.onPauseTrainingSession();
+          switch (currentState) {
+            case YT.PlayerState.PAUSED: {
+              if (!this.sessionPaused()) {
+                this.onPauseTrainingSession();
+              }
+              break;
             }
-            break;
-          }
-          
-          case YT.PlayerState.ENDED: {
-            if (!this.sessionCompleted) {
-              this.onCompleteTrainingSession();
+            
+            case YT.PlayerState.ENDED: {
+              if (!this.sessionCompleted()) {
+                this.onCompleteTrainingSession();
+              }
+              break;
             }
-            break;
-          }
-
-          case YT.PlayerState.PLAYING: {
-            if (this.sessionPaused) {
-              this.onResumeTrainingSession();
+  
+            case YT.PlayerState.PLAYING: {
+              if (this.sessionPaused()) {
+                this.onResumeTrainingSession();
+              }
+              break;
             }
-            break;
           }
-        }
-
-      })
+        })
+      )
+      .subscribe();
   }
 
   onBeginTrainingSession() {
-    this.videoInitialized = true;
+    this.videoInitialized.set(true);
     this.detailsComponent.expansionPanel.close();
     this.videoComponent.ytVideoPlayerApi.playVideo();
-    this.sessionStartTime = Timestamp.now().toMillis();
+    this.sessionStartTime.set(Timestamp.now().toMillis());
     this.monitorVideoState();
   }
 
   onPauseTrainingSession() {
     console.log('Pausing training session');
     this.videoComponent.ytVideoPlayerApi.pauseVideo();
-    this.sessionEndTime = Timestamp.now().toMillis();
-    this.sessionDuration = this.sessionDuration ? this.sessionEndTime! - this.sessionStartTime! + this.sessionDuration : this.sessionEndTime! - this.sessionStartTime!;
-    this.sessionStartTime = null;
-    this.sessionEndTime = null;
-    this.sessionPaused = true;
+    this.sessionEndTime.set(Timestamp.now().toMillis());
+    this.sessionDuration.update(existingDuration => {
+      if (existingDuration) {
+        return this.sessionEndTime()! - this.sessionStartTime()! + existingDuration;
+      }
+      return this.sessionEndTime()! - this.sessionStartTime()!;
+    });
+    this.sessionStartTime.set(undefined);
+    this.sessionEndTime.set(undefined);
+    this.sessionPaused.set(true);
   }
 
   onResumeTrainingSession() {
     console.log('Resuming training session');
     this.videoComponent.ytVideoPlayerApi.playVideo();
-    this.sessionStartTime = Timestamp.now().toMillis();
-    this.sessionPaused = false;
+    this.sessionStartTime.set(Timestamp.now().toMillis());
+    this.sessionPaused.set(false);
   }
 
   onCompleteTrainingSession() {
-    if (!this.sessionPaused) {
+    if (!this.sessionPaused()) {
       this.onPauseTrainingSession();
     }
-    
-    this.trainingSessionData$
+
+    this.userData$
       .pipe(
         take(1),
-        withLatestFrom(this.userData$)
-        )
-      .subscribe(([trainingSessionData, userData]) => {
-
-        const sessionCompletionData: TrainingSessionCompletionData = {
-          trainingSession: trainingSessionData!,
-          sessionDuration: this.sessionDuration!,
-          userId: userData!.id,
-          personalSessionFragmentId: this.personalSessionFragmentQueryParams?.[PersonalSessionFragmentKeys.CANONICAL_ID] // TODO: Confirm that this is the correct id
-        }
-
-        const dialogConfig = new MatDialogConfig();
-      
-        dialogConfig.autoFocus = false;
-        dialogConfig.width = '90%';
-        dialogConfig.maxWidth = '600px';
-    
-        dialogConfig.data = sessionCompletionData;
+        switchMap(userData => {
+          const sessionCompletionData: TrainingSessionCompletionData = {
+            trainingSession: this.$currentTrainingSession()!,
+            sessionDuration: this.sessionDuration()!,
+            userId: userData!.id,
+            personalSessionFragmentId: this.$personalSessionFragmentQueryParams() ? this.$personalSessionFragmentQueryParams()![TrainingSessionKeys.ID] : undefined
+          }
+  
+          const dialogConfig = new MatDialogConfig();
         
-        const dialogRef = this.dialog.open(TrainingSessionCompleteDialogueComponent, dialogConfig);
-    
-        dialogRef.afterClosed().subscribe(submitted => {
-          if (submitted) {
+          dialogConfig.autoFocus = false;
+          dialogConfig.width = '90%';
+          dialogConfig.maxWidth = '600px';
+      
+          dialogConfig.data = sessionCompletionData;
+          
+          const dialogRef = this.dialog.open(TrainingSessionCompleteDialogueComponent, dialogConfig);
+          const userSubmissionObserver = dialogRef.afterClosed() as Observable<boolean>;          
+          return userSubmissionObserver;
+        }),
+        tap(userConfirmedSubmission => {
+          if (userConfirmedSubmission) {
             this.videoComponent.ytVideoPlayerApi.stopVideo();
-            this.videoInitialized = false;
-            this.sessionCompleted = true;
+            this.videoInitialized.set(false);
+            this.sessionCompleted.set(true);
             this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
           }
-      });
-
-    })
+        })
+      ).subscribe();
+    
   }
 
   onCancelTrainingSession() {
@@ -285,11 +316,11 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.sessionStartTime = null;
-        this.sessionEndTime = null;
-        this.sessionDuration = null;
+        this.sessionStartTime.set(undefined);
+        this.sessionEndTime.set(undefined);
+        this.sessionDuration.set(undefined);
         this.videoComponent.ytVideoPlayerApi.stopVideo();
-        this.videoInitialized = false;
+        this.videoInitialized.set(false);
 
       } else {
         this.onResumeTrainingSession();
@@ -307,7 +338,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   onDeleteTrainingSession(sessionId: string) {
-    
     const dialogConfig = new MatDialogConfig();
     const actionConfData: ActionConfData = {
       title: this.DELETE_TRAINING_SESSION_CONF_TITLE,
@@ -326,15 +356,15 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
             console.log('processingError detected, terminating pipe', processingError);
             this.deleteTrainingSessionSubmitted.set(false);
           }
-          return combineLatest([userConfirmedDelete$, this.deleteTrainingSessionProcessing$, this.deleteTrainingSessionError$]);
+          return userConfirmedDelete$;
         }),
-        filter(([userConfirmedDelete, deletionProcessing, deletionError]) => !deletionError),
-        switchMap(([userConfirmedDelete, deletionProcessing, deletionError]) => {
+        withLatestFrom(this.deleteTrainingSessionError$),
+        filter(([userConfirmedDelete, deletionError]) => !deletionError),
+        switchMap(([userConfirmedDelete, deletionError]) => {
           if (userConfirmedDelete && !this.deleteTrainingSessionSubmitted()) {
             this.deleteTrainingSessionSubmitted.set(true);
             this.store$.dispatch(TrainingSessionStoreActions.deleteTrainingSessionRequested({sessionId}));
           }
-          console.log('deletionProcessing', deletionProcessing);
           console.log('deletionSubmitted', this.deleteTrainingSessionSubmitted());
           return this.deleteTrainingSessionProcessing$;
         }),
@@ -351,12 +381,13 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.deleteTrainingSessionSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
-  onNavigateToTrainingSessionSelection() {
+  onNavigateToBrowseWithTrainingSessionSelection() {
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID) as string;
     const queryParams: AddTrainingSessionUrlParams = {
       [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
@@ -384,6 +415,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   ngOnDestroy(): void {
+    this.currentTrainingSessionSubscription?.unsubscribe();
     this.videoStateSubscription?.unsubscribe();
     this.deleteTrainingSessionSubscription?.unsubscribe();
 

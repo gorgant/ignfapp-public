@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, Subject, throwError } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -162,6 +162,7 @@ export class PlanSessionFragmentService {
           console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} planSessionFragments`);
           return planSessionFragmentsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching planSessionFragments', error);
@@ -216,6 +217,7 @@ export class PlanSessionFragmentService {
           console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} planSessionFragments`);
           return planSessionFragmentsWithUpdatedTimestamps;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching planSessionFragments', error);
@@ -242,6 +244,7 @@ export class PlanSessionFragmentService {
           console.log(`Fetched single planSessionFragment`, formattedPlanSessionFragment);
           return formattedPlanSessionFragment;
         }),
+        shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
           console.log('Error fetching planSessionFragment', error);

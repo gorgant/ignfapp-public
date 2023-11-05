@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { catchError, filter, map, switchMap, take, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -117,8 +117,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           return false
         })
     );
-
-
   }
 
   private setStepperOrientation(): void {
@@ -133,8 +131,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   private setTrainingSessionId(): void {
-    const idParamName = TrainingSessionKeys.ID;
-    const sessionId = this.route.snapshot.params[idParamName] as string | undefined;
+    const sessionId = this.route.snapshot.params[TrainingSessionKeys.ID] as string | undefined;
     if (sessionId) {
       this.$currentTrainingSessionId.set(sessionId);
     }
@@ -149,14 +146,15 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.$singleTrainingSessionRequested.set(false);
-            this.navigateUserToBrowseTrainingSessions();
+            this.navigateToBrowseWithTrainingSessionSelection();
           }
           const singleTrainingSession$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)); 
-          return combineLatest([singleTrainingSession$, this.fetchTrainingSessionProcessing$, this.fetchTrainingSessionError$]);
+          return singleTrainingSession$;
         }),
-        filter(([trainingSession, fetchProcessing, processingError]) => !processingError),
-        map(([trainingSession, fetchProcessing, processingError]) => {
-          if (!trainingSession && !fetchProcessing && !this.$singleTrainingSessionRequested()) {
+        withLatestFrom(this.fetchTrainingSessionError$),
+        filter(([trainingSession, processingError]) => !processingError),
+        map(([trainingSession, processingError]) => {
+          if (!this.$singleTrainingSessionRequested()) {
             console.log(`Session ${trainingSessionId} not in store, fetching from database`);
             this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
             this.$singleTrainingSessionRequested.set(true);
@@ -190,8 +188,9 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             console.log('processingError detected, terminating pipe', processingError);
             this.createTrainingSessionSubmitted.set(false);
           }
-          return combineLatest([this.userData$, this.youtubeVideoData$, this.createTrainingSessionError$]);
+          return this.userData$;
         }),
+        withLatestFrom(this.youtubeVideoData$, this.createTrainingSessionError$),
         filter(([userData, videoData, processingError]) => !processingError && !!videoData),
         switchMap(([userData, videoData, processingError]) => {
           if (!this.createTrainingSessionSubmitted()) {
@@ -222,12 +221,13 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           console.log('Training session creation successful.');
           this.uiService.showSnackBar(`Training session created!`, 5000);
           this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
-          this.navigateUserToBrowseTrainingSessions();
+          this.navigateToBrowseWithTrainingSessionSelection();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.createTrainingSessionSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
@@ -244,8 +244,9 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             console.log('processingError detected, terminating pipe', processingError);
             this.updateTrainingSessionSubmitted.set(false);
           }
-          return combineLatest([currentTrainingSessionData$, this.youtubeVideoData$, this.updateTrainingSessionError$]);
+          return currentTrainingSessionData$;
         }),
+        withLatestFrom(this.youtubeVideoData$, this.updateTrainingSessionError$),
         filter(([currentTrainingSessionData, videoData, processingError]) => !processingError && !!videoData),
         switchMap(([currentTrainingSessionData, videoData, processingError]) => {
           console.log('Processing error', processingError);
@@ -280,13 +281,14 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.updateTrainingSessionSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
 
   }
 
-  private navigateUserToBrowseTrainingSessions(): void {
+  private navigateToBrowseWithTrainingSessionSelection(): void {
     // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
     const queryParams: ViewTrainingSessionsUlrParams = {
       [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
@@ -321,7 +323,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.updateTrainingSessionSubscription?.unsubscribe();
 
     // Purge if canceled operation
-    if (this.createTrainingSessionSubmitted() || this.updateTrainingSessionSubmitted()) {
+    if (!this.createTrainingSessionSubmitted() || !this.updateTrainingSessionSubmitted()) {
       this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
     }
 

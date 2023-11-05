@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { combineLatest, map, Observable, Subscription, withLatestFrom, take, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
+import { combineLatest, map, Observable, Subscription, withLatestFrom, take, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingPlanFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AddTrainingSessionUrlParams, TrainingPlan, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
@@ -67,13 +67,12 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private fetchSingleTrainingPlanError$!: Observable<{} | null>;
   private $singleTrainingPlanRequested = signal(false);
 
+  allPlanSessionFragmentsInStore$!: Observable<PlanSessionFragment[]>; 
   $currentPlanSessionFragments = signal(undefined as PlanSessionFragment[] | undefined);
-  allPlanSessionFragments$!: Observable<PlanSessionFragment[]>;
   private fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
   private fetchAllPlanSessionFragmentsError$!: Observable<{} | null>;
   private $planSessionFragmentsRequested = signal(false);
-  private planSessionFragmentsFetched$!: Observable<boolean>;
-
+  private allPlanSessionFragmentsFetched$!: Observable<boolean>;
 
   private batchModifyPlanSessionFragmentsProcessing$!: Observable<boolean>;
   private batchModifyPlanSessionFragmentsError$!: Observable<{} | null>;
@@ -90,11 +89,13 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private debounceDragDropServerCall$ = new Subject<void>();
   private debounceDragDropServerCallSubscription!: Subscription;
 
-  private store$ = inject(Store) ;
-  private route = inject(ActivatedRoute) ;
-  private uiService = inject(UiService) ;
-  private router = inject(Router) ;
-  private dialog = inject(MatDialog) ;
+  private store$ = inject(Store);
+  private route = inject(ActivatedRoute);
+  private uiService = inject(UiService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private deletePlanSessionFragmentError$!: Observable<{} | null>;
+  deletePlanSessionFragmentProcessing$!: Observable<boolean>;
   
   constructor() { }
 
@@ -107,25 +108,29 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
 
-    this.batchModifyPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchModifyPlanSessionFragmentsProcessing);
     this.batchModifyPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchModifyPlanSessionFragmentsError);
+    this.batchModifyPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchModifyPlanSessionFragmentsProcessing);
     
-    this.batchDeletePlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchDeletePlanSessionFragmentsProcessing);
     this.batchDeletePlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchDeletePlanSessionFragmentsError);
+    this.batchDeletePlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectBatchDeletePlanSessionFragmentsProcessing);
 
-    this.createTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanProcessing);
     this.createTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanError);
+    this.createTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectCreateTrainingPlanProcessing);
 
-    this.updateTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanProcessing);
+    this.deletePlanSessionFragmentError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectDeletePlanSessionFragmentError);
+    this.deletePlanSessionFragmentProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectDeletePlanSessionFragmentProcessing);
+
     this.updateTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanError);
+    this.updateTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectUpdateTrainingPlanProcessing);
 
-    this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
     this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
+    this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
 
-    this.allPlanSessionFragments$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore);
-    this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
+    this.allPlanSessionFragmentsFetched$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched); // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
+    this.allPlanSessionFragmentsInStore$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore); // Used to contrast the server version against the local version for debounce purposes
+    
     this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError);
-    this.planSessionFragmentsFetched$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched);
+    this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
 
     this.serverRequestProcessing$ = combineLatest(
       [
@@ -219,42 +224,47 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$singleTrainingPlanRequested.set(false);
             this.onNavigateUserToBrowse();
           }
           const singleTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
-          return combineLatest([singleTrainingPlan$, this.fetchSingleTrainingPlanProcessing$, this.fetchCombinedTrainingDataError$]);
+          return singleTrainingPlan$;
         }),
-        filter(([trainingPlan, fetchProcessing, processingError]) => !processingError),
-        map(([trainingPlan, fetchProcessing, processingError]) => {
-          if (!trainingPlan && !fetchProcessing && !this.$singleTrainingPlanRequested()) {
+        withLatestFrom(this.fetchSingleTrainingPlanError$),
+        filter(([trainingPlan, processingError]) => !processingError),
+        map(([trainingPlan, processingError]) => {
+          if (!trainingPlan && !this.$singleTrainingPlanRequested()) {
+            this.$singleTrainingPlanRequested.set(true);
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
             this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
-            this.$singleTrainingPlanRequested.set(true);
           }
           return trainingPlan;
         }),
         filter(trainingPlan => !!trainingPlan),
-        tap(trainingPlan => {
+        map(trainingPlan => {
           this.$currentTrainingPlan.set(trainingPlan!); // Load the current trainingPlan into the instance variable
           console.log('Set currentTrainingPlan', this.$currentTrainingPlan());
           this.title.setValue(trainingPlan!.title); // Update the form title
-        }), 
-        switchMap(trainingPlan => {
-          
-          return combineLatest([this.allPlanSessionFragments$, this.fetchAllPlanSessionFragmentsProcessing$, this.planSessionFragmentsFetched$]);
+          if (trainingPlan?.trainingSessionCount === 0) {
+            console.log('No trainingSessions in trainingPlan, setting to planSessionFragments to empty array');
+            this.$currentPlanSessionFragments.set([]);
+          }
+          return trainingPlan;
         }),
-        switchMap(([planSessionFragments, fetchProcessing, allPlanSessionFragmentsFetched]) => {
-          if (!fetchProcessing && !this.$planSessionFragmentsRequested() && !allPlanSessionFragmentsFetched) {
+        withLatestFrom(this.allPlanSessionFragmentsFetched$),
+        filter(([trainingPlan, allFetched]) => trainingPlan!.trainingSessionCount > 0), // Only fetch planSessionFragments if they exist in plan
+        switchMap(([trainingPlan, allFetched]) => {
+          if (!allFetched && !this.$planSessionFragmentsRequested()) {
+            this.$planSessionFragmentsRequested.set(true);
             console.log('planSessionFragments not in store, fetching from database');
             this.store$.dispatch(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested({trainingPlanId}));
-            this.$planSessionFragmentsRequested.set(true);
           }
-          return combineLatest([of(planSessionFragments), this.planSessionFragmentsFetched$]);
+          return this.allPlanSessionFragmentsInStore$;
         }),
-        filter(([planSessionFragments, planSessionFragmentsFetched]) => planSessionFragmentsFetched),
-        map(([planSessionFragments, planSessionFragmentsFetched]) => {
-          const filteredFragments = (planSessionFragments).filter(fragment => fragment.trainingPlanId === trainingPlanId);
+        map((planSessionFragments: PlanSessionFragment[]) => {
+          return planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
+        }),
+        filter((planSessionFragments: PlanSessionFragment[]) => planSessionFragments.length > 0), // Prevents initial load of empty array
+        tap((filteredFragments: PlanSessionFragment[]) => {
           this.$currentPlanSessionFragments.set(filteredFragments) // Load the planSessionFragments into the instance variable
           console.log('Set planSessionFragments', this.$currentPlanSessionFragments());
         }),
@@ -262,10 +272,10 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.onNavigateUserToBrowse();
           return throwError(() => new Error(error));
         })
       ).subscribe();
-
   }
 
   // This toggles visibility of the trainingPlan title edit view
@@ -286,8 +296,9 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
             this.$createTrainingPlanSubmitted.set(false);
             this.store$.dispatch(TrainingPlanStoreActions.purgeNewTrainingPlanId());
           }
-          return combineLatest([this.userData$, this.createTrainingPlanError$]);
+          return this.userData$;
         }),
+        withLatestFrom(this.createTrainingPlanError$),
         filter(([userData, processingError]) => !processingError), // Halts function if processingError detected
         switchMap(([userData, processingError]) => {
           if (!this.$createTrainingPlanSubmitted()) {
@@ -301,8 +312,9 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
             this.$createTrainingPlanSubmitted.set(true);
           }
           const newTrainingPlanId = this.store$.select(TrainingPlanStoreSelectors.selectNewTrainingPlanId);
-          return combineLatest([this.createTrainingPlanProcessing$, newTrainingPlanId])
+          return newTrainingPlanId;
         }),
+        withLatestFrom(this.createTrainingPlanProcessing$),
         filter(([createTrainingPlanProcessing, newTrainingPlanId]) => !!newTrainingPlanId && !createTrainingPlanProcessing),
         tap(([createTrainingPlanProcessing, newTrainingPlanId]) => {
           console.log('trainingPlan creation successful.');
@@ -314,6 +326,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.$createTrainingPlanSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
@@ -321,15 +334,16 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   private updateExistingTrainingPlan() {
+    this.$updateTrainingPlanSubmitted.set(false);
     const trainingPlanId = this.$currentTrainingPlanId();
     this.updateTrainingPlanSubscription = this.updateTrainingPlanError$
     .pipe(
-      switchMap(processingError => {
+      map(processingError => {
         if (processingError) {
           console.log('processingError detected, terminating dialog');
           this.$updateTrainingPlanSubmitted.set(false);
         }
-        return this.updateTrainingPlanError$;
+        return processingError;
       }),
       filter(processingError => !processingError), // Halts function if processingError detected
       switchMap(processingError => {
@@ -362,6 +376,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       catchError(error => {
         console.log('Error in component:', error);
         this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+        this.$updateTrainingPlanSubmitted.set(false);
         return throwError(() => new Error(error));
       })
     ).subscribe();
@@ -458,7 +473,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.debounceDragDropServerCallSubscription = this.debounceDragDropServerCall$
       .pipe(
         debounceTime(3000), // Determines how frequently updates are sent to the server
-        withLatestFrom(this.allPlanSessionFragments$),
+        withLatestFrom(this.allPlanSessionFragmentsInStore$),
         switchMap(([empty, serverPlanSessionFragments]) => {
           return of(this.buildAndDispatchReorderRequest(serverPlanSessionFragments));
         })
@@ -592,7 +607,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
             })
             return updatedArray; // This updated array will replace the UI's current array in the signal
           })
-          console.log('Alt planSessionFragmentsUpdate', planSessionFragmentUpdates);
           
           // Dispatch all requests to database
           this.store$.dispatch(PlanSessionFragmentStoreActions.deletePlanSessionFragmentRequested({trainingPlanId: trainingPlanId!, planSessionFragmentId}));

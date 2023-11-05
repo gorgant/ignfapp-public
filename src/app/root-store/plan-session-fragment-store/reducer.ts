@@ -116,7 +116,7 @@ export const planSessionFragmentStoreReducer = createReducer(
     return {
       ...state,
       fetchAllPlanSessionFragmentsProcessing: true,
-      fetchAllPlanSessionFragmentsError: null
+      fetchAllPlanSessionFragmentsError: null,
     }
   }),
   on(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsCompleted, (state, action) => {
@@ -213,6 +213,8 @@ export const planSessionFragmentStoreReducer = createReducer(
       }
     );
   }),
+
+  // Pur
 
 
   // Update Plan Session Fragment

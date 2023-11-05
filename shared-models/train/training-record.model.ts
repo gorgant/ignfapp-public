@@ -17,14 +17,6 @@ export interface TrainingRecordNoIdOrTimestamp {
 
 };
 
-export interface TrainingRecordForm {
-  [TrainingRecordKeys.COMPLEXITY_RATING]: FormControl<number | null>,
-  [TrainingRecordKeys.HOURS]: FormControl<number | null>,
-  [TrainingRecordKeys.INTENSITY_RATING]: FormControl<number | null>,
-  [TrainingRecordKeys.MINUTES]: FormControl<number | null>,
-  [TrainingRecordKeys.SECONDS]: FormControl<number | null>,
-}
-
 export enum TrainingRecordKeys {
   COMPLEXITY_RATING = 'complexityRating',
   HOURS = 'hours',

@@ -2,8 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest } from 'rxjs';
-import { filter, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
@@ -68,23 +68,17 @@ export class ResetPasswordDialogueComponent implements OnInit {
   postResetActions() {
     this.resetPasswordSubscription = this.resetPasswordError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
             this.resetPasswordSubscription?.unsubscribe();
             this.resetComponentActionState();
           }
-          return combineLatest([this.resetPasswordProcessing$, this.resetPasswordError$]);
+          return processingError; 
         }),
-        filter(([resetProcessing, processingError]) => !processingError ), // Halts function if processingError detected
-        tap(([resetProcessing, resetError]) => {
-
-          if (resetError) {
-            console.log('Error resetting password, resetting form', resetError);
-            this.resetPasswordSubmitted.set(false);
-            return;
-          }
-
+        withLatestFrom(this.resetPasswordProcessing$),
+        filter(([processingError, resetProcessing]) => !processingError ), // Halts function if processingError detected
+        tap(([processingError, resetProcessing]) => {
           if (!resetProcessing && this.resetPasswordSubmitted()) {
             this.dialogRef.close(true);
           }

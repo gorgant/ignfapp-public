@@ -3,8 +3,8 @@ import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription, throwError } from 'rxjs';
+import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
@@ -37,6 +37,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   private authSubscription!: Subscription;
 
   private userData$!: Observable<PublicUser>;
+  private updateUserRequestSubmitted = signal(false);
   
   private reloadAuthDataTriggered = signal(false);
   showResetMessage = signal(false);
@@ -67,12 +68,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-
     const authFormData: AuthFormData = {
       email: this.email.value,
       password: this.password.value
     }
-
     this.store$.dispatch(AuthStoreActions.emailAuthRequested({authData: authFormData}));
     this.postAuthActions();
   }
@@ -88,15 +87,19 @@ export class LoginFormComponent implements OnInit, OnDestroy {
             this.resetComponentActionState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
-          return combineLatest([this.authData$, this.authError$]);
+          return this.authData$;
         }),
+        withLatestFrom(this.authError$),
         filter(([authData, processingError]) => !processingError ), // Halts function if processingError detected
         filter(([authData, processingError]) => !!authData), // Only proceed once auth data is available
         switchMap(([authData, processingError]) => {
           console.log('Auth data received in component', authData);
-          this.updateUserInFirebase(authData);
-          return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
+          if (!this.updateUserRequestSubmitted()) {
+            this.updateUserInFirebase(authData);
+          }
+          return this.userData$;
         }),
+        withLatestFrom(this.authData$, this.authReloadProcessing$),
         filter(([userData, authData, authReloadProcessing]) => !!userData && !!authData && !authReloadProcessing), // Only proceed once user data is available
         tap(([userData, authData, authReloadProcessing]) => {
           if (!userData.emailVerified) {
@@ -135,6 +138,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       updateType: UserUpdateType.AUTHENTICATION
     }
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
+    this.updateUserRequestSubmitted.set(true);
   }
 
 
@@ -173,6 +177,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   private resetComponentActionState() {
     this.reloadAuthDataTriggered.set(false);
     this.showResetMessage.set(false);
+    this.updateUserRequestSubmitted.set(false);
   }
 
   ngOnDestroy() {

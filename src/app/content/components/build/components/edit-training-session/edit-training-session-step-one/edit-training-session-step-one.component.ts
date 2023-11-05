@@ -2,8 +2,8 @@ import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/co
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription, throwError } from 'rxjs';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSession } from 'shared-models/train/training-session.model';
@@ -82,18 +82,17 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     
     this.getYoutubeVideoDataSubscription = this.getYoutubeVideoDataError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.getYoutubeVideoDataSubmitted.set(false);
-            this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+            this.resetComponentState();
             this.getYoutubeVideoDataSubscription?.unsubscribe();
           }
-          return combineLatest([this.getYoutubeVideoDataProcessing$, this.getYoutubeVideoDataError$]);
+          return processingError;
         }),
-        filter(([videoDataProcessing, processingError]) => !processingError),
-        switchMap(([videoDataProcessing, processingError]) => {
-          if (!videoDataProcessing && !this.getYoutubeVideoDataSubmitted()) {
+        filter(processingError => !processingError),
+        switchMap(processingError => {
+          if (!this.getYoutubeVideoDataSubmitted()) {
             this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
             this.getYoutubeVideoDataSubmitted.set(true);
           }
@@ -110,10 +109,16 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
+          this.resetComponentState();
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
           return throwError(() => new Error(error));
         })
       ).subscribe();
+  }
+
+  private resetComponentState() {
+    this.getYoutubeVideoDataSubmitted.set(false);
+    this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
   }
 
   private monitorYoutubeVideoUrlChange() {

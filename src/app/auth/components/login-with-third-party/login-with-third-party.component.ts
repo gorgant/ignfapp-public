@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription, throwError } from 'rxjs';
+import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
@@ -31,10 +31,10 @@ export class LoginWithThirdPartyComponent implements OnInit {
   private authError$!: Observable<{} | null>;
   private authReloadProcessing$!: Observable<boolean>;
   private authSubscription!: Subscription;
+  private reloadAuthDataTriggered = signal(false);
   
   private userData$!: Observable<PublicUser>;
-  
-  private reloadAuthDataTriggered = signal(false);
+  private createOrUpdateUserRequestSubmitted = signal(false);
 
   private store$ = inject(Store);
   private router = inject(Router);
@@ -77,23 +77,29 @@ export class LoginWithThirdPartyComponent implements OnInit {
             this.resetComponentActionState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
-          return combineLatest([this.authData$, this.authError$]);
+          return this.authData$;
         }),
+        withLatestFrom(this.authError$),
         filter(([authData, processingError]) => !processingError ), // Halts function if processingError detected
         filter(([authData, processingError]) => !!authData), // Only proceed once auth data is available
         switchMap(([authData, processingError]) => {
           console.log('Auth data received', authData);
 
-          // Create new user or update existing user
-          if (authData!.isNewUser) {
+          // Create new user
+          if (authData.isNewUser && !this.createOrUpdateUserRequestSubmitted()) {
             console.log('New user detected in auth, creating new user in DB');
             this.createUserInFirebase(authData);
-          } else {
+          }
+
+          // Otherwise, update existing user
+          if (!authData.isNewUser && !this.createOrUpdateUserRequestSubmitted()) {
             console.log('Existing user detected in auth, updating user in DB');
             this.updateUserInFirebase(authData);
           }
-          return combineLatest([this.userData$, this.authData$, this.authReloadProcessing$]);
+
+          return this.userData$;
         }),
+        withLatestFrom(this.authData$, this.authReloadProcessing$),
         filter(([userData, authData, authReloadProcessing]) => !!userData && !!authData && !authReloadProcessing), // Only proceed once user data is available
         tap(([userData, authData, authReloadProcessing]) => {
           if (!userData.emailVerified) {
@@ -143,6 +149,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       avatarUrl: authData.avatarUrl
     }
     this.store$.dispatch(UserStoreActions.createPublicUserRequested({partialNewPublicUserData: partialNewUserData}));
+    this.createOrUpdateUserRequestSubmitted.set(true);
   }
 
   private updateUserInFirebase(authResultsData: AuthResultsData) {
@@ -155,10 +162,12 @@ export class LoginWithThirdPartyComponent implements OnInit {
       updateType: UserUpdateType.AUTHENTICATION
     }
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
+    this.createOrUpdateUserRequestSubmitted.set(true);
   }
 
   private resetComponentActionState() {
     this.reloadAuthDataTriggered.set(false);
+    this.createOrUpdateUserRequestSubmitted.set(false);
   }
 
   ngOnDestroy(): void {

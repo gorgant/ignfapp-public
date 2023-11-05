@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
 import { TrainingSession } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -9,19 +9,19 @@ import { UiService } from 'src/app/core/services/ui.service';
   styleUrls: ['./training-session-video.component.scss']
 })
 export class TrainingSessionVideoComponent implements OnInit {
-
-  private apiLoaded = false;
-  @ViewChild('ytVideoPlayerApi') ytVideoPlayerApi!: YouTubePlayer;
-
-  videoPlayerWidth!: number;
-  videoPlayerHeight!: number;
-  videoPlayerOptions!: {};
-
+  
   @Input() trainingSessionData!: TrainingSession;
 
-  constructor(
-    private uiService: UiService
-  ) { }
+  private apiLoaded = signal(false);
+  
+  @ViewChild('ytVideoPlayerApi') ytVideoPlayerApi!: YouTubePlayer; // Accessed by parent component
+  videoPlayerWidth = signal(undefined as number | undefined);
+  videoPlayerHeight = signal(undefined as number | undefined);
+  videoPlayerOptions = signal({});
+
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.initializeYoutubePlayer();
@@ -31,14 +31,14 @@ export class TrainingSessionVideoComponent implements OnInit {
     this.configurePlayerDimensions();
     this.configurePlayerOptions();
 
-    if (!this.apiLoaded) {
+    if (!this.apiLoaded()) {
       // Courtesy of https://github.com/angular/components/tree/main/src/youtube-player#readme
       // This code loads the IFrame Player API code asynchronously, according to the instructions at
       // https://developers.google.com/youtube/iframe_api_reference#Getting_Started
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       document.body.appendChild(tag);
-      this.apiLoaded = true;
+      this.apiLoaded.set(true);
     }
   }
 
@@ -49,16 +49,16 @@ export class TrainingSessionVideoComponent implements OnInit {
       screenWidth = 800;
     }
     let screenHeight = Math.round((screenWidth*360)/640);
-    this.videoPlayerWidth = screenWidth;
-    this.videoPlayerHeight = screenHeight;
+    this.videoPlayerWidth.set(screenWidth);
+    this.videoPlayerHeight.set(screenHeight);
   }
 
   private configurePlayerOptions() {
-    this.videoPlayerOptions = {
+    this.videoPlayerOptions.set({
       controls: 1, 
       modestbranding: 1, 
       rel: 0
-    }
+    });
   }
 
 }

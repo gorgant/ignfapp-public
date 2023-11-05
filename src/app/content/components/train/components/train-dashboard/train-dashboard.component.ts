@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, withLatestFrom, map } from 'rxjs';
+import { Observable, withLatestFrom, map, switchMap, filter, catchError, throwError } from 'rxjs';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
+import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActions, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -15,80 +15,59 @@ export class TrainDashboardComponent implements OnInit {
 
   trainingSessionCardHeight = 300;
 
-  userData$!: Observable<PublicUser>;
+  private userData$!: Observable<PublicUser>;
 
-  personalSessionFragmentData$!: Observable<PersonalSessionFragment[]>;
-  fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
-  fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
-  personalSessionFragmentsRequested!: boolean;
+  allPersonalSessionFragmentsFetched$!: Observable<boolean>;
+  personalSessionFragments$!: Observable<PersonalSessionFragment[]>;
+  private fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
+  private fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
+  private $personalSessionFragmentsRequested = signal(false);
 
-  constructor(
-    private store$: Store<RootStoreState.AppState>,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) { }
+  private store$ = inject(Store<RootStoreState.AppState>);
+  private uiService = inject(UiService);
+
+  constructor() { }
 
   ngOnInit(): void {
     this.monitorProcesses();
-    this.loadPersonalSessionFragmentData();
+    this.fetchAllPersonalSessionFragments();
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
-
-    this.fetchAllPersonalSessionFragmentsProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectFetchAllPersonalSessionFragmentsProcessing);
+    this.allPersonalSessionFragmentsFetched$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsFetched);  // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
     this.fetchAllPersonalSessionFragmentsError$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectFetchAllPersonalSessionFragmentsError);
+    this.fetchAllPersonalSessionFragmentsProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectFetchAllPersonalSessionFragmentsProcessing);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
   }
 
-  // TODO: This configuration doesn't show the personal fragments on the initial load (possibly due to userData$ subscription triggering before component loads)
-  private loadPersonalSessionFragmentData() {
-    // this.personalSessionFragmentData$ = this.fetchAllPersonalSessionFragmentsProcessing$
-    //   .pipe(
-    //     withLatestFrom(
-    //       this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore),
-    //       this.fetchAllPersonalSessionFragmentsError$,
-    //       this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsFetched),
-    //       this.userData$
-    //     ),
-    //     map(([loadingPersonalSessionFragments, personalSessionFragments, loadError, allPersonalSessionFragmentsFetched, userData]) => {
-    //       if (loadError) {
-    //         console.log('Error loading personalSessionFragments in component', loadError);
-    //         this.personalSessionFragmentsRequested = false;
-    //       }
-  
-    //       // Check if sessions are loaded, if not fetch from server
-    //       if (!loadingPersonalSessionFragments && !this.personalSessionFragmentsRequested && !allPersonalSessionFragmentsFetched) {
-    //         this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData.id}));
-    //         this.personalSessionFragmentsRequested = true;
-    //       }
-    //       return personalSessionFragments;
-    //     })
-    //   );
-
-      this.personalSessionFragmentData$ = this.userData$
+  private fetchAllPersonalSessionFragments() {
+    this.personalSessionFragments$ = this.fetchAllPersonalSessionFragmentsError$
       .pipe(
-        withLatestFrom(
-          this.fetchAllPersonalSessionFragmentsProcessing$,
-          this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore),
-          this.fetchAllPersonalSessionFragmentsError$,
-          this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsFetched),
-        ),
-        map(([userData, loadingPersonalSessionFragments, personalSessionFragments, loadError, allPersonalSessionFragmentsFetched]) => {
-          if (loadError) {
-            console.log('Error loading personalSessionFragments in component', loadError);
-            this.personalSessionFragmentsRequested = false;
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.$personalSessionFragmentsRequested.set(false);
           }
-  
-          // Check if sessions are loaded, if not fetch from server
-          if (!loadingPersonalSessionFragments && !this.personalSessionFragmentsRequested && !allPersonalSessionFragmentsFetched && userData) {
+          const personalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore);
+          return personalSessionFragmentsInStore$;
+        }),
+        withLatestFrom(this.fetchAllPersonalSessionFragmentsError$, this.userData$, this.allPersonalSessionFragmentsFetched$),
+        filter(([personalSessionFragments, processingError, userData, allFetched]) => !processingError),
+        map(([personalSessionFragments, processingError, userData, allFetched]) => {
+          if (!allFetched && !this.$personalSessionFragmentsRequested()) {
             this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData.id}));
-            this.personalSessionFragmentsRequested = true;
+            this.$personalSessionFragmentsRequested.set(true);
           }
           return personalSessionFragments;
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.$personalSessionFragmentsRequested.set(false);
+          return throwError(() => new Error(error));
         })
       );
-
-      
   }
 
 }

@@ -33,7 +33,9 @@
       <div class="summary-item" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
         <div fxFlex="33" fxFlex.gt-md="25" class="summary-item-title">{{ COMPLEXITY_TITLE_VALUE }}: </div>
         <div fxFlex="67" fxFlex.gt-md="75" class="slider-container">
-          <mat-slider [formControl]="complexityRating" [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+          <mat-slider [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" thumbLabel="true">
+            <input matSliderThumb [formControl]="complexityRating">
+          </mat-slider>
           <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.complexityRating">
             <mat-error *ngIf="complexityRating?.hasError(validation.type) && complexityRating?.invalid && (complexityRating?.dirty || complexityRating?.touched)">{{ validation.message }}</mat-error>
           </mat-error>
@@ -42,7 +44,9 @@
       <div class="summary-item" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
         <div fxFlex="33" fxFlex.gt-md="25" class="summary-item-title">{{ INTENSITY_TITLE_VALUE }}: </div>
         <div fxFlex="67" fxFlex.gt-md="75" class="slider-container">
-          <mat-slider [formControl]="intensityRating" [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true"></mat-slider>
+          <mat-slider [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" thumbLabel="true">
+            <input matSliderThumb [formControl]="intensityRating">
+          </mat-slider>
           <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.intensityRating">
             <mat-error *ngIf="intensityRating?.hasError(validation.type) && intensityRating?.invalid && (intensityRating?.dirty || intensityRating?.touched)">{{ validation.message }}</mat-error>
           </mat-error>

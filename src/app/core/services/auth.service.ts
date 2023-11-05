@@ -114,7 +114,8 @@ export class AuthService {
             return authResultsData;
           }
           return null;
-        })
+        }),
+        shareReplay(),
       );
   }
 

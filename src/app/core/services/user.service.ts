@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { collection, doc, docData, DocumentReference, CollectionReference, Firestore } from '@angular/fire/firestore';
 import { Functions, httpsCallableData }  from '@angular/fire/functions';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap, take, takeUntil } from 'rxjs/operators';
+import { catchError, map, shareReplay, switchMap, take, takeUntil } from 'rxjs/operators';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-removal-data';
 import { UnsubscribeRecord, UnsubscribeRecordList } from 'shared-models/email/unsubscribe-record.model';
@@ -112,6 +112,7 @@ export class UserService {
           console.log(`Fetched single publicUser`, formattedUser);
           return formattedUser;
         }),
+        shareReplay(),
         catchError(error => {
           console.log('Error fetching publicUser', error);
           this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);

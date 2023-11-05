@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { Storage, StorageReference, ref, uploadBytesResumable, UploadTask, getDownloadURL, }  from '@angular/fire/storage';
-import { catchError, from, map, Observable,of,take,throwError } from 'rxjs';
+import { catchError, from, map, Observable,of,shareReplay,take,throwError } from 'rxjs';
 import { AvatarImageData } from 'shared-models/images/avatar-image-data.model';
 import { AvatarImageMetaData } from 'shared-models/images/image-metadata.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
@@ -68,6 +68,7 @@ export class ImageService {
           console.log(`Fetched download url`, downloadUrl);
           return downloadUrl;
         }),
+        shareReplay(),
         catchError(error => {
           console.log('Error fetching download url', error);
           this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);

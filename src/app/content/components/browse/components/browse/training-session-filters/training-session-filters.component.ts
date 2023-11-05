@@ -2,13 +2,14 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatButtonToggle, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
-import { combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryDbOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupObject, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupDbOption } from 'shared-models/train/muscle-group.model';
 import { TrainingSessionComplexityObject, TrainingSessionComplexityList, TrainingSessionComplexityDbOption } from 'shared-models/train/training-complexity.model';
 import { TrainingSessionIntensityObject, TrainingSessionIntensityList, TrainingSessionIntensityDbOption } from 'shared-models/train/training-intensity.model';
 import { TrainingSession, TrainingSessionFilterForm, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
 @Component({
@@ -26,10 +27,11 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
 
   private fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
-  private fetchAllTrainingSesssionsError$!: Observable<{} | null>;
+  private fetchAllTrainingSessionsError$!: Observable<{} | null>;
   private allTrainingSessionsFetched$!: Observable<boolean>;
   private allTrainingSessions$!: Observable<TrainingSession[]>;
   private trainingSessionsSubscription!: Subscription;
+  private $trainingSessionsRequested = signal(false);
 
   filteredTrainingSessions = signal([] as TrainingSession[]); // Accessed by parent Browse Training Sessions Component
 
@@ -49,6 +51,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   trainingSessionFilterFormSubscription!: Subscription;
 
   private store$ = inject(Store);
+  private uiService = inject(UiService);
 
   constructor() { }
 
@@ -59,37 +62,69 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   }
 
   private initializeStoreData() {
-    this.fetchAllTrainingSesssionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
-    this.fetchAllTrainingSesssionsError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError);
-    this.allTrainingSessionsFetched$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsFetched);
     this.allTrainingSessions$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
-    
+    this.allTrainingSessionsFetched$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsFetched);  // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
+    this.fetchAllTrainingSesssionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
+    this.fetchAllTrainingSessionsError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError);
   }
 
   private fetchInitialTrainingSessionBatch() {
-    this.trainingSessionsSubscription = this.allTrainingSessions$
+
+    this.trainingSessionsSubscription = this.fetchAllTrainingSessionsError$
       .pipe(
-        withLatestFrom(
-          this.fetchAllTrainingSesssionsProcessing$,
-          this.fetchAllTrainingSesssionsError$,
-          this.allTrainingSessionsFetched$,
-        ),
-        switchMap(([trainingSessions, loadingSessions, loadError, allSessionsFetched]) => {
-          if (loadError) {
-            console.log('Error loading training sessions in component', loadError);
+        switchMap(processingError => {
+          if (processingError) {
+            console.log('processingError detected, terminating pipe', processingError);
+            this.$trainingSessionsRequested.set(false);
           }
-          // Check if sessions are loaded, if not fetch from server
-          if (!loadingSessions && !allSessionsFetched) {
-            this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
-          }
-          return combineLatest([this.allTrainingSessions$, this.allTrainingSessionsFetched$]);
+          const trainingSessionsInStore = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
+          return trainingSessionsInStore;
         }),
-        filter(([trainingSessions, allSessionsFetched]) => !!trainingSessions && allSessionsFetched ),
-        tap(([trainingSessions, allSessionsFetched]) => {
+        withLatestFrom(this.fetchAllTrainingSessionsError$, this.allTrainingSessionsFetched$),
+        filter(([trainingSessions, processingError, allFetched]) => !processingError),
+        map(([trainingSessions, processingError, allFetched]) => {
+          if (!allFetched && !this.$trainingSessionsRequested()) {
+            this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
+            this.$trainingSessionsRequested.set(true);
+          }
+          return trainingSessions;
+        }),
+        tap(trainingSessions => {
+          console.log('Set training sessions', trainingSessions);
           this.filteredTrainingSessions.set(trainingSessions);
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.$trainingSessionsRequested.set(false);
+          return throwError(() => new Error(error));
         })
-      )
-      .subscribe()
+      ).subscribe();
+
+    // this.trainingSessionsSubscription = this.allTrainingSessions$
+    //   .pipe(
+    //     withLatestFrom(
+    //       this.fetchAllTrainingSesssionsProcessing$,
+    //       this.fetchAllTrainingSesssionsError$,
+    //       this.allTrainingSessionsFetched$,
+    //     ),
+    //     switchMap(([trainingSessions, loadingSessions, loadError, allSessionsFetched]) => {
+    //       if (loadError) {
+    //         console.log('Error loading training sessions in component', loadError);
+    //       }
+    //       // Check if sessions are loaded, if not fetch from server
+    //       if (!loadingSessions && !allSessionsFetched) {
+    //         this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
+    //       }
+    //       return combineLatest([this.allTrainingSessions$, this.allTrainingSessionsFetched$]);
+    //     }),
+    //     filter(([trainingSessions, allSessionsFetched]) => !!trainingSessions && allSessionsFetched ),
+    //     tap(([trainingSessions, allSessionsFetched]) => {
+    //       this.filteredTrainingSessions.set(trainingSessions);
+    //     })
+    //   )
+    //   .subscribe()
   }
 
   private monitorfilterChanges() {
