@@ -5,7 +5,7 @@ import { NoNavBarUrls } from 'shared-models/routes-and-paths/app-routes.model';
 import { filter, tap } from 'rxjs/operators';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { DOCUMENT, Location } from '@angular/common';
-import { AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
 
 @Injectable({
   providedIn: 'root'
@@ -77,7 +77,7 @@ export class UiService {
       tap(event => {
         console.log('Evaluating url validity');
         const url = this.router.url;
-        const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+        const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
         const addTrainingSessionRequest = addTrainingSessionString ? JSON.parse(addTrainingSessionString) as boolean : false;
         const invalidUrl = NoNavBarUrls.some(invalidUrl => url.includes(invalidUrl)); // Courtesy of: https://stackoverflow.com/a/43615512/6572208
         const hideNavBar = addTrainingSessionRequest || invalidUrl;

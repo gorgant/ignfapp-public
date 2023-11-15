@@ -29,7 +29,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   private avatarImageData!: AvatarImageData;
-  private avatarImageDataSubmitted = signal(false);
+  private $avatarImageDataSubmitted = signal(false);
   private avatarDownloadUrl$!: Observable<string | null>;
   private processAvatarImageSubscription!: Subscription;
   
@@ -38,13 +38,15 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   private resizeAvatarError$!: Observable<{} | null>;
   private resizeAvatarProcessing$!: Observable<boolean>;
-  private resizeAvatarSubmitted = signal(false);
+  private $resizeAvatarSubmitted = signal(false);
   private resizeAvatarSucceeded$!: Observable<boolean>;
 
-  userData$!: Observable<PublicUser>;
+  userData$!: Observable<PublicUser | null>;
   private userUpdateError$!: Observable<{} | null>;
   private userUpdateProcessing$!: Observable<boolean>;
-  private userUpdateSubmitted = signal(false);
+  private $userUpdateSubmitted = signal(false);
+  private $userUpdateCycleInit = signal(false);
+  private $userUpdateCycleComplete = signal(false);
 
   avatarUploadOrUserUpdateProcessing$!: Observable<boolean>;
   avatarUploadOrUserUpdateError$!: Observable<boolean>;
@@ -66,7 +68,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
     this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarProcessing));
 
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData));
     this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
     this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
 
@@ -122,7 +124,6 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
-            this.resetComponentActionState();
             this.dialogRef.close(false);
           }
           return combineLatest([this.userData$, this.avatarUploadOrUserUpdateError$]);
@@ -130,42 +131,51 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
         switchMap(([userData, processingError]) => {
           console.log('processAvatarImage triggered');
-          if (!this.avatarImageDataSubmitted()) {
-            const avatarData = this.generateImageData(imageFile, userData);
+          if (!this.$avatarImageDataSubmitted()) {
+            const avatarData = this.generateImageData(imageFile, userData!);
             if (!avatarData) {
               throw new Error('Error generating avatar image data!');
             }
             this.avatarImageData = avatarData;
             this.store$.dispatch(UserStoreActions.uploadAvatarRequested({avatarData}));
-            this.avatarImageDataSubmitted.set(true);
+            this.$avatarImageDataSubmitted.set(true);
           }
           return this.avatarDownloadUrl$
         }),
         filter(downloadUrl => !!downloadUrl),
         withLatestFrom(this.userData$),
         switchMap(([downloadUrl, userData]) => {
-          if (downloadUrl && !this.userUpdateSubmitted()) {
+          if (downloadUrl && !this.$userUpdateSubmitted()) {
             const userUpdateData: UserUpdateData = {
               userData: { 
-                id: userData.id,
+                id: userData!.id,
                 avatarUrl: downloadUrl 
               },
               updateType: UserUpdateType.BIO_UPDATE
             };
             console.log(`Updating avatar with this url: ${downloadUrl}`);
             this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-            this.userUpdateSubmitted.set(true);
+            this.$userUpdateSubmitted.set(true);
           }
-          return combineLatest([this.userData$, this.userUpdateProcessing$, this.avatarDownloadUrl$]);
-          
+          return this.userUpdateProcessing$;
         }),
-        filter(([userData, userUpdateProcessing, downloadUrl]) => !userUpdateProcessing && this.userUpdateSubmitted()),
-        switchMap(([userData, downloadUrl]) => {
-          if (!this.resizeAvatarSubmitted()) {
-            console.log('User update suceeded, submitting resize avatar request');
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap(updateProcessing => {
+          if (updateProcessing) {
+            this.$userUpdateCycleInit.set(true);
+          }
+          if (!updateProcessing && this.$userUpdateCycleInit()) {
+            console.log('user update successful, proceeding with pipe.');
+            this.$userUpdateCycleInit.set(false);
+            this.$userUpdateCycleComplete.set(true);
+          }
+        }),
+        filter(updateProcessing => !updateProcessing && this.$userUpdateCycleComplete()),
+        switchMap(updateProcessing => {
+          if (!this.$resizeAvatarSubmitted()) {
             const imageMetaData = this.avatarImageData.imageMetadata;
             this.store$.dispatch(UserStoreActions.resizeAvatarRequested({imageMetaData}));
-            this.resizeAvatarSubmitted.set(true);
+            this.$resizeAvatarSubmitted.set(true);
           }
           return this.resizeAvatarSucceeded$;
         }),
@@ -178,7 +188,6 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
@@ -236,12 +245,6 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   private getPublicUsersBucketBasedOnEnvironment(): string {
     const storageBucket = this.helperService.isProductionEnvironment() ? ProductionCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX : SandboxCloudStorage.IGNFAPP_PUBLIC_USERS_STORAGE_GS_PREFIX;
     return storageBucket;
-  }
-
-  private resetComponentActionState() {
-    this.avatarImageDataSubmitted.set(false);
-    this.userUpdateSubmitted.set(false);
-    this.resizeAvatarSubmitted.set(false);
   }
 
   ngOnDestroy(): void {

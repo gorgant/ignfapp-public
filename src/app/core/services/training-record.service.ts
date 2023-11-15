@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, Query, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError } from 'rxjs';
+import { from, Observable, Subject, throwError } from 'rxjs';
 import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
-import { TrainingRecord, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
+import { TrainingRecord, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
@@ -19,6 +19,8 @@ export class TrainingRecordService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+
+  deleteTrainingRecordTriggered$: Subject<void> = new Subject();
 
   constructor() { }
 
@@ -69,6 +71,8 @@ export class TrainingRecordService {
   deleteTrainingRecord(userId: string, trainingRecordId: string): Observable<string> {
     const trainingRecordDeleteRequest = deleteDoc(this.getTrainingRecordDoc(userId, trainingRecordId));
 
+    this.triggerDeleteTrainingRecordObserver();
+
     return from(trainingRecordDeleteRequest)
       .pipe(
         map(empty => {
@@ -85,12 +89,13 @@ export class TrainingRecordService {
 
   fetchAllTrainingRecords(userId: string): Observable<TrainingRecord[]> {
 
-    const trainingRecordCollectionDataRequest = collectionData(this.getTrainingRecordCollection(userId));
+    const trainingRecordCollectionDataRequest = collectionData(this.getTrainingRecordCollectionByDate(userId));
 
     return from(trainingRecordCollectionDataRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        // takeUntil(this.deleteTrainingRecordTriggered$),
         map(trainingRecords => {
           if (!trainingRecords) {
             throw new Error(`Error fetching all trainingRecords`, );
@@ -188,6 +193,7 @@ export class TrainingRecordService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        takeUntil(this.deleteTrainingRecordTriggered$),
         map(trainingRecord => {
           if (!trainingRecord) {
             throw new Error(`Error fetching trainingRecord with id: ${trainingRecordId}`);
@@ -255,9 +261,22 @@ export class TrainingRecordService {
       );
   }
 
+  // This prevents Firebase from fetching a document after it has been deleted
+  private triggerDeleteTrainingRecordObserver() {
+    this.deleteTrainingRecordTriggered$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingRecordTriggered$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingRecordTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
+  }
+
   private getTrainingRecordCollection(userId: string): CollectionReference<TrainingRecord> {
     // Note that trainingRecord is nested in Public User document
     return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.TRAINING_RECORDS}`) as CollectionReference<TrainingRecord>;
+  }
+
+  private getTrainingRecordCollectionByDate(userId: string): Query<TrainingRecord> {
+    const trainingRecordCollectionRef = collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.TRAINING_RECORDS}`) as CollectionReference<TrainingRecord>;
+    const collectionRefOrderedByIndex = query(trainingRecordCollectionRef, orderBy(TrainingRecordKeys.CREATED_TIMESTAMP, 'desc'));
+    return collectionRefOrderedByIndex;
   }
 
   private getTrainingRecordDoc(userId: string, trainingRecordId: string): DocumentReference<TrainingRecord> {

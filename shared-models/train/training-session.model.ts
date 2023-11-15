@@ -31,8 +31,8 @@ export interface TrainingSessionNoIdOrTimestamps {
 
 export enum TrainingSessionDatabaseCategoryTypes {
   CANONICAL = 'canonical',
-  PLAN_FRAGMENT = 'planFragment',
-  PERSONAL_FRAGMENT = 'personalFragment',
+  PLAN_SESSION_FRAGMENT = 'planSessionFragment',
+  PERSONAL_SESSION_FRAGMENT = 'personalSessionFragment',
 }
 
 export const TrainingSessionFormVars = {

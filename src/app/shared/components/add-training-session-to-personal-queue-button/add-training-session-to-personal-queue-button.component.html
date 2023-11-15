@@ -1,6 +1,7 @@
 <div class="content-container" fxLayout="column" fxLayoutAlign="center center">
-  <button *ngIf="!(createPersonalSessionFragmentProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToPersonalQueue()">{{ ADD_TRAINING_SESSION_TO_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
-  <div *ngIf="(createPersonalSessionFragmentProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+  <!-- This *ngIf logic ensures the button always shows for buttons that aren't being interacted with, whereas if it is button being clicked, it only shows if a server request isn't processing -->
+  <button *ngIf="!$isActiveButton() || ($isActiveButton() && !(combinedAddTrainingSessionToQueueProcessing$ | async))" [disabled]="(combinedAddTrainingSessionToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToQueue()">+ {{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>
+  <div *ngIf="$isActiveButton() && (combinedAddTrainingSessionToQueueProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
     <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
   </div>
 </div>

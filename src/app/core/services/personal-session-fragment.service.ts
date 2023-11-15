@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch, Timestamp } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch, Timestamp, orderBy, Query } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError } from 'rxjs';
+import { from, Observable, Subject, throwError } from 'rxjs';
 import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
-import { PersonalSessionFragment, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
+import { PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
@@ -17,24 +17,96 @@ export class PersonalSessionFragmentService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+
+  deletePersonalSessionFragmentTriggered$: Subject<void> = new Subject();
   
   constructor() { }
 
-  batchModifyPersonalSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PersonalSessionFragment>[]): Observable<Update<PersonalSessionFragment>[]> {
+  batchCreatePersonalSessionFragments(userId: string, personalSessionFragmentsNoIdOrTimestamp: PersonalSessionFragmentNoIdOrTimestamp[]): Observable<PersonalSessionFragment[]> {
+    const batch = writeBatch(this.firestore);
+    const newPersonalSessionFragments: PersonalSessionFragment[] = []; // Used to provide a local copy of the values
+
+    personalSessionFragmentsNoIdOrTimestamp.forEach(personalSessionFragment => {
+      const currentTimeTimestamp: Timestamp = Timestamp.now();
+
+      const newId = this.generateNewPersonalSessionFragmentDocumentId(userId);
+
+      const personalSessionFragmentWithIdAndTimestamps: PersonalSessionFragment = {
+        ...personalSessionFragment, 
+        createdTimestamp: currentTimeTimestamp,
+        id: newId,
+        lastModifiedTimestamp: currentTimeTimestamp,
+      };
+
+      const personalSessionFragmentWithIdAndMs: PersonalSessionFragment = {
+        ...personalSessionFragment, 
+        createdTimestamp: currentTimeTimestamp.toMillis(),
+        id: newId,
+        lastModifiedTimestamp: currentTimeTimestamp.toMillis(),
+      };
+
+      const personalSessionFragmentDocRef = this.getPersonalSessionFragmentDoc(userId, newId);
+      batch.set(personalSessionFragmentDocRef, personalSessionFragmentWithIdAndTimestamps);
+      newPersonalSessionFragments.push(personalSessionFragmentWithIdAndMs);
+    });
+
+    const batchCreateRequest = batch.commit();
+
+    return from(batchCreateRequest)
+      .pipe(
+        map(empty => {
+          console.log(`Created ${newPersonalSessionFragments.length} personalSessionFragments`, newPersonalSessionFragments);
+          return newPersonalSessionFragments;  // Use original version with MS timestamps
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error deleting personalSessionFragments', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
+  batchDeletePersonalSessionFragments(userId: string, personalSessionFragmentIds: string[]): Observable<string[]> {
+    this.triggerDeletePersonalSessionFragmentObserver();
+
     const batch = writeBatch(this.firestore);
 
-    planSessionFragmentUpdates.forEach(singlePersonalSessionFragmentUpdate => {
+    personalSessionFragmentIds.forEach(personalSessionFragmentId => {
+      const personalSessionFragmentDoc = this.getPersonalSessionFragmentDoc(userId, personalSessionFragmentId);
+      batch.delete(personalSessionFragmentDoc)
+    });
+
+    const batchDeleteRequest = batch.commit();
+
+    return from(batchDeleteRequest)
+      .pipe(
+        map(empty => {
+          console.log(`Deleted ${personalSessionFragmentIds.length} personalSessionFragments`, personalSessionFragmentIds);
+          return personalSessionFragmentIds;  // Use original version with MS timestamps
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log('Error deleting personalSessionFragments', error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
+  batchModifyPersonalSessionFragments(userId: string, personalSessionFragmentUpdates: Update<PersonalSessionFragment>[]): Observable<Update<PersonalSessionFragment>[]> {
+    const batch = writeBatch(this.firestore);
+
+    personalSessionFragmentUpdates.forEach(singlePersonalSessionFragmentUpdate => {
       const changesWithTimestamp: Partial<PersonalSessionFragment> = {
         ...singlePersonalSessionFragmentUpdate.changes,
         lastModifiedTimestamp: Timestamp.now()
       }
   
-      const planSessionFragmentUpdatesWithTimestamp: Update<PersonalSessionFragment> = {
+      const personalSessionFragmentUpdatesWithTimestamp: Update<PersonalSessionFragment> = {
         ...singlePersonalSessionFragmentUpdate,
         changes: changesWithTimestamp
       }
-      const planSessionFragmentDoc = this.getPersonalSessionFragmentDoc(trainingPlanId, planSessionFragmentUpdatesWithTimestamp.id as string);
-      batch.update(planSessionFragmentDoc, changesWithTimestamp)
+      const personalSessionFragmentDoc = this.getPersonalSessionFragmentDoc(userId, personalSessionFragmentUpdatesWithTimestamp.id as string);
+      batch.update(personalSessionFragmentDoc, changesWithTimestamp)
     });
 
     const batchModifyRequest = batch.commit();
@@ -42,12 +114,12 @@ export class PersonalSessionFragmentService {
     return from(batchModifyRequest)
       .pipe(
         map(empty => {
-          console.log(`Updated ${planSessionFragmentUpdates.length} planSessionFragments`, planSessionFragmentUpdates);
-          return planSessionFragmentUpdates;  // Use original version with MS timestamps
+          console.log(`Updated ${personalSessionFragmentUpdates.length} personalSessionFragments`, personalSessionFragmentUpdates);
+          return personalSessionFragmentUpdates;  // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating planSessionFragment', error);
+          console.log('Error updating personalSessionFragment', error);
           return throwError(() => new Error(error));
         })
       );
@@ -93,6 +165,8 @@ export class PersonalSessionFragmentService {
 
   deletePersonalSessionFragment(userId: string, personalSessionFragmentId: string): Observable<string> {
     const personalSessionFragmentDeleteRequest = deleteDoc(this.getPersonalSessionFragmentDoc(userId, personalSessionFragmentId));
+    
+    this.triggerDeletePersonalSessionFragmentObserver();
 
     return from(personalSessionFragmentDeleteRequest)
       .pipe(
@@ -110,12 +184,13 @@ export class PersonalSessionFragmentService {
 
   fetchAllPersonalSessionFragments(userId: string): Observable<PersonalSessionFragment[]> {
 
-    const personalSessionFragmentCollectionDataRequest = collectionData(this.getPersonalSessionFragmentCollection(userId));
+    const personalSessionFragmentCollectionDataRequest = collectionData(this.getPersonalSessionFragmentCollectionByIndex(userId));
 
     return from(personalSessionFragmentCollectionDataRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        // takeUntil(this.deletePersonalSessionFragmentTriggered$),
         map(personalSessionFragments => {
           if (!personalSessionFragments) {
             throw new Error(`Error fetching all personalSessionFragments`, );
@@ -202,6 +277,7 @@ export class PersonalSessionFragmentService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        takeUntil(this.deletePersonalSessionFragmentTriggered$),
         map(personalSessionFragment => {
           if (!personalSessionFragment) {
             throw new Error(`Error fetching personalSessionFragment with id: ${personalSessionFragmentId}`);
@@ -250,9 +326,23 @@ export class PersonalSessionFragmentService {
       );
   }
 
+  // This prevents Firebase from fetching a document after it has been deleted
+  private triggerDeletePersonalSessionFragmentObserver() {
+    this.deletePersonalSessionFragmentTriggered$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deletePersonalSessionFragmentTriggered$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deletePersonalSessionFragmentTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
+  }
+  
+
   private getPersonalSessionFragmentCollection(userId: string): CollectionReference<PersonalSessionFragment> {
     // Note that personalSessionFragment is nested in Public User document
     return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PERSONAL_SESSION_FRAGMENTS}`) as CollectionReference<PersonalSessionFragment>;
+  }
+
+  private getPersonalSessionFragmentCollectionByIndex(userId: string): Query<PersonalSessionFragment> {
+    const personalSessionFragmentCollectionRef = collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PERSONAL_SESSION_FRAGMENTS}`) as CollectionReference<PersonalSessionFragment>;
+    const collectionRefOrderedByIndex = query(personalSessionFragmentCollectionRef, orderBy(PersonalSessionFragmentKeys.QUEUE_INDEX));
+    return collectionRefOrderedByIndex;
   }
 
   private getPersonalSessionFragmentDoc(userId: string, personalSessionFragmentId: string): DocumentReference<PersonalSessionFragment> {

@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, withLatestFrom, map, switchMap, filter, catchError, throwError } from 'rxjs';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
+import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -13,18 +16,20 @@ import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionF
 })
 export class TrainDashboardComponent implements OnInit {
 
+  EDIT_MY_QUEUE = GlobalFieldValues.EDIT_MY_QUEUE;
   trainingSessionCardHeight = 300;
 
   private userData$!: Observable<PublicUser>;
 
-  allPersonalSessionFragmentsFetched$!: Observable<boolean>;
+  private allPersonalSessionFragmentsFetched$!: Observable<boolean>;
   personalSessionFragments$!: Observable<PersonalSessionFragment[]>;
-  private fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
+  fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
   private fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
-  private $personalSessionFragmentsRequested = signal(false);
+  private $fetchPersonalSessionFragmentsSubmitted = signal(false);
 
-  private store$ = inject(Store<RootStoreState.AppState>);
+  private store$ = inject(Store);
   private uiService = inject(UiService);
+  private router = inject(Router);
 
   constructor() { }
 
@@ -46,7 +51,7 @@ export class TrainDashboardComponent implements OnInit {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$personalSessionFragmentsRequested.set(false);
+            this.$fetchPersonalSessionFragmentsSubmitted.set(false);
           }
           const personalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore);
           return personalSessionFragmentsInStore$;
@@ -54,9 +59,9 @@ export class TrainDashboardComponent implements OnInit {
         withLatestFrom(this.fetchAllPersonalSessionFragmentsError$, this.userData$, this.allPersonalSessionFragmentsFetched$),
         filter(([personalSessionFragments, processingError, userData, allFetched]) => !processingError),
         map(([personalSessionFragments, processingError, userData, allFetched]) => {
-          if (!allFetched && !this.$personalSessionFragmentsRequested()) {
+          if (!allFetched && !this.$fetchPersonalSessionFragmentsSubmitted()) {
             this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData.id}));
-            this.$personalSessionFragmentsRequested.set(true);
+            this.$fetchPersonalSessionFragmentsSubmitted.set(true);
           }
           return personalSessionFragments;
         }),
@@ -64,10 +69,14 @@ export class TrainDashboardComponent implements OnInit {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$personalSessionFragmentsRequested.set(false);
+          this.$fetchPersonalSessionFragmentsSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       );
+  }
+
+  onEditPersonalQueue() {
+    this.router.navigate([PublicAppRoutes.TRAIN_EDIT_PERSONAL_QUEUE]);
   }
 
 }

@@ -28,3 +28,11 @@ export interface ViewPlanSessionFragmentUrlParams extends Params {
   [PlanSessionFragmentKeys.CANONICAL_ID]: string,
   [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
 }
+
+export interface DeletePlanSessionFragmentUrlParams extends Params {
+  [DeletePlanSessionFragmentUrlParamsKeys.DELETE_PLAN_SESSION_FRAGMENT_ID]: string,
+}
+
+export enum DeletePlanSessionFragmentUrlParamsKeys {
+  DELETE_PLAN_SESSION_FRAGMENT_ID = 'deletePlanSessionFragmentId',
+}

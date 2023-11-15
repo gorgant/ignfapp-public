@@ -7,7 +7,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { TrainingPlan } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-browse-training-plans',
@@ -23,11 +23,11 @@ export class BrowseTrainingPlansComponent implements OnInit {
 
   trainingPlanCardHeight = 300;
 
-  allTrainingPlansFetched$!: Observable<boolean>;
+  private allTrainingPlansFetched$!: Observable<boolean>;
   trainingPlans$!: Observable<TrainingPlan[]>;
   fetchAllTrainingPlansProcessing$!: Observable<boolean>;
-  fetchAllTrainingPlansError$!: Observable<{} | null>;
-  private $trainingPlansRequested = signal(false);
+  private fetchAllTrainingPlansError$!: Observable<{} | null>;
+  private $fetchTrainingPlansSubmitted = signal(false);
 
   searchText = ''; // Used in template for ngModel
 
@@ -55,7 +55,7 @@ export class BrowseTrainingPlansComponent implements OnInit {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$trainingPlansRequested.set(false);
+            this.$fetchTrainingPlansSubmitted.set(false);
           }
           const trainingPlansInStore$ = this.store$.select(TrainingPlanStoreSelectors.selectAllTrainingPlansInStore);
           return trainingPlansInStore$;
@@ -63,9 +63,9 @@ export class BrowseTrainingPlansComponent implements OnInit {
         withLatestFrom(this.fetchAllTrainingPlansError$, this.allTrainingPlansFetched$),
         filter(([trainingPlans, processingError, allFetched]) => !processingError),
         map(([trainingPlans, processingError, allFetched]) => {
-          if (!allFetched && !this.$trainingPlansRequested()) {
+          if (!allFetched && !this.$fetchTrainingPlansSubmitted()) {
             this.store$.dispatch(TrainingPlanStoreActions.fetchAllTrainingPlansRequested());
-            this.$trainingPlansRequested.set(true);
+            this.$fetchTrainingPlansSubmitted.set(true);
           }
           return trainingPlans;
         }),
@@ -73,19 +73,19 @@ export class BrowseTrainingPlansComponent implements OnInit {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$trainingPlansRequested.set(false);
+          this.$fetchTrainingPlansSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       );
   }
 
   onCreatePlan() {
-    this.router.navigate([PublicAppRoutes.TRAINING_PLAN_NEW]);
+    this.router.navigate([PublicAppRoutes.BUILD_NEW_TRAINING_PLAN]);
   }
 
 
   onSelectTrainingPlan(trainingPlanData: TrainingPlan) {
-    this.router.navigate([`${PublicAppRoutes.TRAINING_PLAN}`, trainingPlanData.id]);
+    this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_PLAN}`, trainingPlanData.id]);
   }
 
 

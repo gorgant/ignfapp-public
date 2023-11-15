@@ -14,7 +14,7 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class TrainingPlanService {
 
-  deleteTrainingPlanRequested$: Subject<void> = new Subject();
+  deleteTrainingPlanTriggered$: Subject<void> = new Subject();
 
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
@@ -62,7 +62,7 @@ export class TrainingPlanService {
   }
 
   deleteTrainingPlan(planId: string): Observable<string> {
-    this.unsubscribeSingleTrainingPlan();
+    this.triggerDeleteTrainingPlanObserver();
 
     const trainingPlanDeleteRequest = deleteDoc(this.getTrainingPlanDoc(planId));
 
@@ -171,7 +171,7 @@ export class TrainingPlanService {
     const trainingPlan = docData(this.getTrainingPlanDoc(planId));
     return trainingPlan
       .pipe(
-        takeUntil(this.deleteTrainingPlanRequested$), // Prevents fetching error when plan is deleted
+        takeUntil(this.deleteTrainingPlanTriggered$), // Prevents fetching error when plan is deleted
         takeUntil(this.authService.unsubTrigger$),
         map(trainingPlan => {
           if (!trainingPlan) {
@@ -221,10 +221,10 @@ export class TrainingPlanService {
       );
   }
 
-  private unsubscribeSingleTrainingPlan() {
-    this.deleteTrainingPlanRequested$.next(); // Send signal to Firebase subscriptions to unsubscribe
-    this.deleteTrainingPlanRequested$.complete(); // Send signal to Firebase subscriptions to unsubscribe
-    this.deleteTrainingPlanRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
+  private triggerDeleteTrainingPlanObserver() {
+    this.deleteTrainingPlanTriggered$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanTriggered$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deleteTrainingPlanTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
   private getTrainingPlanCollection(): CollectionReference<TrainingPlan> {

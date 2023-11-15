@@ -37,10 +37,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   private authSubscription!: Subscription;
 
   private userData$!: Observable<PublicUser>;
-  private updateUserRequestSubmitted = signal(false);
+  private $updateUserSubmitted = signal(false);
   
-  private reloadAuthDataTriggered = signal(false);
-  showResetMessage = signal(false);
+  private $reloadAuthDataSubmitted = signal(false);
+  $showResetMessage = signal(false);
 
   private store$ = inject(Store);
   private router = inject(Router);
@@ -94,7 +94,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
         filter(([authData, processingError]) => !!authData), // Only proceed once auth data is available
         switchMap(([authData, processingError]) => {
           console.log('Auth data received in component', authData);
-          if (!this.updateUserRequestSubmitted()) {
+          if (!this.$updateUserSubmitted()) {
             this.updateUserInFirebase(authData);
           }
           return this.userData$;
@@ -106,10 +106,10 @@ export class LoginFormComponent implements OnInit, OnDestroy {
             console.log(`User has not verified email. Waiting for verification for ${userData.email}`);
           }
           // Auth data needs to be reloaded after email verification is complete in order for user page to update
-          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered()) {
+          if (userData.emailVerified && !authData.emailVerified && !this.$reloadAuthDataSubmitted()) {
             console.log(`User email verified but auth not yet updated. Submitting auth refresh request.`);
             this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
-            this.reloadAuthDataTriggered.set(true);
+            this.$reloadAuthDataSubmitted.set(true);
           }
           if (userData.emailVerified && authData.emailVerified) {
             console.log('User email verified in db and auth, routing user to requested route.');
@@ -138,7 +138,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
       updateType: UserUpdateType.AUTHENTICATION
     }
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-    this.updateUserRequestSubmitted.set(true);
+    this.$updateUserSubmitted.set(true);
   }
 
 
@@ -163,7 +163,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ResetPasswordDialogueComponent, dialogConfig);
     dialogRef.afterClosed().subscribe(submitted => {
       if (submitted) {
-        this.showResetMessage.set(true);
+        this.$showResetMessage.set(true);
       }
     })
 
@@ -171,13 +171,13 @@ export class LoginFormComponent implements OnInit, OnDestroy {
 
   // Makes login screen visible again after completing a password reset
   onRestoreLoginScreen() {
-    this.showResetMessage.set(false);
+    this.$showResetMessage.set(false);
   }
 
   private resetComponentActionState() {
-    this.reloadAuthDataTriggered.set(false);
-    this.showResetMessage.set(false);
-    this.updateUserRequestSubmitted.set(false);
+    this.$reloadAuthDataSubmitted.set(false);
+    this.$showResetMessage.set(false);
+    this.$updateUserSubmitted.set(false);
   }
 
   ngOnDestroy() {

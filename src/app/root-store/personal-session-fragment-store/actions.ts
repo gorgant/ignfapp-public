@@ -4,6 +4,57 @@ import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { PersonalSessionFragment, PersonalSessionFragmentNoIdOrTimestamp } from "shared-models/train/personal-session-fragment.model";
 
+// Batch Create Personal Session Fragments
+
+export const batchCreatePersonalSessionFragmentsRequested = createAction(
+  '[Training Plan] Batch Create Personal Session Fragments Requested',
+  props<{userId: string, personalSessionFragmentsNoId: PersonalSessionFragmentNoIdOrTimestamp[]}>()
+);
+
+export const batchCreatePersonalSessionFragmentsCompleted = createAction(
+  '[Personal Session Fragment Service] Batch Create Personal Session Fragments Completed',
+  props<{personalSessionFragments: PersonalSessionFragment[]}>()
+);
+
+export const batchCreatePersonalSessionFragmentsFailed = createAction(
+  '[Personal Session Fragment Service] Batch Create Personal Session Fragments Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Batch Delete Personal Session Fragments
+
+export const batchDeletePersonalSessionFragmentsRequested = createAction(
+  '[Edit Personal Queue] Batch Delete Personal Session Fragments Requested',
+  props<{userId: string, personalSessionFragmentIds: string[]}>()
+);
+
+export const batchDeletePersonalSessionFragmentsCompleted = createAction(
+  '[Personal Session Fragment Service] Batch Delete Personal Session Fragments Completed',
+  props<{personalSessionFragmentIds: string[]}>()
+);
+
+export const batchDeletePersonalSessionFragmentsFailed = createAction(
+  '[Personal Session Fragment Service] Batch Delete Personal Session Fragments Failed',
+  props<{error: FirebaseError}>()
+);
+
+// Batch Modify Personal Session Fragments
+
+export const batchModifyPersonalSessionFragmentsRequested = createAction(
+  '[Edit Personal Queue] Batch Modify Personal Session Fragments Requested',
+  props<{userId: string, personalSessionFragmentUpdates: Update<PersonalSessionFragment>[]}>()
+);
+
+export const batchModifyPersonalSessionFragmentsCompleted = createAction(
+  '[Personal Session Fragment Service] Batch Modify Personal Session Fragments Completed',
+  props<{personalSessionFragmentUpdates: Update<PersonalSessionFragment>[]}>()
+);
+
+export const batchModifyPersonalSessionFragmentsFailed = createAction(
+  '[Personal Session Fragment Service] Batch Modify Personal Session Fragments Failed',
+  props<{error: FirebaseError}>()
+);
+
 // Create Personal Session Fragment
 
 export const createPersonalSessionFragmentRequested = createAction(
@@ -24,7 +75,7 @@ export const createPersonalSessionFragmentFailed = createAction(
 // Delete Personal Session Fragment
 
 export const deletePersonalSessionFragmentRequested = createAction(
-  '[Edit Personal Session Fragment] Delete Personal Session Fragment Requested',
+  '[Edit Personal Queue] Delete Personal Session Fragment Requested',
   props<{userId: string, personalSessionFragmentId: string}>()
 );
 
@@ -89,7 +140,7 @@ export const fetchSinglePersonalSessionFragmentFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Purge Trainining PersonalSessionFragment Data
+// Purge Personal Session Fragment Data
 
 export const purgePersonalSessionFragmentData = createAction(
   '[AppWide] Purge Personal Session Fragment Data'
@@ -98,7 +149,7 @@ export const purgePersonalSessionFragmentData = createAction(
 // Update Personal Session Fragment
 
 export const updatePersonalSessionFragmentRequested = createAction(
-  '[Edit Personal Session Fragment] Update Personal Session Fragment Requested',
+  '[Edit Personal Queue] Update Personal Session Fragment Requested',
   props<{userId: string, personalSessionFragmentUpdates: Update<PersonalSessionFragment>}>()
 );
 

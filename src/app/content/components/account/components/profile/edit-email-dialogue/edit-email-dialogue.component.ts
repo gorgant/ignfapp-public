@@ -3,7 +3,7 @@ import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { Store, select } from '@ngrx/store';
-import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError } from 'rxjs';
+import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
@@ -40,13 +40,16 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   private confirmPasswordProcessing$!: Observable<boolean>;
   private passwordConfirmationSubscription!: Subscription;
   private confirmPasswordError$!: Observable<{} | null>;
-  private passwordConfirmationSubmitted = signal(false);
+  private $passwordConfirmationSubmitted = signal(false);
+  private $passwordUpdateCycleInit = signal(false);
+  private $passwordUpdateCycleComplete = signal(false);
 
   private sendUpdateEmailConfirmationProcessing$!: Observable<boolean>;
   private sendUpdateEmailConfirmationSubscription!: Subscription;
   private sendUpdateEmailConfirmationError$!: Observable<{} | null>;
-  private sendUpdateEmailConfirmationSubmitted = signal(false);
-  sendUpdateEmailConfirmationSucceded = signal(false);
+  private $sendUpdateEmailConfirmationSubmitted = signal(false);
+  private $sendUpdateEmailConfirmationCycleInit = signal(false);
+  $sendUpdateEmailConfirmationCycleComplete = signal(false);
   
   authOrUserUpdateProcessing$!: Observable<boolean>;
 
@@ -107,76 +110,98 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
     }
 
     this.store$.dispatch(AuthStoreActions.confirmPasswordRequested({passwordConfirmationData}));
-    this.passwordConfirmationSubmitted.set(true);
-    this.postPasswordConfirmationActions();
-  }
-  
-  private postPasswordConfirmationActions() {
+    this.$passwordConfirmationSubmitted.set(true);
 
     this.passwordConfirmationSubscription = this.confirmPasswordError$
       .pipe(
         switchMap(processingError => {
           const errMsg = (processingError as FirebaseError)?.message;
           if (processingError) {
-            console.log('processingError detected, terminating dialog', processingError);
+            console.log('processingError detected, terminating pipe', processingError);
             this.resetComponentActionState();
             // Keep dialog open unless the error isn't related to a wrong password entry
             if (!errMsg.includes('wrong-password')) {
               this.dialogRef.close();
             }
           }
-          return combineLatest([this.confirmPasswordProcessing$, this.confirmPasswordError$]);
+          return this.confirmPasswordProcessing$;
         }),
-        filter(([passwordUpdateProcessing, processingError]) => !processingError ), // Halts function if processingError detected
-        tap(([passwordUpdateProcessing, authError]) => {
+        withLatestFrom(this.confirmPasswordError$),
+        filter(([passwordConfirmationProcessing, processingError]) => !processingError ), // Halts function if processingError detected
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap(([passwordConfirmationProcessing, processingError]) => {
+          if (passwordConfirmationProcessing) {
+            this.$passwordUpdateCycleInit.set(true);
+          }
+          if (!passwordConfirmationProcessing && this.$passwordUpdateCycleInit()) {
+            console.log('passwordUpdate successful, proceeding with pipe.');
+            this.$passwordUpdateCycleInit.set(false);
+            this.$passwordUpdateCycleComplete.set(true);
+          }
+        }),
+        filter(([passwordConfirmationProcessing, processingError]) => !passwordConfirmationProcessing && this.$passwordUpdateCycleComplete()),
+        tap(([passwordConfirmationProcessing, processingError]) => {
           // If password confirmation succeeds, proceed to next step
-          if (this.passwordConfirmationSubmitted() && !passwordUpdateProcessing) {
-            console.log('Password confirmation successful');
-            this.passwordConfirmationSubscription?.unsubscribe(); // Clear subscription no longer needed
-            const stepOne = this.updateEmailStepper.steps.get(0); 
-            if (stepOne) {
-              stepOne.completed = true;
-              this.updateEmailStepper.next() // Programatically trigger the stepper to move to the next step
-              if (this.passwordConfirmationSubscription) {
-                this.passwordConfirmationSubscription?.unsubscribe();
-              }
+          this.passwordConfirmationSubscription?.unsubscribe(); // Clear subscription no longer needed
+          const stepOne = this.updateEmailStepper.steps.get(0); 
+          if (stepOne) {
+            stepOne.completed = true;
+            this.updateEmailStepper.next() // Programatically trigger the stepper to move to the next step
+            if (this.passwordConfirmationSubscription) {
+              this.passwordConfirmationSubscription?.unsubscribe();
             }
-          }  
+          }
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.dialogRef.close(false);
+          return throwError(() => new Error(error));
         })
-      )
-      .subscribe();
+      ).subscribe();
   }
   
   onSendUpdateEmailConfirmation() {
     this.sendUpdateEmailConfirmationSubscription = this.sendUpdateEmailConfirmationError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog');
             this.resetComponentActionState();
             this.dialogRef.close(false);
           }
-          return combineLatest([this.userData$, this.sendUpdateEmailConfirmationError$]);
+          return processingError;
         }),
-        filter(([userData, processingError]) => !processingError), // Halts function if processingError detected
-        switchMap(([userData, processingError]) => {
-          if (!this.sendUpdateEmailConfirmationSubmitted()) {
+        withLatestFrom(this.userData$),
+        filter(([processingError, userData]) => !processingError), // Halts function if processingError detected
+        switchMap(([processingError, userData]) => {
+          if (!this.$sendUpdateEmailConfirmationSubmitted()) {
             // Provide the new email to the user data
             const updatedUserData: PublicUser = {
               ...userData,
               [PublicUserKeys.EMAIL]: this.email.value
             }
             this.store$.dispatch(UserStoreActions.sendUpdateEmailConfirmationRequested({userData: updatedUserData}));
-            this.sendUpdateEmailConfirmationSubmitted.set(true);
+            this.$sendUpdateEmailConfirmationSubmitted.set(true);
           }
           return this.sendUpdateEmailConfirmationProcessing$;
         }),
-        tap(sendEmailProcessing => {
-          if (this.sendUpdateEmailConfirmationSubmitted() && !sendEmailProcessing) {
-            console.log('sendUpdateEmailConfirmation succeeded');
-            this.sendUpdateEmailConfirmationSubscription?.unsubscribe();
-            this.sendUpdateEmailConfirmationSucceded.set(true);
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap(updateProcessing => {
+          if (updateProcessing) {
+            this.$sendUpdateEmailConfirmationCycleInit.set(true);
           }
+          if (!updateProcessing && this.$sendUpdateEmailConfirmationCycleInit()) {
+            console.log('sendUpdateEmailConfirmation successful, proceeding with pipe.');
+            this.$sendUpdateEmailConfirmationCycleInit.set(false);
+            this.$sendUpdateEmailConfirmationCycleComplete.set(true);
+          }
+        }),
+        filter(updateProcessing => !updateProcessing && this.$sendUpdateEmailConfirmationCycleComplete()),
+        tap(sendEmailProcessing => {
+          this.sendUpdateEmailConfirmationSubscription?.unsubscribe();
+          // Don't close dialog yet so that we can display follow-up instructions to user
         }),
         // Catch any local errors
         catchError(error => {
@@ -191,11 +216,15 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   private resetComponentActionState() {
-    this.passwordConfirmationSubmitted.set(false);
+    this.$passwordConfirmationSubmitted.set(false);
     this.passwordForm.reset();
-    this.sendUpdateEmailConfirmationSubmitted.set(false);
+    this.$sendUpdateEmailConfirmationSubmitted.set(false);
     this.emailForm.reset();
-    this.sendUpdateEmailConfirmationSucceded.set(false);
+    this.$sendUpdateEmailConfirmationCycleComplete.set(false);
+    this.$passwordUpdateCycleInit.set(false);
+    this.$passwordUpdateCycleComplete.set(false);
+    this.$sendUpdateEmailConfirmationCycleInit.set(false);
+    this.$sendUpdateEmailConfirmationCycleComplete.set(false);
   }
 
   // These getters are used for easy access in the HTML template

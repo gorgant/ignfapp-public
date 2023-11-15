@@ -14,6 +14,69 @@ export class PersonalSessionFragmentStoreEffects {
     private personalSessionFragmentService: PersonalSessionFragmentService,
   ) { }
 
+  batchCreatePersonalSessionFragmentsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsRequested),
+      concatMap(action => 
+        this.personalSessionFragmentService.batchCreatePersonalSessionFragments(action.userId, action.personalSessionFragmentsNoId).pipe(
+          map(personalSessionFragments => {
+            return PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsCompleted({personalSessionFragments});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  batchDeletePersonalSessionFragmentsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsRequested),
+      concatMap(action => 
+        this.personalSessionFragmentService.batchDeletePersonalSessionFragments(action.userId, action.personalSessionFragmentIds).pipe(
+          map(personalSessionFragmentIds => {
+            return PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsCompleted({personalSessionFragmentIds});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
+  batchModifyPersonalSessionFragmentsEffect$ = createEffect(() => this.actions$
+    .pipe(
+      ofType(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsRequested),
+      concatMap(action => 
+        this.personalSessionFragmentService.batchModifyPersonalSessionFragments(action.userId, action.personalSessionFragmentUpdates).pipe(
+          map(personalSessionFragmentUpdates => {
+            return PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsCompleted({personalSessionFragmentUpdates});
+          }),
+          catchError(error => {
+            const fbError: FirebaseError = {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            };
+            return of(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsFailed({error: fbError}));
+          })
+        )
+      ),
+    ),
+  );
+
   createPersonalSessionFragmentEffect$ = createEffect(() => this.actions$
     .pipe(
       ofType(PersonalSessionFragmentStoreActions.createPersonalSessionFragmentRequested),

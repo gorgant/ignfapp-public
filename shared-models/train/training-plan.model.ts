@@ -1,6 +1,7 @@
 import { FormControl } from "@angular/forms"
 import { Params } from "@angular/router"
 import { Timestamp } from '@angular/fire/firestore';
+import { ViewTrainingSessionsUrlParamsKeys } from "./training-session.model";
 
 export interface TrainingPlan extends TrainingPlanNoIdOrTimestamp {
   createdTimestamp: number | Timestamp,
@@ -26,11 +27,14 @@ export const TrainingPlanFormVars = {
 }
 
 export interface AddTrainingSessionUrlParams extends Params {
-  [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: boolean,
-  [AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_ID]: string
+  [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: boolean,
+  [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID]: string,
+  [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: boolean
 }
 
-export enum AddTrainingPlanUrlParamsKeys {
+export enum AddTrainingSessionUrlParamsKeys {
   TRAINING_PLAN_BUILDER_REQUEST = 'trainingPlanBuilderRequest',
   TRAINING_PLAN_ID = 'trainingPlanId'
 }
+
+

@@ -13,7 +13,6 @@ export interface PersonalSessionFragmentNoIdOrTimestamp extends TrainingSessionN
   [PersonalSessionFragmentKeys.COMPLETE]: boolean,
   [PersonalSessionFragmentKeys.QUEUE_INDEX]: number,
   [PersonalSessionFragmentKeys.USER_ID]: string
-  [PersonalSessionFragmentKeys.SCHEDULED_TIMESTAMP]?: boolean, // Concept with this is when a plan is added to a user account, UI asks frequency, and programs dates for each workout based on that frequency
 }
 
 
@@ -31,6 +30,12 @@ export enum PersonalSessionFragmentKeys {
 export interface ViewPersonalSessionFragmentUrlParams extends Params {
   [PersonalSessionFragmentKeys.CANONICAL_ID]: string;
   [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
-  // id: string;
-  // [PersonalSessionFragmentKeys.USER_ID]: string;
+}
+
+export interface DeletePersonalSessionFragmentUrlParams extends Params {
+  [DeletePersonalSessionFragmentUrlParamsKeys.DELETE_PERSONAL_SESSION_FRAGMENT_ID]: string,
+}
+
+export enum DeletePersonalSessionFragmentUrlParamsKeys {
+  DELETE_PERSONAL_SESSION_FRAGMENT_ID = 'deletePersonalSessionFragmentId',
 }

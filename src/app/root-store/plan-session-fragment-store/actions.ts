@@ -123,7 +123,13 @@ export const fetchSinglePlanSessionFragmentFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Purge Plan Session Fragmentining PlanSessionFragment Data
+// // Purge Plan Session Fragment Loaded 
+
+// export const purgeAllPlanSessionFragmentsFetched = createAction(
+//   '[AppWide] Purge All Plan Session Fragments Fetched'
+// );
+
+// Purge Plan Session Fragment Data
 
 export const purgePlanSessionFragmentData = createAction(
   '[AppWide] Purge Plan Session Fragment Data'

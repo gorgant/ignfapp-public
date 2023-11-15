@@ -75,7 +75,7 @@ export const loginGuardCanActivate: CanActivateFn = (route: ActivatedRouteSnapsh
 
         // Otherwise the user is logged in, in which case route to the requested url (or training dashboard)
         console.log('Auth credentials present and email verified in auth and db. Access to auth page denied. Routing to requested URL.');
-        if (state.url === PublicAppRoutes.LOGIN || state.url === PublicAppRoutes.SIGNUP) {
+        if (state.url === PublicAppRoutes.AUTH_LOGIN || state.url === PublicAppRoutes.AUTH_SIGNUP) {
           // This prevents an infinite loop if coming directly from clean login path
           router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
         } else {

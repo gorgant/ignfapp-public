@@ -7,6 +7,7 @@
     </div>
   </div>
   <app-add-training-session-to-plan-button *ngIf="trainingPlanBuilderRequest" [trainingSessionData]="trainingSesssionData"></app-add-training-session-to-plan-button>
+  <app-add-training-session-to-personal-queue-button *ngIf="$isViewTrainingSessions() && !trainingPlanBuilderRequest" [trainingSessionData]="trainingSesssionData"></app-add-training-session-to-personal-queue-button>
 </div>
 
 <ng-template #listView>

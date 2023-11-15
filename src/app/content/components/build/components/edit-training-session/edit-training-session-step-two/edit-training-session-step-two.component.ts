@@ -41,11 +41,10 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   trainingSessionActivityCategoryUserInputForm = new FormControl('');
   filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
 
-  trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
-
-  private trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
-  private trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
-  private trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
+  readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
+  private readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
+  private readonly trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
+  private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
 
 

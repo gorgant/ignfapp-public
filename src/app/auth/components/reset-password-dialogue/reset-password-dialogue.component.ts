@@ -2,10 +2,11 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription, throwError } from 'rxjs';
+import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
 
 @Component({
@@ -23,13 +24,14 @@ export class ResetPasswordDialogueComponent implements OnInit {
 
   private resetPasswordError$!: Observable<{} | null>;
   resetPasswordProcessing$!: Observable<boolean>;
-  private resetPasswordSubmitted = signal(false);
+  private $resetPasswordSubmitted = signal(false);
   private resetPasswordSubscription!: Subscription;
 
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<ResetPasswordDialogueComponent>);
   private emailString: string = inject(MAT_DIALOG_DATA);
   private store$ = inject(Store<RootStoreState.AppState>);
+  private uiService = inject(UiService);
 
   resetPasswordForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]]
@@ -59,9 +61,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
   onSubmit() {
     const email = this.email.value;
     this.store$.dispatch(AuthStoreActions.resetPasswordRequested({email}));
-
-    this.resetPasswordSubmitted.set(true);
-    
+    this.$resetPasswordSubmitted.set(true);
     this.postResetActions();
   }
 
@@ -79,16 +79,23 @@ export class ResetPasswordDialogueComponent implements OnInit {
         withLatestFrom(this.resetPasswordProcessing$),
         filter(([processingError, resetProcessing]) => !processingError ), // Halts function if processingError detected
         tap(([processingError, resetProcessing]) => {
-          if (!resetProcessing && this.resetPasswordSubmitted()) {
+          if (!resetProcessing && this.$resetPasswordSubmitted()) {
             this.dialogRef.close(true);
           }
+        }),
+        // Catch any local errors
+        catchError(error => {
+          console.log('Error in component:', error);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.dialogRef.close(false);
+          return throwError(() => new Error(error));
         })
       )
       .subscribe();
   }
 
   private resetComponentActionState() {
-    this.resetPasswordSubmitted.set(false);
+    this.$resetPasswordSubmitted.set(false);
   }
 
   // These getters are used for easy access in the HTML template

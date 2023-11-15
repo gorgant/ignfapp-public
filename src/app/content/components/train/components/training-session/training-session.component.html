@@ -1,4 +1,4 @@
-<div *ngIf="!(deleteTrainingSessionProcessing$ | async) && $currentTrainingSession() as sessionData" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+<div *ngIf="!$deleteTrainingSessionCycleInit() && $localTrainingSession() as sessionData" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
   
   <div [fxHide]="videoInitialized()" class="header-container">
     <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
@@ -11,13 +11,15 @@
   <div *ngIf="!$trainingPlanBuilderRequest()" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <button *ngIf="!videoInitialized()" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized()" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
-    <app-add-training-session-to-personal-queue-button *ngIf="!videoInitialized()" [trainingSessionData]="sessionData" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
+    <app-add-training-session-to-personal-queue-button *ngIf="!videoInitialized() && $databaseCategoryType() !== DATABASE_CATEGORY_TYPES.PERSONAL_SESSION_FRAGMENT" [trainingSessionData]="sessionData" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
     <button *ngIf="!videoInitialized()" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized() && !sessionPaused()" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized() && sessionPaused()" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
     <button *ngIf="videoInitialized()" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
-    <button *ngIf="!videoInitialized() && (userData$ | async)?.isAdmin" mat-stroked-button color="accent" (click)="onEditTrainingSession(sessionData.id)">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
-    <button *ngIf="!videoInitialized() && (userData$ | async)?.isAdmin" mat-stroked-button color="warn" (click)="onDeleteTrainingSession(sessionData.id)">{{ DELETE_TRAINING_SESSION_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized() && (userData$ | async)?.isAdmin" mat-stroked-button color="accent" (click)="onEditTrainingSession()">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized() && (userData$ | async)?.isAdmin && $databaseCategoryType() === DATABASE_CATEGORY_TYPES.CANONICAL" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ DELETE_TRAINING_SESSION_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized() && (userData$ | async)?.isAdmin && $databaseCategoryType() === DATABASE_CATEGORY_TYPES.PLAN_SESSION_FRAGMENT" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_TRAINING_PLAN_BUTTON_VALUE }}</button>
+    <button *ngIf="!videoInitialized() && $databaseCategoryType() === DATABASE_CATEGORY_TYPES.PERSONAL_SESSION_FRAGMENT" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
   </div>
 
   <div *ngIf="$trainingPlanBuilderRequest()" class="actions" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
@@ -26,6 +28,6 @@
   </div>
 
 </div>
-<div *ngIf="(deleteTrainingSessionProcessing$ | async)">
-  <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+<div *ngIf="(combinedFetchTrainingSessionDataProcessing$ | async) || $deleteTrainingSessionCycleInit()" class="spinner-container">
+  <mat-progress-spinner diameter=40 color="primary" mode="indeterminate" class="loading-spinner"></mat-progress-spinner>
 </div>

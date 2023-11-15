@@ -35,9 +35,9 @@ export class AuthService {
     authState(this.auth)
       .subscribe(authState => {
         // Disable this for email verification route
-        if (!authState && !this.router.url.includes(PublicAppRoutes.EMAIL_VERIFICATION) && this.authCheckInitialized) {
+        if (!authState && !this.router.url.includes(PublicAppRoutes.AUTH_EMAIL_VERIFICATION) && this.authCheckInitialized) {
           console.log('Auth state auto logout initialized')
-          this.router.navigate([PublicAppRoutes.LOGIN]);
+          this.router.navigate([PublicAppRoutes.AUTH_LOGIN]);
           this.logout();
         }
         this.authCheckInitialized = true; // prevents this logout from triggering on the initial load, which was canceling out the returnUrl param from the Authguard

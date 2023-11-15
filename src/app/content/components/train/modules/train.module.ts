@@ -7,6 +7,7 @@ import { TrainDashboardComponent } from '../components/train-dashboard/train-das
 import { TrainingSessionDetailsComponent } from '../components/training-session/training-session-details/training-session-details.component';
 import { TrainingSessionVideoComponent } from '../components/training-session/training-session-video/training-session-video.component';
 import { TrainingSessionCompleteDialogueComponent } from '../components/training-session/training-session-complete-dialogue/training-session-complete-dialogue.component';
+import { EditPersonalQueueComponent } from '../components/edit-personal-queue/edit-personal-queue.component';
 
 
 
@@ -18,6 +19,7 @@ import { TrainingSessionCompleteDialogueComponent } from '../components/training
     TrainingSessionDetailsComponent,
     TrainingSessionVideoComponent,
     TrainingSessionCompleteDialogueComponent,
+    EditPersonalQueueComponent,
   ],
   imports: [
     SharedModule,

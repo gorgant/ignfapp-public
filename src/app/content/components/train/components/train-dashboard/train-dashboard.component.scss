@@ -1,5 +1,11 @@
 @import '../../../../../variables';
 
+.edit-queue-button {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  width: $mobile-button-width;
+}
+
 .scrolling-container {
   width: 100vw;
   height: 100vh;
@@ -9,7 +15,15 @@
   height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
 }
 
+.loading-spinner {
+  margin-top: 64px;
+}
+
 @media screen and (min-width: $mobile-cutoff-width) {
+  .edit-queue-button {
+    width: $desktop-button-width;
+  }
+
   .scrolling-container {
     width: $desktop-screen-width;
     height: calc(100vh - 200px);

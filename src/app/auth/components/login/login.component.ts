@@ -16,7 +16,7 @@ import { AuthStoreSelectors, RootStoreState, UserStoreSelectors } from 'src/app/
 })
 export class LoginComponent implements OnInit {
 
-  SIGNUP_PATH = PublicAppRoutes.SIGNUP;
+  SIGNUP_PATH = PublicAppRoutes.AUTH_SIGNUP;
   TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
 
   AUTH_PROCESSING_BLURB = GlobalFieldValues.LI_AUTH_PROCESSING;

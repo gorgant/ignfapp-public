@@ -7,12 +7,6 @@ export const planSessionFragmentFeatureKey = PublicStoreFeatureKeys.PLAN_SESSSIO
 
 export const featureAdapter: EntityAdapter<PlanSessionFragment> = createEntityAdapter<PlanSessionFragment>({
   selectId: (planSessionFragment: PlanSessionFragment) => planSessionFragment.id,
-  // Sort by list order (ascending)
-  sortComparer: (a: PlanSessionFragment, b: PlanSessionFragment): number => {
-    const trainingPlanIndexA = a.trainingPlanIndex;
-    const trainingPlanIndexB = b.trainingPlanIndex;
-    return trainingPlanIndexA.toString().localeCompare(trainingPlanIndexB.toString(), undefined, {numeric: true});
-  }
 });
 
 export interface PlanSessionFragmentState extends EntityState<PlanSessionFragment> {

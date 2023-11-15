@@ -7,6 +7,12 @@ import * as fromPersonalSessionFragments from './reducer';
 const selectPersonalSessionFragmentState = createFeatureSelector<PersonalSessionFragmentState>(PublicStoreFeatureKeys.PERSONAL_SESSSION_FRAGMENT);
 
 const getAllPersonalSessionFragmentsFetched = (state: PersonalSessionFragmentState) => state.allPersonalSessionFragmentsFetched;
+const getBatchCreatePersonalSessionFragmentsError = (state: PersonalSessionFragmentState) => state.batchCreatePersonalSessionFragmentsError;
+const getBatchCreatePersonalSessionFragmentsProcessing = (state: PersonalSessionFragmentState) => state.batchCreatePersonalSessionFragmentsProcessing;
+const getBatchDeletePersonalSessionFragmentsError = (state: PersonalSessionFragmentState) => state.batchDeletePersonalSessionFragmentsError;
+const getBatchDeletePersonalSessionFragmentsProcessing = (state: PersonalSessionFragmentState) => state.batchDeletePersonalSessionFragmentsProcessing;
+const getBatchModifyPersonalSessionFragmentsError = (state: PersonalSessionFragmentState) => state.batchModifyPersonalSessionFragmentsError;
+const getBatchModifyPersonalSessionFragmentsProcessing = (state: PersonalSessionFragmentState) => state.batchModifyPersonalSessionFragmentsProcessing;
 const getCreatePersonalSessionFragmentError = (state: PersonalSessionFragmentState) => state.createPersonalSessionFragmentError;
 const getCreatePersonalSessionFragmentProcessing = (state: PersonalSessionFragmentState) => state.createPersonalSessionFragmentProcessing;
 const getDeletePersonalSessionFragmentError = (state: PersonalSessionFragmentState) => state.deletePersonalSessionFragmentError;
@@ -28,6 +34,36 @@ export const selectAllPersonalSessionFragmentsInStore: (state: object) => Person
 export const selectAllPersonalSessionFragmentsFetched = createSelector(
   selectPersonalSessionFragmentState,
   getAllPersonalSessionFragmentsFetched
+);
+
+export const selectBatchCreatePersonalSessionFragmentsError = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchCreatePersonalSessionFragmentsError
+);
+
+export const selectBatchCreatePersonalSessionFragmentsProcessing = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchCreatePersonalSessionFragmentsProcessing
+);
+
+export const selectBatchDeletePersonalSessionFragmentsError = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchDeletePersonalSessionFragmentsError
+);
+
+export const selectBatchDeletePersonalSessionFragmentsProcessing = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchDeletePersonalSessionFragmentsProcessing
+);
+
+export const selectBatchModifyPersonalSessionFragmentsError = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchModifyPersonalSessionFragmentsError
+);
+
+export const selectBatchModifyPersonalSessionFragmentsProcessing = createSelector(
+  selectPersonalSessionFragmentState,
+  getBatchModifyPersonalSessionFragmentsProcessing
 );
 
 export const selectCreatePersonalSessionFragmentError = createSelector(

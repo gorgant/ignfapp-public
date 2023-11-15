@@ -1,0 +1,26 @@
+<div class="content-container">
+  <button class="back-button" mat-button color="primary" (click)="onBackToDashboard()">
+    <mat-icon>arrow_back</mat-icon> {{ BACK_TO_DASHBOARD_BUTTON_VALUE }}
+  </button>
+  <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
+    <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of $localPersonalSessionFragments()" [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
+      <div class="drop-placeholder" *cdkDragPlaceholder></div>
+      <div class="training-session-card-details">
+        <mat-icon class="drag-drop-icon">drag_indicator</mat-icon>
+        <app-training-session-card [trainingSesssionData]="fragment" [compressedDisplay]="true" (click)="onSelectPersonalSessionFragment(fragment)"></app-training-session-card>
+        <mat-icon class="delete-icon" (click)="onDeletePersonalSessionFragment(fragment)">delete</mat-icon>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0" class="queue-empty-message">
+    {{ QUEUE_IS_EMPTY_BLURB }}
+  </div>
+  <div *ngIf="!(combinedDeletePersonalSessionFragmentProcessing$ | async)" class="action-buttons">
+    <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length > 0" class="clear-queue-button" button mat-stroked-button color="primary" (click)="onClearPersonalQueue()">{{ CLEAR_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
+    <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0" class="browse-training-sessions-button" button mat-stroked-button color="primary" (click)="onNavigateToBrowse()">{{ BROWSE_TRAINING_SESSIONS_BUTTON_VALUE }}</button>
+  </div>
+  <div class="progress-spinner-container" *ngIf="combinedDeletePersonalSessionFragmentProcessing$ | async">
+    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+  </div>
+
+</div>

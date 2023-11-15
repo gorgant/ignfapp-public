@@ -10,6 +10,81 @@ import { featureAdapter, initialPersonalSessionFragmentState, PersonalSessionFra
 export const personalSessionFragmentStoreReducer = createReducer(
   initialPersonalSessionFragmentState,
 
+  // Batch Create Personal Session Fragments
+  
+  on(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsRequested, (state, action) => {
+    return {
+      ...state,
+      batchCreatePersonalSessionFragmentsProcessing: true,
+      batchCreatePersonalSessionFragmentsError: null
+    }
+  }),
+  on(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsCompleted, (state, action) => {
+    return featureAdapter.addMany(
+      action.personalSessionFragments, {
+        ...state,
+        batchCreatePersonalSessionFragmentsProcessing: false,
+      }
+    )
+  }),
+  on(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsFailed, (state, action) => {
+    return {
+      ...state,
+      batchCreatePersonalSessionFragmentsProcessing: false,
+      batchCreatePersonalSessionFragmentsError: action.error
+    }
+  }),
+
+  // Batch Delete Personal Session Fragments
+  
+  on(PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsRequested, (state, action) => {
+    return {
+      ...state,
+      batchDeletePersonalSessionFragmentsProcessing: true,
+      batchDeletePersonalSessionFragmentsError: null
+    }
+  }),
+  on(PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsCompleted, (state, action) => {
+    return featureAdapter.removeMany(
+      action.personalSessionFragmentIds, {
+        ...state,
+        batchDeletePersonalSessionFragmentsProcessing: false,
+      }
+    )
+  }),
+  on(PersonalSessionFragmentStoreActions.batchDeletePersonalSessionFragmentsFailed, (state, action) => {
+    return {
+      ...state,
+      batchDeletePersonalSessionFragmentsProcessing: false,
+      batchDeletePersonalSessionFragmentsError: action.error
+    }
+  }),
+
+  // Batch Modify Personal Session Fragments
+  
+  on(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsRequested, (state, action) => {
+    return {
+      ...state,
+      batchModifyPersonalSessionFragmentsProcessing: true,
+      batchModifyPersonalSessionFragmentsError: null
+    }
+  }),
+  on(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsCompleted, (state, action) => {
+    return featureAdapter.updateMany(
+      action.personalSessionFragmentUpdates, {
+        ...state,
+        batchModifyPersonalSessionFragmentsProcessing: false,
+      }
+    )
+  }),
+  on(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsFailed, (state, action) => {
+    return {
+      ...state,
+      batchModifyPersonalSessionFragmentsProcessing: false,
+      batchModifyPersonalSessionFragmentsError: action.error
+    }
+  }),
+
   // Create Personal Session Fragment
 
   on(PersonalSessionFragmentStoreActions.createPersonalSessionFragmentRequested, (state, action) => {
@@ -70,7 +145,7 @@ export const personalSessionFragmentStoreReducer = createReducer(
     }
   }),
   on(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsCompleted, (state, action) => {
-    return featureAdapter.addMany(
+    return featureAdapter.setAll(
       action.personalSessionFragments, {
         ...state,
         fetchAllPersonalSessionFragmentsProcessing: false,
@@ -144,6 +219,8 @@ export const personalSessionFragmentStoreReducer = createReducer(
       {
         ...state, 
         allPersonalSessionFragmentsFetched: false,
+        batchCreatePersonalSessionFragmentsError: null,
+        batchCreatePersonalSessionFragmentsProcessing: false,
         createPersonalSessionFragmentError: null,
         createPersonalSessionFragmentProcessing: false,
         deletePersonalSessionFragmentError: null,

@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { MatTabGroup } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
+import { Subscription, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { AddTrainingPlanUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
 import { ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
 
 @Component({
@@ -10,15 +11,17 @@ import { ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from
   templateUrl: './browse.component.html',
   styleUrls: ['./browse.component.scss']
 })
-export class BrowseComponent implements OnInit, AfterViewInit {
+export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  trainingSessionsTabActive!: boolean;
-  trainingPlanBuilderRequest!: boolean;
-  
+  @ViewChild('matTabGroup') matTabGroup!: MatTabGroup;
+
   PLANS_TAB_VALUE = GlobalFieldValues.PLANS;
   SESSIONS_TAB_VALUE = GlobalFieldValues.SESSIONS;
 
-  @ViewChild('matTabGroup') matTabGroup!: MatTabGroup;
+  $trainingSessionsTabActive = signal(false);
+  $trainingPlanBuilderRequest = signal(false);
+  
+  private queryParamMapSubscription!: Subscription;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -26,7 +29,7 @@ export class BrowseComponent implements OnInit, AfterViewInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.checkForAdditionalUrlParams();
+    this.monitorUrlForAdditionalUrlParams();
   }
   
   ngAfterViewInit(): void {
@@ -34,23 +37,29 @@ export class BrowseComponent implements OnInit, AfterViewInit {
     
   }
 
-  private checkForAdditionalUrlParams() {
-    const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
-    const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS);
-    if (addTrainingSessionString) {
-      const addTrainingSession = JSON.parse(addTrainingSessionString) as boolean; // Convert string to boolean for proper error detection
-      if (addTrainingSession) {
-        console.log('Plan builder request detected');
-        this.trainingSessionsTabActive = true;
-        this.trainingPlanBuilderRequest = true;
-      }
-    }
-    if (viewTrainingSessionsString) {
-      const viewTrainingSessions = JSON.parse(viewTrainingSessionsString) as boolean; // Convert string to boolean for proper error detection
-      if (viewTrainingSessions) {
-        this.trainingSessionsTabActive = true;
-      }
-    }
+  private monitorUrlForAdditionalUrlParams() {
+
+    // Subscribe to observable vs snapshot bc URL can change without route change
+    this.queryParamMapSubscription = this.route.queryParamMap
+      .pipe(
+        map((paramMap) => {
+          const planBuilderParam = paramMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+          const viewTrainingSessionsValue = paramMap.get(ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS);
+          if (planBuilderParam && JSON.parse(planBuilderParam)) {
+            console.log('Plan builder request detected');
+            this.$trainingPlanBuilderRequest.set(true);
+          } else {
+            this.$trainingPlanBuilderRequest.set(false);
+          }
+          if (viewTrainingSessionsValue && JSON.parse(viewTrainingSessionsValue)) {
+            console.log('viewTrainingSessions param found, setting view to trainingSessions');
+            this.$trainingSessionsTabActive.set(true);
+          } else {
+            console.log('No viewTrainingSessions param found, setting view to trainingPlans');
+            this.$trainingSessionsTabActive.set(false);
+          }
+        })
+      ).subscribe();
   }
 
   // Ensures if the user views a session and then goes back it will load sessions rather than plan tab
@@ -58,7 +67,7 @@ export class BrowseComponent implements OnInit, AfterViewInit {
     
     this.matTabGroup.focusChange.subscribe(changeEvent => {
       console.log('Change event tab index', changeEvent.index);
-      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingPlanUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
       const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS);
       const newIndex = changeEvent.index;
       
@@ -97,10 +106,13 @@ export class BrowseComponent implements OnInit, AfterViewInit {
           this.router.navigate([], navigationExtras);
         }
       }
-
       
     })
     
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamMapSubscription?.unsubscribe();
   }
 
 }

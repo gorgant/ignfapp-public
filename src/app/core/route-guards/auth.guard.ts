@@ -35,9 +35,9 @@ const fetchUserData = (publicUserId: string, store$: Store): Observable<PublicUs
 
 const redirectToLogin = (returnUrl: string, router: Router) => {
   // This if-statement prevents an infinite loop
-  if (`/${returnUrl}` !== PublicAppRoutes.LOGIN) {
+  if (`/${returnUrl}` !== PublicAppRoutes.AUTH_LOGIN) {
     console.log('Redirecting to this returnUrl', returnUrl);
-    router.navigate([PublicAppRoutes.LOGIN], { queryParams: { returnUrl } });
+    router.navigate([PublicAppRoutes.AUTH_LOGIN], { queryParams: { returnUrl } });
   } else {
     console.log('Return url is already login!');
   }

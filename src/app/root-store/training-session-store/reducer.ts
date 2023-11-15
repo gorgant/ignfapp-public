@@ -70,7 +70,7 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
   on(TrainingSessionStoreActions.fetchAllTrainingSessionsCompleted, (state, action) => {
-    return featureAdapter.addMany(
+    return featureAdapter.setAll(
       action.trainingSessions, {
         ...state,
         fetchAllTrainingSessionsProcessing: false,

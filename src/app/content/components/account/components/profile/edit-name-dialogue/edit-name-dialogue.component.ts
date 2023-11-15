@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, catchError, combineLatest, filter, switchMap, tap, throwError } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, filter, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
@@ -30,7 +30,9 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   userUpdateProcessing$!: Observable<boolean>;
   private userUpdateError$!: Observable<{} | null>;
   private userUpdateSubscription!: Subscription;
-  private updateSubmitted = signal(false);
+  private $updateSubmitted = signal(false);
+  private $updateUserCycleInit = signal(false);
+  private $updateUserCycleComplete = signal(false);
   
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<EditNameDialogueComponent>);
@@ -80,7 +82,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
     };
 
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-    this.updateSubmitted.set(true);
+    this.$updateSubmitted.set(true);
     this.postSubmitActions();
   }
 
@@ -90,23 +92,31 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
-            this.resetComponentActionState();
             this.dialogRef.close(false);
           }
-          return combineLatest([this.userUpdateProcessing$, this.userUpdateError$]);
+          return this.userUpdateProcessing$;
         }),
+        withLatestFrom(this.userUpdateError$),
         filter(([updateProcessing, processingError]) => !processingError ), // Halts function if processingError detected
-        tap(([updateProcessing, updateError]) => {
-          if (!updateProcessing && this.updateSubmitted()) {
-            console.log('User update succeeded, closing dialog');
-            this.dialogRef.close(true);
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap(([updateProcessing, processingError]) => {
+          if (updateProcessing) {
+            this.$updateUserCycleInit.set(true);
           }
+          if (!updateProcessing && this.$updateUserCycleInit()) {
+            console.log('updatePublicUser successful, proceeding with pipe.');
+            this.$updateUserCycleInit.set(false);
+            this.$updateUserCycleComplete.set(true);
+          }
+        }),
+        filter(updateProcessing => !updateProcessing && this.$updateUserCycleComplete()),
+        tap(([updateProcessing, updateError]) => {
+          this.dialogRef.close(true);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
@@ -114,10 +124,6 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
       .subscribe()
   }
 
-  private resetComponentActionState() {
-    this.updateSubmitted.set(false);
-  }
-  
   // These getters are used for easy access in the HTML template
   get firstName() { return this.nameForm.get(PublicUserKeys.FIRST_NAME) as AbstractControl; }
   get lastName() { return this.nameForm.get(PublicUserKeys.LAST_NAME) as AbstractControl; }

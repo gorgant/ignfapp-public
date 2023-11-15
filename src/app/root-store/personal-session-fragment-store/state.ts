@@ -11,6 +11,12 @@ export const featureAdapter: EntityAdapter<PersonalSessionFragment> = createEnti
 
 export interface PersonalSessionFragmentState extends EntityState<PersonalSessionFragment> {
   allPersonalSessionFragmentsFetched: boolean,
+  batchCreatePersonalSessionFragmentsError: FirebaseError | Error | null,
+  batchCreatePersonalSessionFragmentsProcessing: boolean,
+  batchDeletePersonalSessionFragmentsError: FirebaseError | Error | null,
+  batchDeletePersonalSessionFragmentsProcessing: boolean,
+  batchModifyPersonalSessionFragmentsError: FirebaseError | Error | null,
+  batchModifyPersonalSessionFragmentsProcessing: boolean,
   createPersonalSessionFragmentError: FirebaseError | Error | null,
   createPersonalSessionFragmentProcessing: boolean,
   deletePersonalSessionFragmentError: FirebaseError | Error | null,
@@ -28,6 +34,12 @@ export interface PersonalSessionFragmentState extends EntityState<PersonalSessio
 export const initialPersonalSessionFragmentState: PersonalSessionFragmentState = featureAdapter.getInitialState(
   {
     allPersonalSessionFragmentsFetched: false,
+    batchCreatePersonalSessionFragmentsError: null,
+    batchCreatePersonalSessionFragmentsProcessing: false,
+    batchDeletePersonalSessionFragmentsError: null,
+    batchDeletePersonalSessionFragmentsProcessing: false,
+    batchModifyPersonalSessionFragmentsError: null,
+    batchModifyPersonalSessionFragmentsProcessing: false,
     createPersonalSessionFragmentError: null,
     createPersonalSessionFragmentProcessing: false,
     deletePersonalSessionFragmentError: null,

@@ -20,9 +20,9 @@ export class AccountComponent implements OnInit {
   PROFILE_BUTTON_VALUE = GlobalFieldValues.PROFILE;
   SETTINGS_BUTTON_VALUE = GlobalFieldValues.SETTINGS;
 
-  PROFILE_URL = PublicAppRoutes.PROFILE;
-  SETTINGS_URL = PublicAppRoutes.SETTINGS;
-  STATS_URL = PublicAppRoutes.STATS;
+  PROFILE_URL = PublicAppRoutes.ACCOUNT_PROFILE;
+  SETTINGS_URL = PublicAppRoutes.ACCOUNT_SETTINGS;
+  STATS_URL = PublicAppRoutes.ACCOUNT_STATS;
 
 
   userData$!: Observable<PublicUser>;

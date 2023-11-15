@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Store, select } from '@ngrx/store';
-import { Observable, Subscription, catchError, combineLatest, filter, switchMap, take, tap, throwError } from 'rxjs';
+import { Observable, Subscription, catchError, filter, map, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
@@ -36,6 +36,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private deletePublicUserSubscription!: Subscription;
   private deletePublicUserError$!: Observable<{} | null>;
   private deletePublicUserSubmitted = signal(false);
+  private $deletePublicUserCycleInit = signal(false);
+  private $deletePublicUserCycleComplete = signal(false);
 
   private defaultMatDialogConfigOptions: MatDialogConfig = {
     disableClose: false,
@@ -73,8 +75,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           dialogConfig.data = user;
           const dialogRef = this.dialog.open(EditNameDialogueComponent, dialogConfig);  
         })
-      )
-      .subscribe();
+      ).subscribe();
   }
 
   onEditEmail() {
@@ -86,8 +87,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           dialogConfig.data = user;
           const dialogRef = this.dialog.open(EditEmailDialogueComponent, dialogConfig);  
         })
-      )
-      .subscribe();
+      ).subscribe();
   }
 
   onEditPassword() {
@@ -101,18 +101,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onDeletePublicUser() {
+    console.log('Delete public user detected');
     this.deletePublicUserSubscription = this.deletePublicUserError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.deletePublicUserSubscription?.unsubscribe();
             this.resetComponentActionState();
           }
-          return combineLatest([this.userData$, this.deletePublicUserError$]);
+          return processingError;
         }),
-        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
-        switchMap(([user, processingError]) => {
+        filter(processingError => !processingError ), // Halts function if processingError detected
+        switchMap(processingError => {
           const dialogConfig = this.defaultMatDialogConfigOptions;
           const actionConfData: ActionConfData = {
             title: this.DELETE_PUBLIC_USER_CONF_TITLE,
@@ -121,21 +122,33 @@ export class ProfileComponent implements OnInit, OnDestroy {
           dialogConfig.data = actionConfData;
           const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
           const dialogClosedResponse$ = dialogRef.afterClosed() as Observable<boolean>
-          return combineLatest([dialogClosedResponse$, this.userData$])
+          return dialogClosedResponse$;
         }),
-        filter(([deletionConfirmed, userData]) => deletionConfirmed),
-        switchMap(([deletionConfirmed, userData]) => {
-          console.log('Delete public user confirmed', deletionConfirmed);
-          this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: userData.id}));
-          this.deletePublicUserSubmitted.set(true);
+        withLatestFrom(this.userData$),
+        filter(([userActionConfirmed, userData]) => userActionConfirmed),
+        switchMap(([userActionConfirmed, userData]) => {
+          if (!this.deletePublicUserSubmitted()) {
+            this.deletePublicUserSubmitted.set(true);
+            console.log('User action confirmed', userActionConfirmed);
+            this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: userData.id}));
+          }
           return this.deletePublicUserProcessing$;
         }),
-        tap(deletionProcessing => {
-          if (!deletionProcessing && this.deletePublicUserSubmitted()) {
-            this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
-            console.log('delete publicUser successful.');
-            this.uiService.showSnackBar(`User Deleted!`, 5000);
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap(deleteProcessing => {
+          if (deleteProcessing) {
+            this.$deletePublicUserCycleInit.set(true);
           }
+          if (!deleteProcessing && this.$deletePublicUserCycleInit()) {
+            console.log('deletePublicUser successful, proceeding with pipe.');
+            this.$deletePublicUserCycleInit.set(false);
+            this.$deletePublicUserCycleComplete.set(true);
+          }
+        }),
+        filter(deleteProcessing => !deleteProcessing && this.$deletePublicUserCycleComplete()),
+        tap(deletionProcessing => {
+          this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
+          this.uiService.showSnackBar(`User Deleted!`, 5000);
         }),
         // Catch any local errors
         catchError(error => {
@@ -145,12 +158,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.resetComponentActionState();
           return throwError(() => new Error(error));
         })
-      )
-      .subscribe();
+      ).subscribe();
   }
 
   private resetComponentActionState() {
     this.deletePublicUserSubmitted.set(false);
+    this.$deletePublicUserCycleInit.set(false);
+    this.$deletePublicUserCycleComplete.set(false);
   }
 
   ngOnDestroy(): void {

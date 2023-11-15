@@ -38,7 +38,7 @@
 
         <ng-template matStepLabel>{{ INPUT_NEW_EMAIL_STEP_LABLE }}</ng-template>
         
-        <div class="new-email-container" [fxHide]="sendUpdateEmailConfirmationSucceded()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
+        <div class="new-email-container" [fxHide]="$sendUpdateEmailConfirmationCycleComplete()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
           <mat-form-field>
             <input formControlName="email" matInput type="text" placeholder="Your new email...">
             <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div [fxShow]="sendUpdateEmailConfirmationSucceded()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
+        <div [fxShow]="$sendUpdateEmailConfirmationCycleComplete()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
           <div>{{ CONFIRM_NEW_EMAIL_BLURB }}</div>
           <button *ngIf="!(authOrUserUpdateProcessing$ | async)" mat-raised-button color="primary" [mat-dialog-close]="true">
             {{ IVE_CONFIRMED_MY_EMAIL_BUTTON_VALUE }}

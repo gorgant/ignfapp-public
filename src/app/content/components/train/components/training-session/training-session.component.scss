@@ -18,3 +18,13 @@ app-add-training-session-to-plan-button, app-add-training-session-to-personal-qu
   width: $mobile-button-width;
   max-width: $desktop-button-width;
 }
+.spinner-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loading-spinner {
+  margin-top: 64px;
+}

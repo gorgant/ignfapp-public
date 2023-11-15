@@ -10,7 +10,7 @@ import { featureAdapter, initialPlanSessionFragmentState, PlanSessionFragmentSta
 export const planSessionFragmentStoreReducer = createReducer(
   initialPlanSessionFragmentState,
 
-  // Batch Delete Plan Session Fragment
+  // Batch Delete Plan Session Fragments
   
   on(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested, (state, action) => {
     return {
@@ -35,7 +35,7 @@ export const planSessionFragmentStoreReducer = createReducer(
     }
   }),
 
-  // Batch Modify Plan Session Fragment
+  // Batch Modify Plan Session Fragments
   
   on(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested, (state, action) => {
     return {
@@ -120,7 +120,7 @@ export const planSessionFragmentStoreReducer = createReducer(
     }
   }),
   on(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsCompleted, (state, action) => {
-    return featureAdapter.addMany(
+    return featureAdapter.setAll(
       action.planSessionFragments, {
         ...state,
         fetchAllPlanSessionFragmentsProcessing: false,

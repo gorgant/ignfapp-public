@@ -2,7 +2,7 @@
   <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" (click)="onNavigateUserToBrowse()">
     <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
   </div>
-  <div *ngIf="$currentTrainingPlan() as trainingPlan" class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
+  <div *ngIf="$localTrainingPlan() as trainingPlan" class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
     <div class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
       <div class="plan-title">{{ trainingPlan.title }}</div>
       <button *ngIf="(userData$ | async)?.isAdmin" class="action-button"  mat-icon-button (click)="onEditTrainingPlan(trainingPlan)" aria-label="Edit training session">
@@ -11,8 +11,10 @@
     </div>
     <div class="lesson-count">{{ trainingPlan.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
   </div>
-  <button class="add-plan-button" mat-raised-button color="primary" (click)="onAddTrainingPlanToQueue()">{{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>
-  <div *ngIf="$currentPlanSessionFragments() as planSessionFragments" class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+  <ng-container *ngIf="$localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0">
+    <app-add-training-plan-to-personal-queue [planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
+  </ng-container>
+  <div *ngIf="$localPlanSessionFragments() as planSessionFragments" class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
       <div class="training-session-card-container" *cdkVirtualFor="let planSessionFragment of planSessionFragments" fxLayout="column" fxLayoutGap="8px">
         <app-training-session-card [trainingSesssionData]="planSessionFragment" fxLayout="column"></app-training-session-card>

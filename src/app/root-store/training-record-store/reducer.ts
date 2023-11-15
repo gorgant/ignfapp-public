@@ -70,7 +70,7 @@ export const trainingRecordStoreReducer = createReducer(
     }
   }),
   on(TrainingRecordStoreActions.fetchAllTrainingRecordsCompleted, (state, action) => {
-    return featureAdapter.addMany(
+    return featureAdapter.setAll(
       action.trainingRecords, {
         ...state,
         fetchAllTrainingRecordsProcessing: false,

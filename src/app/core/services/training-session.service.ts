@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, shareReplay, take, takeUntil } from 'rxjs/operators';
+import { from, Observable, Subject, throwError } from 'rxjs';
+import { catchError, filter, map, shareReplay, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
 import { TrainingSession, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
@@ -23,6 +23,8 @@ export class TrainingSessionService {
   private functions = inject(Functions);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+
+  deleteTrainingSessionTriggered$: Subject<void> = new Subject();
 
   constructor() { }
 
@@ -64,11 +66,10 @@ export class TrainingSessionService {
       );
   }
 
-  // TODO: Add a collection group query to also remove all planSessionFragments and personalSessionFragments with the matching canonical ID (would require a bunch more updates)
-  // TODO: Alternatively, store more essential data in the fragments
-  // TODO: Alternatively, auto delete when a user accesses a deleted trainingSession
   deleteTrainingSession(trainingSessionId: string): Observable<string> {
     const trainingSessionDeleteRequest = deleteDoc(this.getTrainingSessionDoc(trainingSessionId));
+    
+    this.triggerDeleteTrainingPlanObserver();
 
     return from(trainingSessionDeleteRequest)
       .pipe(
@@ -91,6 +92,7 @@ export class TrainingSessionService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        // takeUntil(this.deleteTrainingSessionTriggered$),
         map(trainingSessions => {
           if (!trainingSessions) {
             throw new Error(`Error fetching trainingSessions`);
@@ -181,6 +183,7 @@ export class TrainingSessionService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        takeUntil(this.deleteTrainingSessionTriggered$),
         map(trainingSession => {
           if (!trainingSession) {
             throw new Error(`Error fetching trainingSession with id: ${trainingSessionId}`);
@@ -287,6 +290,13 @@ export class TrainingSessionService {
           return throwError(() => new Error(error));
         })
       );
+  }
+
+  // This prevents Firebase from fetching a document after it has been deleted
+  private triggerDeleteTrainingPlanObserver() {
+    this.deleteTrainingSessionTriggered$.next();
+    this.deleteTrainingSessionTriggered$.complete();
+    this.deleteTrainingSessionTriggered$ = new Subject<void>();
   }
 
   private getTrainingSessionCollection(): CollectionReference<TrainingSession> {

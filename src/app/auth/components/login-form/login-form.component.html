@@ -7,7 +7,7 @@
       fxLayout="column" 
       fxLayoutAlign="center center"
       fxLayoutGap="16px"
-      [fxHide]="showResetMessage()"
+      [fxHide]="$showResetMessage()"
       >
     <mat-form-field color="accent">
       <input color="accent" class="email-input" matInput formControlName="email" type="email">
@@ -30,7 +30,7 @@
     </div>
     <button [disabled]="(email.invalid && (email.dirty || email.touched))" class="submit-button" type="submit" mat-raised-button color="primary">{{ LOG_IN_BUTTON_VALUE }}</button>
   </form>
-  <div *ngIf="showResetMessage()" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <div *ngIf="$showResetMessage()" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
     <h2 class="check-inbox-message">
       {{ CHECK_INBOX_BLURB }}
     </h2>

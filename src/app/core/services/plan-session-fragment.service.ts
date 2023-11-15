@@ -1,30 +1,29 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, writeBatch, Timestamp, orderBy, Query } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
 import { from, Observable, Subject, throwError } from 'rxjs';
 import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
-import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
+import { PlanSessionFragment, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
-import { Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlanSessionFragmentService {
 
-  deleteTrainingPlanRequested$: Subject<void> = new Subject();
-
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+  
+  deletePlanSessionFragmentTriggered$: Subject<void> = new Subject();
 
   constructor() { }
 
   batchDeletePlanSessionFragments(trainingPlanId: string, planSessionFragmentIds: string[]): Observable<string[]> {
-    this.unsubscribeFetchAllPlanSessionFragments();
+    this.triggerDeletePlanSessionFragmentObserver();
 
     const batch = writeBatch(this.firestore);
 
@@ -122,6 +121,8 @@ export class PlanSessionFragmentService {
 
   deletePlanSessionFragment(trainingPlanId: string, planSessionFragmentId: string): Observable<string> {
     const planSessionFragmentDeleteRequest = deleteDoc(this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId));
+    
+    this.triggerDeletePlanSessionFragmentObserver();
 
     return from(planSessionFragmentDeleteRequest)
       .pipe(
@@ -139,13 +140,13 @@ export class PlanSessionFragmentService {
 
   fetchAllPlanSessionFragments(trainingPlanId: string): Observable<PlanSessionFragment[]> {
 
-    const planSessionFragmentCollectionDataRequest = collectionData(this.getPlanSessionFragmentCollection(trainingPlanId));
+    const planSessionFragmentCollectionDataRequest = collectionData(this.getPlanSessionFragmentCollectionByIndex(trainingPlanId));
 
     return from(planSessionFragmentCollectionDataRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable
-        takeUntil(this.deleteTrainingPlanRequested$), // Prevents fetching error when plan is deleted
         takeUntil(this.authService.unsubTrigger$),
+        // takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
             throw new Error(`Error fetching all planSessionFragments`, );
@@ -232,6 +233,7 @@ export class PlanSessionFragmentService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragment => {
           if (!planSessionFragment) {
             throw new Error(`Error fetching planSessionFragment with id: ${planSessionFragmentId}`);
@@ -280,15 +282,22 @@ export class PlanSessionFragmentService {
       );
   }
 
-  private unsubscribeFetchAllPlanSessionFragments() {
-    this.deleteTrainingPlanRequested$.next(); // Send signal to Firebase subscriptions to unsubscribe
-    this.deleteTrainingPlanRequested$.complete(); // Send signal to Firebase subscriptions to unsubscribe
-    this.deleteTrainingPlanRequested$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
+  // This prevents Firebase from fetching a document after it has been deleted
+  private triggerDeletePlanSessionFragmentObserver() {
+    this.deletePlanSessionFragmentTriggered$.next(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deletePlanSessionFragmentTriggered$.complete(); // Send signal to Firebase subscriptions to unsubscribe
+    this.deletePlanSessionFragmentTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
   private getPlanSessionFragmentCollection(trainingPlanId: string): CollectionReference<PlanSessionFragment> {
     // Note that planSessionFragment is nested in Public User document
     return collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+  }
+
+  private getPlanSessionFragmentCollectionByIndex(trainingPlanId: string): Query<PlanSessionFragment> {
+    const planSessionFragmentCollectionRef = collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+    const collectionRefOrderedByIndex = query(planSessionFragmentCollectionRef, orderBy(PlanSessionFragmentKeys.TRAINING_PLAN_INDEX));
+    return collectionRefOrderedByIndex;
   }
 
   private getPlanSessionFragmentDoc(trainingPlanId: string, planSessionFragmentId: string): DocumentReference<PlanSessionFragment> {

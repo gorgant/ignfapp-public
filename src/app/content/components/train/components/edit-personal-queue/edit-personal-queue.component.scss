@@ -1,54 +1,20 @@
 @import '../../../../../variables';
 @include edit-training-plan-drag-drop();
 
-.back-button-container {
-  width: 100%;
+.content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: $desktop-screen-width;
 }
 
-.plan-details-container {
-  width: 100%;
-  padding-left: 16px;
-  padding-right: 16px;
-  max-width: $desktop-screen-width;
-  margin-bottom: 16px;
-}
-
-.training-plan-form {
-  width: 100%;
-}
-
-mat-form-field {
-  width: 100%;
-  max-width: $desktop-form-width-wide;
-}
-
-.form-actions {
-  width: 100%;
-  margin-top: 16px;
-}
-
-.plan-actions-button-container {
-  width: 100%;
-}
-
-.action-button {
-  width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-
-.form-title, .plan-title {
-  font-size: 1.2em;
-  text-align: center;
-  line-height: 1.1em;
-}
-
-.plan-sessions-container {
-  width: 100%;
-  max-width: $desktop-screen-width;
+.back-button {
+  display: flex;
+  align-self: flex-start;
 }
 
 .drag-drop-list {
+  margin-top: 32px;
   width: 100%;
   max-width: $desktop-button-width;
 }
@@ -82,15 +48,33 @@ app-training-session-card {
   flex: 80;
 }
 
+.queue-empty-message {
+  font-size: 1.2em;
+  line-height: 1.2em;
+  font-weight: 300;
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  gap: 16px;
+}
+
+.clear-queue-button, .browse-training-sessions-button {
+  width: $mobile-button-width;
+}
+
 .progress-spinner-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 32px;
 }
-
-
 
 @media screen and (min-width: $mobile-cutoff-width) {
   .drag-drop-icon, .delete-icon {

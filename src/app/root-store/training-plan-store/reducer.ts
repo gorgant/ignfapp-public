@@ -71,7 +71,7 @@ export const trainingPlanStoreReducer = createReducer(
     }
   }),
   on(TrainingPlanStoreActions.fetchAllTrainingPlansCompleted, (state, action) => {
-    return featureAdapter.addMany(
+    return featureAdapter.setAll(
       action.trainingPlans, {
         ...state,
         fetchAllTrainingPlansProcessing: false,

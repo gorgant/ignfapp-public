@@ -1,4 +1,5 @@
 <div *ngIf="personalSessionFragments$ | async as personalSessionFragmentData" class="content-container" fxLayout="column" fxLayoutAlign="center center">
+  <button class="edit-queue-button" mat-raised-button color="primary" (click)="onEditPersonalQueue()">{{ EDIT_MY_QUEUE }}</button>
   <div class="personal-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
       <div class="training-session-card-container" *cdkVirtualFor="let personalSessionFragment of personalSessionFragmentData" fxLayout="column" fxLayoutGap="8px">
@@ -6,4 +7,7 @@
       </div>
     </cdk-virtual-scroll-viewport>
   </div>
+</div>
+<div *ngIf="(fetchAllPersonalSessionFragmentsProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center" class="loading-spinner">
+  <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
 </div>

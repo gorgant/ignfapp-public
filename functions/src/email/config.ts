@@ -21,7 +21,7 @@ export const getSgMail = () => {
 
 // Useful links for emails
 const appUrl = publicAppUrl;
-const emailVerificationSlugWithSlahPrefeix = PublicAppRoutes.EMAIL_VERIFICATION;
+const emailVerificationSlugWithSlahPrefeix = PublicAppRoutes.AUTH_EMAIL_VERIFICATION;
 const emailVerificationUrlNoParams = `https://${appUrl}${emailVerificationSlugWithSlahPrefeix}`;
 
 

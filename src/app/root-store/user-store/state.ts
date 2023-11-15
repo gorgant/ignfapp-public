@@ -7,6 +7,8 @@ export const userFeatureKey = PublicStoreFeatureKeys.USER;
 export interface UserState {
   createPublicUserError: FirebaseError | Error | null,
   createPublicUserProcessing: boolean,
+  deletePublicUserError: FirebaseError | Error | null,
+  deletePublicUserProcessing: boolean,
   fetchPublicUserError: FirebaseError | Error | null,
   fetchPublicUserProcessing: boolean,
   resizeAvatarError: FirebaseError | Error | null,
@@ -25,6 +27,8 @@ export interface UserState {
 export const initialUserState: UserState = {
   createPublicUserError: null,
   createPublicUserProcessing: false,
+  deletePublicUserError: null,
+  deletePublicUserProcessing: false,
   fetchPublicUserError: null,
   fetchPublicUserProcessing: false,
   resizeAvatarError: null,

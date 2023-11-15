@@ -3,7 +3,7 @@ import { TrainingSession } from "./training-session.model";
 import { Timestamp } from '@angular/fire/firestore';
 
 export interface TrainingRecord extends TrainingRecordNoIdOrTimestamp {
-  createdTimestamp: number | Timestamp,
+  [TrainingRecordKeys.CREATED_TIMESTAMP]: number | Timestamp,
   id: string,
   lastModifiedTimestamp: number | Timestamp
 };
@@ -18,6 +18,7 @@ export interface TrainingRecordNoIdOrTimestamp {
 };
 
 export enum TrainingRecordKeys {
+  CREATED_TIMESTAMP = 'createdTimestamp',
   COMPLEXITY_RATING = 'complexityRating',
   HOURS = 'hours',
   INTENSITY_RATING = 'intensityRating',

@@ -1,13 +1,13 @@
 <div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" >
-  <mat-tab-group mat-align-tabs="center" mat-stretch-tabs [selectedIndex]="trainingSessionsTabActive ? 1 : 0" #matTabGroup>
-      <mat-tab [label]="PLANS_TAB_VALUE" [disabled]="trainingPlanBuilderRequest">
+  <mat-tab-group mat-align-tabs="center" mat-stretch-tabs [selectedIndex]="$trainingSessionsTabActive() ? 1 : 0" #matTabGroup>
+      <mat-tab [label]="PLANS_TAB_VALUE" [disabled]="$trainingPlanBuilderRequest()">
         <ng-template matTabContent>
           <app-browse-training-plans></app-browse-training-plans>
         </ng-template>
       </mat-tab>
       <mat-tab [label]="SESSIONS_TAB_VALUE">
         <ng-template matTabContent>
-          <app-browse-training-sessions [trainingPlanBuilderRequest]="trainingPlanBuilderRequest"></app-browse-training-sessions>
+          <app-browse-training-sessions [$trainingPlanBuilderRequest]="$trainingPlanBuilderRequest.asReadonly()"></app-browse-training-sessions>
         </ng-template>
       </mat-tab>
   </mat-tab-group>

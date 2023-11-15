@@ -28,10 +28,10 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE;
   INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_TITLE;
 
-  private getYoutubeVideoDataProcessing$!: Observable<boolean>;
-  private getYoutubeVideoDataSubscription!: Subscription;
-  private getYoutubeVideoDataError$!: Observable<Error | null>;
-  private getYoutubeVideoDataSubmitted = signal(false);
+  private fetchYoutubeVideoDataProcessing$!: Observable<boolean>;
+  private fetchYoutubeVideoDataSubscription!: Subscription;
+  private fetchYoutubeVideoDataError$!: Observable<Error | null>;
+  private fetchYoutubeVideoDataSubmitted = signal(false);
   private youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
   private videoUrlSubscription!: Subscription;
 
@@ -54,8 +54,8 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   private monitorProcesses() {
-    this.getYoutubeVideoDataProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataProcessing);
-    this.getYoutubeVideoDataError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataError);
+    this.fetchYoutubeVideoDataProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataProcessing);
+    this.fetchYoutubeVideoDataError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataError);
     this.youtubeVideoData$ = this.store$.select(TrainingSessionStoreSelectors.selectYoutubeVideoData) as Observable<YoutubeVideoDataCompact>;
   }
 
@@ -80,21 +80,21 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     }
     this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clear out any errors if they exist before proceeding
     
-    this.getYoutubeVideoDataSubscription = this.getYoutubeVideoDataError$
+    this.fetchYoutubeVideoDataSubscription = this.fetchYoutubeVideoDataError$
       .pipe(
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.resetComponentState();
-            this.getYoutubeVideoDataSubscription?.unsubscribe();
+            this.fetchYoutubeVideoDataSubscription?.unsubscribe();
           }
           return processingError;
         }),
         filter(processingError => !processingError),
         switchMap(processingError => {
-          if (!this.getYoutubeVideoDataSubmitted()) {
+          if (!this.fetchYoutubeVideoDataSubmitted()) {
             this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
-            this.getYoutubeVideoDataSubmitted.set(true);
+            this.fetchYoutubeVideoDataSubmitted.set(true);
           }
           return this.youtubeVideoData$;
         }),
@@ -102,7 +102,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         tap(videoData => {
           console.log('Video data retreival successful', videoData);
           this.videoDataRetreived.setValue(true); // Ensures youtube data is retreived before user can proceed
-          this.getYoutubeVideoDataSubscription?.unsubscribe(); // Clear subscription no longer needed
+          this.fetchYoutubeVideoDataSubscription?.unsubscribe(); // Clear subscription no longer needed
           this.monitorYoutubeVideoUrlChange(); // Prevents user from proceeding if url edits are made after previous query
           this.proceedToNextStep();
         }),
@@ -110,6 +110,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.resetComponentState();
+          this.fetchYoutubeVideoDataSubscription?.unsubscribe();
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
           return throwError(() => new Error(error));
         })
@@ -117,18 +118,20 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   private resetComponentState() {
-    this.getYoutubeVideoDataSubmitted.set(false);
+    this.fetchYoutubeVideoDataSubmitted.set(false);
     this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
   }
 
   private monitorYoutubeVideoUrlChange() {
     this.videoUrlSubscription = this.videoUrl.statusChanges
-      .subscribe(change => {
-        // Ensures new youtube data is retreived if user makes additional edits
-        if (this.videoDataRetreived.value) {
-          this.videoDataRetreived.setValue(false);
-        }
-      })
+      .pipe(
+        tap(change => {
+          // Ensures new youtube data is retreived if user makes additional edits
+          if (this.videoDataRetreived.value) {
+            this.videoDataRetreived.setValue(false);
+          }
+        })
+      ).subscribe();
   }
 
   private proceedToNextStep() {
@@ -137,7 +140,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.getYoutubeVideoDataSubscription?.unsubscribe();
+    this.fetchYoutubeVideoDataSubscription?.unsubscribe();
     this.videoUrlSubscription?.unsubscribe();
     this.existingTrainingSessionDataSubscription?.unsubscribe();
   }

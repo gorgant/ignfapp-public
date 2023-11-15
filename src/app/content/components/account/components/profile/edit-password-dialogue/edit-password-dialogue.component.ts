@@ -1,7 +1,7 @@
-import { Component, Inject, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, catchError, combineLatest, filter, switchMap, tap, throwError } from 'rxjs';
+import { Observable, Subscription, catchError, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -23,6 +23,8 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
   private resetPasswordSubmitted = signal(false);
   private resetPasswordError$!: Observable<{} | null>;
   private resetPasswordSubscription!: Subscription;
+  private $resetPasswordCycleInit = signal(false);
+  private $resetPasswordCycleComplete = signal(false);
 
   userData$!: Observable<PublicUser>;
 
@@ -46,41 +48,45 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
 
     this.resetPasswordSubscription = this.resetPasswordError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
-            this.resetComponentActionState();
             this.dialogRef.close(false);
           }
-          return combineLatest([this.userData$, this.resetPasswordError$]);
+          return processingError;
         }),
-        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
-        switchMap(([userData, processingError]) => {
+        withLatestFrom(this.userData$),
+        filter(([processingError, userData]) => !processingError ), // Halts function if processingError detected
+        switchMap(([processingError, userData]) => {
           const email = userData.email;
           this.store$.dispatch(AuthStoreActions.resetPasswordRequested({email}));
           this.resetPasswordSubmitted.set(true);
           return this.resetPasswordProcessing$;
         }),
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
         tap(resetProcessing => {
-          if (!resetProcessing && this.resetPasswordSubmitted()) {
-            console.log('resetPassword request submitted, closing dialogue box');
-            this.dialogRef.close(true);
-          }  
+          if (resetProcessing) {
+            this.$resetPasswordCycleInit.set(true);
+          }
+          if (!resetProcessing && this.$resetPasswordCycleInit()) {
+            console.log('resetPassword successful, proceeding with pipe.');
+            this.$resetPasswordCycleInit.set(false);
+            this.$resetPasswordCycleComplete.set(true);
+          }
+        }),
+        filter(updateProcessing => !updateProcessing && this.$resetPasswordCycleComplete()),
+        tap(resetProcessing => {
+          this.dialogRef.close(true);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
       )
       .subscribe();
-  }
-
-  private resetComponentActionState() {
-    this.resetPasswordSubmitted.set(false);
   }
 
   ngOnDestroy(): void {

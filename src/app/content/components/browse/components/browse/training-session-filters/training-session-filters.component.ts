@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatButtonToggle, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
-import { catchError, combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryDbOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupObject, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupDbOption } from 'shared-models/train/muscle-group.model';
@@ -31,9 +31,9 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   private allTrainingSessionsFetched$!: Observable<boolean>;
   private allTrainingSessions$!: Observable<TrainingSession[]>;
   private trainingSessionsSubscription!: Subscription;
-  private $trainingSessionsRequested = signal(false);
+  private $fetchTrainingSessionsSubmitted = signal(false);
 
-  filteredTrainingSessions = signal([] as TrainingSession[]); // Accessed by parent Browse Training Sessions Component
+  $filteredTrainingSessions = signal([] as TrainingSession[]); // Accessed by parent Browse Training Sessions Component
 
   trainingSessionFilterForm = new FormGroup<TrainingSessionFilterForm>({
     [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: new FormControl([]),
@@ -43,12 +43,12 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: new FormControl([]),
   });
 
-  trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
-  trainingSessionComplexityMasterList: TrainingSessionComplexityObject[] = Object.values(TrainingSessionComplexityList);
-  trainingSessionIntensityMasterList: TrainingSessionIntensityObject[] = Object.values(TrainingSessionIntensityList);
-  trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
+  readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
+  readonly trainingSessionComplexityMasterList: TrainingSessionComplexityObject[] = Object.values(TrainingSessionComplexityList);
+  readonly trainingSessionIntensityMasterList: TrainingSessionIntensityObject[] = Object.values(TrainingSessionIntensityList);
+  readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
 
-  trainingSessionFilterFormSubscription!: Subscription;
+  private trainingSessionFilterFormSubscription!: Subscription;
 
   private store$ = inject(Store);
   private uiService = inject(UiService);
@@ -69,13 +69,12 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   }
 
   private fetchInitialTrainingSessionBatch() {
-
     this.trainingSessionsSubscription = this.fetchAllTrainingSessionsError$
       .pipe(
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$trainingSessionsRequested.set(false);
+            this.$fetchTrainingSessionsSubmitted.set(false);
           }
           const trainingSessionsInStore = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
           return trainingSessionsInStore;
@@ -83,48 +82,26 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
         withLatestFrom(this.fetchAllTrainingSessionsError$, this.allTrainingSessionsFetched$),
         filter(([trainingSessions, processingError, allFetched]) => !processingError),
         map(([trainingSessions, processingError, allFetched]) => {
-          if (!allFetched && !this.$trainingSessionsRequested()) {
+          if (!allFetched && !this.$fetchTrainingSessionsSubmitted()) {
             this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
-            this.$trainingSessionsRequested.set(true);
+            this.$fetchTrainingSessionsSubmitted.set(true);
           }
           return trainingSessions;
         }),
-        tap(trainingSessions => {
+        withLatestFrom(this.allTrainingSessionsFetched$),
+        filter(([trainingSessions, allFetched]) => allFetched),
+        tap(([trainingSessions, allFetched]) => {
           console.log('Set training sessions', trainingSessions);
-          this.filteredTrainingSessions.set(trainingSessions);
+          this.$filteredTrainingSessions.set(trainingSessions);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$trainingSessionsRequested.set(false);
+          this.$fetchTrainingSessionsSubmitted.set(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
-
-    // this.trainingSessionsSubscription = this.allTrainingSessions$
-    //   .pipe(
-    //     withLatestFrom(
-    //       this.fetchAllTrainingSesssionsProcessing$,
-    //       this.fetchAllTrainingSesssionsError$,
-    //       this.allTrainingSessionsFetched$,
-    //     ),
-    //     switchMap(([trainingSessions, loadingSessions, loadError, allSessionsFetched]) => {
-    //       if (loadError) {
-    //         console.log('Error loading training sessions in component', loadError);
-    //       }
-    //       // Check if sessions are loaded, if not fetch from server
-    //       if (!loadingSessions && !allSessionsFetched) {
-    //         this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
-    //       }
-    //       return combineLatest([this.allTrainingSessions$, this.allTrainingSessionsFetched$]);
-    //     }),
-    //     filter(([trainingSessions, allSessionsFetched]) => !!trainingSessions && allSessionsFetched ),
-    //     tap(([trainingSessions, allSessionsFetched]) => {
-    //       this.filteredTrainingSessions.set(trainingSessions);
-    //     })
-    //   )
-    //   .subscribe()
   }
 
   private monitorfilterChanges() {
@@ -134,15 +111,14 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
         withLatestFrom(this.allTrainingSessions$),
         filter(([value, unfilteredTrainingSessions]) => !this.complexityOnlyMinMaxValueSelected() && !this.intensityOnlyMinMaxValueSelected()), // prevents infinite loop since either one of these will trigger a new subscription value
         tap(([value, unfilteredTrainingSessions]) => {
-          this.filteredTrainingSessions.set(unfilteredTrainingSessions); // Initialize with all sessions, then apply latest filters
+          this.$filteredTrainingSessions.set(unfilteredTrainingSessions); // Initialize with all sessions, then apply latest filters
           this.applyActivityCategoryFilter();
           this.applyComplexityFilter();
           this.applyEquipmentFilter();
           this.applyIntensityFilter();
           this.applyMuscleGroupFilter();
         })
-      )
-      .subscribe();
+      ).subscribe();
 
   }
 
@@ -188,7 +164,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
     if (activityCategoryFilterArray.length < 1) {
       return;
     }
-    this.filteredTrainingSessions.update(currentValue => {
+    this.$filteredTrainingSessions.update(currentValue => {
       return currentValue.filter(session => {
         const sessionActivityCategoryArray = session.activityCategoryList;
         const hasMatchingActivityCategory = sessionActivityCategoryArray.some(category => {
@@ -226,7 +202,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.filteredTrainingSessions.update(currentValue => {
+    this.$filteredTrainingSessions.update(currentValue => {
       return currentValue.filter(session => {
         const roundedSessionComplexity = Math.round(session.complexityAverage);
         const withinFilterRange = filterComplexityMin <= roundedSessionComplexity && filterComplexityMax >= roundedSessionComplexity;
@@ -262,7 +238,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
       return;
     }
     const equipmentFilterValue = this.equipmentFilterArray.value[0];
-    this.filteredTrainingSessions.update(currentValue => currentValue.filter(session => session.equipment === equipmentFilterValue));
+    this.$filteredTrainingSessions.update(currentValue => currentValue.filter(session => session.equipment === equipmentFilterValue));
   }
 
   private applyIntensityFilter() {
@@ -294,7 +270,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
     // console.log(`Filtering intensity between ${filterIntensityMin} - ${filterIntensityMax} `);
 
-    this.filteredTrainingSessions.update(currentValue => {
+    this.$filteredTrainingSessions.update(currentValue => {
       return currentValue.filter(session => {
         const roundedSessionIntensity = Math.round(session.intensityAverage);
         const withinFilterRange = filterIntensityMin <= roundedSessionIntensity && filterIntensityMax >= roundedSessionIntensity;
@@ -311,7 +287,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.filteredTrainingSessions.update(currentValue => {
+    this.$filteredTrainingSessions.update(currentValue => {
       return currentValue.filter(session => {
         const sessionMuscleGroup = session.muscleGroup;
         return muscleGroupFilterArray.includes(sessionMuscleGroup);

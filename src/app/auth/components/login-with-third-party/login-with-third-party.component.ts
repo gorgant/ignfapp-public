@@ -31,10 +31,10 @@ export class LoginWithThirdPartyComponent implements OnInit {
   private authError$!: Observable<{} | null>;
   private authReloadProcessing$!: Observable<boolean>;
   private authSubscription!: Subscription;
-  private reloadAuthDataTriggered = signal(false);
+  private $reloadAuthDataSubmitted = signal(false);
   
   private userData$!: Observable<PublicUser>;
-  private createOrUpdateUserRequestSubmitted = signal(false);
+  private $createOrUpdateUserSubmitted = signal(false);
 
   private store$ = inject(Store);
   private router = inject(Router);
@@ -86,13 +86,13 @@ export class LoginWithThirdPartyComponent implements OnInit {
           console.log('Auth data received', authData);
 
           // Create new user
-          if (authData.isNewUser && !this.createOrUpdateUserRequestSubmitted()) {
+          if (authData.isNewUser && !this.$createOrUpdateUserSubmitted()) {
             console.log('New user detected in auth, creating new user in DB');
             this.createUserInFirebase(authData);
           }
 
           // Otherwise, update existing user
-          if (!authData.isNewUser && !this.createOrUpdateUserRequestSubmitted()) {
+          if (!authData.isNewUser && !this.$createOrUpdateUserSubmitted()) {
             console.log('Existing user detected in auth, updating user in DB');
             this.updateUserInFirebase(authData);
           }
@@ -106,10 +106,10 @@ export class LoginWithThirdPartyComponent implements OnInit {
             console.log(`User has not verified email. Waiting for verification for ${userData.email}`);
           }
           // Auth data needs to be reloaded after email verification is complete in order for user page to update
-          if (userData.emailVerified && !authData.emailVerified && !this.reloadAuthDataTriggered()) {
+          if (userData.emailVerified && !authData.emailVerified && !this.$reloadAuthDataSubmitted()) {
             console.log(`User email verified but auth not yet updated. Submitting auth refresh request.`);
             this.store$.dispatch(AuthStoreActions.reloadAuthDataRequested());
-            this.reloadAuthDataTriggered.set(true);
+            this.$reloadAuthDataSubmitted.set(true);
           }
           if (userData.emailVerified && authData.emailVerified) {
             console.log('User email verified in db and auth, routing user to requested route.');
@@ -149,7 +149,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
       avatarUrl: authData.avatarUrl
     }
     this.store$.dispatch(UserStoreActions.createPublicUserRequested({partialNewPublicUserData: partialNewUserData}));
-    this.createOrUpdateUserRequestSubmitted.set(true);
+    this.$createOrUpdateUserSubmitted.set(true);
   }
 
   private updateUserInFirebase(authResultsData: AuthResultsData) {
@@ -162,12 +162,12 @@ export class LoginWithThirdPartyComponent implements OnInit {
       updateType: UserUpdateType.AUTHENTICATION
     }
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-    this.createOrUpdateUserRequestSubmitted.set(true);
+    this.$createOrUpdateUserSubmitted.set(true);
   }
 
   private resetComponentActionState() {
-    this.reloadAuthDataTriggered.set(false);
-    this.createOrUpdateUserRequestSubmitted.set(false);
+    this.$reloadAuthDataSubmitted.set(false);
+    this.$createOrUpdateUserSubmitted.set(false);
   }
 
   ngOnDestroy(): void {
