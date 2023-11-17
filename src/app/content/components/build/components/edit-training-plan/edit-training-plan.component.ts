@@ -376,7 +376,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private patchExistingDataIntoForm(trainingPlanId: string) {
     this.combinedTrainingDataSubscription = this.fetchCombinedTrainingDataError$
       .pipe(
-        filter(processingError => !this.$deleteTrainingPlanSubmitted()), // Prevents fetching trainingPlan once it has been deleted
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
@@ -386,7 +385,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           return singleTrainingPlan$;
         }),
         withLatestFrom(this.fetchSingleTrainingPlanError$),
-        filter(([trainingPlan, processingError]) => !processingError),
+        filter(([trainingPlan, processingError]) => !processingError && !this.$deleteTrainingPlanSubmitted()),
         map(([trainingPlan, processingError]) => {
           if (!trainingPlan && !this.$fetchSingleTrainingPlanSubmitted()) {
             this.$fetchSingleTrainingPlanSubmitted.set(true);
@@ -972,6 +971,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         }),
         filter(batchDeleteProcessing => !batchDeleteProcessing && this.$batchDeletePlanSessionFragmentsCycleComplete()),
         tap(batchDeleteProcessing => {
+          this.uiService.showSnackBar(`Training Plan deleted!`, 10000);
           this.router.navigate([PublicAppRoutes.BROWSE]);
         }),
         // Catch any local errors

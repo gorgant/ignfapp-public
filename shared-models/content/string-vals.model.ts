@@ -11,6 +11,7 @@ export enum GlobalFieldValues {
   BACK_TO_DASHBOARD = `Back to Dashboard`,
   BEGIN_TRAINING = `Begin Training`,
   BODYWEIGHT = `Bodyweight`,
+  BROWSE_TRAINING_PLANS = `Browse Training Plans`,
   BROWSE_TRAINING_SESSIONS = `Browse Training Sessions`,
   CHANNEL = `Channel`,
   CANCEL = `Cancel`,

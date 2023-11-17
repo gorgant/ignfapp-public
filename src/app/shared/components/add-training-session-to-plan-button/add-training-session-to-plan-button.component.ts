@@ -8,6 +8,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { AddTrainingSessionUrlParams, AddTrainingSessionUrlParamsKeys, TrainingPlan } from 'shared-models/train/training-plan.model';
 import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors } from 'src/app/root-store';
 
@@ -206,7 +207,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         }),
         filter(updateProcessing => !updateProcessing && this.$updateTrainingPlanCycleComplete()),
         tap((updateProcessing: boolean) => {
-          this.uiService.showSnackBar(`Training Session Added to Plan!`, 10000);
+          this.uiService.showSnackBar(`Training Session Added to Plan!`, 10000, SnackbarActions.EDIT_PLAN);
           this.navigateToTrainingSessionSelection();
         }),
         // Catch any local errors

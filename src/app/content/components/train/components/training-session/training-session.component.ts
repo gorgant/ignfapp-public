@@ -228,7 +228,6 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
     this.localTrainingSessionSubscription = this.combinedFetchTrainingSessionDataError$
       .pipe(
-        filter(processingError => !this.$deleteTrainingSessionSubmitted()), // Prevents fetching trainingSession once it has been deleted
         withLatestFrom(this.userData$),
         switchMap(([processingError, userData]) => {
           if (processingError) {
@@ -242,7 +241,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           return singleTrainingSession$;
         }),
         withLatestFrom(this.combinedFetchTrainingSessionDataError$),
-        filter(([trainingSession, processingError]) => !processingError),
+        filter(([trainingSession, processingError]) => !processingError && !this.$deleteTrainingSessionSubmitted()),
         map(([trainingSession, processingError]) => {
           if (!trainingSession && !this.$fetchSingleTrainingSessionSubmitted()) {
             console.log(`Session ${this.$canonicalTrainingSessionId()} not in store, fetching from database`);

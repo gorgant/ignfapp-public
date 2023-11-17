@@ -1,11 +1,12 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { NoNavBarUrls } from 'shared-models/routes-and-paths/app-routes.model';
+import { NoNavBarUrls, PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { filter, tap } from 'rxjs/operators';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { DOCUMENT, Location } from '@angular/common';
 import { AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,15 +33,45 @@ export class UiService {
     this.window =this.document.defaultView as Window;
    }
 
-  showSnackBar(message: string, duration: number, action: string = 'Dismiss', ) {
+  showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS, ) {
     const config = new MatSnackBarConfig();
     config.duration = duration;
     config.panelClass = ['custom-snack-bar']; // CSS managed in global styles.css
 
     const snackBarRef = this.snackbar.open(message, action, config);
 
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID) as string | undefined;
+
+    // Perform an action based on the action input
     snackBarRef.onAction().subscribe(() => {
-      snackBarRef.dismiss();
+
+      switch (action) {
+        case SnackbarActions.DISMISS:
+          snackBarRef.dismiss();
+          break
+        case SnackbarActions.EDIT_PLAN:
+          if (trainingPlanId) {
+            this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, trainingPlanId]);
+          } else {
+            this.router.navigate([PublicAppRoutes.BROWSE]);
+          }
+          break;
+        case SnackbarActions.VIEW_MY_QUEUE:
+          this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
+          break;
+        case SnackbarActions.VIEW_PLAN:
+          if (trainingPlanId) {
+            this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, trainingPlanId]);
+          } else {
+            this.router.navigate([PublicAppRoutes.BROWSE]);
+          }
+          break;
+        default:
+          snackBarRef.dismiss();
+          break;
+      }
+
+      
     });
   }
 

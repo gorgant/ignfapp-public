@@ -19,6 +19,25 @@
   margin-top: 64px;
 }
 
+.queue-empty-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+  width: 100%;
+}
+
+.browse-button {
+  width: $mobile-button-width;
+}
+
+.queue-empty-message {
+  font-size: 1.2em;
+  line-height: 1.2em;
+  font-weight: 300;
+  text-align: center;
+}
+
 @media screen and (min-width: $mobile-cutoff-width) {
   .edit-queue-button {
     width: $desktop-button-width;

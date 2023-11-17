@@ -16,7 +16,10 @@ import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionF
 })
 export class TrainDashboardComponent implements OnInit {
 
+  BROWSE_TRAINING_PLANS_BUTTON_VALUE = GlobalFieldValues.BROWSE_TRAINING_PLANS;
   EDIT_MY_QUEUE = GlobalFieldValues.EDIT_MY_QUEUE;
+  QUEUE_IS_EMPTY_BLURB = GlobalFieldValues.QUEUE_IS_EMPTY;
+
   trainingSessionCardHeight = 300;
 
   private userData$!: Observable<PublicUser>;
@@ -77,6 +80,10 @@ export class TrainDashboardComponent implements OnInit {
 
   onEditPersonalQueue() {
     this.router.navigate([PublicAppRoutes.TRAIN_EDIT_PERSONAL_QUEUE]);
+  }
+
+  onNavigateToBrowse() {
+    this.router.navigate([PublicAppRoutes.BROWSE]);
   }
 
 }

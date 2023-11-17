@@ -23,7 +23,7 @@ import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action
 export class EditPersonalQueueComponent implements OnInit, OnDestroy {
 
   BACK_TO_DASHBOARD_BUTTON_VALUE = GlobalFieldValues.BACK_TO_DASHBOARD;
-  BROWSE_TRAINING_SESSIONS_BUTTON_VALUE = GlobalFieldValues.BROWSE_TRAINING_SESSIONS;
+  BROWSE_TRAINING_PLANS_BUTTON_VALUE = GlobalFieldValues.BROWSE_TRAINING_PLANS;
   CLEAR_PERSONAL_QUEUE_BUTTON_VALUE = GlobalFieldValues.CLEAR_PERSONAL_QUEUE_CONF_TITLE;
   CLEAR_PERSONAL_QUEUE_CONF_BODY = GlobalFieldValues.CLEAR_PERSONAL_QUEUE_CONF_BODY;
   CLEAR_PERSONAL_QUEUE_CONF_TITLE = GlobalFieldValues.CLEAR_PERSONAL_QUEUE_CONF_TITLE;
@@ -47,7 +47,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   private batchModifyPersonalSessionFragmentsProcessing$!: Observable<boolean>;
   private batchModifyPersonalSessionFragmentsError$!: Observable<{} | null>;
 
-  private $batchDeletePersonalSessionFragmentsSubmitted = signal(false);
+  $batchDeletePersonalSessionFragmentsSubmitted = signal(false);
   private $batchDeletePersonalSessionFragmentsCycleInit = signal(false);
   private $batchDeletePersonalSessionFragmentsCycleComplete = signal(false);
   private batchDeletePersonalSessionFragmentsProcessing$!: Observable<boolean>;
@@ -426,6 +426,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         filter(batchModifyProcessing => !batchModifyProcessing && this.$batchModifyPersonalSessionFragmentsCycleComplete()),
         tap(batchModifyProcessing => {
           console.log('All steps complete: 1) personalSessionFragment deleted, 2) remaining personalSessionFragments updated');
+          this.uiService.showSnackBar(`Training session deleted.`, 10000);
           this.deletePersonalSessionFragmentSubscription?.unsubscribe();
           this.resetDeletePersonalSessionFragmentComponentState();
         }),
@@ -545,6 +546,8 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         tap(deleteProcessing => {
           this.batchDeletePersonalSessionFragmentsSubscription?.unsubscribe();
           this.resetBatchDeletePersonalSessionFragmentsComponentState();
+          this.uiService.showSnackBar(`All training sessions removed.`, 10000);
+          this.onBackToDashboard();
         }),
         // Catch any local errors
         catchError(error => {
@@ -569,13 +572,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   }
 
   onNavigateToBrowse() {
-    const queryParams: ViewTrainingSessionsUlrParams = {
-      [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true
-    }
-    const navigationExtras: NavigationExtras = {
-      queryParams
-    };
-    this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+    this.router.navigate([PublicAppRoutes.BROWSE]);
   }
 
   ngOnDestroy(): void {

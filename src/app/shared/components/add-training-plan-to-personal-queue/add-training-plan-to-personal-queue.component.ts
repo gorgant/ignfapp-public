@@ -6,6 +6,7 @@ import { PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFr
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
+import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
@@ -170,8 +171,7 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
         }),
         filter(creationProcessing => !creationProcessing && this.$batchCreatePersonalSessionFragmentsRequestedCycleComplete()),
         tap(creationProcessing => {
-          // TODO: Have this snackbar show offer an action to route to the queue
-          this.uiService.showSnackBar(`Training Session Added to Personal Queue!`, 10000);
+          this.uiService.showSnackBar(`Training Plan Added to Your Queue!`, 10000, SnackbarActions.VIEW_MY_QUEUE);
         }),
         // Catch any local errors
         catchError(error => {
