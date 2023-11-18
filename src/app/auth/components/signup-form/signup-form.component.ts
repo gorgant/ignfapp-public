@@ -5,6 +5,7 @@ import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
 import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
+import { PASSWORD_MIN_LENGTH } from 'shared-models/auth/password-vars.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
@@ -29,7 +30,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   SUBMIT_BUTTON_VALUE = GlobalFieldValues.CREATE_ACCOUNT;
   PASSWORD_HINT = GlobalFieldValues.LI_PASSWORD_HINT;
   TRUSTED_EMAIL_SENDER = EmailSenderAddresses.IGNFAPP_DEFAULT;
-
+  
   private authData$!: Observable<AuthResultsData>;
   private authError$!: Observable<{} | null>;
   private authReloadProcessing$!: Observable<boolean>;
@@ -46,10 +47,12 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private uiService = inject(UiService);
 
-  registerUserForm = this.fb.group({
+  readonly PASSWORD_MIN_LENGTH = PASSWORD_MIN_LENGTH;
+
+  authForm = this.fb.group({
     [PublicUserKeys.FIRST_NAME]: ['', [Validators.required]],
     [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
-    [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(8)]],
+    [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(this.PASSWORD_MIN_LENGTH)]],
   });
 
   constructor() { }
@@ -65,7 +68,42 @@ export class SignupFormComponent implements OnInit, OnDestroy {
     this.authReloadProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing)) as Observable<boolean>;
   }
 
+  get firstNameErrorMessage() {
+    let errorMessage = '';
+    if (this.firstName.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
+  }
+
+  get emailErrorMessage() {
+    let errorMessage = '';
+    if (this.email.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.email.hasError('email')) {
+      return errorMessage =  'Not a valid email.';
+    }
+    return errorMessage;
+  }
+
+  get passwordErrorMessage() {
+    let errorMessage = '';
+    if (this.password.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.password.hasError('minlength')) {
+      return errorMessage = `Your password must be at least ${PASSWORD_MIN_LENGTH} characters`;
+    }
+    return errorMessage;
+  }
+
   onSubmit(): void {
+
+    if (!this.authForm.dirty) {
+      this.uiService.showSnackBar(`You must provide your login details to proceed!`, 10000);
+      return;
+    }
 
     const authFormData: AuthFormData = {
       email: this.email.value,
@@ -161,8 +199,8 @@ export class SignupFormComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get firstName() { return this.registerUserForm.get(PublicUserKeys.FIRST_NAME) as AbstractControl; }
-  get email() { return this.registerUserForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
-  get password() { return this.registerUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
+  get firstName() { return this.authForm.get(PublicUserKeys.FIRST_NAME) as AbstractControl; }
+  get email() { return this.authForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
+  get password() { return this.authForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
 
 }

@@ -1,11 +1,50 @@
 @import '../../../variables';
 
-.page-container {
-  padding: 32px;
+.content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 64px;
+}
+
+.processing-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.processing-spinner {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $primary;
+}
+
+.failure-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.failure-icon {
+  font-size: 96px;
+  height: 96px;
+  width: 96px;
+  color: $warn;
 }
 
 .success-container {
-  margin-top: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .success-icon {
@@ -15,19 +54,7 @@
   color: $primary;
 }
 
-
-.failure-icon {
-  font-size: 96px;
-  height: 96px;
-  width: 96px;
-  color: $warn;
-}
-
-.success-message {
-  color: $primary;
-}
-
-.processing-message {
+.success-message, .processing-message{
   color: $primary;
 }
 
@@ -42,13 +69,6 @@
   line-height: 1.2em;
 }
 
-.processing-spinner {
-  font-size: 96px;
-  height: 96px;
-  width: 96px;
-  color: $primary;
-}
-
 .check-your-inbox {
   font-weight: $font-weight-light;
   text-align: center;
@@ -57,10 +77,4 @@
 
 .support-text {
   font-weight: $font-weight-medium;
-}
-
-@media screen and (max-width: $mobile-cutoff-width) {
-  .page-container {
-    padding: 16px;
-  }
 }

@@ -67,7 +67,7 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
       map(([userData, authResults]) => {
         loopProtectionCount++;
 
-        if (loopProtectionCount > 4) {
+        if (loopProtectionCount > 10) {
           console.log('Loop protection triggered');
           uiService.routeGuardProcessing = false;
           throw Error('Loop protection triggered, halting function');

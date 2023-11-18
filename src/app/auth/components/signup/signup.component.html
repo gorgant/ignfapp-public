@@ -1,29 +1,27 @@
-<div class="page-container" fxLayout="column" fxLayoutGap.gt-sm="32px">
+<div class="content-container">
   <app-auth-header></app-auth-header>
-  <div fxHide [fxShow]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async)" class="login-options" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+  <div class="login-options" [ngClass]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async) ? '' : 'hide'">
     <app-login-with-third-party></app-login-with-third-party>
     <div class="or-divider">{{ OR_BLURB }}</div>
-    <button *ngIf="!useEmailLogin()" type="button" class="email-button" mat-raised-button (click)="onUseEmail()">
+    <button class="email-button" *ngIf="!useEmailLogin()" type="button" mat-raised-button (click)="onUseEmail()">
       <mat-icon class="email-button-icon">email</mat-icon>
       {{ SIGN_UP_WITH_EMAIL_BUTTON_VALUE }}
     </button>
     <app-signup-form *ngIf="useEmailLogin()"></app-signup-form>
-    <div *ngIf="useEmailLogin()" class="toggle-login-signup" fxLayout="column" fxLayoutAlign="center center">
+    <div class="toggle-login-signup" *ngIf="useEmailLogin()">
       <a [routerLink]="LOGIN_PATH">{{ ALREADY_HAVE_ACCOUNT_BUTTON_VALUE }}</a>
     </div>
   </div>
-  <div *ngIf="authOrUserUpdateProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+  <div class="processing-container" *ngIf="authOrUserUpdateProcessing$ | async">
     <mat-spinner class="processing-spinner"></mat-spinner>
     <h2 class="processing-message">
       {{ AUTH_PROCESSING_BLURB }}
     </h2>
   </div>
-  <div 
-    *ngIf="(userData$ | async) && 
+  <div class="verify-email" *ngIf="(userData$ | async) && 
       (!(userData$ | async)?.emailVerified || !(authData$ | async)?.emailVerified) && 
       !(authOrUserUpdateProcessing$ | async)" 
-    class="verify-email" fxLayout="column" fxLayoutGap="32px"
-  >
+      >
     <p>{{ CHECK_INBOX_BLURB_1 }}, {{(userData$ | async)?.firstName}}. {{ CHECK_INBOX_BLURB_2 }} <span class="verify-text">{{ CHECK_INBOX_BLURB_3 }}</span>.</p>
     <p>{{ CHECK_SPAM_BLURB_1 }} <span class="trusted-sender-text">{{ TRUSTED_EMAIL_SENDER }}</span> {{ CHECK_SPAM_BLURB_2 }}.</p>
   </div>

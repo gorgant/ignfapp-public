@@ -4,7 +4,7 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, throwError } from 'rxjs';
-import { catchError, filter, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
@@ -49,11 +49,11 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private uiService = inject(UiService);
 
-  authUserForm = this.fb.group({
+  authForm = this.fb.group({
     [PublicUserKeys.EMAIL]: ['', [Validators.required, Validators.email]],
-    [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required, Validators.minLength(6)]],
+    [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required]],
   });
-  
+
   constructor() { }
 
   ngOnInit(): void {
@@ -67,7 +67,32 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.authReloadProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectReloadAuthDataProcessing)) as Observable<boolean>;
   }
 
+  get emailErrorMessage() {
+    let errorMessage = '';
+    if (this.email.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.email.hasError('email')) {
+      return errorMessage =  'Not a valid email.';
+    }
+    return errorMessage;
+  }
+
+  get passwordErrorMessage() {
+    let errorMessage = '';
+    if (this.password.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
+  }
+
   onSubmit(): void {
+
+    if (!this.authForm.dirty) {
+      this.uiService.showSnackBar(`You must provide your login details to proceed!`, 10000);
+      return;
+    }
+
     const authFormData: AuthFormData = {
       email: this.email.value,
       password: this.password.value
@@ -156,7 +181,8 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   onResetPassword() {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.autoFocus = true;
-    dialogConfig.width = '300px';
+    dialogConfig.width = '100%';
+    dialogConfig.minHeight = '300px';
     dialogConfig.data = this.email.value;
     console.log('Reset password requested with this config', dialogConfig);
 
@@ -185,7 +211,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get email() { return this.authUserForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
-  get password() { return this.authUserForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
+  get email() { return this.authForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
+  get password() { return this.authForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
 
 }

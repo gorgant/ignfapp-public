@@ -1,43 +1,25 @@
 <div class="component-container">
-  <form 
-      class="register-user-form" 
-      [formGroup]="registerUserForm" 
-      (ngSubmit)="onSubmit()" 
-      fxLayout="column" 
-      fxLayoutAlign="center center"
-      fxLayoutGap="16px"
-      >
+  <form class="auth-user-form" [formGroup]="authForm" (ngSubmit)="onSubmit()">
     <mat-form-field color="accent">
-      <input color="accent" class="first-name-input" matInput formControlName="firstName">
+      <input class="first-name-input" matInput formControlName="firstName" color="accent" >
       <mat-icon class="input-icon" matPrefix>face</mat-icon>
       <mat-label class="input-placeholder">{{ FIRST_NAME_FIELD_VALUE }}</mat-label>
-      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
-        <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
-      </mat-error>
+      <mat-error *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)">{{ firstNameErrorMessage }}</mat-error>
     </mat-form-field>
     <mat-form-field color="accent">
-      <input color="accent" class="email-input" matInput formControlName="email" type="email">
+      <input class="email-input" matInput formControlName="email" type="email" color="accent">
       <mat-icon class="input-icon" matPrefix>email</mat-icon>
       <mat-label class="input-placeholder">{{ EMAIL_FIELD_VALUE }}</mat-label>
-      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
-        <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
-      </mat-error>
+      <mat-error *ngIf="email.invalid && (email.dirty || email.touched)">{{ emailErrorMessage }}</mat-error>
     </mat-form-field>
     <mat-form-field color="accent">
       <input formControlName="password" matInput type="password">
       <mat-icon class="input-icon" matPrefix>lock</mat-icon>
       <mat-label class="input-placeholder">{{ PASSWORD_FIELD_VALUE }}</mat-label>
-      <mat-hint>{{ PASSWORD_HINT }}</mat-hint>
-      <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.password">
-        <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }} <span style="float: right;">{{ password.value.length }} / 8</span> </mat-error>
-      </mat-error>
+      <!-- <mat-hint>{{ PASSWORD_HINT }}</mat-hint> -->
+      <mat-error *ngIf="password.invalid && (password.dirty || password.touched)">{{ passwordErrorMessage }} <span style="float: right;">{{ password.value.length }} / {{ PASSWORD_MIN_LENGTH }}</span></mat-error>
     </mat-form-field>
-    <button 
-      [disabled]="(email.invalid && (email.dirty || email.touched))"
-      class="submit-button" 
-      type="submit" 
-      mat-raised-button 
-      color="primary">
+    <button class="submit-button" [disabled]="(authForm.invalid && (authForm.dirty || authForm.touched))"  type="submit" mat-raised-button  color="primary">
         {{ SUBMIT_BUTTON_VALUE }}
     </button>
   </form>

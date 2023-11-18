@@ -1,7 +1,23 @@
 @import '../../../variables';
 
-.page-container {
-  padding: 16px;
+.content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.hide {
+  display: none;
 }
 
 app-login-with-third-party {
@@ -14,7 +30,6 @@ app-login-with-third-party {
 
 .email-button {
   width: $mobile-button-width;
-  max-width: $desktop-button-width;
   color: #737373;
 }
 
@@ -23,6 +38,10 @@ app-login-with-third-party {
 }
 
 app-login-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
@@ -32,6 +51,11 @@ app-login-form {
 }
 
 .verify-email {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
   margin-top: 32px;
   text-align: center;
   font-size: 1.2em;
@@ -48,9 +72,12 @@ app-login-form {
   font-weight: $font-weight-medium
 }
 
-.processing-message {
-  text-align: center;
-  font-weight: $font-weight-light;
+.processing-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
 }
 
 .processing-spinner {
@@ -58,4 +85,11 @@ app-login-form {
   height: 96px;
   width: 96px;
   color: $primary;
+}
+
+.processing-message {
+  text-align: center;
+  font-weight: $font-weight-light;
+  font-size: 1.2em;
+  line-height: 1.2em;
 }

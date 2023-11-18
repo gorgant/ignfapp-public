@@ -1,16 +1,28 @@
 @import "../../../variables";
 
-.check-inbox-message {
-  margin-top: 32px;
-  text-align: center;
-  font-size: 1.2em;
-  font-weight: $font-weight-light;
-  line-height: 1.2em;
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+}
+
+.auth-user-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.hide {
+  display: none;
 }
 
 mat-form-field {
   width: 100%;
-  max-width: $desktop-form-width-standard;
 }
 
 .input-icon {
@@ -18,33 +30,28 @@ mat-form-field {
   padding-right: 8px;
 }
 
-.submit-button {
-  margin-top: 16px;
-  width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-
 .forgot-password-container {
-
-  // Remove button styling: https://stackoverflow.com/a/45890842/6572208
-  button, input[type="submit"], input[type="reset"] {
-    background: none;
-    color: inherit;
-    border: none;
-    padding: 0;
-    font: inherit;
-    cursor: pointer;
-    outline: inherit;
-  }
   color: $primary;
   font-weight: $font-weight-light;
-  margin-top: -8px;
-  width: 100%;
-  max-width: 300px;
+  align-self: flex-start;
 }
 
-@media screen and (max-width: $mobile-cutoff-width) {
-  .component-container {
-    padding: 16px;
-  }
+.submit-button, .post-reset-button {
+  margin-top: 24px;
+  width: $mobile-button-width;
+}
+
+.check-inbox-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.check-inbox-message {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: $font-weight-light;
+  line-height: 1.2em;
 }

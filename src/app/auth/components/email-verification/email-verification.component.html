@@ -1,24 +1,21 @@
-<div class="page-container" fxLayout="column" fxLayoutAlign="center center">
-  <div class="content-body-container" fxLayout="column" fxLayoutAlign="center center">
-    
-    <div *ngIf="verificationOrUpdateProcessing$ | async" class="processing-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-      <mat-spinner class="processing-spinner"></mat-spinner>
-      <p class="processing-message">
-        {{ CONFIRMING_EMAIL_BLURB }}
-      </p>
-    </div>
-    <div *ngIf="verificationOrUpdateError$ | async" class="failure-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-      <mat-icon class="failure-icon">cancel</mat-icon>
-      <p class="failure-message">
-        {{ VERIFICATION_FAILED_BLURB }}<span class="support-text">{{ SUPPORT_EMAIL }}</span>.
-      </p>
-    </div>
-    <div *ngIf="verificationOrUpdateSucceeded$ | async" class="success-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-      <mat-icon class="success-icon">check_circle_outline</mat-icon>
-      <p class="success-message">
-        {{ EMAIL_CONFIRMED_BLURB }}
-      </p>
-      <button mat-raised-button color="primary" (click)="onEnterApp()">Enter App</button>
-    </div>
+<div class="content-container">
+  <div class="processing-container" *ngIf="verificationOrUpdateProcessing$ | async">
+    <mat-spinner class="processing-spinner"></mat-spinner>
+    <p class="processing-message">
+      {{ CONFIRMING_EMAIL_BLURB }}
+    </p>
+  </div>
+  <div class="failure-container" *ngIf="verificationOrUpdateError$ | async">
+    <mat-icon class="failure-icon">cancel</mat-icon>
+    <p class="failure-message">
+      {{ VERIFICATION_FAILED_BLURB }}<span class="support-text">{{ SUPPORT_EMAIL }}</span>.
+    </p>
+  </div>
+  <div class="success-container" *ngIf="verificationOrUpdateSucceeded$ | async">
+    <mat-icon class="success-icon">check_circle_outline</mat-icon>
+    <p class="success-message">
+      {{ EMAIL_CONFIRMED_BLURB }}
+    </p>
+    <button mat-raised-button color="primary" (click)="onEnterApp()">Enter App</button>
   </div>
 </div>

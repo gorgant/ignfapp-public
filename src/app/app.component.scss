@@ -2,7 +2,12 @@
 
 
 .app-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
   padding-bottom: 72px;
+  max-width: $desktop-screen-width;
 }
 
 .footer-container {

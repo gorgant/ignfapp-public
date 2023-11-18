@@ -1,24 +1,14 @@
-<section fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <button 
-    type="button" 
-    mat-raised-button
-    class="google-button"
-    (click)="onGoogleLogin()"
-    >
+<div class="content-container">
+  <button class="google-button" type="button" mat-raised-button (click)="onGoogleLogin()">
       <mat-icon class="button-icon">
         <img class="logo" [src]="GOOGLE_LOGO_SVG" alt="">
       </mat-icon>
       {{ CONTINUE_WITH_GOOGLE_BUTTON_VALUE }}
   </button>
-  <button 
-    type="button" 
-    mat-raised-button
-    class="facebook-button"
-    (click)="onFacebookLogin()"
-    >
+  <button class="facebook-button" type="button" mat-raised-button (click)="onFacebookLogin()">
       <mat-icon class="button-icon">
         <img class="logo" [src]="FACEBOOK_LOGO_SVG" alt="">
       </mat-icon>
       {{ CONTINUE_WITH_FACEBOOK_BUTTON_VALUE }}
   </button>
-</section>
+</div>

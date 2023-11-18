@@ -1,3 +1,4 @@
+import { PASSWORD_MIN_LENGTH } from "shared-models/auth/password-vars.model";
 
 export enum GlobalFieldValues {
   ACTIVITY_CATEGORY = `Activity Category`,
@@ -78,7 +79,7 @@ export enum GlobalFieldValues {
   LI_CREATE_ACCOUNT = `Create a New Account`,
   LI_CONTINUE_WITH_FACEBOOK = `Continue with Facebook`,
   LI_CONTINUE_WITH_GOOGLE = `Continue with Google`,
-  LI_PASSWORD_HINT = `Must be at least 8 characters`,
+  LI_PASSWORD_HINT = `Must be at least ${PASSWORD_MIN_LENGTH} characters`,
   LI_SIGN_IN_WITH_EMAIL = `Sign In with Email`,
   LI_SIGN_UP_WITH_EMAIL = `Sign Up with Email`,
   LP_ALREADY_REGISTERED = `You're already registered!`,

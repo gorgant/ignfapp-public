@@ -1,8 +1,24 @@
 @import "../../../variables";
 
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+}
+
+.auth-user-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
 mat-form-field {
   width: 100%;
-  max-width: $desktop-form-width-standard;
 }
 
 .input-icon {
@@ -11,13 +27,6 @@ mat-form-field {
 }
 
 .submit-button {
-  margin-top: 16px;
+  margin-top: 24px;
   width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-
-@media screen and (max-width: $mobile-cutoff-width) {
-  .component-container {
-    padding: 16px;
-  }
 }

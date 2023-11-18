@@ -126,8 +126,6 @@ $logo-font-mobile-size: 20px;
 // Color from here: https://blog.union.io/code/2017/08/10/img-svg-fill/ && https://codepen.io/sosuke/pen/Pjoqqp
 $svg-color-filter: brightness(0) saturate(100%) invert(83%) sepia(63%) saturate(2447%) hue-rotate(330deg) brightness(101%) contrast(101%);
 
-// $max-screen-width: 2500px;
-// $min-screen-width: 320px;
 $mobile-cutoff-width: 959px;
 
 $mobile-button-width: 90%;
@@ -142,7 +140,8 @@ $desktop-form-width-wide: 600px;
 $form-border-color: #EEEEEE;
 
 $mobile-screen-width: 100%;
-$desktop-screen-width: 800px;
+// $desktop-screen-width: 800px;
+$desktop-screen-width: 450px;
 
 $text-block-font-weight: $font-weight-regular;
 $text-block-font-size: 22px;

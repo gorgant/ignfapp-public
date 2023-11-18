@@ -1,34 +1,22 @@
 @import "../../../variables";
 
 .component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+
   padding: 16px;
 }
 
 .logo {
-  width: 20%;
+  width: 50%;
 }
 
 .subheader {
-  font-size: 32px;
+  text-align: center;
+  font-size: 2em;
   color: $font-subheader-color;
   font-weight: 300;
-}
-
-@media screen and (max-width: $mobile-cutoff-width) {
-
-  .logo {
-    width: 50%;
-  }
-
-  .header {
-    text-align: center;
-    font-size: 40px;
-    line-height: 48px;
-  }
-
-  .subheader {
-    text-align: center;
-    font-size: 24px;
-    line-height: 24px;
-  }
 }
