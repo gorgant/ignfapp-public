@@ -98,10 +98,16 @@ export interface ViewCanonicalTrainingSessionQueryParams {
   [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: TrainingSessionVisibilityCategoryDbOption,
 }
 
+// Swap these to static values below when deploying to cloud functions due to compiler complaint
 export enum ViewCanonicalTrainingSessionQueryParamsKeys {
   DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
   TRAINING_SESSION_VISIBILITY_CATEGORY = TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY,
 }
+
+// export enum ViewCanonicalTrainingSessionQueryParamsKeys {
+//   DATABASE_CATEGORY = 'databaseCategory',
+//   TRAINING_SESSION_VISIBILITY_CATEGORY = 'trainingSessionVisibilityCategory',
+// }
 
 export enum TrainingSessionVisibilityCategoryDbOption {
   PUBLIC = 'public',
