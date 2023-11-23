@@ -3,7 +3,8 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription, withLatestFrom, map, catchError, combineLatest, filter, switchMap, tap, throwError } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
-import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
+import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -16,7 +17,7 @@ import { PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActi
 })
 export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit, OnDestroy {
 
-  @Input() trainingSessionData!: TrainingSession;
+  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment;
 
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
 
@@ -95,29 +96,23 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
   onAddTrainingSessionToQueue() {
     console.log('onAddTrainingSessionToQueue click registered');
     this.$isActiveButton.set(true);
-
-    // Convert current trainingSession into a no-id version to serve as the base for the planSessionFragment
-    const currentTrainingSessionClone: any = {...this.trainingSessionData};
-    delete currentTrainingSessionClone.id;
-    delete currentTrainingSessionClone[TrainingSessionKeys.CREATED_TIMESTAMP];
-    delete currentTrainingSessionClone[TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP];
-    const trainingSessionNoId = currentTrainingSessionClone as TrainingSessionNoIdOrTimestamps;
+    const trainingSessionNoId = this.buildTrainingSessionNoId();
 
     // This does the following: 1) Fetch personalSessionFragments 2) create new personalSessionFragment and add it to the queue
     this.combinedAddTrainingSessionToQueueSubscription = this.combinedAddTrainingSessionToQueueError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
+          console.log('Add onAddTrainingSessionToQueue subscription triggered');
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.combinedAddTrainingSessionToQueueSubscription?.unsubscribe();
-
+            this.resetComponentState();
           }
-          return this.allPersonalSessionFragmentsInStore$;
+          return processingError;
         }),
-        withLatestFrom(this.userData$, this.combinedAddTrainingSessionToQueueError$),
-        filter(([personalSessionFragments, userData, processingError]) => !processingError),
-        switchMap(([personalSessionFragments, userData, processingError]) => {
-          if (!this.$fetchPersonalSessionFragmentsSubmitted()) {
+        withLatestFrom(this.userData$, this.allPersonalSessionFragmentsFetched$),
+        filter(([ processingError, userData, allFetched]) => !processingError),
+        switchMap(([processingError, userData, allFetched]) => {
+          if (!allFetched && !this.$fetchPersonalSessionFragmentsSubmitted()) {
             this.$fetchPersonalSessionFragmentsSubmitted.set(true);
             console.log(`no personalSessionFragments in store, fetching from database`);
             this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData!.id}));
@@ -156,12 +151,12 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
         filter(creationProcessing => !creationProcessing && this.$createPersonalSessionFragmentCycleComplete()),
         tap(creationProcessing => {
           this.uiService.showSnackBar(`Training Session Added to Your Queue!`, 10000, SnackbarActions.VIEW_MY_QUEUE);
+          this.resetComponentState();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
-          this.combinedAddTrainingSessionToQueueSubscription?.unsubscribe();
           this.resetComponentState();
           return throwError(() => new Error(error));
         })
@@ -170,11 +165,37 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
 
 
   private resetComponentState() {
+    this.combinedAddTrainingSessionToQueueSubscription?.unsubscribe();
     this.$isActiveButton.set(false);
     this.$fetchPersonalSessionFragmentsSubmitted.set(false);
     this.$createPersonalSessionFragmentSubmitted.set(false);
     this.$createPersonalSessionFragmentCycleInit.set(false);
     this.$createPersonalSessionFragmentCycleComplete.set(false);
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
+  }
+
+  // Convert current trainingSession into a no-id version to serve as the base for the personalSessionFragment
+  private buildTrainingSessionNoId(): TrainingSessionNoIdOrTimestamps {
+    const trainingSession = this.trainingSessionData;
+    const clone: any = {...trainingSession};
+    let trainingSessionNoId: TrainingSessionNoIdOrTimestamps;
+    switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {
+      case TrainingSessionDatabaseCategoryTypes.CANONICAL:
+        delete clone[TrainingSessionKeys.CREATED_TIMESTAMP];
+        delete clone[TrainingSessionKeys.ID];
+        delete clone[TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP];
+        trainingSessionNoId = clone;
+        break;
+      case TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT:
+        Object.keys(PlanSessionFragmentKeys).forEach(key => {
+          delete clone[key];
+        })
+        trainingSessionNoId = clone;
+        break;
+      default:
+        throw new Error('No databaseCategory found. Cannot buildTrainingSessionNoId.');
+    }
+    return trainingSessionNoId;
   }
 
   ngOnDestroy(): void {

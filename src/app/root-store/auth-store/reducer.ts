@@ -103,22 +103,22 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.emailAuthRequested, (state, action) => {
     return {
       ...state,
-      authProcessing: true,
-      authError: null
+      emailAuthProcessing: true,
+      emailAuthError: null
     }
   }),
   on(AuthStoreActions.emailAuthCompleted, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
+      emailAuthProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.emailAuthFailed, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
-      authError: action.error
+      emailAuthProcessing: false,
+      emailAuthError: action.error
     }
   }),
   
@@ -127,22 +127,22 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.emailSignupRequested, (state, action) => {
     return {
       ...state,
-      signupProcessing: true,
-      signupError: null
+      emailSignupProcessing: true,
+      emailSignupError: null
     }
   }),
   on(AuthStoreActions.emailSignupCompleted, (state, action) => {
     return {
       ...state,
-      signupProcessing: false,
+      emailSignupProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.emailSignupFailed, (state, action) => {
     return {
       ...state,
-      signupProcessing: false,
-      signupError: action.error
+      emailSignupProcessing: false,
+      emailSignupError: action.error
     }
   }),
 
@@ -151,22 +151,22 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.facebookAuthRequested, (state, action) => {
     return {
       ...state,
-      authProcessing: true,
-      authError: null
+      facebookAuthProcessing: true,
+      facebookAuthError: null
     }
   }),
   on(AuthStoreActions.facebookAuthCompleted, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
+      facebookAuthProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.facebookAuthFailed, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
-      authError: action.error
+      facebookAuthProcessing: false,
+      facebookAuthError: action.error
     }
   }),
 
@@ -175,22 +175,22 @@ export const authStoreReducer = createReducer(
   on(AuthStoreActions.googleAuthRequested, (state, action) => {
     return {
       ...state,
-      authProcessing: true,
-      authError: null
+      googleAuthProcessing: true,
+      googleAuthError: null
     }
   }),
   on(AuthStoreActions.googleAuthCompleted, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
+      googleAuthProcessing: false,
       authResultsData: action.authResultsData
     }
   }),
   on(AuthStoreActions.googleAuthFailed, (state, action) => {
     return {
       ...state,
-      authProcessing: false,
-      authError: action.error
+      googleAuthProcessing: false,
+      googleAuthError: action.error
     }
   }),
   
@@ -198,27 +198,50 @@ export const authStoreReducer = createReducer(
 
   on(AuthStoreActions.logout, (state, action) => {
     return {
+    ...state,
+    authGuardError: null,
+    confirmPasswordError: null,
+    confirmPasswordProcessing: false,
+    deleteAuthUserError: null,
+    deleteAuthUserProcessing: false,
+    emailAuthError: null,
+    emailAuthProcessing: false,
+    emailSignupError: null,
+    emailSignupProcessing: false,
+    facebookAuthError: null,
+    facebookAuthProcessing: false,
+    googleAuthError: null,
+    googleAuthProcessing: false,
+    verifyEmailError: null,
+    verifyEmailProcessing: false,
+    verifyEmailSucceeded: false,
+    reloadAuthDataError: null, 
+    reloadAuthDataProcessing: false,
+    resetPasswordError: null,
+    resetPasswordProcessing: false,
+    updateEmailError: null,
+    updateEmailProcessing: false,
+    updateEmailSucceeded: false,
+    authResultsData: null,
+    }
+  }),
+
+  // Purge Auth Errors
+
+  on(AuthStoreActions.purgeAuthErrors, (state, action) => {
+    return {
       ...state,
-      authError: null,
       authGuardError: null,
-      authProcessing: false,
       confirmPasswordError: null,
-      confirmPasswordProcessing: false,
       deleteAuthUserError: null,
-      deleteAuthUserProcessing: false,
-      verifyEmailSucceeded: false,
+      emailAuthError: null,
+      emailSignupError: null,
+      facebookAuthError: null,
+      googleAuthError: null,
       verifyEmailError: null,
-      verifyEmailProcessing: false,
       reloadAuthDataError: null, 
-      reloadAuthDataProcessing: false,
       resetPasswordError: null,
-      resetPasswordProcessing: false,
-      signupError: null,
-      signupProcessing: false,
       updateEmailError: null,
-      updateEmailProcessing: false,
-      updateEmailSucceeded: false,
-      authResultsData: null,
     }
   }),
   

@@ -1,5 +1,5 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, Signal, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -9,7 +9,7 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
-import { TrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
 
 @Component({
   selector: 'app-edit-training-session-step-two',
@@ -18,7 +18,8 @@ import { TrainingSession, TrainingSessionFormVars, TrainingSessionKeys, Training
 })
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
-  @Input() $currentTrainingSession = signal(undefined as TrainingSession | undefined);
+  @Input() $localTrainingSession!: Signal<CanonicalTrainingSession | undefined>;
+  @Input() $isNewSession!: Signal<boolean>;
 
   ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
   ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
@@ -29,6 +30,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   EQUIPMENT_FIELD_VALUE = GlobalFieldValues.EQUIPMENT;
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
+  VISIBILITY_FIELD_VALUE = GlobalFieldValues.VISIBILITY;
 
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
@@ -43,9 +45,13 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
   private readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
-  private readonly trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
+  // private readonly trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
   private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
+  readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
+  readonly VISIBILITY_CATEGORY_DB_OPTIONS = TrainingSessionVisibilityCategoryDbOption;
+  // private readonly visibilityCategoryDbValues = Object.values(TrainingSessionVisibilityTypeList).map(visibilityCategoryOption => visibilityCategoryOption.dbValue);
+  // private readonly visibilityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(visibilityCategoryOption => visibilityCategoryOption.uiValue);
 
 
   private fb = inject(FormBuilder);
@@ -57,6 +63,8 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     [TrainingSessionKeys.INTENSITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
     [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
     [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
+    // TODO: Ensure this can only be modified if a new trainingSession, otherwise hide from UI and remove from updates
+    [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]]
   });
   
   constructor() { }
@@ -64,10 +72,11 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.patchExistingDataIfExists();
     this.initializeFilteredActivityCategoryList();
+    console.log('isNewSession: ', this.$isNewSession());
   }
 
   private patchExistingDataIfExists() {
-    const trainingSessionData = this.$currentTrainingSession();
+    const trainingSessionData = this.$localTrainingSession();
     console.log('Found this trainingSessionData in step two', trainingSessionData);
     console.log('Initialized form', this.trainingSessionForm);
     if (trainingSessionData) {
@@ -79,6 +88,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
         [TrainingSessionKeys.INTENSITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT],
         [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
         [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
+        [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: trainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
       });
     }
   }
@@ -193,5 +203,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   get equipment() { return this.trainingSessionForm.get(TrainingSessionKeys.EQUIPMENT) as FormControl<boolean>; }
   get intensityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.INTENSITY_DEFAULT) as FormControl<number>; }
   get muscleGroup() {return this.trainingSessionForm.get(TrainingSessionKeys.MUSCLE_GROUP) as FormControl<TrainingSessionMuscleGroupDbOption>;}
+  get visibilityCategory() {return this.trainingSessionForm.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as FormControl<TrainingSessionVisibilityCategoryDbOption>;}
 
 }

@@ -2,6 +2,15 @@
         
   <div class="form-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
 
+    <ng-container *ngIf="$isNewSession()">
+      <div class="slider-label">{{ VISIBILITY_FIELD_VALUE }}</div>
+      <mat-radio-group aria-labelledby="Visibility Category" [formControl]="visibilityCategory" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+        <mat-radio-button *ngFor="let visibilityCat of visibilityCategoryMasterList" [value]="visibilityCat.dbValue" [checked]="visibilityCat.dbValue === VISIBILITY_CATEGORY_DB_OPTIONS.PRIVATE">
+          {{visibilityCat.uiValue}}
+        </mat-radio-button>
+      </mat-radio-group>
+    </ng-container>
+        
     <div class="slider-container">
       <div class="slider-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
       <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>

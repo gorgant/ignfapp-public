@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector, MemoizedSelector } from "@ngrx/store";
 import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
-import { TrainingSession } from "shared-models/train/training-session.model";
+import { CanonicalTrainingSession } from "shared-models/train/training-session.model";
 import { TrainingSessionState } from "./state";
 import * as fromTrainingSessions from './reducer';
 
@@ -25,7 +25,7 @@ const getUpdateTrainingSessionError = (state: TrainingSessionState) => state.upd
 const getUpdateTrainingSessionProcessing = (state: TrainingSessionState) => state.updateTrainingSessionProcessing;
 const getYoutubeVideoData = (state: TrainingSessionState) => state.youtubeVideoData;
 
-export const selectAllTrainingSessionsInStore: (state: object) => TrainingSession[] = createSelector(
+export const selectAllTrainingSessionsInStore: (state: object) => CanonicalTrainingSession[] = createSelector(
   selectTrainingSessionState,
   fromTrainingSessions.selectAll
 );
@@ -95,7 +95,7 @@ export const selectFetchYoutubeVideoDataProcessing = createSelector(
   getFetchYoutubeVideoDataProcessing
 );
 
-export const selectTrainingSessionById: (sessionId: string) => MemoizedSelector<object, TrainingSession | undefined> = (sessionId: string) => createSelector(
+export const selectTrainingSessionById: (sessionId: string) => MemoizedSelector<object, CanonicalTrainingSession | undefined> = (sessionId: string) => createSelector(
   selectTrainingSessionState,
   trainingSessionState => trainingSessionState.entities[sessionId]
 );

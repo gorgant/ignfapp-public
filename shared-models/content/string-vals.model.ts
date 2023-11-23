@@ -90,6 +90,8 @@ export enum GlobalFieldValues {
   MINUTES_SHORT = `Min`,
   MUSCLE_GROUP = `Muscle Group`,
   NO = `No`,
+  NO_TRAINING_PLANS = `No training plans found. Try creating a new one!`,
+  NO_TRAINING_SESSIONS = `No training sessions found. Try creating a new one!`,
   OR_CAPS = `OR`,
   PASSWORD = `Password`,
   PAUSE_TRAINING = `Pause Training`,
@@ -128,6 +130,6 @@ export enum GlobalFieldValues {
   UPLOAD_IMAGE = `Upload Image`,
   UPDATE_EMAIL = `Update Email`,
   VERIFY_PASSWORD = `Verify Password`,
+  VISIBILITY = `Visibility`,
   YES = `Yes`,
-  
 }

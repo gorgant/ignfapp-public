@@ -73,7 +73,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       fetchPublicUserProcessing: false,
-      publicUserData: action.publicUser
+      publicUserData: action.userData
     }
   }),
   on(UserStoreActions.fetchPublicUserFailed, (state, action) => {
@@ -85,11 +85,14 @@ export const userStoreReducer = createReducer(
   }),
 
   // Purge Public User Data
+  
   on(UserStoreActions.purgePublicUserData, (state, action) => {
     return {
       ...state,
       createPublicUserError: null,
       createPublicUserProcessing: false,
+      deletePublicUserError: null,
+      deletePublicUserProcessing: false,
       fetchPublicUserError: null,
       fetchPublicUserProcessing: false,
       resizeAvatarError: null,
@@ -103,6 +106,21 @@ export const userStoreReducer = createReducer(
       sendUpdateEmailConfirmationProcessing: false,
       avatarDownloadUrl: null,
       publicUserData: null,
+    }
+  }),
+
+  // Purge Public User Errors
+
+  on(UserStoreActions.purgePublicUserErrors, (state, action) => {
+    return {
+      ...state,
+      createPublicUserError: null,
+      deletePublicUserError: null,
+      fetchPublicUserError: null,
+      resizeAvatarError: null,
+      updatePublicUserError: null,
+      uploadAvatarError: null,
+      sendUpdateEmailConfirmationError: null,
     }
   }),
 
@@ -168,7 +186,7 @@ export const userStoreReducer = createReducer(
     return {
       ...state,
       updatePublicUserProcessing: false,
-      publicUserData: action.updatedPublicUser
+      publicUserData: action.updatedUserData
     }
   }),
   on(UserStoreActions.updatePublicUserFailed, (state, action) => {

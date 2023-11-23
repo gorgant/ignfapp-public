@@ -30,13 +30,16 @@
   margin-top: 64px;
 }
 
-.scrolling-container {
-  width: 100vw;
-  height: 100vh;
-}
-
 .training-plan-card-container {
   height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+}
+
+.empty-message {
+  margin-top: 16px;
+  font-size: 1.2em;
+  line-height: 1.2em;
+  font-weight: 300;
+  text-align: center;
 }
 
 @media screen and (min-width: $mobile-cutoff-width) {

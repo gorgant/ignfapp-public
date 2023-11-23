@@ -190,6 +190,22 @@ export const trainingSessionStoreReducer = createReducer(
     );
   }),
 
+  // Purge Training Session Errors
+
+  on(TrainingSessionStoreActions.purgeTrainingSessionErrors, (state, action) => {
+    return {
+      ...state,
+      createTrainingSessionError: null,
+      deleteTrainingSessionError: null,
+      fetchAllTrainingSessionsError: null,
+      fetchMultipleTrainingSessionsError: null,
+      fetchSingleTrainingSessionError: null,
+      fetchYoutubeVideoDataError: null,
+      updateSessionRatingError: null,
+      updateTrainingSessionError: null,
+    }
+  }),
+
   // Purge Youtube Video Data
 
   on(TrainingSessionStoreActions.purgeYoutubeVideoData, (state, action) => {

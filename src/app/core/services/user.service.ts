@@ -31,7 +31,7 @@ export class UserService {
   createPublicUser(partialPublicUserData: Partial<PublicUser>): Observable<PublicUser> {
     const createPublicUserHttpCall: (partialNewUserData: Partial<PublicUser>) => 
       Observable<PublicUser> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_CREATE_PUBLIC_USER);
-
+    
     return createPublicUserHttpCall(partialPublicUserData)
       .pipe(
         take(1),

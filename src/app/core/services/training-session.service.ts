@@ -2,10 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, Subject, throwError } from 'rxjs';
+import { combineLatest, from, Observable, Subject, throwError } from 'rxjs';
 import { catchError, filter, map, shareReplay, take, takeUntil } from 'rxjs/operators';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { TrainingSession, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
@@ -28,26 +28,36 @@ export class TrainingSessionService {
 
   constructor() { }
 
-  createTrainingSession(trainingSessionNoIdOrTimestamp: TrainingSessionNoIdOrTimestamps): Observable<TrainingSession> {
+  createTrainingSession(trainingSessionNoIdOrTimestamp: CanonicalTrainingSessionNoIdOrTimestamps, userId: string): Observable<CanonicalTrainingSession> {
     const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewTrainingSessionDocumentId();
 
-    const trainingSessionWithIdAndTimestamps: TrainingSession = {
+    const visibilityCategory = trainingSessionNoIdOrTimestamp[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];
+    const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+
+    let trainingSessionDocRef: DocumentReference<CanonicalTrainingSession>;
+
+    if (isPublicTrainingSession) {
+      trainingSessionDocRef = this.getPublicTrainingSessionDoc(newId);
+    } else {
+      trainingSessionDocRef = this.getPrivateTrainingSessionDoc(newId, userId);
+    }
+
+    const trainingSessionWithIdAndTimestamps: CanonicalTrainingSession = {
       ...trainingSessionNoIdOrTimestamp, 
       createdTimestamp: currentTimeTimestamp,
       id: newId,
       lastModifiedTimestamp: currentTimeTimestamp,
     };
 
-    const trainingSessionWithIdAndMs: TrainingSession = {
+    const trainingSessionWithIdAndMs: CanonicalTrainingSession = {
       ...trainingSessionNoIdOrTimestamp, 
       createdTimestamp: currentTimeTimestamp.toMillis(),
       id: newId,
       lastModifiedTimestamp: currentTimeTimestamp.toMillis(),
     };
-
-    const trainingSessionDocRef = this.getTrainingSessionDoc(newId);
+    
     const trainingSessionAddRequest = setDoc(trainingSessionDocRef, trainingSessionWithIdAndTimestamps);
 
     return from(trainingSessionAddRequest)
@@ -55,50 +65,64 @@ export class TrainingSessionService {
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
         map(empty => {
-          console.log('Created new trainingSession', trainingSessionWithIdAndMs);
+          console.log(`Created new ${visibilityCategory} trainingSession`, trainingSessionWithIdAndMs);
           return trainingSessionWithIdAndMs; // Use new version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating trainingSession', error);
+          console.log(`Error creating ${visibilityCategory} trainingSession`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  deleteTrainingSession(trainingSessionId: string): Observable<string> {
-    const trainingSessionDeleteRequest = deleteDoc(this.getTrainingSessionDoc(trainingSessionId));
-    
-    this.triggerDeleteTrainingPlanObserver();
+  // TODO: Confirm that this recursively deletes TrainingRecords, otherwise do a batch delete (see batchDeletePlanSessionFragments for example)
+  deleteTrainingSession(trainingSession: CanonicalTrainingSession, userId: string): Observable<string> {
+    const documentId = trainingSession[TrainingSessionKeys.ID];
+    const visibilityCategory = trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];
+    const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+
+    let trainingSessionDeleteRequest: Promise<void>
+
+    if (isPublicTrainingSession) {
+      trainingSessionDeleteRequest = deleteDoc(this.getPublicTrainingSessionDoc(documentId));
+    } else {
+      trainingSessionDeleteRequest = deleteDoc(this.getPrivateTrainingSessionDoc(documentId, userId));
+    }
+
+    this.triggerDeleteTrainingSessionObserver();
 
     return from(trainingSessionDeleteRequest)
       .pipe(
         map(empty => {
-          console.log('Deleted trainingSession', trainingSessionId);
-          return trainingSessionId;
+          console.log(`Deleted ${visibilityCategory} trainingSession`, documentId);
+          return documentId;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting trainingSession', error);
+          console.log(`Error deleting ${visibilityCategory} trainingSession`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchAllTrainingSessions() {
-    const trainingSessionCollectionDataRequest = collectionData(this.getTrainingSessionCollection());
+  fetchAllTrainingSessions(userId: string) {
+    const publicTrainingSessionCollectionDataRequest = collectionData(this.getPublicTrainingSessionCollection());
+    const privateTrainingSessionCollectionDataRequest = collectionData(this.getPrivateTrainingSessionCollection(userId));
 
-    return from(trainingSessionCollectionDataRequest)
+    // Combine both public and private training sessions
+    return combineLatest([publicTrainingSessionCollectionDataRequest, privateTrainingSessionCollectionDataRequest])
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
         // takeUntil(this.deleteTrainingSessionTriggered$),
-        map(trainingSessions => {
-          if (!trainingSessions) {
+        map(([publicTrainingSessions, privateTrainingSessions]) => {
+          if (!publicTrainingSessions && !privateTrainingSessions) {
             throw new Error(`Error fetching trainingSessions`);
           }
-          const trainingSessionsWithUpdatedTimestamps = trainingSessions.map(trainingSession => {
-            const formattedTrainingSessions: TrainingSession = {
+          const combinedTrainingSessions = publicTrainingSessions.concat(privateTrainingSessions);
+          const trainingSessionsWithUpdatedTimestamps = combinedTrainingSessions.map(trainingSession => {
+            const formattedTrainingSessions: CanonicalTrainingSession = {
               ...trainingSession,
               createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
               lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
@@ -117,7 +141,7 @@ export class TrainingSessionService {
       );
   }
 
-  fetchMultipleTrainingSessions(queryParams: FirestoreCollectionQueryParams): Observable<TrainingSession[]> {
+  fetchMultipleTrainingSessions(queryParams: FirestoreCollectionQueryParams, userId: string): Observable<CanonicalTrainingSession[]> {
 
     const whereQueryConditions: QueryConstraint[] | undefined = queryParams.whereQueries ? 
       queryParams.whereQueries.map(condition => where(condition.property, condition.operator, condition.value)) :
@@ -141,31 +165,38 @@ export class TrainingSessionService {
     const orderQueryCondition: QueryConstraint = orderBy(TrainingSessionKeys.COMPLEXITY_RATING_COUNT);
 
     combinedQueryConstraints = [...combinedQueryConstraints, orderQueryCondition];
-    
-    const trainingSessionCollectionQuery = query(
-      this.getTrainingSessionCollection(),
+
+    const publicTrainingSessionCollectionQuery = query(
+      this.getPublicTrainingSessionCollection(),
       ...combinedQueryConstraints,
     );
 
-    const trainingSessionCollectionDataRequest = collectionData(trainingSessionCollectionQuery);
+    const privateTrainingSessionCollectionQuery = query(
+      this.getPrivateTrainingSessionCollection(userId),
+      ...combinedQueryConstraints,
+    );
 
-    return from(trainingSessionCollectionDataRequest)
+    const publicTrainingSessionCollectionDataRequest = collectionData(publicTrainingSessionCollectionQuery);
+    const privateTrainingSessionCollectionDataRequest = collectionData(privateTrainingSessionCollectionQuery);
+
+    return combineLatest([publicTrainingSessionCollectionDataRequest, privateTrainingSessionCollectionDataRequest])
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        map(trainingSessions => {
-          if (!trainingSessions) {
-            throw new Error(`Error fetching trainingSessions with query: ${queryParams}`);
+        map(([publicTrainingSessions, privateTrainingSessions]) => {
+          if (!publicTrainingSessions && !privateTrainingSessions) {
+            throw new Error(`Error fetching trainingSessions`);
           }
-          const trainingSessionsWithUpdatedTimestamps = trainingSessions.map(trainingSession => {
-            const formattedTrainingSessions: TrainingSession = {
+          const combinedTrainingSessions = publicTrainingSessions.concat(privateTrainingSessions);
+          const trainingSessionsWithUpdatedTimestamps = combinedTrainingSessions.map(trainingSession => {
+            const formattedTrainingSessions: CanonicalTrainingSession = {
               ...trainingSession,
               createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
               lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
             };
             return formattedTrainingSessions;
           });
-          console.log(`Fetched all ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
+          console.log(`Fetched ${trainingSessionsWithUpdatedTimestamps.length} trainingSessions`);
           return trainingSessionsWithUpdatedTimestamps;
         }),
         shareReplay(),
@@ -177,8 +208,16 @@ export class TrainingSessionService {
       );
   }
 
-  fetchSingleTrainingSession(trainingSessionId: string): Observable<TrainingSession> {
-    const trainingSession = docData(this.getTrainingSessionDoc(trainingSessionId));
+  fetchSingleTrainingSession(trainingSessionId: string, userId: string, visibilityCategory: TrainingSessionVisibilityCategoryDbOption): Observable<CanonicalTrainingSession> {
+    const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+    let trainingSession: Observable<CanonicalTrainingSession>;
+
+    if (isPublicTrainingSession) {
+      trainingSession = docData(this.getPublicTrainingSessionDoc(trainingSessionId));
+    } else {
+      trainingSession = docData(this.getPrivateTrainingSessionDoc(trainingSessionId, userId));
+    }
+
     return trainingSession
       .pipe(
         // If logged out, this triggers unsub of this observable
@@ -188,18 +227,18 @@ export class TrainingSessionService {
           if (!trainingSession) {
             throw new Error(`Error fetching trainingSession with id: ${trainingSessionId}`);
           }
-          const formattedTrainingSession: TrainingSession = {
+          const formattedTrainingSession: CanonicalTrainingSession = {
             ...trainingSession,
             createdTimestamp: (trainingSession.createdTimestamp as Timestamp).toMillis(),
             lastModifiedTimestamp: (trainingSession.lastModifiedTimestamp as Timestamp).toMillis()
           };
-          console.log(`Fetched single trainingSession`, formattedTrainingSession);
+          console.log(`Fetched single ${visibilityCategory} trainingSession`, formattedTrainingSession);
           return formattedTrainingSession;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching trainingSession', error);
+          console.log(`Error fetching ${visibilityCategory} trainingSession`, error);
           return throwError(() => new Error(error));
         })
       );
@@ -236,35 +275,7 @@ export class TrainingSessionService {
       );
   }
 
-  updateTrainingSession(trainingSessionUpdates: Update<TrainingSession>): Observable<Update<TrainingSession>> {
-    const changesWithTimestamp: Partial<TrainingSession> = {
-      ...trainingSessionUpdates.changes,
-      lastModifiedTimestamp: Timestamp.now()
-    }
-
-    const trainingSessionUpdatesWithTimestamp: Update<TrainingSession> = {
-      ...trainingSessionUpdates,
-      changes: changesWithTimestamp
-    }
-    const trainingSessionDoc = this.getTrainingSessionDoc(trainingSessionUpdatesWithTimestamp.id as string);
-    const trainingSessionUpdateRequest = updateDoc(trainingSessionDoc, changesWithTimestamp);
-
-    return from(trainingSessionUpdateRequest)
-      .pipe(
-        map(empty => {
-          console.log('Updated trainingSession', trainingSessionUpdates);
-          return trainingSessionUpdates; // Use original version with MS timestamps
-        }),
-        catchError(error => {
-          this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating trainingSession', error);
-          return throwError(() => new Error(error));
-        })
-      );
-  }
-
   updateSessionRating(trainingSessionRatingNoIdOrTimestamp: TrainingSessionRatingNoIdOrTimestamp): Observable<string> {
-
     const currentTime = Timestamp.now();
 
     const newId = this.generateNewSessionRatingDocumentId(trainingSessionRatingNoIdOrTimestamp.trainingSessionId);
@@ -292,35 +303,95 @@ export class TrainingSessionService {
       );
   }
 
+  updateTrainingSession(trainingSessionUpdates: Update<CanonicalTrainingSession>, userId: string, visibilityCategory: TrainingSessionVisibilityCategoryDbOption): Observable<Update<CanonicalTrainingSession>> {
+    const currentTimeTimestamp: Timestamp = Timestamp.now();
+
+    const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+    const documentId = trainingSessionUpdates.id as string;
+
+    let trainingSessionDoc: DocumentReference<CanonicalTrainingSession>;
+
+    if (isPublicTrainingSession) {
+      trainingSessionDoc = this.getPublicTrainingSessionDoc(documentId!);
+    } else {
+      trainingSessionDoc = this.getPrivateTrainingSessionDoc(documentId!, userId);
+    }
+
+    const changesWithTimestamp: Partial<CanonicalTrainingSession> = {
+      ...trainingSessionUpdates.changes,
+      lastModifiedTimestamp: currentTimeTimestamp
+    };
+
+    const changesWithMs: Update<CanonicalTrainingSession> = {
+      ...trainingSessionUpdates,
+      changes: {
+        ...trainingSessionUpdates.changes,
+        lastModifiedTimestamp: currentTimeTimestamp.toMillis()
+      }
+    };
+
+    const trainingSessionUpdateRequest = updateDoc(trainingSessionDoc, changesWithTimestamp);
+
+    return from(trainingSessionUpdateRequest)
+      .pipe(
+        map(empty => {
+          console.log(`Updated ${visibilityCategory} trainingSession`, changesWithMs);
+          return changesWithMs; // Use original version with MS timestamps
+        }),
+        catchError(error => {
+          this.uiService.showSnackBar(error.message, 10000);
+          console.log(`Error updating ${visibilityCategory} trainingSession`, error);
+          return throwError(() => new Error(error));
+        })
+      );
+  }
+
   // This prevents Firebase from fetching a document after it has been deleted
-  private triggerDeleteTrainingPlanObserver() {
+  private triggerDeleteTrainingSessionObserver() {
     this.deleteTrainingSessionTriggered$.next();
     this.deleteTrainingSessionTriggered$.complete();
     this.deleteTrainingSessionTriggered$ = new Subject<void>();
   }
 
-  private getTrainingSessionCollection(): CollectionReference<TrainingSession> {
-    return collection(this.firestore, PublicCollectionPaths.TRAINING_SESSIONS) as CollectionReference<TrainingSession>;
+  private getPrivateTrainingSessionDoc(trainingSessionId: string, userId: string): DocumentReference<CanonicalTrainingSession> {
+    return doc(this.getPrivateTrainingSessionCollection(userId), trainingSessionId);
   }
 
-  private getTrainingSessionDoc(trainingSessionId: string): DocumentReference<TrainingSession> {
-    return doc(this.getTrainingSessionCollection(), trainingSessionId);
+  private getPrivateTrainingSessionCollection(userId: string): CollectionReference<CanonicalTrainingSession> {
+    // Note that the privateTrainingSession collection is nested in Public User document
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PRIVATE_TRAINING_SESSIONS}`) as CollectionReference<CanonicalTrainingSession>;
+  }
+
+  private getPublicTrainingSessionCollection(): CollectionReference<CanonicalTrainingSession> {
+    return collection(this.firestore, PublicCollectionPaths.PUBLIC_TRAINING_SESSIONS) as CollectionReference<CanonicalTrainingSession>;
+  }
+
+  private getPublicTrainingSessionDoc(trainingSessionId: string): DocumentReference<CanonicalTrainingSession> {
+    return doc(this.getPublicTrainingSessionCollection(), trainingSessionId);
   }
 
   private generateNewTrainingSessionDocumentId(): string {
-    return doc(this.getTrainingSessionCollection()).id;
+    return doc(this.getPublicTrainingSessionCollection()).id;
   }
 
-  private getSessionRatingCollection(trainingSessionId: string): CollectionReference<TrainingSessionRating> {
-    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
+  private getPrivateSessionRatingCollection(trainingSessionId: string, userId: string): CollectionReference<TrainingSessionRating> {
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PRIVATE_TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
   }
 
-  private getSessionRatingDoc(trainingSessionId: string, trainingSessionRatingId: string): DocumentReference<TrainingSessionRating> {
-    return doc(this.getSessionRatingCollection(trainingSessionId), trainingSessionRatingId);
+  private getPrivateSessionRatingDoc(trainingSessionId: string, trainingSessionRatingId: string, userId: string): DocumentReference<TrainingSessionRating> {
+    return doc(this.getPrivateSessionRatingCollection(trainingSessionId, userId), trainingSessionRatingId);
+  }
+
+  private getPublicSessionRatingCollection(trainingSessionId: string): CollectionReference<TrainingSessionRating> {
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_TRAINING_SESSIONS}/${trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}}`) as CollectionReference<TrainingSessionRating>;
+  }
+
+  private getPublicSessionRatingDoc(trainingSessionId: string, trainingSessionRatingId: string): DocumentReference<TrainingSessionRating> {
+    return doc(this.getPublicSessionRatingCollection(trainingSessionId), trainingSessionRatingId);
   }
 
   private generateNewSessionRatingDocumentId(trainingSessionId: string): string {
-    return doc(this.getSessionRatingCollection(trainingSessionId)).id;
+    return doc(this.getPublicSessionRatingCollection(trainingSessionId)).id;
   }
 
 }

@@ -160,6 +160,20 @@ export const trainingRecordStoreReducer = createReducer(
     );
   }),
 
+  // Purge Training Record Errors
+
+  on(TrainingRecordStoreActions.purgeTrainingRecordErrors, (state, action) => {
+    return {
+      ...state, 
+      createTrainingRecordError: null,
+      deleteTrainingRecordError: null,
+      fetchAllTrainingRecordsError: null,
+      fetchMultipleTrainingRecordsError: null,
+      fetchSingleTrainingRecordError: null,
+      updateTrainingRecordError: null,
+    }
+  }),
+
 
   // Update Training Record
   

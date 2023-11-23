@@ -171,6 +171,20 @@ export const trainingPlanStoreReducer = createReducer(
     );
   }),
 
+  // Purge Training Plan Errors
+
+  on(TrainingPlanStoreActions.purgeTrainingPlanErrors, (state, action) => {
+    return {
+      ...state, 
+      createTrainingPlanError: null,
+      deleteTrainingPlanError: null,
+      fetchAllTrainingPlansError: null,
+      fetchMultipleTrainingPlansError: null,
+      fetchSingleTrainingPlanError: null,
+      updateTrainingPlanError: null,
+    };
+  }),
+
 
   // Update Training Plan
   

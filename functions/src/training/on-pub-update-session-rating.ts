@@ -3,28 +3,49 @@ import { HttpsError } from 'firebase-functions/v2/https';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { TrainingSessionRating } from '../../../shared-models/train/session-rating.model';
-import { TrainingSession } from '../../../shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionVisibilityCategoryDbOption } from '../../../shared-models/train/training-session.model';
 import { publicFirestore } from '../config/db-config';
 import { Timestamp } from '@google-cloud/firestore';import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
 import { CloudEvent } from 'firebase-functions/v2';
 
-const trainingSessionCollection = publicFirestore.collection(PublicCollectionPaths.TRAINING_SESSIONS);
-
 // Store session rating in collection
 const storeSessionRating = async (sessionRating: TrainingSessionRating) => {
   logger.log('Creating new sessionRating', sessionRating);
-  const sessionRatingCollection = publicFirestore.collection(`${PublicCollectionPaths.TRAINING_SESSIONS}/${sessionRating.trainingSessionId}/${PublicCollectionPaths.SESSION_RATINGS}`);
+  const trainingSessionId = sessionRating.trainingSessionId;
+  const userId = sessionRating.userId;
+  let sessionRatingCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>;
+  const visibilityCategory = sessionRating.trainingSessionVisibilityCategory;
+  const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+  if (isPublicTrainingSession) {
+    sessionRatingCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_TRAINING_SESSIONS).doc(trainingSessionId).collection(`${PublicCollectionPaths.SESSION_RATINGS}`);
+  } else {
+    sessionRatingCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS).doc(userId).collection(`${PublicCollectionPaths.PRIVATE_TRAINING_SESSIONS}`).doc(trainingSessionId).collection(`${PublicCollectionPaths.SESSION_RATINGS}`);
+  }
   await sessionRatingCollection.doc(sessionRating.id).set(sessionRating)
-    .catch(err => {logger.log(`Failed to create sessionRating in public database:`, err); throw new HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to create ${visibilityCategory} sessionRating in database:`, err); throw new HttpsError('internal', err);});
 }
 
 // Update session average rating values
 const updateTrainingSessionAverage = async (sessionRating: TrainingSessionRating) => {
   logger.log('Updating session rating average');
-  const trainingSessionDoc = await trainingSessionCollection.doc(sessionRating.trainingSessionId).get()
-    .catch(err => {logger.log(`Failed to fetch trainingSession in public database:`, err); throw new HttpsError('internal', err);});
-  
-  const trainingSessionData = trainingSessionDoc.data() as TrainingSession;
+  let trainingSessionCollection: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>;
+  let trainingSessionDoc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+  const trainingSessionId = sessionRating.trainingSessionId;
+  const userId = sessionRating.userId;
+  const visibilityCategory = sessionRating.trainingSessionVisibilityCategory;
+  const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+
+  if (isPublicTrainingSession) {
+    trainingSessionCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_TRAINING_SESSIONS);
+    trainingSessionDoc = await trainingSessionCollection.doc(trainingSessionId).get()
+      .catch(err => {logger.log(`Failed to fetch ${visibilityCategory} trainingSession in database:`, err); throw new HttpsError('internal', err);});
+  } else {
+    trainingSessionCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS).doc(userId).collection(`${PublicCollectionPaths.PRIVATE_TRAINING_SESSIONS}`);
+    trainingSessionDoc = await trainingSessionCollection.doc(trainingSessionId).get()
+      .catch(err => {logger.log(`Failed to fetch ${visibilityCategory} trainingSession in database:`, err); throw new HttpsError('internal', err);});
+  }
+
+  const trainingSessionData = trainingSessionDoc.data() as CanonicalTrainingSession;
 
   // Calculate new complexity average
   const currentComplexityAverage = trainingSessionData.complexityAverage;
@@ -43,7 +64,7 @@ const updateTrainingSessionAverage = async (sessionRating: TrainingSessionRating
   const roundedIntensityAverage = Math.round((newIntensityAverage + Number.EPSILON) * 100) / 100; // Courtesy of https://stackoverflow.com/a/11832950/6572208
 
   // Transmit updates to database
-  const updatedRatingData: Partial<TrainingSession> = {
+  const updatedRatingData: Partial<CanonicalTrainingSession> = {
     complexityAverage: roundedComplexityAverage,
     complexityRatingCount: newComplexityRatingCount,
     intensityAverage: roundedIntensityAverage,
@@ -52,7 +73,7 @@ const updateTrainingSessionAverage = async (sessionRating: TrainingSessionRating
   };
 
   await trainingSessionCollection.doc(trainingSessionData.id).update(updatedRatingData)
-    .catch(err => {logger.log(`Failed to update trainingSession averages in public database:`, err); throw new HttpsError('internal', err);});
+    .catch(err => {logger.log(`Failed to update trainingSession averages in database:`, err); throw new HttpsError('internal', err);});
   
 }
 

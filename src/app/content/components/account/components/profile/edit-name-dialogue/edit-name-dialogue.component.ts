@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, catchError, combineLatest, filter, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
@@ -30,7 +30,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   userUpdateProcessing$!: Observable<boolean>;
   private userUpdateError$!: Observable<{} | null>;
   private userUpdateSubscription!: Subscription;
-  private $updateSubmitted = signal(false);
+  private $updateUserSubmitted = signal(false);
   private $updateUserCycleInit = signal(false);
   private $updateUserCycleComplete = signal(false);
   
@@ -68,60 +68,68 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-
-    const userData: Partial<PublicUser> = {
-      id: this.userData.id,
-      firstName: this.firstName.value,
-      lastName: this.lastName.value,
-      displayName: this.displayName.value
-    }
-
-    const userUpdateData: UserUpdateData = {
-      userData,
-      updateType: UserUpdateType.BIO_UPDATE
-    };
-
-    this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-    this.$updateSubmitted.set(true);
-    this.postSubmitActions();
-  }
-
-  postSubmitActions() {
     this.userUpdateSubscription = this.userUpdateError$ 
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
+            this.resetComponentState();
             this.dialogRef.close(false);
+          }
+          return processingError;
+        }),
+        filter(processingError => !processingError ), // Halts function if processingError detected
+        switchMap(processingError => {
+          if (!this.$updateUserSubmitted()) {
+            this.$updateUserSubmitted.set(true);
+            const userData: Partial<PublicUser> = {
+              id: this.userData.id,
+              firstName: this.firstName.value,
+              lastName: this.lastName.value,
+              displayName: this.displayName.value
+            };
+        
+            const userUpdateData: UserUpdateData = {
+              userData,
+              updateType: UserUpdateType.BIO_UPDATE
+            };
+        
+            this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
           }
           return this.userUpdateProcessing$;
         }),
-        withLatestFrom(this.userUpdateError$),
-        filter(([updateProcessing, processingError]) => !processingError ), // Halts function if processingError detected
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(([updateProcessing, processingError]) => {
+        tap(updateProcessing => {
           if (updateProcessing) {
             this.$updateUserCycleInit.set(true);
           }
           if (!updateProcessing && this.$updateUserCycleInit()) {
-            console.log('updatePublicUser successful, proceeding with pipe.');
+            console.log('updateUser successful, proceeding with pipe.');
             this.$updateUserCycleInit.set(false);
             this.$updateUserCycleComplete.set(true);
           }
         }),
         filter(updateProcessing => !updateProcessing && this.$updateUserCycleComplete()),
-        tap(([updateProcessing, updateError]) => {
+        tap(updateProcessing => {
+          this.resetComponentState();
           this.dialogRef.close(true);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
-      )
-      .subscribe()
+      ).subscribe()
+  }
+
+  private resetComponentState() {
+    this.userUpdateSubscription?.unsubscribe();
+    this.$updateUserCycleInit.set(false);
+    this.$updateUserCycleComplete.set(false);
+    this.store$.dispatch(UserStoreActions.purgePublicUserErrors());
   }
 
   // These getters are used for easy access in the HTML template

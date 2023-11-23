@@ -18,7 +18,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested),
       concatMap(action => 
-        this.planSessionFragmentService.batchDeletePlanSessionFragments(action.trainingPlanId, action.planSessionFragmentIds).pipe(
+        this.planSessionFragmentService.batchDeletePlanSessionFragments(action.trainingPlan, action.planSessionFragmentIds, action.userId).pipe(
           map(planSessionFragmentIds => {
             return PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsCompleted({planSessionFragmentIds});
           }),
@@ -39,7 +39,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsRequested),
       concatMap(action => 
-        this.planSessionFragmentService.batchModifyPlanSessionFragments(action.trainingPlanId, action.planSessionFragmentUpdates).pipe(
+        this.planSessionFragmentService.batchModifyPlanSessionFragments(action.trainingPlan, action.planSessionFragmentUpdates, action.userId).pipe(
           map(planSessionFragmentUpdates => {
             return PlanSessionFragmentStoreActions.batchModifyPlanSessionFragmentsCompleted({planSessionFragmentUpdates});
           }),
@@ -60,7 +60,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested),
       concatMap(action => 
-        this.planSessionFragmentService.createPlanSessionFragment(action.trainingPlanId, action.planSessionFragmentNoId).pipe(
+        this.planSessionFragmentService.createPlanSessionFragment(action.trainingPlanId, action.planSessionFragmentNoId, action.userId).pipe(
           map(planSessionFragment => {
             return PlanSessionFragmentStoreActions.createPlanSessionFragmentCompleted({planSessionFragment});
           }),
@@ -81,7 +81,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.deletePlanSessionFragmentRequested),
       concatMap(action => 
-        this.planSessionFragmentService.deletePlanSessionFragment(action.trainingPlanId, action.planSessionFragmentId).pipe(
+        this.planSessionFragmentService.deletePlanSessionFragment(action.trainingPlanId, action.planSessionFragment, action.userId).pipe(
           map(planSessionFragmentId => {
             return PlanSessionFragmentStoreActions.deletePlanSessionFragmentCompleted({planSessionFragmentId});
           }),
@@ -102,7 +102,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsRequested),
       switchMap(action => 
-        this.planSessionFragmentService.fetchAllPlanSessionFragments(action.trainingPlanId).pipe(
+        this.planSessionFragmentService.fetchAllPlanSessionFragments(action.trainingPlan, action.userId).pipe(
           map(planSessionFragments => {
             return PlanSessionFragmentStoreActions.fetchAllPlanSessionFragmentsCompleted({planSessionFragments});
           }),
@@ -123,7 +123,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.fetchMultiplePlanSessionFragmentsRequested),
       switchMap(action => 
-        this.planSessionFragmentService.fetchMultiplePlanSessionFragments(action.trainingPlanId, action.queryParams).pipe(
+        this.planSessionFragmentService.fetchMultiplePlanSessionFragments(action.trainingPlan, action.queryParams, action.userId).pipe(
           map(planSessionFragments => {
             return PlanSessionFragmentStoreActions.fetchMultiplePlanSessionFragmentsCompleted({planSessionFragments});
           }),
@@ -144,7 +144,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.fetchSinglePlanSessionFragmentRequested),
       switchMap(action => 
-        this.planSessionFragmentService.fetchSinglePlanSessionFragment(action.trainingPlanId, action.planSessionFragmentId).pipe(
+        this.planSessionFragmentService.fetchSinglePlanSessionFragment(action.trainingPlanId, action.planSessionFragmentId, action.userId, action.visibilityCategory).pipe(
           map(planSessionFragment => {
             return PlanSessionFragmentStoreActions.fetchSinglePlanSessionFragmentCompleted({planSessionFragment});
           }),
@@ -165,7 +165,7 @@ export class PlanSessionFragmentStoreEffects {
     .pipe(
       ofType(PlanSessionFragmentStoreActions.updatePlanSessionFragmentRequested),
       concatMap(action => 
-        this.planSessionFragmentService.updatePlanSessionFragment(action.trainingPlanId, action.planSessionFragmentUpdates).pipe(
+        this.planSessionFragmentService.updatePlanSessionFragment(action.trainingPlanId, action.planSessionFragmentUpdates, action.userId, action.visibilityCategory).pipe(
           map(planSessionFragmentUpdates => {
             return PlanSessionFragmentStoreActions.updatePlanSessionFragmentCompleted({planSessionFragmentUpdates});
           }),

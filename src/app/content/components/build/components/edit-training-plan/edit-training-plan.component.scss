@@ -18,6 +18,10 @@
   width: 100%;
 }
 
+.radial-label {
+  font-weight: $font-weight-medium;
+}
+
 mat-form-field {
   width: 100%;
   max-width: $desktop-form-width-wide;

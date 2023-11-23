@@ -237,6 +237,20 @@ export const personalSessionFragmentStoreReducer = createReducer(
     );
   }),
 
+  // Purge Personal Session Fragment Erros
+
+  on(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors, (state, action) => {
+    return {
+      ...state, 
+      batchCreatePersonalSessionFragmentsError: null,
+      createPersonalSessionFragmentError: null,
+      deletePersonalSessionFragmentError: null,
+      fetchAllPersonalSessionFragmentsError: null,
+      fetchMultiplePersonalSessionFragmentsError: null,
+      fetchSinglePersonalSessionFragmentError: null,
+      updatePersonalSessionFragmentError: null,
+    };
+  }),
 
   // Update Personal Session Fragment
   

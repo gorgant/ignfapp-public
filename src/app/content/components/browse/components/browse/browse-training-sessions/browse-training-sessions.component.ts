@@ -1,11 +1,11 @@
 import { Component, Input, OnDestroy, OnInit, Signal, ViewChild, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { distinctUntilChanged, Observable, Subscription, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { AddTrainingSessionUrlParams, AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
-import { TrainingSessionFilterFormKeys, TrainingSessionKeys, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
+import { TrainingSessionFilterFormKeys, TrainingSessionKeys, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionFiltersComponent } from '../training-session-filters/training-session-filters.component';
@@ -24,10 +24,12 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
   ADD_SESSION_TO_PLAN_HEADER_VALUE = GlobalFieldValues.ADD_SESSION_TO_PLAN;
   CREATE_SESSION_BUTTON_VALUE = GlobalFieldValues.CREATE_SESSION;
+  NO_TRAINING_SESSIONS_FOUND_BLURB = GlobalFieldValues.NO_TRAINING_SESSIONS;
   RETURN_TO_EDIT_PLAN_BUTTON_VALUE = GlobalFieldValues.RETURN_TO_EDIT_PLAN;
   SEARCH_VIDEO_OR_CHANNEL_TITLE_PLACEHOLDER = GlobalFieldValues.SEARCH_VIDEO_OR_CHANNEL_TITLE;
 
   fetchAllTrainingSessionsProcessing$!: Observable<boolean>;
+  fetchAllTrainingSessionsError$!: Observable<{} | null>;
   
   @ViewChild('trainingSessionFilters') trainingSessionFiltersComponent!: TrainingSessionFiltersComponent;
 
@@ -52,21 +54,11 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   private monitorProcesses() {
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
     this.fetchAllTrainingSessionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
+    this.fetchAllTrainingSessionsError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError);
   }
 
   onCreateTrainingSession() {
     this.router.navigate([PublicAppRoutes.BUILD_NEW_TRAINING_SESSION]);
-  }
-
-  // Indicate in URL that this is a planbuilder request
-  private generatePlanBuilderQueryParams() {
-    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID) as string;
-    const queryParams: AddTrainingSessionUrlParams = {
-      [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-      [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
-      [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true
-    }
-    return queryParams
   }
 
   onToggleFilters() {
@@ -90,15 +82,18 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   onReturnToEditPlan() {
-    const queryParams = this.generatePlanBuilderQueryParams();
-    if (queryParams[AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID]) {
-      this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, queryParams.trainingPlanId]);
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
+    const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
+
+    if (trainingPlanId && visibilityCategory) {
+      const queryParams: ViewTrainingPlanQueryParams = {
+        [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: visibilityCategory!,
+        [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId
+      };
+      const navigationExtras: NavigationExtras = { queryParams };
+      this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, trainingPlanId], navigationExtras);
     } else {
-      // const queryParams: ViewTrainingSessionsUlrParams = {
-      //   [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
-      // };
-      // const navigationExtras: NavigationExtras = {queryParams};
-      // this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+      console.log('Missing trainingPlanId or visibilityCategory, routing to browse instead');
       this.router.navigate([PublicAppRoutes.BROWSE]); // Handles a situation where the navigation params are incomplete
     }
   }

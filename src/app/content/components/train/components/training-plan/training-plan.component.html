@@ -5,7 +5,7 @@
   <div *ngIf="$localTrainingPlan() as trainingPlan" class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
     <div class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
       <div class="plan-title">{{ trainingPlan.title }}</div>
-      <button *ngIf="(userData$ | async)?.isAdmin" class="action-button"  mat-icon-button (click)="onEditTrainingPlan(trainingPlan)" aria-label="Edit training session">
+      <button *ngIf="(userData$ | async)?.isAdmin" class="action-button"  mat-icon-button (click)="onEditTrainingPlan()" aria-label="Edit training session">
         <mat-icon>edit</mat-icon>
       </button>
     </div>

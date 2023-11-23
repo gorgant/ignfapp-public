@@ -2,15 +2,16 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatButtonToggle, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
-import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryDbOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupObject, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupDbOption } from 'shared-models/train/muscle-group.model';
 import { TrainingSessionComplexityObject, TrainingSessionComplexityList, TrainingSessionComplexityDbOption } from 'shared-models/train/training-complexity.model';
 import { TrainingSessionIntensityObject, TrainingSessionIntensityList, TrainingSessionIntensityDbOption } from 'shared-models/train/training-intensity.model';
-import { TrainingSession, TrainingSessionFilterForm, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionFilterForm, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-training-session-filters',
@@ -26,14 +27,16 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
 
-  private fetchAllTrainingSesssionsProcessing$!: Observable<boolean>;
-  private fetchAllTrainingSessionsError$!: Observable<{} | null>;
-  private allTrainingSessionsFetched$!: Observable<boolean>;
-  private allTrainingSessions$!: Observable<TrainingSession[]>;
-  private trainingSessionsSubscription!: Subscription;
-  private $fetchTrainingSessionsSubmitted = signal(false);
+  private userData$!: Observable<PublicUser | null>;
 
-  $filteredTrainingSessions = signal([] as TrainingSession[]); // Accessed by parent Browse Training Sessions Component
+  private $fetchTrainingSessionsSubmitted = signal(false);
+  $filteredTrainingSessions = signal([] as CanonicalTrainingSession[]); // Accessed by parent Browse Training Sessions Component
+  private allTrainingSessions$!: Observable<CanonicalTrainingSession[]>;
+  private allTrainingSessionsFetched$!: Observable<boolean>;
+  private fetchAllTrainingSessionsError$!: Observable<{} | null>;
+  private fetchAllTrainingSessionsProcessing$!: Observable<boolean>;
+  private trainingSessionsSubscription!: Subscription;
+
 
   trainingSessionFilterForm = new FormGroup<TrainingSessionFilterForm>({
     [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: new FormControl([]),
@@ -64,8 +67,10 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   private initializeStoreData() {
     this.allTrainingSessions$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
     this.allTrainingSessionsFetched$ = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsFetched);  // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
-    this.fetchAllTrainingSesssionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
+    this.fetchAllTrainingSessionsProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsProcessing);
     this.fetchAllTrainingSessionsError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchAllTrainingSessionsError);
+
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
   }
 
   private fetchInitialTrainingSessionBatch() {
@@ -74,16 +79,16 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$fetchTrainingSessionsSubmitted.set(false);
+            this.resetComponentState();
           }
           const trainingSessionsInStore = this.store$.select(TrainingSessionStoreSelectors.selectAllTrainingSessionsInStore);
           return trainingSessionsInStore;
         }),
-        withLatestFrom(this.fetchAllTrainingSessionsError$, this.allTrainingSessionsFetched$),
-        filter(([trainingSessions, processingError, allFetched]) => !processingError),
-        map(([trainingSessions, processingError, allFetched]) => {
+        withLatestFrom(this.fetchAllTrainingSessionsError$, this.allTrainingSessionsFetched$, this.userData$),
+        filter(([trainingSessions, processingError, allFetched, userData]) => !processingError),
+        map(([trainingSessions, processingError, allFetched, userData]) => {
           if (!allFetched && !this.$fetchTrainingSessionsSubmitted()) {
-            this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested());
+            this.store$.dispatch(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested({userId: userData!.id}));
             this.$fetchTrainingSessionsSubmitted.set(true);
           }
           return trainingSessions;
@@ -98,10 +103,15 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$fetchTrainingSessionsSubmitted.set(false);
+          this.resetComponentState();
           return throwError(() => new Error(error));
         })
       ).subscribe();
+  }
+
+  private resetComponentState() {
+    this.trainingSessionsSubscription?.unsubscribe();
+    this.$fetchTrainingSessionsSubmitted.set(false);
   }
 
   private monitorfilterChanges() {
@@ -298,6 +308,13 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.trainingSessionsSubscription?.unsubscribe();
     this.trainingSessionFilterFormSubscription?.unsubscribe();
+    this.fetchAllTrainingSessionsError$
+      .pipe(
+        take(1),
+        tap(error => {
+          this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
+        })
+      ).subscribe();
   }
 
   // These getters are used for easy access in the HTML template

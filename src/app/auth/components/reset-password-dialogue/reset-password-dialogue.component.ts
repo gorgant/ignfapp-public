@@ -77,7 +77,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
-            this.resetPasswordSubscription?.unsubscribe();
+            this.resetComponentActionState();
             this.dialogRef.close(false);
           }
           return processingError;
@@ -109,6 +109,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentActionState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
@@ -117,9 +118,11 @@ export class ResetPasswordDialogueComponent implements OnInit {
   }
 
   private resetComponentActionState() {
+    this.resetPasswordSubscription?.unsubscribe();
     this.$resetPasswordSubmitted.set(false);
     this.$resetPasswordCycleInit.set(false);
     this.$resetPasswordCycleComplete.set(false);
+    this.store$.dispatch(AuthStoreActions.purgeAuthErrors());
   }
 
   // These getters are used for easy access in the HTML template

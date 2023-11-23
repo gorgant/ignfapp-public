@@ -6,62 +6,84 @@ service cloud.firestore {
     }
 
     match /publicUsers/{userId} {
-      // Users can only see their profile if it belongs to them
-      allow read: if isOwner(userId) || isAdmin();
+        // Users can only see their profile if it belongs to them
+        allow read: if isOwner(userId) || isAdmin();
 
-      match /personalSessionFragments/{fragmentId} {
-          // User can read a personalSessionFragment if is owner or admin
-          allow read: if isPersonalSessionFragmentOwner() || isAdmin();
-          // User can create a personalSessionFragment if is owner or admin
-          allow create: if isPersonalSessionFragmentOwner() || isAdmin();
-          // User can update a personalSessionFragment if is owner or admin
-          allow update: if isPersonalSessionFragmentOwner() || isAdmin();
-          // Only admin can delete a personalSessionFragment
-          allow delete: if isPersonalSessionFragmentOwner() || isAdmin();
+        match /personalSessionFragments/{fragmentId} {
+            // User can read and write personalSessionFragments if they are the owner
+            allow read, write: if isPersonalSessionFragmentOwner() || isAdmin();
+        }
+
+        match /privateTrainingPlans/{recordId} {
+            // User can read and write privateTrainingPlans if they are the owner
+            allow read, write: if isTrainingPlanOwner() || isAdmin();
+
+            match /planSessionFragments/{fragmentId} {
+                // User can read a planSessionFragment if authenticated
+                allow read: if isAuth();
+                // User can create a planSessionFragment if is owner or admin
+                allow create: if isPlanSessionFragmentOwner() || isAdmin();
+                // User can update a planSessionFragment if is owner or admin
+                allow update: if isPlanSessionFragmentOwner() || isAdmin();
+                // Only admin can delete a planSessionFragment
+                allow delete: if isAdmin();
+            }
+        }
+
+      match /privateTrainingSessions/{recordId} {
+          // User can read and write privateTrainingSessions if they are the owner
+          allow read, write: if isTrainingSessionOwner() || isAdmin();
+      }
+
+      match /trainingRecords/{recordId} {
+          // User can read and write trainingRecords if they are the owner
+          allow read, write: if isTrainingRecordOwner(userId) || isAdmin();
+      }
+
+      
+    }
+
+    match /publicTrainingPlans/{planId} {
+        // User can read a publicTrainingPlans if authenticated
+        allow read: if isAuth();
+        // User can create a publicTrainingPlans if is owner or admin
+        allow create: if isTrainingPlanOwner() || isAdmin();
+        // User can update a publicTrainingPlans if is owner or admin
+        allow update: if isTrainingPlanOwner() || isAdmin();
+        // Only admin can delete a publicTrainingPlans
+        allow delete: if isAdmin();
+
+        match /planSessionFragments/{fragmentId} {
+            // User can read a planSessionFragment if authenticated
+            allow read: if isAuth();
+            // User can create a planSessionFragment if is owner or admin
+            allow create: if isPlanSessionFragmentOwner() || isAdmin();
+            // User can update a planSessionFragment if is owner or admin
+            allow update: if isPlanSessionFragmentOwner() || isAdmin();
+            // Only admin can delete a planSessionFragment
+            allow delete: if isAdmin();
         }
     }
 
-    match /trainingSessions/{sessionId} {
-      // User can read a trainingSession if authenticated
-      allow read: if isAuth();
-      // User can create a trainingSession if authenticated
-      allow create: if isAuth();
-      // User can update a trainingSession if is owner or admin
-      allow update: if isTrainingSessionOwner() || isAdmin();
-      // Only admin can delete a trainingSession
-      allow delete: if isAdmin();
-    }
-
-    match /trainingPlans/{planId} {
-      // User can read a trainingPlan if authenticated
-      allow read: if isAuth();
-      // User can create a trainingPlan if is owner or admin
-      allow create: if isTrainingPlanOwner() || isAdmin();
-      // User can update a trainingPlan if is owner or admin
-      allow update: if isTrainingPlanOwner() || isAdmin();
-      // Only admin can delete a trainingPlan
-      allow delete: if isAdmin();
-
-      match /planSessionFragments/{fragmentId} {
-        // User can read a planSessionFragment if authenticated
+    match /publicTrainingSessions/{sessionId} {
+        // User can read a publicTrainingSessions if authenticated
         allow read: if isAuth();
-        // User can create a planSessionFragment if is owner or admin
-        allow create: if isPlanSessionFragmentOwner() || isAdmin();
-        // User can update a planSessionFragment if is owner or admin
-        allow update: if isPlanSessionFragmentOwner() || isAdmin();
-        // Only admin can delete a planSessionFragment
+        // User can create a publicTrainingSessions if authenticated
+        allow create: if isAuth();
+        // User can update a publicTrainingSessions if is owner or admin
+        allow update: if isTrainingSessionOwner() || isAdmin();
+        // Only admin can delete a publicTrainingSessions
         allow delete: if isAdmin();
-      }
     }
 
     
 
-    match /publicUsers/{userId}/trainingRecords/{recordId} {
-      // User can read and write trainingRecords if they are the owner
-      allow read, write: if isRecordOwner(userId) || isAdmin();
-    }
-
     /// FUNCTIONS ///
+
+    // Determine if user is admin
+    function isAdmin() {
+    	return isAuth() && getUserData().isAdmin == true;
+    }
 
     function isAuth() {
       return request.auth != null;
@@ -70,21 +92,6 @@ service cloud.firestore {
     // Confirm ID of requester matches ID in database
     function isOwner(userId) {
     	return isAuth() && request.auth.uid == userId;
-    }
-
-    // Retrieve user data, note: you need to explicitly escape variables using the $(variable) syntax
-    function getUserData() {
-    	return get(/databases/$(database)/documents/publicUsers/$(request.auth.uid)).data;
-    }
-
-    // Determine if user is admin
-    function isAdmin() {
-    	return isAuth() && getUserData().isAdmin == true;
-    }
-
-    // Determine if user is trainingSession owner
-    function isTrainingSessionOwner() {
-      return isAuth() && request.resource.data.creatorId == request.auth.uid;
     }
 
     // Determine if user is personalSessionFragment owner
@@ -102,9 +109,21 @@ service cloud.firestore {
       return isAuth() && request.resource.data.creatorId == request.auth.uid;
     }
 
-    // Determine if user is record owner
-    function isRecordOwner(userId) {
+    // Determine if user is trainingRecord owner
+    function isTrainingRecordOwner(userId) {
       return isAuth() && request.resource.data.userId == userId;
     }
+
+
+     // Determine if user is trainingSession owner
+    function isTrainingSessionOwner() {
+      return isAuth() && request.resource.data.creatorId == request.auth.uid;
+    }
+
+    // Retrieve user data, note: you need to explicitly escape variables using the $(variable) syntax
+    function getUserData() {
+    	return get(/databases/$(database)/documents/publicUsers/$(request.auth.uid)).data;
+    }
+
   }
 }

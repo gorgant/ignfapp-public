@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { TrainingSession } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
 
 @Pipe({
   name: 'trainingSessionSearchFilter'
@@ -13,7 +13,7 @@ export class TrainingSessionSearchFilterPipe implements PipeTransform {
    * @param searchText search string
    * @returns list of elements filtered by search text or []
    */
-   transform(trainingSessions: TrainingSession[] | null, searchText: string): TrainingSession[] {
+   transform(trainingSessions: CanonicalTrainingSession[] | null, searchText: string): CanonicalTrainingSession[] {
     if (!trainingSessions) {
       return [];
     }

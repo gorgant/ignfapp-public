@@ -300,23 +300,29 @@ export class PersonalSessionFragmentService {
   }
 
   updatePersonalSessionFragment(userId: string, personalSessionFragmentUpdates: Update<PersonalSessionFragment>): Observable<Update<PersonalSessionFragment>> {
+    const currentTimeTimestamp: Timestamp = Timestamp.now();
+    const documentId = personalSessionFragmentUpdates.id as string;
+
     const changesWithTimestamp: Partial<PersonalSessionFragment> = {
       ...personalSessionFragmentUpdates.changes,
-      lastModifiedTimestamp: Timestamp.now()
-    }
+      lastModifiedTimestamp: currentTimeTimestamp
+    };
 
-    const personalSessionFragmentUpdatesWithTimestamp: Update<PersonalSessionFragment> = {
+    const changesWithMs: Update<PersonalSessionFragment> = {
       ...personalSessionFragmentUpdates,
-      changes: changesWithTimestamp
-    }
-    const personalSessionFragmentDoc = this.getPersonalSessionFragmentDoc(userId, personalSessionFragmentUpdatesWithTimestamp.id as string);
+      changes: {
+        ...personalSessionFragmentUpdates.changes,
+        lastModifiedTimestamp: currentTimeTimestamp.toMillis()
+      }
+    };
+    const personalSessionFragmentDoc = this.getPersonalSessionFragmentDoc(userId, documentId!);
     const personalSessionFragmentUpdateRequest = updateDoc(personalSessionFragmentDoc, changesWithTimestamp);
 
     return from(personalSessionFragmentUpdateRequest)
       .pipe(
         map(emtpy => {
-          console.log('Updated personalSessionFragment', changesWithTimestamp);
-          return personalSessionFragmentUpdates; // Use new version with MS timestamps
+          console.log('Updated personalSessionFragment', changesWithMs);
+          return changesWithMs; // Use new version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);

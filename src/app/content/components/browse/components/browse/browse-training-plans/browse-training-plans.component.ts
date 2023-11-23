@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { catchError, filter, map, Observable, switchMap, throwError, withLatestFrom } from 'rxjs';
+import { catchError, filter, map, Observable, Subscription, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { TrainingPlan } from 'shared-models/train/training-plan.model';
+import { TrainingPlan, TrainingPlanKeys, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -14,20 +14,22 @@ import { TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelector
   templateUrl: './browse-training-plans.component.html',
   styleUrls: ['./browse-training-plans.component.scss']
 })
-export class BrowseTrainingPlansComponent implements OnInit {
+export class BrowseTrainingPlansComponent implements OnInit, OnDestroy {
 
   CREATE_PLAN_BUTTON_VALUE = GlobalFieldValues.CREATE_PLAN;
   SEARCH_PLAN_OR_CHANNEL_TITLE_PLACEHOLDER = GlobalFieldValues.SEARCH_PLAN_OR_CHANNEL_TITLE;
+  NO_TRAINING_PLANS_FOUND_BLURB = GlobalFieldValues.NO_TRAINING_PLANS;
 
   userData$!: Observable<PublicUser | null>;
 
   trainingPlanCardHeight = 300;
 
-  private allTrainingPlansFetched$!: Observable<boolean>;
-  trainingPlans$!: Observable<TrainingPlan[]>;
-  fetchAllTrainingPlansProcessing$!: Observable<boolean>;
-  private fetchAllTrainingPlansError$!: Observable<{} | null>;
   private $fetchTrainingPlansSubmitted = signal(false);
+  $localTrainingPlans = signal([] as TrainingPlan[]);
+  private allTrainingPlansFetched$!: Observable<boolean>;
+  fetchAllTrainingPlansError$!: Observable<{} | null>;
+  fetchAllTrainingPlansProcessing$!: Observable<boolean>;
+  private trainingPlansSubscription!: Subscription;
 
   searchText = ''; // Used in template for ngModel
 
@@ -50,33 +52,44 @@ export class BrowseTrainingPlansComponent implements OnInit {
   }
 
   private fetchAllTrainingPlans() {
-    this.trainingPlans$ = this.fetchAllTrainingPlansError$
+    this.trainingPlansSubscription = this.fetchAllTrainingPlansError$
       .pipe(
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$fetchTrainingPlansSubmitted.set(false);
+            this.resetComponentState();
           }
           const trainingPlansInStore$ = this.store$.select(TrainingPlanStoreSelectors.selectAllTrainingPlansInStore);
           return trainingPlansInStore$;
         }),
-        withLatestFrom(this.fetchAllTrainingPlansError$, this.allTrainingPlansFetched$),
-        filter(([trainingPlans, processingError, allFetched]) => !processingError),
-        map(([trainingPlans, processingError, allFetched]) => {
+        withLatestFrom(this.fetchAllTrainingPlansError$, this.allTrainingPlansFetched$, this.userData$),
+        filter(([trainingPlans, processingError, allFetched, userData]) => !processingError),
+        map(([trainingPlans, processingError, allFetched, userData]) => {
           if (!allFetched && !this.$fetchTrainingPlansSubmitted()) {
-            this.store$.dispatch(TrainingPlanStoreActions.fetchAllTrainingPlansRequested());
+            this.store$.dispatch(TrainingPlanStoreActions.fetchAllTrainingPlansRequested({userId: userData!.id}));
             this.$fetchTrainingPlansSubmitted.set(true);
           }
           return trainingPlans;
+        }),
+        withLatestFrom(this.allTrainingPlansFetched$),
+        filter(([trainingPlans, allFetched]) => allFetched),
+        tap(([trainingPlans, allFetched]) => {
+          console.log('Set training sessions', trainingPlans);
+          this.$localTrainingPlans.set(trainingPlans);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$fetchTrainingPlansSubmitted.set(false);
+          this.resetComponentState();
           return throwError(() => new Error(error));
         })
-      );
+      ).subscribe();
+  }
+
+  private resetComponentState() {
+    this.trainingPlansSubscription?.unsubscribe();
+    this.$fetchTrainingPlansSubmitted.set(false);
   }
 
   onCreatePlan() {
@@ -85,9 +98,25 @@ export class BrowseTrainingPlansComponent implements OnInit {
 
 
   onSelectTrainingPlan(trainingPlanData: TrainingPlan) {
-    this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_PLAN}`, trainingPlanData.id]);
+    const queryParams: ViewTrainingPlanQueryParams = {
+      [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanData[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY], // Ensures the user views training sessions vs plans
+    };
+    const navigationExtras: NavigationExtras = {queryParams};
+    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, trainingPlanData.id], navigationExtras);
   }
 
+  ngOnDestroy(): void {
+    this.trainingPlansSubscription?.unsubscribe();
 
+    this.fetchAllTrainingPlansError$
+      .pipe(
+        take(1),
+        tap(error => {
+          if (error) {
+            this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanErrors());
+          }
+        })
+      ).subscribe();
+  }
 
 }

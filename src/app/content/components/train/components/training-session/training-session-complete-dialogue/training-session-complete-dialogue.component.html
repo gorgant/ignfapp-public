@@ -59,12 +59,12 @@
 
   <mat-dialog-actions fxLayout="row" fxLayoutAlign="center center">
 
-    <button *ngIf="!(createTrainingRecordProcessing$ | async)" [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
-    <div *ngIf="(createTrainingRecordProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
+    <button *ngIf="!(combinedCreateTrainingRecordProcessing$ | async)" [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
+    <div *ngIf="(combinedCreateTrainingRecordProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
       <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
     </div>
 
-    <button *ngIf="!(createTrainingRecordProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    <button *ngIf="!(combinedCreateTrainingRecordProcessing$ | async)" mat-raised-button [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
   
   </mat-dialog-actions>
 

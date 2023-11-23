@@ -2,13 +2,13 @@ import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
-import { TrainingPlan, TrainingPlanNoIdOrTimestamp } from "shared-models/train/training-plan.model";
+import { TrainingPlan, TrainingPlanNoIdOrTimestamp, TrainingPlanVisibilityCategoryDbOption } from "shared-models/train/training-plan.model";
 
 // Create Training Plan
 
 export const createTrainingPlanRequested = createAction(
   '[Edit Training Plan] Create Training Plan Requested',
-  props<{trainingPlanNoId: TrainingPlanNoIdOrTimestamp}>()
+  props<{trainingPlanNoId: TrainingPlanNoIdOrTimestamp, userId: string}>()
 );
 
 export const createTrainingPlanCompleted = createAction(
@@ -25,7 +25,7 @@ export const createTrainingPlanFailed = createAction(
 
 export const deleteTrainingPlanRequested = createAction(
   '[Edit Training Plan] Delete Training Plan Requested',
-  props<{trainingPlanId: string}>()
+  props<{trainingPlan: TrainingPlan, userId: string}>()
 );
 
 export const deleteTrainingPlanCompleted = createAction(
@@ -41,7 +41,8 @@ export const deleteTrainingPlanFailed = createAction(
 // Fetch All Training Plans
 
 export const fetchAllTrainingPlansRequested = createAction(
-  '[AppWide] Fetch All Training Plans Requested'
+  '[AppWide] Fetch All Training Plans Requested',
+  props<{userId: string}>()
 );
 
 export const fetchAllTrainingPlansCompleted = createAction(
@@ -58,7 +59,7 @@ export const fetchAllTrainingPlansFailed = createAction(
 
 export const fetchMultipleTrainingPlansRequested = createAction(
   '[AppWide] Fetch Multiple Training Plans Requested',
-  props<{queryParams: FirestoreCollectionQueryParams}>()
+  props<{queryParams: FirestoreCollectionQueryParams, userId: string}>()
 );
 
 export const fetchMultipleTrainingPlansCompleted = createAction(
@@ -75,7 +76,7 @@ export const fetchMultipleTrainingPlansFailed = createAction(
 
 export const fetchSingleTrainingPlanRequested = createAction(
   '[AppWide] Fetch Single Training Plan Requested',
-  props<{trainingPlanId: string}>()
+  props<{trainingPlanId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption}>()
 );
 
 export const fetchSingleTrainingPlanCompleted = createAction(
@@ -100,11 +101,17 @@ export const purgeTrainingPlanData = createAction(
   '[AppWide] Purge Training Plan Data'
 );
 
+// Purge Training Plan Errors
+
+export const purgeTrainingPlanErrors = createAction(
+  '[AppWide] Purge Training Plan Errors'
+);
+
 // Update Training Plan
 
 export const updateTrainingPlanRequested = createAction(
   '[Edit Training Plan] Update Training Plan Requested',
-  props<{trainingPlanUpdates: Update<TrainingPlan>}>()
+  props<{trainingPlanUpdates: Update<TrainingPlan>, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption}>()
 );
 
 export const updateTrainingPlanCompleted = createAction(

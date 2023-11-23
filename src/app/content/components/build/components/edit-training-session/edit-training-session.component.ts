@@ -3,7 +3,7 @@ import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { TrainingSessionVideoPlatform, TrainingSessionNoIdOrTimestamps, TrainingSessionKeys, TrainingSession, TrainingSessionDatabaseCategoryTypes, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable, throwError } from 'rxjs';
@@ -55,7 +55,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private $createTrainingSessionCycleInit = signal(false);
   private $createTrainingSessionCycleComplete = signal(false);
   
-
   private updateTrainingSessionProcessing$!: Observable<boolean>;
   private updateTrainingSessionSubscription!: Subscription;
   private updateTrainingSessionError$!: Observable<{} | null>;
@@ -63,7 +62,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private $updateTrainingSessionCycleInit = signal(false);
   private $updateTrainingSessionCycleComplete = signal(false);
 
-  $currentTrainingSession = signal(undefined as TrainingSession | undefined);
+  $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
   private $currentTrainingSessionId = signal(undefined as string | undefined);
   private fetchTrainingSessionProcessing$!: Observable<boolean>;
   private fetchTrainingSessionError$!: Observable<{} | null>;
@@ -76,6 +75,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   @ViewChild('stepTwo') private stepTwo!: EditTrainingSessionStepTwoComponent;
 
   $isNewSession = signal(false);
+  $trainingSessionVisibilityCategory = signal(undefined as TrainingSessionVisibilityCategoryDbOption | undefined);
 
   getYoutubeVideoDataProcessing$!: Observable<boolean>;
   youtubeVideoData$!: Observable<YoutubeVideoDataCompact | null>;
@@ -84,6 +84,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private route = inject(ActivatedRoute);
   private uiService = inject(UiService);
   private router = inject(Router);
+  private combinedComponentErrors$!: Observable<{} | null>;
   
 
   constructor() { }
@@ -122,24 +123,31 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           return false
         })
     );
+
   }
 
   private setStepperOrientation(): void {
     this.uiService.$screenIsMobile() ? this.stepperOrientation = 'vertical' : this.stepperOrientation = 'horizontal';
   }
 
+  
   private configureTrainingSessionInterface(): void {
     this.setTrainingSessionId();
+    this.setTrainingSessionVisibilityCategory();
+    const visibilityCategory = this.$trainingSessionVisibilityCategory();
     const trainingSessionId = this.$currentTrainingSessionId();
-    console.log('Is new trainingSession', !this.$currentTrainingSessionId());
-    trainingSessionId ? this.setCurrentTrainingSessionData() : this.$isNewSession.set(true);
+    console.log('Is new trainingSession', (!this.$currentTrainingSessionId() && !this.$trainingSessionVisibilityCategory()));
+    (trainingSessionId && visibilityCategory) ? this.setCurrentTrainingSessionData() : this.$isNewSession.set(true);
   }
 
   private setTrainingSessionId(): void {
     const sessionId = this.route.snapshot.params[TrainingSessionKeys.ID] as string | undefined;
-    if (sessionId) {
-      this.$currentTrainingSessionId.set(sessionId);
-    }
+    this.$currentTrainingSessionId.set(sessionId);
+  }
+
+  private setTrainingSessionVisibilityCategory(): void {
+    const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as TrainingSessionVisibilityCategoryDbOption | undefined;
+    this.$trainingSessionVisibilityCategory.set(visibilityCategory);
   }
 
   private setCurrentTrainingSessionData() {
@@ -150,34 +158,42 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$fetchSingleTrainingSessionSubmitted.set(false);
+            this.resetSetTrainingSessionComponentState();
             this.navigateToBrowseWithTrainingSessionSelection();
           }
           const singleTrainingSession$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(trainingSessionId)); 
           return singleTrainingSession$;
         }),
-        withLatestFrom(this.fetchTrainingSessionError$),
-        filter(([trainingSession, processingError]) => !processingError),
-        map(([trainingSession, processingError]) => {
+        withLatestFrom(this.fetchTrainingSessionError$, this.userData$),
+        filter(([trainingSession, processingError, userData]) => !processingError),
+        map(([trainingSession, processingError, userData]) => {
           if (!this.$fetchSingleTrainingSessionSubmitted()) {
             console.log(`Session ${trainingSessionId} not in store, fetching from database`);
-            this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId}));
+            this.store$.dispatch(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested({sessionId: trainingSessionId, userId: userData.id, visibilityCategory: this.$trainingSessionVisibilityCategory()!}));
             this.$fetchSingleTrainingSessionSubmitted.set(true);
           }
           return trainingSession;
         }),
         filter(trainingSession => !!trainingSession),
         tap(trainingSession => {
-          this.$currentTrainingSession.set(trainingSession);
+          this.$localTrainingSession.set(trainingSession);
           this.store$.dispatch(TrainingSessionStoreActions.setYoutubeVideoData({youtubeVideoData: trainingSession!.videoData}));
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetSetTrainingSessionComponentState();
+          this.navigateToBrowseWithTrainingSessionSelection();
           return throwError(() => new Error(error));
         })
       ).subscribe();
+  }
+
+  private resetSetTrainingSessionComponentState() {
+    this.currentTrainingSessionSubscription?.unsubscribe();
+    this.$fetchSingleTrainingSessionSubmitted.set(false);
+    this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
   onSubmitTrainingSessionForm(stepTwoData: EditTrainingSessionStepTwoComponent): void {
@@ -200,23 +216,24 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         switchMap(([userData, videoData, processingError]) => {
           if (!this.createTrainingSessionSubmitted()) {
             this.createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
-            const trainingSessionNoId: TrainingSessionNoIdOrTimestamps = {
+            const trainingSessionNoId: CanonicalTrainingSessionNoIdOrTimestamps = {
               [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
-              complexityAverage: stepTwoData.complexityDefault.value,
+              [TrainingSessionKeys.COMPLEXITY_AVERAGE]: stepTwoData.complexityDefault.value,
               [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
-              complexityRatingCount: 1,
-              creatorId: userData.id,
-              databaseCategory: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+              [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: 1,
+              [TrainingSessionKeys.CREATOR_ID]: userData.id,
+              [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
               [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-              intensityAverage: stepTwoData.intensityDefault.value,
+              [TrainingSessionKeys.INTENSITY_AVERAGE]: stepTwoData.intensityDefault.value,
               [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
-              intensityRatingCount: 1,
+              [TrainingSessionKeys.INTENSITY_RATING_COUNT]: 1,
               [TrainingSessionKeys.MUSCLE_GROUP]: stepTwoData.muscleGroup.value,
               [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
-              videoData: videoData!
+              [TrainingSessionKeys.VIDEO_DATA]: videoData!,
+              [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: stepTwoData.visibilityCategory.value
             };
             console.log('Training Session Data', trainingSessionNoId);
-            this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId}));
+            this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId, userId: userData.id}));
           }
           return this.createTrainingSessionProcessing$;
         }),
@@ -248,14 +265,16 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   private resetCreateTrainingSessionComponentState() {
+    this.createTrainingSessionSubscription?.unsubscribe();
     this.createTrainingSessionSubmitted.set(false);
     this.$createTrainingSessionCycleInit.set(false);
     this.$createTrainingSessionCycleComplete.set(false);
+    this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
   private updateExistingSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
     const sessionId = this.$currentTrainingSessionId() as string;
-    const currentTrainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<TrainingSession>;
+    const currentTrainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<CanonicalTrainingSession>;
 
     this.updateTrainingSessionSubscription = this.updateTrainingSessionError$
       .pipe(
@@ -266,12 +285,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           }
           return currentTrainingSessionData$;
         }),
-        withLatestFrom(this.youtubeVideoData$, this.updateTrainingSessionError$),
-        filter(([currentTrainingSessionData, videoData, processingError]) => !processingError && !!videoData),
-        switchMap(([currentTrainingSessionData, videoData, processingError]) => {
+        withLatestFrom(this.youtubeVideoData$, this.updateTrainingSessionError$, this.userData$),
+        filter(([currentTrainingSessionData, videoData, processingError, userData]) => !processingError && !!videoData),
+        switchMap(([currentTrainingSessionData, videoData, processingError, userData]) => {
           if (!this.updateTrainingSessionSubmitted()) {
             this.updateTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
-            const updatedTrainingSession: Update<TrainingSession> = {
+            const updatedTrainingSession: Update<CanonicalTrainingSession> = {
               id: currentTrainingSessionData.id,
               changes: {
                 [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
@@ -282,9 +301,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
               }            
             };
             console.log('Training Session Updates', updatedTrainingSession);
-            this.store$.dispatch(TrainingSessionStoreActions.updateTrainingSessionRequested({trainingSessionUpdates: updatedTrainingSession}));
+            this.store$.dispatch(TrainingSessionStoreActions.updateTrainingSessionRequested({
+              trainingSessionUpdates: updatedTrainingSession, 
+              userId: userData.id, 
+              visibilityCategory: this.$trainingSessionVisibilityCategory()!
+            }));
           }
-          // return combineLatest([currentTrainingSessionData$, this.updateTrainingSessionProcessing$]);
           return this.updateTrainingSessionProcessing$;
         }),
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
@@ -302,7 +324,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         tap(updateProcessing => {
           this.uiService.showSnackBar(`Training session updated!`, 5000);
           this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
-          this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, this.$currentTrainingSessionId()]);
+          this.navigateToTrainingSessionWithParams();
         }),
         // Catch any local errors
         catchError(error => {
@@ -315,15 +337,30 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   private resetUpdateTrainingSessionComponentState() {
+    this.updateTrainingSessionSubscription?.unsubscribe();
     this.updateTrainingSessionSubmitted.set(false);
     this.$updateTrainingSessionCycleInit.set(false);
     this.$updateTrainingSessionCycleComplete.set(false);
+    this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
+  private navigateToTrainingSessionWithParams(): void {
+    const canonicalTrainingSessionData = this.$localTrainingSession()!;
+    // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
+    const queryParams: ViewCanonicalTrainingSessionQueryParams = {
+      [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+      [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: canonicalTrainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
+    };
+    const navigationExtras: NavigationExtras = {queryParams};
+    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, this.$currentTrainingSessionId()], navigationExtras);
+  }
+
+  // TODO: This is causing an error for some reason, investigate
   private navigateToBrowseWithTrainingSessionSelection(): void {
     // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
-    const queryParams: ViewTrainingSessionsUlrParams = {
-      [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
+    console.log('BrowseTrainingSessionsUlrParams property', BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
+    const queryParams: BrowseTrainingSessionsQueryParams = {
+      [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
     };
     const navigationExtras: NavigationExtras = {queryParams};
     this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
@@ -358,17 +395,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     if (!this.createTrainingSessionSubmitted() || !this.updateTrainingSessionSubmitted()) {
       this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
     }
-
-    this.fetchTrainingSessionError$
-      .pipe(
-        take(1),
-        tap(fetchError => {
-          if (fetchError) {
-            this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionData());
-          }  
-        })
-      )
-      .subscribe();
 
   }
 

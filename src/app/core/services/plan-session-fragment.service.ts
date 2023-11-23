@@ -8,6 +8,7 @@ import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
+import { TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,13 +23,23 @@ export class PlanSessionFragmentService {
 
   constructor() { }
 
-  batchDeletePlanSessionFragments(trainingPlanId: string, planSessionFragmentIds: string[]): Observable<string[]> {
+  batchDeletePlanSessionFragments(trainingPlan: TrainingPlan, planSessionFragmentIds: string[], userId: string): Observable<string[]> {
     this.triggerDeletePlanSessionFragmentObserver();
 
     const batch = writeBatch(this.firestore);
 
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
     planSessionFragmentIds.forEach(planSessionFragmentId => {
-      const planSessionFragmentDoc = this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId);
+      let planSessionFragmentDoc: DocumentReference<PlanSessionFragment>;
+
+      if (isPublicTrainingPlan) {
+        planSessionFragmentDoc = this.getPublicPlanSessionFragmentDoc(trainingPlan.id, planSessionFragmentId);
+      } else {
+        planSessionFragmentDoc = this.getPrivatePlanSessionFragmentDoc(trainingPlan.id, planSessionFragmentId, userId);
+      }
+
       batch.delete(planSessionFragmentDoc)
     });
 
@@ -37,21 +48,33 @@ export class PlanSessionFragmentService {
     return from(batchDeleteRequest)
       .pipe(
         map(empty => {
-          console.log(`Deleted ${planSessionFragmentIds.length} planSessionFragments`, planSessionFragmentIds);
+          console.log(`Deleted ${planSessionFragmentIds.length} ${visibilityCategory} planSessionFragments`, planSessionFragmentIds);
           return planSessionFragmentIds;  // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting planSessionFragments', error);
+          console.log(`Error deleting ${visibilityCategory} planSessionFragments`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  batchModifyPlanSessionFragments(trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>[]): Observable<Update<PlanSessionFragment>[]> {
+  batchModifyPlanSessionFragments(trainingPlan: TrainingPlan, planSessionFragmentUpdates: Update<PlanSessionFragment>[], userId: string): Observable<Update<PlanSessionFragment>[]> {
     const batch = writeBatch(this.firestore);
 
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
     planSessionFragmentUpdates.forEach(singlePlanSessionFragmentUpdate => {
+      let planSessionFragmentDoc: DocumentReference<PlanSessionFragment>;
+      const documentId = singlePlanSessionFragmentUpdate.id as string;
+
+      if (isPublicTrainingPlan) {
+        planSessionFragmentDoc = this.getPublicPlanSessionFragmentDoc(trainingPlan.id, documentId);
+      } else {
+        planSessionFragmentDoc = this.getPrivatePlanSessionFragmentDoc(trainingPlan.id, documentId, userId);
+      }
+
       const changesWithTimestamp: Partial<PlanSessionFragment> = {
         ...singlePlanSessionFragmentUpdate.changes,
         lastModifiedTimestamp: Timestamp.now()
@@ -61,7 +84,6 @@ export class PlanSessionFragmentService {
         ...singlePlanSessionFragmentUpdate,
         changes: changesWithTimestamp
       }
-      const planSessionFragmentDoc = this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentUpdatesWithTimestamp.id as string);
       batch.update(planSessionFragmentDoc, changesWithTimestamp)
     });
 
@@ -70,21 +92,32 @@ export class PlanSessionFragmentService {
     return from(batchModifyRequest)
       .pipe(
         map(empty => {
-          console.log(`Updated ${planSessionFragmentUpdates.length} planSessionFragments`, planSessionFragmentUpdates);
+          console.log(`Updated ${planSessionFragmentUpdates.length} ${visibilityCategory} planSessionFragments`, planSessionFragmentUpdates);
           return planSessionFragmentUpdates;  // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating planSessionFragment', error);
+          console.log(`Error updating ${visibilityCategory} planSessionFragment`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  createPlanSessionFragment(trainingPlanId: string, planSessionFragmentNoIdOrTimestamp: PlanSessionFragmentNoIdOrTimestamp): Observable<PlanSessionFragment> {
+  createPlanSessionFragment(trainingPlanId: string, planSessionFragmentNoIdOrTimestamp: PlanSessionFragmentNoIdOrTimestamp, userId: string): Observable<PlanSessionFragment> {
     const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewPlanSessionFragmentDocumentId(trainingPlanId);
+
+    const visibilityCategory = planSessionFragmentNoIdOrTimestamp[PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicPlanSessionFragment = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
+    let planSessionFragmentDocRef: DocumentReference<PlanSessionFragment>;
+
+    if (isPublicPlanSessionFragment) {
+      planSessionFragmentDocRef = this.getPublicPlanSessionFragmentDoc(trainingPlanId, newId);
+    } else {
+      planSessionFragmentDocRef = this.getPrivatePlanSessionFragmentDoc(trainingPlanId, newId, userId);
+    }
 
     const planSessionFragmentWithIdAndTimestamps: PlanSessionFragment = {
       ...planSessionFragmentNoIdOrTimestamp, 
@@ -100,7 +133,6 @@ export class PlanSessionFragmentService {
       lastModifiedTimestamp: currentTimeTimestamp.toMillis(),
     };
 
-    const planSessionFragmentDocRef = this.getPlanSessionFragmentDoc(trainingPlanId, newId);
     const planSessionFragmentAddRequest = setDoc(planSessionFragmentDocRef, planSessionFragmentWithIdAndTimestamps);
 
     return from(planSessionFragmentAddRequest)
@@ -108,39 +140,58 @@ export class PlanSessionFragmentService {
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
         map(empty => {
-          console.log('Created new planSessionFragment', planSessionFragmentWithIdAndMs);
+          console.log(`Created new ${visibilityCategory} planSessionFragment`, planSessionFragmentWithIdAndMs);
           return planSessionFragmentWithIdAndMs; // Use new version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating planSessionFragment', error);
+          console.log(`Error creating ${visibilityCategory} planSessionFragment`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  deletePlanSessionFragment(trainingPlanId: string, planSessionFragmentId: string): Observable<string> {
-    const planSessionFragmentDeleteRequest = deleteDoc(this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId));
+  deletePlanSessionFragment(trainingPlanId: string, planSessionFragment: PlanSessionFragment, userId: string): Observable<string> {
+    const documentId = planSessionFragment[PlanSessionFragmentKeys.ID];
+    const visibilityCategory = planSessionFragment[PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicPlanSessionFragment = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+    
+    let planSessionFragmentDeleteRequest: Promise<void>
+
+    if (isPublicPlanSessionFragment) {
+      planSessionFragmentDeleteRequest = deleteDoc(this.getPublicPlanSessionFragmentDoc(trainingPlanId, planSessionFragment.id));
+    } else {
+      planSessionFragmentDeleteRequest = deleteDoc(this.getPrivatePlanSessionFragmentDoc(trainingPlanId, planSessionFragment.id, userId));
+    }
     
     this.triggerDeletePlanSessionFragmentObserver();
 
     return from(planSessionFragmentDeleteRequest)
       .pipe(
         map(empty => {
-          console.log('Deleted planSessionFragment', planSessionFragmentId);
-          return planSessionFragmentId;
+          console.log(`Deleted ${visibilityCategory} planSessionFragment`, documentId);
+          return documentId;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting planSessionFragment', error);
+          console.log(`Error deleting ${visibilityCategory} planSessionFragment`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchAllPlanSessionFragments(trainingPlanId: string): Observable<PlanSessionFragment[]> {
+  fetchAllPlanSessionFragments(trainingPlan: TrainingPlan, userId: string): Observable<PlanSessionFragment[]> {
 
-    const planSessionFragmentCollectionDataRequest = collectionData(this.getPlanSessionFragmentCollectionByIndex(trainingPlanId));
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
+    let planSessionFragmentCollectionDataRequest: Observable<PlanSessionFragment[]>;
+
+    if (isPublicTrainingPlan) {
+      planSessionFragmentCollectionDataRequest = collectionData(this.getPublicPlanSessionFragmentCollectionByIndex(trainingPlan.id));
+    } else {
+      planSessionFragmentCollectionDataRequest = collectionData(this.getPrivatePlanSessionFragmentCollectionByIndex(trainingPlan.id, userId));
+    }
 
     return from(planSessionFragmentCollectionDataRequest)
       .pipe(
@@ -149,7 +200,7 @@ export class PlanSessionFragmentService {
         // takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
-            throw new Error(`Error fetching all planSessionFragments`, );
+            throw new Error(`Error fetching ${visibilityCategory} planSessionFragments for plan ${trainingPlan.id}`, );
           }
           const planSessionFragmentsWithUpdatedTimestamps = planSessionFragments.map(planSessionFragment => {
             const formattedPlanSessionFragment: PlanSessionFragment = {
@@ -160,19 +211,19 @@ export class PlanSessionFragmentService {
             };
             return formattedPlanSessionFragment;
           });
-          console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} planSessionFragments`);
+          console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} ${visibilityCategory} planSessionFragments`);
           return planSessionFragmentsWithUpdatedTimestamps;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching planSessionFragments', error);
+          console.log(`Error fetching ${visibilityCategory} planSessionFragments for plan ${trainingPlan.id}`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchMultiplePlanSessionFragments(trainingPlanId: string, queryParams: FirestoreCollectionQueryParams): Observable<PlanSessionFragment[]> {
+  fetchMultiplePlanSessionFragments(trainingPlan: TrainingPlan, queryParams: FirestoreCollectionQueryParams, userId: string): Observable<PlanSessionFragment[]> {
 
     const whereQueryConditions: QueryConstraint[] | undefined = queryParams.whereQueries ? 
       queryParams.whereQueries.map(condition => where(condition.property, condition.operator, condition.value)) :
@@ -191,11 +242,23 @@ export class PlanSessionFragmentService {
     if (limitQueryCondition) {
       combinedQueryConstraints = [...combinedQueryConstraints, limitQueryCondition]
     }
-    
-    const planSessionFragmentCollectionQuery = query(
-      this.getPlanSessionFragmentCollection(trainingPlanId),
-      ...combinedQueryConstraints
-    );
+
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
+    let planSessionFragmentCollectionQuery: Query<PlanSessionFragment>;
+
+    if (isPublicTrainingPlan) {
+      planSessionFragmentCollectionQuery = query(
+        this.getPublicPlanSessionFragmentCollection(trainingPlan.id),
+        ...combinedQueryConstraints
+      );
+    } else {
+      planSessionFragmentCollectionQuery = query(
+        this.getPrivatePlanSessionFragmentCollection(trainingPlan.id, userId),
+        ...combinedQueryConstraints
+      );
+    }
 
     const planSessionFragmentCollectionDataRequest = collectionData(planSessionFragmentCollectionQuery);
 
@@ -205,7 +268,7 @@ export class PlanSessionFragmentService {
         takeUntil(this.authService.unsubTrigger$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
-            throw new Error(`Error fetching planSessionFragments with query: ${queryParams}`, );
+            throw new Error(`Error fetching ${visibilityCategory} planSessionFragments with query: ${queryParams}`, );
           }
           const planSessionFragmentsWithUpdatedTimestamps = planSessionFragments.map(planSessionFragment => {
             const formattedPlanSessionFragment: PlanSessionFragment = {
@@ -215,20 +278,28 @@ export class PlanSessionFragmentService {
             };
             return formattedPlanSessionFragment;
           });
-          console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} planSessionFragments`);
+          console.log(`Fetched all ${planSessionFragmentsWithUpdatedTimestamps.length} ${visibilityCategory} planSessionFragments`);
           return planSessionFragmentsWithUpdatedTimestamps;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching planSessionFragments', error);
+          console.log(`Error fetching ${visibilityCategory} planSessionFragments with query: ${queryParams}`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchSinglePlanSessionFragment(trainingPlanId: string, planSessionFragmentId: string): Observable<PlanSessionFragment> {
-    const planSessionFragment = docData(this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId));
+  fetchSinglePlanSessionFragment(trainingPlanId: string, planSessionFragmentId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<PlanSessionFragment> {
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+    let planSessionFragment: Observable<PlanSessionFragment>;
+
+    if (isPublicTrainingPlan) {
+      planSessionFragment = docData(this.getPublicPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId));
+    } else {
+      planSessionFragment = docData(this.getPrivatePlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId, userId));
+    }
+
     return planSessionFragment
       .pipe(
         // If logged out, this triggers unsub of this observable
@@ -236,47 +307,63 @@ export class PlanSessionFragmentService {
         takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragment => {
           if (!planSessionFragment) {
-            throw new Error(`Error fetching planSessionFragment with id: ${planSessionFragmentId}`);
+            throw new Error(`Error fetching ${visibilityCategory} planSessionFragment with id: ${planSessionFragmentId}`);
           }
           const formattedPlanSessionFragment: PlanSessionFragment = {
             ...planSessionFragment,
             createdTimestamp: (planSessionFragment.createdTimestamp as Timestamp).toMillis(),
             lastModifiedTimestamp: (planSessionFragment.lastModifiedTimestamp as Timestamp).toMillis()
           };
-          console.log(`Fetched single planSessionFragment`, formattedPlanSessionFragment);
+          console.log(`Fetched single ${visibilityCategory} planSessionFragment`, formattedPlanSessionFragment);
           return formattedPlanSessionFragment;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching planSessionFragment', error);
+          console.log(`Error fetching ${visibilityCategory} planSessionFragment`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  updatePlanSessionFragment(trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>): Observable<Update<PlanSessionFragment>> {
-    const changesWithTimestamp: Partial<PlanSessionFragment> = {
-      ...planSessionFragmentUpdates.changes,
-      lastModifiedTimestamp: Timestamp.now()
+  updatePlanSessionFragment(trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<Update<PlanSessionFragment>> {
+    const currentTimeTimestamp: Timestamp = Timestamp.now();
+    
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+    const documentId = planSessionFragmentUpdates.id as string;
+
+    let planSessionFragmentDoc: DocumentReference<PlanSessionFragment>;
+
+    if (isPublicTrainingPlan) {
+      planSessionFragmentDoc = this.getPublicPlanSessionFragmentDoc(trainingPlanId, documentId);
+    } else {
+      planSessionFragmentDoc = this.getPrivatePlanSessionFragmentDoc(trainingPlanId, documentId, userId);
     }
 
-    const planSessionFragmentUpdatesWithTimestamp: Update<PlanSessionFragment> = {
+    const changesWithTimestamp: Partial<PlanSessionFragment> = {
+      ...planSessionFragmentUpdates.changes,
+      lastModifiedTimestamp: currentTimeTimestamp
+    };
+
+    const changesWithMs: Update<PlanSessionFragment> = {
       ...planSessionFragmentUpdates,
-      changes: changesWithTimestamp
-    }
-    const planSessionFragmentDoc = this.getPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentUpdatesWithTimestamp.id as string);
+      changes: {
+        ...planSessionFragmentUpdates.changes,
+        lastModifiedTimestamp: currentTimeTimestamp.toMillis()
+      }
+    };
+
     const planSessionFragmentUpdateRequest = updateDoc(planSessionFragmentDoc, changesWithTimestamp);
 
     return from(planSessionFragmentUpdateRequest)
       .pipe(
         map(empty => {
-          console.log('Updated planSessionFragment', planSessionFragmentUpdates);
-          return planSessionFragmentUpdates;  // Use original version with MS timestamps
+          console.log(`Updated ${visibilityCategory} planSessionFragment`, changesWithMs);
+          return changesWithMs;  // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating planSessionFragment', error);
+          console.log(`Error updating ${visibilityCategory} planSessionFragment`, error);
           return throwError(() => new Error(error));
         })
       );
@@ -289,23 +376,36 @@ export class PlanSessionFragmentService {
     this.deletePlanSessionFragmentTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
-  private getPlanSessionFragmentCollection(trainingPlanId: string): CollectionReference<PlanSessionFragment> {
-    // Note that planSessionFragment is nested in Public User document
-    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+  private getPublicPlanSessionFragmentCollection(trainingPlanId: string): CollectionReference<PlanSessionFragment> {
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
   }
 
-  private getPlanSessionFragmentCollectionByIndex(trainingPlanId: string): Query<PlanSessionFragment> {
-    const planSessionFragmentCollectionRef = collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+  private getPublicPlanSessionFragmentCollectionByIndex(trainingPlanId: string): Query<PlanSessionFragment> {
+    const planSessionFragmentCollectionRef = collection(this.firestore, `${PublicCollectionPaths.PUBLIC_TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
     const collectionRefOrderedByIndex = query(planSessionFragmentCollectionRef, orderBy(PlanSessionFragmentKeys.TRAINING_PLAN_INDEX));
     return collectionRefOrderedByIndex;
   }
 
-  private getPlanSessionFragmentDoc(trainingPlanId: string, planSessionFragmentId: string): DocumentReference<PlanSessionFragment> {
-    return doc(this.getPlanSessionFragmentCollection(trainingPlanId), planSessionFragmentId);
+  private getPublicPlanSessionFragmentDoc(trainingPlanId: string, planSessionFragmentId: string): DocumentReference<PlanSessionFragment> {
+    return doc(this.getPublicPlanSessionFragmentCollection(trainingPlanId), planSessionFragmentId);
+  }
+
+  private getPrivatePlanSessionFragmentCollection(trainingPlanId: string, userId: string): CollectionReference<PlanSessionFragment> {
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PRIVATE_TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+  }
+
+  private getPrivatePlanSessionFragmentCollectionByIndex(trainingPlanId: string, userId: string): Query<PlanSessionFragment> {
+    const planSessionFragmentCollectionRef = collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PRIVATE_TRAINING_PLANS}/${trainingPlanId}/${PublicCollectionPaths.PLAN_SESSION_FRAGMENTS}`) as CollectionReference<PlanSessionFragment>;
+    const collectionRefOrderedByIndex = query(planSessionFragmentCollectionRef, orderBy(PlanSessionFragmentKeys.TRAINING_PLAN_INDEX));
+    return collectionRefOrderedByIndex;
+  }
+
+  private getPrivatePlanSessionFragmentDoc(trainingPlanId: string, planSessionFragmentId: string, userId: string): DocumentReference<PlanSessionFragment> {
+    return doc(this.getPrivatePlanSessionFragmentCollection(trainingPlanId, userId), planSessionFragmentId);
   }
 
   private generateNewPlanSessionFragmentDocumentId(trainingPlanId: string): string {
-    return doc(this.getPlanSessionFragmentCollection(trainingPlanId)).id;
+    return doc(this.getPublicPlanSessionFragmentCollection(trainingPlanId)).id;
   }
 
 }

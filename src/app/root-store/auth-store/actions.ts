@@ -137,6 +137,12 @@ export const logout = createAction(
   '[Top Nav] Logout'
 );
 
+// Purge Auth Errors
+
+export const purgeAuthErrors = createAction(
+  '[AppWide] Purge Auth Errors'
+); 
+
 // Reload Auth Data
 export const reloadAuthDataRequested = createAction(
   '[Login Form | Signup Form | Login With Third Party] Reload AuthData Requested'

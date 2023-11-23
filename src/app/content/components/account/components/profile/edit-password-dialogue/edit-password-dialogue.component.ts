@@ -51,6 +51,7 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
+            this.resetComponentState();
             this.dialogRef.close(false);
           }
           return processingError;
@@ -82,11 +83,20 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
       )
       .subscribe();
+  }
+
+  private resetComponentState() {
+    this.resetPasswordSubscription?.unsubscribe();
+    this.resetPasswordSubmitted.set(false);
+    this.$resetPasswordCycleInit.set(false);
+    this.$resetPasswordCycleComplete.set(false);
+    this.store$.dispatch(AuthStoreActions.purgeAuthErrors());
   }
 
   ngOnDestroy(): void {

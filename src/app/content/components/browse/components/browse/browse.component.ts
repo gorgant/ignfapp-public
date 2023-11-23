@@ -3,8 +3,8 @@ import { MatTabGroup } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Subscription, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
-import { ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { AddTrainingSessionUrlToPlanParamsKeys } from 'shared-models/train/training-plan.model';
+import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
 
 @Component({
   selector: 'app-browse',
@@ -43,8 +43,8 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
     this.queryParamMapSubscription = this.route.queryParamMap
       .pipe(
         map((paramMap) => {
-          const planBuilderParam = paramMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
-          const viewTrainingSessionsValue = paramMap.get(ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS);
+          const planBuilderParam = paramMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+          const viewTrainingSessionsValue = paramMap.get(BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
           if (planBuilderParam && JSON.parse(planBuilderParam)) {
             console.log('Plan builder request detected');
             this.$trainingPlanBuilderRequest.set(true);
@@ -67,8 +67,8 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.matTabGroup.focusChange.subscribe(changeEvent => {
       console.log('Change event tab index', changeEvent.index);
-      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
-      const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS);
+      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+      const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
       const newIndex = changeEvent.index;
       
       // Param logic courtesy of https://stackoverflow.com/a/43706998/6572208
@@ -77,8 +77,8 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
         // Add query param if it doesn't exist
         if (!viewTrainingSessionsString && !addTrainingSessionString) {
           console.log('Adding viewTrainingSessions query param');
-          const queryParams: ViewTrainingSessionsUlrParams = {
-            [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+          const queryParams: BrowseTrainingSessionsQueryParams = {
+            [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
           };
           const navigationExtras: NavigationExtras = {
             queryParams,
@@ -94,8 +94,8 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
         // Remove the query param if exists
         if (viewTrainingSessionsString && !addTrainingSessionString) {
           console.log('Removing viewTrainingSessions query param');
-          const queryParams: ViewTrainingSessionsUlrParams = {
-            [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: null,
+          const queryParams: BrowseTrainingSessionsQueryParams = {
+            [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: null,
           };
           const navigationExtras: NavigationExtras = {
             queryParams,

@@ -3,12 +3,15 @@ import { createAction, props } from "@ngrx/store";
 import { FirebaseError } from "firebase/app";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from "shared-models/train/plan-session-fragment.model";
+import { TrainingPlan, TrainingPlanVisibilityCategoryDbOption } from "shared-models/train/training-plan.model";
+
+// TODO: Update these Actions (and Effects) to match the PlanSessionFragmentService requirements 
 
 // Batch Delete Plan Session Fragments
 
 export const batchDeletePlanSessionFragmentsRequested = createAction(
   '[Edit Plan Session Fragment] Batch Delete Plan Session Fragments Requested',
-  props<{trainingPlanId: string, planSessionFragmentIds: string[]}>()
+  props<{trainingPlan: TrainingPlan, planSessionFragmentIds: string[], userId: string}>()
 );
 
 export const batchDeletePlanSessionFragmentsCompleted = createAction(
@@ -25,7 +28,7 @@ export const batchDeletePlanSessionFragmentsFailed = createAction(
 
 export const batchModifyPlanSessionFragmentsRequested = createAction(
   '[Edit Plan Session Fragment] Batch Modify Plan Session Fragments Requested',
-  props<{trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>[]}>()
+  props<{trainingPlan: TrainingPlan, planSessionFragmentUpdates: Update<PlanSessionFragment>[], userId: string}>()
 );
 
 export const batchModifyPlanSessionFragmentsCompleted = createAction(
@@ -42,7 +45,7 @@ export const batchModifyPlanSessionFragmentsFailed = createAction(
 
 export const createPlanSessionFragmentRequested = createAction(
   '[AppWide] Create Plan Session Fragment Requested',
-  props<{trainingPlanId: string, planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp}>()
+  props<{trainingPlanId: string, planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp, userId: string}>()
 );
 
 export const createPlanSessionFragmentCompleted = createAction(
@@ -59,7 +62,7 @@ export const createPlanSessionFragmentFailed = createAction(
 
 export const deletePlanSessionFragmentRequested = createAction(
   '[Edit Plan Session Fragment] Delete Plan Session Fragment Requested',
-  props<{trainingPlanId: string, planSessionFragmentId: string}>()
+  props<{trainingPlanId: string, planSessionFragment: PlanSessionFragment, userId: string}>()
 );
 
 export const deletePlanSessionFragmentCompleted = createAction(
@@ -76,7 +79,7 @@ export const deletePlanSessionFragmentFailed = createAction(
 
 export const fetchAllPlanSessionFragmentsRequested = createAction(
   '[AppWide] Fetch All Plan Session Fragments Requested',
-  props<{trainingPlanId: string}>()
+  props<{trainingPlan: TrainingPlan, userId: string}>()
 );
 
 export const fetchAllPlanSessionFragmentsCompleted = createAction(
@@ -93,7 +96,7 @@ export const fetchAllPlanSessionFragmentsFailed = createAction(
 
 export const fetchMultiplePlanSessionFragmentsRequested = createAction(
   '[AppWide] Fetch Multiple Plan Session Fragments Requested',
-  props<{trainingPlanId: string, queryParams: FirestoreCollectionQueryParams}>()
+  props<{trainingPlan: TrainingPlan, queryParams: FirestoreCollectionQueryParams, userId: string}>()
 );
 
 export const fetchMultiplePlanSessionFragmentsCompleted = createAction(
@@ -110,7 +113,7 @@ export const fetchMultiplePlanSessionFragmentsFailed = createAction(
 
 export const fetchSinglePlanSessionFragmentRequested = createAction(
   '[AppWide] Fetch Single Plan Session Fragment Requested',
-  props<{trainingPlanId: string, planSessionFragmentId: string}>()
+  props<{trainingPlanId: string, planSessionFragmentId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption}>()
 );
 
 export const fetchSinglePlanSessionFragmentCompleted = createAction(
@@ -123,23 +126,23 @@ export const fetchSinglePlanSessionFragmentFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// // Purge Plan Session Fragment Loaded 
-
-// export const purgeAllPlanSessionFragmentsFetched = createAction(
-//   '[AppWide] Purge All Plan Session Fragments Fetched'
-// );
-
 // Purge Plan Session Fragment Data
 
 export const purgePlanSessionFragmentData = createAction(
   '[AppWide] Purge Plan Session Fragment Data'
 );
 
+// Purge Plan Session Fragment Errors
+
+export const purgePlanSessionFragmentErrors = createAction(
+  '[AppWide] Purge Plan Session Fragment Errors'
+);
+
 // Update Plan Session Fragment
 
 export const updatePlanSessionFragmentRequested = createAction(
   '[Edit Plan Session Fragment] Update Plan Session Fragment Requested',
-  props<{trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>}>()
+  props<{trainingPlanId: string, planSessionFragmentUpdates: Update<PlanSessionFragment>, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption}>()
 );
 
 export const updatePlanSessionFragmentCompleted = createAction(

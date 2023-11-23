@@ -18,7 +18,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.createTrainingSessionRequested),
       concatMap(action => 
-        this.trainingSessionService.createTrainingSession(action.trainingSessionNoId).pipe(
+        this.trainingSessionService.createTrainingSession(action.trainingSessionNoId, action.userId).pipe(
           map(trainingSession => {
             return TrainingSessionStoreActions.createTrainingSessionCompleted({trainingSession});
           }),
@@ -39,7 +39,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.deleteTrainingSessionRequested),
       concatMap(action => 
-        this.trainingSessionService.deleteTrainingSession(action.sessionId).pipe(
+        this.trainingSessionService.deleteTrainingSession(action.trainingSession, action.userId).pipe(
           map(sessionId => {
             return TrainingSessionStoreActions.deleteTrainingSessionCompleted({sessionId});
           }),
@@ -60,7 +60,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.fetchAllTrainingSessionsRequested),
       switchMap(action => 
-        this.trainingSessionService.fetchAllTrainingSessions().pipe(
+        this.trainingSessionService.fetchAllTrainingSessions(action.userId).pipe(
           map(trainingSessions => {
             return TrainingSessionStoreActions.fetchAllTrainingSessionsCompleted({trainingSessions});
           }),
@@ -81,7 +81,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.fetchMultipleTrainingSessionsRequested),
       switchMap(action => 
-        this.trainingSessionService.fetchMultipleTrainingSessions(action.queryParams).pipe(
+        this.trainingSessionService.fetchMultipleTrainingSessions(action.queryParams, action.userId).pipe(
           map(trainingSessions => {
             return TrainingSessionStoreActions.fetchMultipleTrainingSessionsCompleted({trainingSessions});
           }),
@@ -102,7 +102,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.fetchSingleTrainingSessionRequested),
       switchMap(action => 
-        this.trainingSessionService.fetchSingleTrainingSession(action.sessionId).pipe(
+        this.trainingSessionService.fetchSingleTrainingSession(action.sessionId, action.userId, action.visibilityCategory).pipe(
           map(trainingSession => {
             return TrainingSessionStoreActions.fetchSingleTrainingSessionCompleted({trainingSession});
           }),
@@ -165,7 +165,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.updateTrainingSessionRequested),
       concatMap(action => 
-        this.trainingSessionService.updateTrainingSession(action.trainingSessionUpdates).pipe(
+        this.trainingSessionService.updateTrainingSession(action.trainingSessionUpdates, action.userId, action.visibilityCategory).pipe(
           map(trainingSessionUpdates => {
             return TrainingSessionStoreActions.updateTrainingSessionCompleted({trainingSessionUpdates});
           }),

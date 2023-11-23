@@ -51,7 +51,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   private $sendUpdateEmailConfirmationCycleInit = signal(false);
   $sendUpdateEmailConfirmationCycleComplete = signal(false);
   
-  authOrUserUpdateProcessing$!: Observable<boolean>;
+  combinedAuthAndUserUpdateProcessing$!: Observable<boolean>;
 
   private userData$!: Observable<PublicUser>;
 
@@ -86,7 +86,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
     this.sendUpdateEmailConfirmationProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationProcessing));
     this.sendUpdateEmailConfirmationError$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationError));
 
-    this.authOrUserUpdateProcessing$ = combineLatest([
+    this.combinedAuthAndUserUpdateProcessing$ = combineLatest([
         this.confirmPasswordProcessing$,
         this.sendUpdateEmailConfirmationProcessing$,
       ]).pipe(
@@ -104,32 +104,35 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   onConfirmPasswordInAuth() {
-    const passwordConfirmationData: PasswordConfirmationData = {
-      email: this.userData.email,
-      password: this.password.value,
-    }
-
-    this.store$.dispatch(AuthStoreActions.confirmPasswordRequested({passwordConfirmationData}));
-    this.$passwordConfirmationSubmitted.set(true);
 
     this.passwordConfirmationSubscription = this.confirmPasswordError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           const errMsg = (processingError as FirebaseError)?.message;
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.resetComponentActionState();
+            this.resetConfirmPasswordComponentState();
             // Keep dialog open unless the error isn't related to a wrong password entry
             if (!errMsg.includes('wrong-password')) {
               this.dialogRef.close();
             }
           }
+          return processingError;
+        }),
+        filter(processingError => !processingError ), // Halts function if processingError detected
+        switchMap(processingError => {
+          if (!this.$passwordConfirmationSubmitted()) {
+            const passwordConfirmationData: PasswordConfirmationData = {
+              email: this.userData.email,
+              password: this.password.value,
+            };
+            this.$passwordConfirmationSubmitted.set(true);
+            this.store$.dispatch(AuthStoreActions.confirmPasswordRequested({passwordConfirmationData}));
+          }
           return this.confirmPasswordProcessing$;
         }),
-        withLatestFrom(this.confirmPasswordError$),
-        filter(([passwordConfirmationProcessing, processingError]) => !processingError ), // Halts function if processingError detected
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(([passwordConfirmationProcessing, processingError]) => {
+        tap(passwordConfirmationProcessing => {
           if (passwordConfirmationProcessing) {
             this.$passwordUpdateCycleInit.set(true);
           }
@@ -139,36 +142,44 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
             this.$passwordUpdateCycleComplete.set(true);
           }
         }),
-        filter(([passwordConfirmationProcessing, processingError]) => !passwordConfirmationProcessing && this.$passwordUpdateCycleComplete()),
-        tap(([passwordConfirmationProcessing, processingError]) => {
+        filter(passwordConfirmationProcessing => !passwordConfirmationProcessing && this.$passwordUpdateCycleComplete()),
+        tap(passwordConfirmationProcessing => {
           // If password confirmation succeeds, proceed to next step
           this.passwordConfirmationSubscription?.unsubscribe(); // Clear subscription no longer needed
           const stepOne = this.updateEmailStepper.steps.get(0); 
           if (stepOne) {
             stepOne.completed = true;
+            this.passwordConfirmationSubscription?.unsubscribe();        
             this.updateEmailStepper.next() // Programatically trigger the stepper to move to the next step
-            if (this.passwordConfirmationSubscription) {
-              this.passwordConfirmationSubscription?.unsubscribe();
-            }
           }
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetConfirmPasswordComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
-  
+
+  private resetConfirmPasswordComponentState() {
+    this.passwordConfirmationSubscription?.unsubscribe();
+    this.$passwordConfirmationSubmitted.set(false);
+    this.passwordForm.reset();
+    this.$passwordUpdateCycleInit.set(false);
+    this.$passwordUpdateCycleComplete.set(false);
+    this.store$.dispatch(AuthStoreActions.purgeAuthErrors());
+  }
+
   onSendUpdateEmailConfirmation() {
     this.sendUpdateEmailConfirmationSubscription = this.sendUpdateEmailConfirmationError$
       .pipe(
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog');
-            this.resetComponentActionState();
+            this.resetSendUpdateEmailComponentState();
             this.dialogRef.close(false);
           }
           return processingError;
@@ -207,7 +218,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetSendUpdateEmailComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
@@ -215,16 +226,13 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private resetComponentActionState() {
-    this.$passwordConfirmationSubmitted.set(false);
-    this.passwordForm.reset();
-    this.$sendUpdateEmailConfirmationSubmitted.set(false);
+  private resetSendUpdateEmailComponentState() {
+    this.sendUpdateEmailConfirmationSubscription?.unsubscribe();
     this.emailForm.reset();
+    this.$sendUpdateEmailConfirmationSubmitted.set(false);
     this.$sendUpdateEmailConfirmationCycleComplete.set(false);
-    this.$passwordUpdateCycleInit.set(false);
-    this.$passwordUpdateCycleComplete.set(false);
     this.$sendUpdateEmailConfirmationCycleInit.set(false);
-    this.$sendUpdateEmailConfirmationCycleComplete.set(false);
+    this.store$.dispatch(UserStoreActions.purgePublicUserErrors());
   }
 
   // These getters are used for easy access in the HTML template

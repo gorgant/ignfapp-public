@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { Store, select } from '@ngrx/store';
-import { Observable, Subscription, catchError, filter, map, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
@@ -130,7 +130,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           if (!this.deletePublicUserSubmitted()) {
             this.deletePublicUserSubmitted.set(true);
             console.log('User action confirmed', userActionConfirmed);
-            this.store$.dispatch(UserStoreActions.deletePublicUserRequested({publicUserId: userData.id}));
+            this.store$.dispatch(UserStoreActions.deletePublicUserRequested({userId: userData.id}));
           }
           return this.deletePublicUserProcessing$;
         }),
@@ -162,13 +162,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private resetComponentActionState() {
+    this.deletePublicUserSubscription?.unsubscribe();
     this.deletePublicUserSubmitted.set(false);
     this.$deletePublicUserCycleInit.set(false);
     this.$deletePublicUserCycleComplete.set(false);
+    this.store$.dispatch(AuthStoreActions.purgeAuthErrors());
+    this.store$.dispatch(UserStoreActions.purgePublicUserErrors());
   }
 
   ngOnDestroy(): void {
-      this.deletePublicUserSubscription?.unsubscribe();
+    this.deletePublicUserSubscription?.unsubscribe();
   }
 
 

@@ -8,8 +8,8 @@ import { Observable, Subject, Subscription, catchError, combineLatest, debounceT
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentUrlParams } from 'shared-models/train/personal-session-fragment.model';
-import { TrainingSessionDatabaseCategoryTypes, ViewTrainingSessionsUlrParams, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentQueryParams, ViewPersonalSessionFragmentQueryParamsKeys } from 'shared-models/train/personal-session-fragment.model';
+import { TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -76,10 +76,6 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   
-  
-
-  
-
   ngOnInit(): void {
     this.monitorProcesses();
     this.checkForDeletePersonalSessionFragmentRequest();
@@ -224,7 +220,8 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+            this.resetFetchPersonalSessionFragmentsComponentState();
+            this.onBackToDashboard();
           }
           const personalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore);
           return personalSessionFragmentsInStore$;
@@ -248,17 +245,23 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+          this.resetFetchPersonalSessionFragmentsComponentState();
+          this.onBackToDashboard();
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
+  private resetFetchPersonalSessionFragmentsComponentState() {
+    this.fetchPersonalSessionFragmentsSubscription?.unsubscribe();
+    this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
+  }
 
   onSelectPersonalSessionFragment(personalSessionFragmentData: PersonalSessionFragment) {
-    const queryParams: ViewPersonalSessionFragmentUrlParams = {
-      canonicalId: personalSessionFragmentData.canonicalId,
-      databaseCategory: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
+    const queryParams: ViewPersonalSessionFragmentQueryParams = {
+      [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: personalSessionFragmentData.canonicalId,
+      [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
     };
     const navigationExtras = {queryParams};
     this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, personalSessionFragmentData.id], navigationExtras);
@@ -360,12 +363,11 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
 
     const dialogActionObserver$: Observable<boolean> = dialogRef.afterClosed();
 
-    this.deletePersonalSessionFragmentSubscription = this.deletePersonalSessionFragmentError$
+    this.deletePersonalSessionFragmentSubscription = this.combinedDeletePersonalSessionFragmentError$
       .pipe(
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.deletePersonalSessionFragmentSubscription?.unsubscribe();
             this.resetDeletePersonalSessionFragmentComponentState();
           }
           return dialogActionObserver$;
@@ -427,14 +429,12 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         tap(batchModifyProcessing => {
           console.log('All steps complete: 1) personalSessionFragment deleted, 2) remaining personalSessionFragments updated');
           this.uiService.showSnackBar(`Training session deleted.`, 10000);
-          this.deletePersonalSessionFragmentSubscription?.unsubscribe();
           this.resetDeletePersonalSessionFragmentComponentState();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
-          this.deletePersonalSessionFragmentSubscription?.unsubscribe();
           this.resetDeletePersonalSessionFragmentComponentState();
           return throwError(() => new Error(error));
         })
@@ -479,6 +479,8 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   }
 
   private resetDeletePersonalSessionFragmentComponentState() {
+    this.deletePersonalSessionFragmentSubscription?.unsubscribe();
+
     this.$deletePersonalSessionFragmentSubmitted.set(false);
     this.$deletePersonalSessionFragmentCycleInit.set(false);
     this.$deletePersonalSessionFragmentCycleComplete.set(false);
@@ -488,6 +490,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
     this.$batchModifyPersonalSessionFragmentsCycleComplete.set(false);
 
     this.removePersonalSessionFragmentIdQueryParamFromUrl();
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
   }
 
   onClearPersonalQueue() {
@@ -508,7 +511,6 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.batchDeletePersonalSessionFragmentsSubscription?.unsubscribe();
             this.resetBatchDeletePersonalSessionFragmentsComponentState();
           }
           return dialogActionObserver$;
@@ -553,7 +555,6 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
-          this.batchDeletePersonalSessionFragmentsSubscription?.unsubscribe();
           this.resetBatchDeletePersonalSessionFragmentsComponentState();
           return throwError(() => new Error(error));
         })
@@ -562,9 +563,13 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   }
 
   private resetBatchDeletePersonalSessionFragmentsComponentState() {
+    this.batchDeletePersonalSessionFragmentsSubscription?.unsubscribe();
+
     this.$batchDeletePersonalSessionFragmentsSubmitted.set(false);
     this.$batchDeletePersonalSessionFragmentsCycleInit.set(false);
     this.$batchDeletePersonalSessionFragmentsCycleComplete.set(false);
+
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
   }
 
   onBackToDashboard() {

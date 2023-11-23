@@ -1,16 +1,16 @@
 import { PublicStoreFeatureKeys } from "shared-models/store/feature-keys.model";
-import { TrainingSession } from "shared-models/train/training-session.model";
+import { CanonicalTrainingSession } from "shared-models/train/training-session.model";
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 import { FirebaseError } from "firebase/app";
 
 export const trainingRecordFeatureKey = PublicStoreFeatureKeys.TRAINING_SESSION;
 
-export const featureAdapter: EntityAdapter<TrainingSession> = createEntityAdapter<TrainingSession>({
-  selectId: (trainingSession: TrainingSession) => trainingSession.id,
+export const featureAdapter: EntityAdapter<CanonicalTrainingSession> = createEntityAdapter<CanonicalTrainingSession>({
+  selectId: (trainingSession: CanonicalTrainingSession) => trainingSession.id,
 });
 
-export interface TrainingSessionState extends EntityState<TrainingSession> {
+export interface TrainingSessionState extends EntityState<CanonicalTrainingSession> {
   allTrainingSessionsFetched: boolean,
   createTrainingSessionError: FirebaseError | Error | null,
   createTrainingSessionProcessing: boolean,

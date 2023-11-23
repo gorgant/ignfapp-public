@@ -1,7 +1,9 @@
 import { Component, Input, OnInit, ViewChild, signal } from '@angular/core';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingSession } from 'shared-models/train/training-session.model';
+import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
+import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
+import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
 
 @Component({
   selector: 'app-training-session-details',
@@ -10,7 +12,7 @@ import { TrainingSession } from 'shared-models/train/training-session.model';
 })
 export class TrainingSessionDetailsComponent implements OnInit {
 
-  @Input() trainingSessionData!: TrainingSession;
+  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment;
   @ViewChild('expansionPanel') expansionPanel!: MatExpansionPanel;
 
   TAGS_TITLE_VALUE = GlobalFieldValues.TAGS;

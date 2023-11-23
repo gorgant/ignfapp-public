@@ -6,11 +6,14 @@ import { TrainingSessionMuscleGroupDbOption } from "./muscle-group.model";
 import { TrainingSessionComplexityDbOption } from "./training-complexity.model";
 import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
 
-
-export interface TrainingSession extends TrainingSessionNoIdOrTimestamps {
+export interface CanonicalTrainingSession extends CanonicalTrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.CREATED_TIMESTAMP]: number | Timestamp,
   [TrainingSessionKeys.ID]: string,
   [TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp,
+}
+
+export interface CanonicalTrainingSessionNoIdOrTimestamps extends TrainingSessionNoIdOrTimestamps {
+  // [TrainingSessionKeys.VISIBILITY_CATEGORY]: TrainingSessionVisibilityCategoryDbOption;
 }
 
 export interface TrainingSessionNoIdOrTimestamps {
@@ -18,7 +21,7 @@ export interface TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.COMPLEXITY_AVERAGE]: number, // the average value of submitted ratings
   [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: number // the number of ratings submitted
   [TrainingSessionKeys.COMPLEXITY_DEFAULT]: number, // the starting value set by the creator
-  creatorId: string,
+  [TrainingSessionKeys.CREATOR_ID]: string,
   [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
   [TrainingSessionKeys.EQUIPMENT]: boolean,
   [TrainingSessionKeys.INTENSITY_AVERAGE]: number, // the average value of submitted ratings
@@ -26,7 +29,8 @@ export interface TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.INTENSITY_RATING_COUNT]: number, // the number of ratings submitted 
   [TrainingSessionKeys.MUSCLE_GROUP]: TrainingSessionMuscleGroupDbOption,
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
-  [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact
+  [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact,
+  [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: TrainingSessionVisibilityCategoryDbOption;
 }
 
 export enum TrainingSessionDatabaseCategoryTypes {
@@ -48,6 +52,7 @@ export enum TrainingSessionKeys {
   COMPLEXITY_DEFAULT = 'complexityDefault',
   COMPLEXITY_RATING_COUNT = 'complexityRatingCount',
   CREATED_TIMESTAMP = 'createdTimestamp',
+  CREATOR_ID = 'creatorId',
   DATABASE_CATEGORY = 'databaseCategory',
   EQUIPMENT = 'equipment',
   ID = 'id',
@@ -58,6 +63,7 @@ export enum TrainingSessionKeys {
   MUSCLE_GROUP = 'muscleGroup',
   VIDEO_DATA = 'videoData',
   VIDEO_PLATFORM = 'videoPlatform',
+  TRAINING_SESSION_VISIBILITY_CATEGORY = 'trainingSessionVisibilityCategory',
 };
 
 export enum TrainingSessionVideoPlatform {
@@ -79,11 +85,50 @@ export interface TrainingSessionFilterForm {
   [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: FormControl<TrainingSessionMuscleGroupDbOption[] | null>,
 }
 
-export interface ViewTrainingSessionsUlrParams {
-  [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: boolean | null
+export interface BrowseTrainingSessionsQueryParams {
+  [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: boolean | null
 }
 
-export enum ViewTrainingSessionsUrlParamsKeys {
+export enum BrowseTrainingSessionsQueryParamsKeys {
   VIEW_TRAINING_SESSIONS = 'viewTrainingSessions'
 }
 
+export interface ViewCanonicalTrainingSessionQueryParams {
+  [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
+  [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: TrainingSessionVisibilityCategoryDbOption,
+}
+
+export enum ViewCanonicalTrainingSessionQueryParamsKeys {
+  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+  TRAINING_SESSION_VISIBILITY_CATEGORY = TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY,
+}
+
+export enum TrainingSessionVisibilityCategoryDbOption {
+  PUBLIC = 'public',
+  PRIVATE = 'private'
+}
+
+export enum TrainingSessionVisibilityCategoryUiOption {
+  PUBLIC = 'Public',
+  PRIVATE = 'Private'
+}
+
+export interface TrainingSessionVisibilityCategoryObject {
+  uiValue: TrainingSessionVisibilityCategoryUiOption,
+  dbValue: TrainingSessionVisibilityCategoryDbOption
+}
+
+export interface TrainingSessionVisibilityCategoryListModel {
+  [key: string]: TrainingSessionVisibilityCategoryObject
+}
+
+export const TrainingSessionVisibilityTypeList: TrainingSessionVisibilityCategoryListModel = {
+  [TrainingSessionVisibilityCategoryDbOption.PUBLIC]: {
+    uiValue: TrainingSessionVisibilityCategoryUiOption.PUBLIC,
+    dbValue: TrainingSessionVisibilityCategoryDbOption.PUBLIC
+  },
+  [TrainingSessionVisibilityCategoryDbOption.PRIVATE]: {
+    uiValue: TrainingSessionVisibilityCategoryUiOption.PRIVATE,
+    dbValue: TrainingSessionVisibilityCategoryDbOption.PRIVATE
+  },
+}

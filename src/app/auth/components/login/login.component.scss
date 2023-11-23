@@ -61,14 +61,11 @@ app-login-form {
   font-size: 1.2em;
   font-weight: $font-weight-light;
   line-height: 1.2em;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
-.verify-text {
-  color: $primary;
-  font-weight: $font-weight-medium;
-}
-
-.trusted-sender-text {
+.verify-text, .trusted-sender-text {
   font-weight: $font-weight-medium
 }
 

@@ -9,7 +9,7 @@ import { UserUpdateData } from "shared-models/user/user-update.model";
 
 export const createPublicUserRequested = createAction(
   '[Signup Form] Create Public User Requested',
-  props<{partialNewPublicUserData: Partial<PublicUser>}>()
+  props<{partialNewUserData: Partial<PublicUser>}>()
 );
 
 export const createPublicUserCompleted = createAction(
@@ -26,12 +26,12 @@ export const createPublicUserFailed = createAction(
 
 export const deletePublicUserRequested = createAction(
   '[Profile Component] Delete Public User Requested',
-  props<{publicUserId: string}>()
+  props<{userId: string}>()
 );
 
 export const deletePublicUserCompleted = createAction(
   '[User Service] Delete Public User Completed',
-  props<{publicUserDeleted: boolean}>()
+  props<{userDeleted: boolean}>()
 );
 
 export const deletePublicUserFailed = createAction(
@@ -48,7 +48,7 @@ export const fetchPublicUserRequested = createAction(
 
 export const fetchPublicUserCompleted = createAction(
   '[User Service] Fetch Public User Completed',
-  props<{publicUser: PublicUser}>()
+  props<{userData: PublicUser}>()
 );
 
 export const fetchPublicUserFailed = createAction(
@@ -61,6 +61,13 @@ export const fetchPublicUserFailed = createAction(
 export const purgePublicUserData = createAction(
   '[AppWide] Purge Public User Data'
 );
+
+// Purge Public User Errors
+
+export const purgePublicUserErrors = createAction(
+  '[AppWide] Purge Public User Errors'
+);
+
 
 // Resize Avatar
 
@@ -104,7 +111,7 @@ export const updatePublicUserRequested = createAction(
 
 export const updatePublicUserCompleted = createAction(
   '[User Service] Update Public User Completed',
-  props<{updatedPublicUser: PublicUser}>()
+  props<{updatedUserData: PublicUser}>()
 );
 
 export const updatePublicUserFailed = createAction(

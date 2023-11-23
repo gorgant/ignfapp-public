@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc } from '@angular/fire/firestore';
+import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError, catchError, map, takeUntil, Subject, shareReplay } from 'rxjs';
-import { TrainingPlan, TrainingPlanNoIdOrTimestamp } from 'shared-models/train/training-plan.model';
+import { from, Observable, throwError, catchError, map, takeUntil, Subject, shareReplay, combineLatest } from 'rxjs';
+import { TrainingPlan, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
@@ -22,11 +22,21 @@ export class TrainingPlanService {
 
   constructor() {}
 
-  createTrainingPlan(trainingPlanNoIdOrTimestamp: TrainingPlanNoIdOrTimestamp): Observable<TrainingPlan> {
-
+  createTrainingPlan(trainingPlanNoIdOrTimestamp: TrainingPlanNoIdOrTimestamp, userId: string): Observable<TrainingPlan> {
     const currentTimeTimestamp: Timestamp = Timestamp.now();
 
     const newId = this.generateNewTrainingPlanDocumentId();
+
+    const visibilityCategory = trainingPlanNoIdOrTimestamp[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
+    let trainingPlanDocRef: DocumentReference<TrainingPlan>;
+
+    if (isPublicTrainingPlan) {
+      trainingPlanDocRef = this.getPublicTrainingPlanDoc(newId);
+    } else {
+      trainingPlanDocRef = this.getPrivateTrainingPlanDoc(newId, userId);
+    }
 
     const trainingPlanWithIdAndTimestamps: TrainingPlan = {
       ...trainingPlanNoIdOrTimestamp, 
@@ -42,7 +52,6 @@ export class TrainingPlanService {
       lastModifiedTimestamp: currentTimeTimestamp.toMillis(),
     };
 
-    const trainingPlanDocRef = this.getTrainingPlanDoc(newId);
     const trainingPlanAddRequest = setDoc(trainingPlanDocRef, trainingPlanWithIdAndTimestamps);
 
     return from(trainingPlanAddRequest)
@@ -50,49 +59,63 @@ export class TrainingPlanService {
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
         map(empty => {
-          console.log('Created new trainingPlan', trainingPlanWithIdAndMs);
+          console.log(`Created new ${visibilityCategory} trainingPlan`, trainingPlanWithIdAndMs);
           return trainingPlanWithIdAndMs; // Use new version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error creating trainingPlan', error);
+          console.log(`Error creating ${visibilityCategory} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  deleteTrainingPlan(planId: string): Observable<string> {
-    this.triggerDeleteTrainingPlanObserver();
+  deleteTrainingPlan(trainingPlan: TrainingPlan, userId: string): Observable<string> {
+    const documentId = trainingPlan[TrainingPlanKeys.ID];
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
 
-    const trainingPlanDeleteRequest = deleteDoc(this.getTrainingPlanDoc(planId));
+    let trainingPlanDeleteRequest: Promise<void>
+
+    if (isPublicTrainingPlan) {
+      trainingPlanDeleteRequest = deleteDoc(this.getPublicTrainingPlanDoc(documentId));
+    } else {
+      trainingPlanDeleteRequest = deleteDoc(this.getPrivateTrainingPlanDoc(documentId, userId));
+    }
+
+    this.triggerDeleteTrainingPlanObserver();
 
     return from(trainingPlanDeleteRequest)
       .pipe(
         map(empty => {
-          console.log('Deleted training plan', planId);
-          return planId;
+          console.log(`Deleted ${visibilityCategory} trainingPlan`, documentId);
+          return documentId;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting training plan', error);
+          console.log(`Error deleting ${visibilityCategory} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchAllTrainingPlans(): Observable<TrainingPlan[]> {
+  fetchAllTrainingPlans(userId: string): Observable<TrainingPlan[]> {
 
-    const trainingPlanCollectionDataRequest = collectionData(this.getTrainingPlanCollection());
+    const publicTrainingPlanCollectionDataRequest = collectionData(this.getPublicTrainingPlanCollection());
+    const privateTrainingPlanCollectionDataRequest = collectionData(this.getPrivateTrainingPlanCollection(userId));
 
-    return from(trainingPlanCollectionDataRequest)
+    // Combine both public and private training plans
+    return combineLatest([publicTrainingPlanCollectionDataRequest, privateTrainingPlanCollectionDataRequest])
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        map(trainingPlans => {
-          if (!trainingPlans) {
-            throw new Error(`Error fetching all training plans`, );
+        // takeUntil(this.deleteTrainingPlanTriggered$),
+        map(([publicTrainingPlans, privateTrainingPlans]) => {
+          if (!publicTrainingPlans && !privateTrainingPlans) {
+            throw new Error(`Error fetching trainingPlans`);
           }
-          const trainingPlansWithUpdatedTimestamps = trainingPlans.map(trainingPlan => {
+          const combinedTrainingPlans = publicTrainingPlans.concat(privateTrainingPlans);
+          const trainingPlansWithUpdatedTimestamps = combinedTrainingPlans.map(trainingPlan => {
             const formattedTrainingPlans: TrainingPlan = {
               ...trainingPlan,
               createdTimestamp: (trainingPlan.createdTimestamp as Timestamp).toMillis(),
@@ -106,13 +129,13 @@ export class TrainingPlanService {
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training plans', error);
+          console.log('Error fetching trainingPlans', error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchMultipleTrainingPlans(queryParams: FirestoreCollectionQueryParams): Observable<TrainingPlan[]> {
+  fetchMultipleTrainingPlans(queryParams: FirestoreCollectionQueryParams, userId: string): Observable<TrainingPlan[]> {
 
     const whereQueryConditions: QueryConstraint[] | undefined = queryParams.whereQueries ? 
       queryParams.whereQueries.map(condition => where(condition.property, condition.operator, condition.value)) :
@@ -126,28 +149,35 @@ export class TrainingPlanService {
     let combinedQueryConstraints: QueryConstraint[] = [];
     
     if (whereQueryConditions) {
-      combinedQueryConstraints = [...whereQueryConditions]
+      combinedQueryConstraints = [...whereQueryConditions];
     }
     if (limitQueryCondition) {
-      combinedQueryConstraints = [...combinedQueryConstraints, limitQueryCondition]
+      combinedQueryConstraints = [...combinedQueryConstraints, limitQueryCondition];
     }
-    
-    const trainingPlanCollectionQuery = query(
-      this.getTrainingPlanCollection(),
-      ...combinedQueryConstraints
+
+    const publicTrainingPlanCollectionQuery = query(
+      this.getPublicTrainingPlanCollection(),
+      ...combinedQueryConstraints,
     );
 
-    const trainingPlanCollectionDataRequest = collectionData(trainingPlanCollectionQuery);
+    const privateTrainingPlanCollectionQuery = query(
+      this.getPrivateTrainingPlanCollection(userId),
+      ...combinedQueryConstraints,
+    );
 
-    return from(trainingPlanCollectionDataRequest)
+    const publicTrainingPlanCollectionDataRequest = collectionData(publicTrainingPlanCollectionQuery);
+    const privateTrainingPlanCollectionDataRequest = collectionData(privateTrainingPlanCollectionQuery);
+
+    return combineLatest([publicTrainingPlanCollectionDataRequest, privateTrainingPlanCollectionDataRequest])
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        map(trainingPlans => {
-          if (!trainingPlans) {
-            throw new Error(`Error fetching training plans with query: ${queryParams}`, );
+        map(([publicTrainingPlans, privateTrainingPlans]) => {
+          if (!publicTrainingPlans && !privateTrainingPlans) {
+            throw new Error(`Error fetching trainingPlans`);
           }
-          const trainingPlansWithUpdatedTimestamps = trainingPlans.map(trainingPlan => {
+          const combinedTrainingPlans = publicTrainingPlans.concat(privateTrainingPlans);
+          const trainingPlansWithUpdatedTimestamps = combinedTrainingPlans.map(trainingPlan => {
             const formattedTrainingPlans: TrainingPlan = {
               ...trainingPlan,
               createdTimestamp: (trainingPlan.createdTimestamp as Timestamp).toMillis(),
@@ -155,67 +185,92 @@ export class TrainingPlanService {
             };
             return formattedTrainingPlans;
           });
-          console.log(`Fetched all ${trainingPlansWithUpdatedTimestamps.length} trainingPlans`);
+          console.log(`Fetched ${trainingPlansWithUpdatedTimestamps.length} trainingPlans`);
           return trainingPlansWithUpdatedTimestamps;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training plans', error);
+          console.log(`Error fetching trainingPlans`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  fetchSingleTrainingPlan(planId: string): Observable<TrainingPlan> {
-    const trainingPlan = docData(this.getTrainingPlanDoc(planId));
+  fetchSingleTrainingPlan(trainingPlanId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<TrainingPlan> {
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+    let trainingPlan: Observable<TrainingPlan>;
+
+    if (isPublicTrainingPlan) {
+      trainingPlan = docData(this.getPublicTrainingPlanDoc(trainingPlanId));
+    } else {
+      trainingPlan = docData(this.getPrivateTrainingPlanDoc(trainingPlanId, userId));
+    }
+
     return trainingPlan
       .pipe(
-        takeUntil(this.deleteTrainingPlanTriggered$), // Prevents fetching error when plan is deleted
+        // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
+        takeUntil(this.deleteTrainingPlanTriggered$),
         map(trainingPlan => {
           if (!trainingPlan) {
-            throw new Error(`Error fetching training plan with id: ${planId}`);
+            throw new Error(`Error fetching trainingPlan with id: ${trainingPlanId}`);
           }
           const formattedTrainingPlan: TrainingPlan = {
             ...trainingPlan,
             createdTimestamp: (trainingPlan.createdTimestamp as Timestamp).toMillis(),
             lastModifiedTimestamp: (trainingPlan.lastModifiedTimestamp as Timestamp).toMillis()
           };
-          console.log(`Fetched single trainingPlan`, formattedTrainingPlan);
+          console.log(`Fetched single ${visibilityCategory} trainingPlan`, formattedTrainingPlan);
           return formattedTrainingPlan;
         }),
         shareReplay(),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error fetching training plan', error);
+          console.log(`Error fetching ${visibilityCategory} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );
   }
 
-  updateTrainingPlan(trainingPlanUpdates: Update<TrainingPlan>): Observable<Update<TrainingPlan>> {
-    const changesWithTimestamp: Partial<TrainingPlan> = {
-      ...trainingPlanUpdates.changes,
-      lastModifiedTimestamp: Timestamp.now()
+  updateTrainingPlan(trainingPlanUpdates: Update<TrainingPlan>, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<Update<TrainingPlan>> {
+    const currentTimeTimestamp: Timestamp = Timestamp.now();
+
+    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+    const documentId = trainingPlanUpdates.id as string;
+
+    let trainingPlanDoc: DocumentReference<TrainingPlan>;
+
+    if (isPublicTrainingPlan) {
+      trainingPlanDoc = this.getPublicTrainingPlanDoc(documentId!);
+    } else {
+      trainingPlanDoc = this.getPrivateTrainingPlanDoc(documentId!, userId);
     }
 
-    const trainingPlanUpdatesWithTimestamp: Update<TrainingPlan> = {
+    const changesWithTimestamp: Partial<TrainingPlan> = {
+      ...trainingPlanUpdates.changes,
+      lastModifiedTimestamp: currentTimeTimestamp
+    };
+
+    const changesWithMs: Update<TrainingPlan> = {
       ...trainingPlanUpdates,
-      changes: changesWithTimestamp
-    }
-    const trainingPlanDoc = this.getTrainingPlanDoc(trainingPlanUpdatesWithTimestamp.id as string);
+      changes: {
+        ...trainingPlanUpdates.changes,
+        lastModifiedTimestamp: currentTimeTimestamp.toMillis()
+      }
+    };
+
     const trainingPlanUpdateRequest = updateDoc(trainingPlanDoc, changesWithTimestamp);
 
     return from(trainingPlanUpdateRequest)
       .pipe(
         map(empty => {
-          console.log('Updated trainingPlan', trainingPlanUpdates);
-          return trainingPlanUpdates;  // Use original version with MS timestamps
+          console.log(`Updated ${visibilityCategory} trainingPlan`, changesWithMs);
+          return changesWithMs; // Use original version with MS timestamps
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error updating trainingPlan', error);
+          console.log(`Error updating ${visibilityCategory} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );
@@ -227,17 +282,26 @@ export class TrainingPlanService {
     this.deleteTrainingPlanTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)
   }
 
-  private getTrainingPlanCollection(): CollectionReference<TrainingPlan> {
-    // Note that plan is nested in Public User document
-    return collection(this.firestore, `${PublicCollectionPaths.TRAINING_PLANS}`) as CollectionReference<TrainingPlan>;
+  private getPrivateTrainingPlanCollection(userId: string): CollectionReference<TrainingPlan> {
+    // Note that the privateTrainingPlan collection is nested in Public User document
+    return collection(this.firestore, `${PublicCollectionPaths.PUBLIC_USERS}/${userId}/${PublicCollectionPaths.PRIVATE_TRAINING_PLANS}`) as CollectionReference<TrainingPlan>;
   }
 
-  private getTrainingPlanDoc(planId: string): DocumentReference<TrainingPlan> {
-    return doc(this.getTrainingPlanCollection(), planId);
+  private getPrivateTrainingPlanDoc(trainingPlanId: string, userId: string): DocumentReference<TrainingPlan> {
+    return doc(this.getPrivateTrainingPlanCollection(userId), trainingPlanId);
+  }
+
+  private getPublicTrainingPlanCollection(): CollectionReference<TrainingPlan> {
+    // Note that plan is nested in Public User document
+    return collection(this.firestore, PublicCollectionPaths.PUBLIC_TRAINING_PLANS) as CollectionReference<TrainingPlan>;
+  }
+
+  private getPublicTrainingPlanDoc(planId: string): DocumentReference<TrainingPlan> {
+    return doc(this.getPublicTrainingPlanCollection(), planId);
   }
 
   private generateNewTrainingPlanDocumentId(): string {
-    return doc(this.getTrainingPlanCollection()).id;
+    return doc(this.getPublicTrainingPlanCollection()).id;
   }
 
 }

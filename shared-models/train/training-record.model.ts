@@ -1,6 +1,8 @@
 import { FormControl } from "@angular/forms";
-import { TrainingSession } from "./training-session.model";
+import { CanonicalTrainingSession, TrainingSessionVisibilityCategoryDbOption } from "./training-session.model";
 import { Timestamp } from '@angular/fire/firestore';
+import { PersonalSessionFragment } from "./personal-session-fragment.model";
+import { PlanSessionFragment } from "./plan-session-fragment.model";
 
 export interface TrainingRecord extends TrainingRecordNoIdOrTimestamp {
   [TrainingRecordKeys.CREATED_TIMESTAMP]: number | Timestamp,
@@ -12,7 +14,7 @@ export interface TrainingRecordNoIdOrTimestamp {
   [TrainingRecordKeys.COMPLEXITY_RATING]: number,
   duration: number,
   [TrainingRecordKeys.INTENSITY_RATING]: number,
-  trainingSessionData: TrainingSession,
+  trainingSessionData: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment,
   userId: string,
 
 };
@@ -28,7 +30,7 @@ export enum TrainingRecordKeys {
 
 export interface TrainingSessionCompletionData {
   sessionDuration: number,
-  trainingSession: TrainingSession,
+  trainingSession: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment,
   userId: string,
   personalSessionFragmentId?: string
 }

@@ -214,7 +214,21 @@ export const planSessionFragmentStoreReducer = createReducer(
     );
   }),
 
-  // Pur
+  // Purge Plan Session Fragment Errors
+
+  on(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors, (state, action) => {
+    return {
+      ...state, 
+      batchDeletePlanSessionFragmentsError: null,
+      batchModifyPlanSessionFragmentsError: null,
+      createPlanSessionFragmentError: null,
+      deletePlanSessionFragmentError: null,
+      fetchAllPlanSessionFragmentsError: null,
+      fetchMultiplePlanSessionFragmentsError: null,
+      fetchSinglePlanSessionFragmentError: null,
+      updatePlanSessionFragmentError: null,
+    };
+  }),
 
 
   // Update Plan Session Fragment

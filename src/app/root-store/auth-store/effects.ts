@@ -60,7 +60,7 @@ export class AuthStoreEffects {
     .pipe(
       ofType(AuthStoreActions.detectCachedUserRequested),
       concatMap(action => 
-        this.authService.fetchCachedUserData().pipe(
+        this.authService.fetchAuthData().pipe(
           map(authResultsData => {
             return AuthStoreActions.detectCachedUserCompleted({authResultsData});
           }),

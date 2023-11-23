@@ -1,10 +1,11 @@
 import { Timestamp } from '@angular/fire/firestore';
 import { Params } from '@angular/router';
 import { TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from "./training-session.model";
+import { TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from './training-plan.model';
 
 export interface PlanSessionFragment extends PlanSessionFragmentNoIdOrTimestamp {
   [PlanSessionFragmentKeys.CREATED_TIMESTAMP]: number | Timestamp,
-  id: string,
+  [PlanSessionFragmentKeys.ID]: string,
   [PlanSessionFragmentKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp,
 }
 
@@ -13,26 +14,40 @@ export interface PlanSessionFragmentNoIdOrTimestamp extends TrainingSessionNoIdO
   [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: string,
   [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: number,
   [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: string,
+  [PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption
 }
 
 export enum PlanSessionFragmentKeys {
+  ID = 'id',
   CANONICAL_ID = 'canonicalId',
   CREATED_TIMESTAMP = 'createdTimestamp',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   TRAINING_PLAN_ID = 'trainingPlanId',
   TRAINING_PLAN_INDEX = 'trainingPlanIndex',
-  TRAINING_PLAN_OWNER_ID = 'trainingPlanOwnerId'
+  TRAINING_PLAN_OWNER_ID = 'trainingPlanOwnerId',
+  TRAINING_PLAN_VISIBILITY_CATEGORY = TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY
 }
 
-export interface ViewPlanSessionFragmentUrlParams extends Params {
-  [PlanSessionFragmentKeys.CANONICAL_ID]: string,
-  [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
+export interface ViewPlanSessionFragmentQueryParams {
+  [ViewPlanSessionFragmentQueryParamsKeys.CANONICAL_ID]: string,
+  [ViewPlanSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
+  [ViewPlanSessionFragmentQueryParamsKeys.TRAINING_PLAN_ID]: string,
+  [ViewPlanSessionFragmentQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption
 }
 
-export interface DeletePlanSessionFragmentUrlParams extends Params {
-  [DeletePlanSessionFragmentUrlParamsKeys.DELETE_PLAN_SESSION_FRAGMENT_ID]: string,
+export enum ViewPlanSessionFragmentQueryParamsKeys {
+  CANONICAL_ID = PlanSessionFragmentKeys.CANONICAL_ID,
+  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+  TRAINING_PLAN_ID = PlanSessionFragmentKeys.TRAINING_PLAN_ID,
+  TRAINING_PLAN_VISIBILITY_CATEGORY = PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY
 }
 
-export enum DeletePlanSessionFragmentUrlParamsKeys {
+export interface DeletePlanSessionFragmentQueryParams {
+  [DeletePlanSessionFragmentQueryParamsKeys.DELETE_PLAN_SESSION_FRAGMENT_ID]: string,
+  [DeletePlanSessionFragmentQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption,
+}
+
+export enum DeletePlanSessionFragmentQueryParamsKeys {
   DELETE_PLAN_SESSION_FRAGMENT_ID = 'deletePlanSessionFragmentId',
+  TRAINING_PLAN_VISIBILITY_CATEGORY = PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY
 }

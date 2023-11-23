@@ -1,6 +1,8 @@
 import { Component, Input, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
-import { TrainingSession } from 'shared-models/train/training-session.model';
+import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
+import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
+import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 
 @Component({
@@ -10,7 +12,7 @@ import { UiService } from 'src/app/core/services/ui.service';
 })
 export class TrainingSessionVideoComponent implements OnInit {
   
-  @Input() trainingSessionData!: TrainingSession;
+  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment;
 
   private apiLoaded = signal(false);
   

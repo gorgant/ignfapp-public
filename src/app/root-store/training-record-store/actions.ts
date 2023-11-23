@@ -95,6 +95,12 @@ export const purgeTrainingRecordData = createAction(
   '[AppWide] Purge Training Record Data'
 );
 
+// Purge Training Record Errors
+
+export const purgeTrainingRecordErrors = createAction(
+  '[AppWide] Purge Training Record Errors'
+);
+
 // Update Training Record
 
 export const updateTrainingRecordRequested = createAction(

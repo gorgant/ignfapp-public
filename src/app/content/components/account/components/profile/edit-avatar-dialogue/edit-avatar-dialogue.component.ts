@@ -48,8 +48,8 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   private $userUpdateCycleInit = signal(false);
   private $userUpdateCycleComplete = signal(false);
 
-  avatarUploadOrUserUpdateProcessing$!: Observable<boolean>;
-  avatarUploadOrUserUpdateError$!: Observable<boolean>;
+  combinedUploadAvatarProcessing$!: Observable<boolean>;
+  combinedUploadAvatarError$!: Observable<{} | null>;
 
   private dialogRef = inject(MatDialogRef<EditAvatarDialogueComponent>);
   private store$ = inject(Store<RootStoreState.AppState>);
@@ -76,7 +76,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
     this.resizeAvatarSucceeded$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarSucceeded));
 
-    this.avatarUploadOrUserUpdateProcessing$ = combineLatest(
+    this.combinedUploadAvatarProcessing$ = combineLatest(
       [
         this.uploadAvatarProcessing$,
         this.userUpdateProcessing$,
@@ -91,7 +91,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         })
     );
 
-    this.avatarUploadOrUserUpdateError$ = combineLatest(
+    this.combinedUploadAvatarError$ = combineLatest(
       [
         this.uploadAvatarError$,
         this.userUpdateError$,
@@ -100,7 +100,7 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     ).pipe(
         map(([uploadError, updateError, resizeError]) => {
           if (uploadError || updateError || resizeError) {
-            return true
+            return uploadError || updateError || resizeError;
           }
           return false
         })
@@ -119,43 +119,46 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   private processAvatarImage(imageFile: File) {
     // 1) Get user data 2) add avatar URL to user in DB 3) resize avatar image in cloud function 4) close dialogue
-    this.processAvatarImageSubscription = this.avatarUploadOrUserUpdateError$
+    this.processAvatarImageSubscription = this.combinedUploadAvatarError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
+            this.resetComponentState();
             this.dialogRef.close(false);
           }
-          return combineLatest([this.userData$, this.avatarUploadOrUserUpdateError$]);
+          return processingError;
         }),
-        filter(([userData, processingError]) => !processingError ), // Halts function if processingError detected
-        switchMap(([userData, processingError]) => {
+        withLatestFrom(this.userData$),
+        filter(([processingError, userData]) => !processingError ), // Halts function if processingError detected
+        switchMap(([processingError, userData]) => {
           console.log('processAvatarImage triggered');
           if (!this.$avatarImageDataSubmitted()) {
+            this.$avatarImageDataSubmitted.set(true);
             const avatarData = this.generateImageData(imageFile, userData!);
             if (!avatarData) {
               throw new Error('Error generating avatar image data!');
             }
             this.avatarImageData = avatarData;
             this.store$.dispatch(UserStoreActions.uploadAvatarRequested({avatarData}));
-            this.$avatarImageDataSubmitted.set(true);
           }
           return this.avatarDownloadUrl$
         }),
         filter(downloadUrl => !!downloadUrl),
         withLatestFrom(this.userData$),
         switchMap(([downloadUrl, userData]) => {
-          if (downloadUrl && !this.$userUpdateSubmitted()) {
+          if (!this.$userUpdateSubmitted()) {
+            this.$userUpdateSubmitted.set(true);
             const userUpdateData: UserUpdateData = {
               userData: { 
                 id: userData!.id,
-                avatarUrl: downloadUrl 
+                avatarUrl: downloadUrl! 
               },
               updateType: UserUpdateType.BIO_UPDATE
             };
             console.log(`Updating avatar with this url: ${downloadUrl}`);
             this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-            this.$userUpdateSubmitted.set(true);
+            
           }
           return this.userUpdateProcessing$;
         }),
@@ -188,11 +191,21 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
-      )
-      .subscribe();
+      ).subscribe();
+  }
+
+  private resetComponentState() {
+    this.processAvatarImageSubscription?.unsubscribe();
+    this.$avatarImageDataSubmitted.set(false);
+    this.$userUpdateSubmitted.set(false);
+    this.$userUpdateCycleInit.set(false);
+    this.$userUpdateCycleComplete.set(false);
+    this.$resizeAvatarSubmitted.set(false);
+    this.store$.dispatch(UserStoreActions.purgePublicUserErrors());
   }
 
   private isValidImage(file: File | null): boolean {

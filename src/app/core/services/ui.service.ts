@@ -1,23 +1,28 @@
+
+
 import { Injectable, Signal, inject, signal } from '@angular/core';
 import { MatSnackBarConfig, MatSnackBar } from '@angular/material/snack-bar';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { NoNavBarUrls, PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { filter, tap } from 'rxjs/operators';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angular/router';
 import { DOCUMENT, Location } from '@angular/common';
-import { AddTrainingSessionUrlParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UiService {
 
-  private history: string[] = []
+  private history: string[] = [];
   private $privateHideNavBar = signal(true);
   private $privateRouteGuardProcessing = signal(false); // Accessed by route guards to update UI loading symbol
   private $privateScreenIsMobile = signal(false);
   private window: Window;
+
+  // private $snackBarData = signal(undefined as ViewTrainingPlanUrlParams | undefined);
 
   private snackbar = inject(MatSnackBar);
   private breakpointObserver = inject(BreakpointObserver);
@@ -30,17 +35,19 @@ export class UiService {
     this.monitorScreenSize();
     this.evaluateNavBarVisibility();
     this.monitorNavigationHistory();
-    this.window =this.document.defaultView as Window;
-   }
+    this.window = this.document.defaultView as Window;
+  }
 
-  showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS, ) {
+  showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS) {
     const config = new MatSnackBarConfig();
     config.duration = duration;
     config.panelClass = ['custom-snack-bar']; // CSS managed in global styles.css
 
     const snackBarRef = this.snackbar.open(message, action, config);
 
-    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID) as string | undefined;
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string | undefined;
+    const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
+
 
     // Perform an action based on the action input
     snackBarRef.onAction().subscribe(() => {
@@ -48,10 +55,15 @@ export class UiService {
       switch (action) {
         case SnackbarActions.DISMISS:
           snackBarRef.dismiss();
-          break
+          break;
         case SnackbarActions.EDIT_PLAN:
-          if (trainingPlanId) {
-            this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, trainingPlanId]);
+          // TODO: Make sure these are in the url when adding session to plan in browse
+          if (trainingPlanId && trainingPlanVisibilityCategory) {
+            const queryParams: ViewTrainingPlanQueryParams = {
+              [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory, // Ensures the user views training sessions vs plans
+            };
+            const navigationExtras: NavigationExtras = { queryParams };
+            this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, trainingPlanId], navigationExtras);
           } else {
             this.router.navigate([PublicAppRoutes.BROWSE]);
           }
@@ -60,8 +72,12 @@ export class UiService {
           this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
           break;
         case SnackbarActions.VIEW_PLAN:
-          if (trainingPlanId) {
-            this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, trainingPlanId]);
+          if (trainingPlanId && trainingPlanVisibilityCategory) {
+            const queryParams: ViewTrainingPlanQueryParams = {
+              [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory, // Ensures the user views training sessions vs plans
+            };
+            const navigationExtras: NavigationExtras = { queryParams };
+            this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, trainingPlanId], navigationExtras);
           } else {
             this.router.navigate([PublicAppRoutes.BROWSE]);
           }
@@ -71,7 +87,7 @@ export class UiService {
           break;
       }
 
-      
+
     });
   }
 
@@ -102,13 +118,12 @@ export class UiService {
 
   private evaluateNavBarVisibility() {
     this.router.events.pipe(
-      filter(event =>
-        event instanceof NavigationEnd
+      filter(event => event instanceof NavigationEnd
       ),
       tap(event => {
         console.log('Evaluating url validity');
         const url = this.router.url;
-        const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+        const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
         const addTrainingSessionRequest = addTrainingSessionString ? JSON.parse(addTrainingSessionString) as boolean : false;
         const invalidUrl = NoNavBarUrls.some(invalidUrl => url.includes(invalidUrl)); // Courtesy of: https://stackoverflow.com/a/43615512/6572208
         const hideNavBar = addTrainingSessionRequest || invalidUrl;
@@ -125,18 +140,18 @@ export class UiService {
   private monitorNavigationHistory() {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.history.push(event.urlAfterRedirects)
+        this.history.push(event.urlAfterRedirects);
       }
-    })
+    });
   }
 
   // Courtesy of https://nils-mehlhorn.de/posts/angular-navigate-back-previous-page
   routeUserToPreviousPage(): void {
     this.history.pop();
     if (this.history.length > 0) {
-      this.location.back()
+      this.location.back();
     } else {
-      this.router.navigateByUrl('/')
+      this.router.navigateByUrl('/');
     }
   }
 

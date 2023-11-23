@@ -50,15 +50,17 @@ export class LoginComponent implements OnInit {
   private checkAuthStatus() {
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store$.pipe(select(AuthStoreSelectors.selectSignupProcessing)),
-        this.store$.pipe(select(AuthStoreSelectors.selectAuthenticateUserProcessing)),
+        this.store$.pipe(select(AuthStoreSelectors.selectEmailSignupProcessing)),
+        this.store$.pipe(select(AuthStoreSelectors.selectEmailAuthProcessing)),
+        this.store$.pipe(select(AuthStoreSelectors.selectFacebookAuthProcessing)),
+        this.store$.pipe(select(AuthStoreSelectors.selectGoogleAuthProcessing)),
         this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserProcessing)),
         this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing)),
         this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing))
       ]
     ).pipe(
-        map(([signingUp, authenticating, creatingUser, updatingUser, fetchingUser]) => {
-          if (signingUp || authenticating || creatingUser || updatingUser || fetchingUser) {
+        map(([signupProcessing, emailAuthProcessing, facebookAuthProcessing, googleAuthProcessing, creatingUser, updatingUser, fetchingUser]) => {
+          if (signupProcessing || emailAuthProcessing || facebookAuthProcessing || googleAuthProcessing || creatingUser || updatingUser || fetchingUser) {
             return true
           }
           return false

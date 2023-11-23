@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, User, reload, deleteUser } from '@angular/fire/auth';
 import { Functions, httpsCallableData }  from '@angular/fire/functions';
-import { UiService } from 'src/app/core/services/ui.service';
+import { UiService } from './ui.service';
 import { from, Observable, Subject, throwError } from 'rxjs';
 import { take, map, catchError, switchMap, takeUntil, filter, shareReplay } from 'rxjs/operators';
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
@@ -99,7 +99,7 @@ export class AuthService {
   }
 
   // Detect cached user data
-  fetchCachedUserData(): Observable<AuthResultsData | null> {
+  fetchAuthData(): Observable<AuthResultsData | null> {
     return authState(this.auth)
       .pipe(
         takeUntil(this.unsubTrigger$),

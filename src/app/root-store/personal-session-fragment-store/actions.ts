@@ -146,6 +146,12 @@ export const purgePersonalSessionFragmentData = createAction(
   '[AppWide] Purge Personal Session Fragment Data'
 );
 
+// Purge Personal Session Fragment Errors
+
+export const purgePersonalSessionFragmentErrors = createAction(
+  '[AppWide] Purge Personal Session Fragment Errors'
+);
+
 // Update Personal Session Fragment
 
 export const updatePersonalSessionFragmentRequested = createAction(

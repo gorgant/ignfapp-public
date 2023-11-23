@@ -6,11 +6,6 @@
   width: $mobile-button-width;
 }
 
-.scrolling-container {
-  width: 100vw;
-  height: 100vh;
-}
-
 .training-session-card-container {
   height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
 }
@@ -31,7 +26,7 @@
   width: $mobile-button-width;
 }
 
-.queue-empty-message {
+.empty-message {
   font-size: 1.2em;
   line-height: 1.2em;
   font-weight: 300;

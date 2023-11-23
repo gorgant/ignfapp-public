@@ -6,11 +6,12 @@ import { combineLatest, Observable, Subscription, withLatestFrom, map, catchErro
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
-import { AddTrainingSessionUrlParams, AddTrainingSessionUrlParamsKeys, TrainingPlan } from 'shared-models/train/training-plan.model';
-import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps, ViewTrainingSessionsUrlParamsKeys } from 'shared-models/train/training-session.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
+import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors } from 'src/app/root-store';
+import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-add-training-session-to-plan-button',
@@ -19,12 +20,14 @@ import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, Tra
 })
 export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestroy {
 
-  @Input() trainingSessionData!: TrainingSession;
+  @Input() trainingSessionData!: CanonicalTrainingSession;
 
   ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
 
   serverRequestProcessing$!: Observable<boolean>;
   $isActiveButton = signal(false); // Identifies the instance of the button being clicked vs all other instances of buttons
+
+  private userData$!: Observable<PublicUser>;
 
   private $localTrainingPlanId = signal(undefined as string | undefined);
   private fetchSingleTrainingPlanProcessing$!: Observable<boolean>;
@@ -47,6 +50,8 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private addTrainingSessionToPlanSubscription!: Subscription;
   private combinedAddTrainingSessionToPlanError$!: Observable<{} | null>;
 
+  private $trainingPlanVisibilityCategory = signal(undefined as TrainingPlanVisibilityCategoryDbOption | undefined);
+
   private store$ = inject(Store);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -61,6 +66,8 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   }
 
   private monitorProcesses() {
+
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
 
     this.createPlanSessionFragmentProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentProcessing);
     this.createPlanSessionFragmentError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectCreatePlanSessionFragmentError);
@@ -100,9 +107,6 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
           return false;
         })
       );
-
-
-
   }
 
   private setTrainingPlanId() {
@@ -112,18 +116,19 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     }
   }
 
+  private setTrainingPlanVisibilityCategory(): void {
+    const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
+    this.$trainingPlanVisibilityCategory.set(visibilityCategory);
+    console.log('Setting this planVisibilityCategory', this.$trainingPlanVisibilityCategory());
+  }
+
   onAddTrainingSessionToPlan() {
     this.$isActiveButton.set(true);
+    this.setTrainingPlanVisibilityCategory();
     this.setTrainingPlanId();
     const trainingPlanId = this.$localTrainingPlanId() as string;
     const currentTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
-
-    // Convert current trainingSession into a no-id version to serve as the base for the planSessionFragment
-    const currentTrainingSessionClone: any = {...this.trainingSessionData};
-    delete currentTrainingSessionClone.id;
-    delete currentTrainingSessionClone[TrainingSessionKeys.CREATED_TIMESTAMP];
-    delete currentTrainingSessionClone[TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP];
-    const trainingSessionNoId = currentTrainingSessionClone as TrainingSessionNoIdOrTimestamps;
+    const trainingSessionNoId = this.buildTrainingSessionNoId()
 
     // This does the following: 1) Fetch training plan 2) create new planSessionFragment and add it to plan 3) update trainingPlan metadata
     this.addTrainingSessionToPlanSubscription = this.combinedAddTrainingSessionToPlanError$
@@ -131,23 +136,28 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.navigateToTrainingSessionSelection();
+            this.resetComponentState();
+            this.navigateToBrowseTrainingSessionsWithPlanBuilder();
           }
-          const singleTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
-          return singleTrainingPlan$;
+          return currentTrainingPlan$;
         }),
-        withLatestFrom(this.combinedAddTrainingSessionToPlanError$),
-        filter(([trainingPlan, processingError]) => !processingError),
-        map(([trainingPlan, processingError]) => {
+        withLatestFrom(this.combinedAddTrainingSessionToPlanError$, this.userData$),
+        filter(([trainingPlan, processingError, userData]) => !processingError),
+        map(([trainingPlan, processingError, userData]) => {
           if (!trainingPlan && !this.$fetchSingleTrainingPlanSubmitted()) {
             this.$fetchSingleTrainingPlanSubmitted.set(true);
             console.log(`trainingPlan ${trainingPlanId} not in store, fetching from database`);
-            this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({trainingPlanId}));
+            this.store$.dispatch(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested({
+              trainingPlanId,
+              userId: userData.id,
+              visibilityCategory: this.$trainingPlanVisibilityCategory()!
+            }));
           }
           return trainingPlan;
         }),
         filter(trainingPlan => !!trainingPlan),
-        switchMap(trainingPlan => {
+        withLatestFrom(this.userData$),
+        switchMap(([trainingPlan, userData]) => {
           const indexOfFinalItem = trainingPlan!.trainingSessionCount - 1;
           const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {
             ...trainingSessionNoId,
@@ -155,11 +165,12 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
             [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT,
             [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: trainingPlanId,
             [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,
-            [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: trainingPlan!.creatorId
+            [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: trainingPlan!.creatorId,
+            [PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
           };
           this.$localPlanSessionFragment.set(planSessionFragmentNoId);
           if(!this.$createPlanSessionFragmentSubmitted()) {
-            this.store$.dispatch(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested({trainingPlanId, planSessionFragmentNoId}));
+            this.store$.dispatch(PlanSessionFragmentStoreActions.createPlanSessionFragmentRequested({trainingPlanId, planSessionFragmentNoId, userId: userData.id}));
             this.$createPlanSessionFragmentSubmitted.set(true);
           }
           return this.createPlanSessionFragmentProcessing$;
@@ -176,8 +187,8 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
           }
         }),
         filter(creationProcessing => !creationProcessing && this.$createPlanSessionFragmentCycleComplete()),
-        withLatestFrom(currentTrainingPlan$),
-        switchMap(([creationProcessing, trainingPlan]) => {
+        withLatestFrom(currentTrainingPlan$, this.userData$),
+        switchMap(([creationProcessing, trainingPlan, userData]) => {
           if (!this.$updateTrainingPlanSubmitted()) {
             this.$updateTrainingPlanSubmitted.set(true);
             // Add thumbnail url if one doesn't already exist
@@ -190,7 +201,11 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
                 thumbnailUrlLarge: thumbnailExists ? trainingPlan!.thumbnailUrlLarge : this.$localPlanSessionFragment()!.videoData.thumbnailUrlLarge, // Add thumbnail data if it doesn't exist
               }
             };
-            this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({trainingPlanUpdates}));
+            this.store$.dispatch(TrainingPlanStoreActions.updateTrainingPlanRequested({
+              trainingPlanUpdates, 
+              userId: userData.id, 
+              visibilityCategory: this.$trainingPlanVisibilityCategory()!
+            }));
           }
           return this.updateTrainingPlanProcessing$;
         }),
@@ -208,19 +223,22 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         filter(updateProcessing => !updateProcessing && this.$updateTrainingPlanCycleComplete()),
         tap((updateProcessing: boolean) => {
           this.uiService.showSnackBar(`Training Session Added to Plan!`, 10000, SnackbarActions.EDIT_PLAN);
-          this.navigateToTrainingSessionSelection();
+          this.resetComponentState();
+          this.navigateToBrowseTrainingSessionsWithPlanBuilder();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
-          this.navigateToTrainingSessionSelection();
+          this.resetComponentState();
+          this.navigateToBrowseTrainingSessionsWithPlanBuilder();
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
   private resetComponentState() {
+    this.addTrainingSessionToPlanSubscription?.unsubscribe();
     this.$isActiveButton.set(false);
     this.$fetchSingleTrainingPlanSubmitted.set(false);
     this.$createPlanSessionFragmentSubmitted.set(false);
@@ -229,20 +247,51 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     this.$updateTrainingPlanSubmitted.set(false);
     this.$updateTrainingPlanCycleInit.set(false);
     this.$updateTrainingPlanCycleComplete.set(false);
+    this.store$.dispatch(TrainingPlanStoreActions.purgeTrainingPlanErrors());
+    this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
   }
 
-  private navigateToTrainingSessionSelection() {
-    console.log('Navigating to training session selection');
-    this.addTrainingSessionToPlanSubscription?.unsubscribe();
-    this.resetComponentState();
-    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID) as string;
-    const queryParams: AddTrainingSessionUrlParams = {
-      [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-      [AddTrainingSessionUrlParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
-      [ViewTrainingSessionsUrlParamsKeys.VIEW_TRAINING_SESSIONS]: true
+  // Convert current trainingSession into a no-id version to serve as the base for the planSessionFragment
+  private buildTrainingSessionNoId(): TrainingSessionNoIdOrTimestamps {
+    const trainingSession = this.trainingSessionData;
+    const clone: any = {...trainingSession};
+    let trainingSessionNoId: TrainingSessionNoIdOrTimestamps;
+    switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {
+      case TrainingSessionDatabaseCategoryTypes.CANONICAL:
+        delete clone[TrainingSessionKeys.CREATED_TIMESTAMP];
+        delete clone[TrainingSessionKeys.ID];
+        delete clone[TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP];
+        trainingSessionNoId = clone;
+        break;
+      default:
+        throw new Error('No databaseCategory found. Cannot buildTrainingSessionNoId.');
     }
-    const navigationExtras: NavigationExtras = {queryParams};
-    this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+    return trainingSessionNoId;
+  }
+
+  private navigateToBrowseTrainingSessionsWithPlanBuilder() {
+    if (this.$trainingPlanVisibilityCategory()) {
+      console.log('navigateToBrowseTrainingSessionsWithPlanBuilder');
+      this.addTrainingSessionToPlanSubscription?.unsubscribe();
+      this.resetComponentState();
+      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
+      const queryParams: AddTrainingSessionToPlanQueryParams = {
+        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
+        [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+      }
+      const navigationExtras: NavigationExtras = {queryParams};
+      this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+    } else {
+      console.log('Missing trainingPlanVisibilityCategory, routing to Browse rather than planBuilder')
+      const queryParams: BrowseTrainingSessionsQueryParams = {
+        [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true
+      };
+      const navigationExtras: NavigationExtras = {queryParams};
+      this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+    }
+
   }
 
   ngOnDestroy(): void {

@@ -4,7 +4,7 @@ import { TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSess
 
 export interface PersonalSessionFragment extends PersonalSessionFragmentNoIdOrTimestamp {
   [PersonalSessionFragmentKeys.CREATED_TIMESTAMP]: number | Timestamp,
-  id: string,
+  [PersonalSessionFragmentKeys.ID]: string,
   [PersonalSessionFragmentKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp,
 }
 
@@ -20,6 +20,7 @@ export enum PersonalSessionFragmentKeys {
   CANONICAL_ID = 'canonicalId',
   COMPLETE = 'complete',
   CREATED_TIMESTAMP = 'createdTimestamp',
+  ID = 'id',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   QUEUE_INDEX = 'queueIndex',
   SCHEDULED_TIMESTAMP = 'scheduledTimestamp',
@@ -27,12 +28,17 @@ export enum PersonalSessionFragmentKeys {
 }
 
 
-export interface ViewPersonalSessionFragmentUrlParams extends Params {
-  [PersonalSessionFragmentKeys.CANONICAL_ID]: string;
-  [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
+export interface ViewPersonalSessionFragmentQueryParams {
+  [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: string;
+  [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
 }
 
-export interface DeletePersonalSessionFragmentUrlParams extends Params {
+export enum ViewPersonalSessionFragmentQueryParamsKeys {
+  CANONICAL_ID = PersonalSessionFragmentKeys.CANONICAL_ID,
+  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+}
+
+export interface DeletePersonalSessionFragmentUrlParams {
   [DeletePersonalSessionFragmentUrlParamsKeys.DELETE_PERSONAL_SESSION_FRAGMENT_ID]: string,
 }
 

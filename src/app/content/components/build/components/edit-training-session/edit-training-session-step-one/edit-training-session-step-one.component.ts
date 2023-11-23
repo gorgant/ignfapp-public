@@ -6,7 +6,7 @@ import { Observable, Subscription, throwError } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
-import { TrainingSession } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
@@ -19,7 +19,7 @@ import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/
 export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   @Input() editTrainingSessionStepper!: MatStepper;
-  @Input() $currentTrainingSession = signal(undefined as TrainingSession | undefined);
+  @Input() $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
 
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
@@ -61,7 +61,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   // Note this observable is handled in the parent component
   private checkForExistingData() {
-    const trainingSessionData = this.$currentTrainingSession();
+    const trainingSessionData = this.$localTrainingSession();
     console.log('Found this trainingSessionData in step one', trainingSessionData);
     if (trainingSessionData) {
       this.videoUrl.setValue(trainingSessionData.videoData.videoUrl);
@@ -86,7 +86,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.resetComponentState();
-            this.fetchYoutubeVideoDataSubscription?.unsubscribe();
           }
           return processingError;
         }),
@@ -109,17 +108,18 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
-          this.resetComponentState();
-          this.fetchYoutubeVideoDataSubscription?.unsubscribe();
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.resetComponentState();
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
   private resetComponentState() {
+    this.fetchYoutubeVideoDataSubscription?.unsubscribe();
     this.fetchYoutubeVideoDataSubmitted.set(false);
     this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+    this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
   private monitorYoutubeVideoUrlChange() {

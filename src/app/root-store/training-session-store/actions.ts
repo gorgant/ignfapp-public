@@ -3,19 +3,19 @@ import { Update } from "@ngrx/entity";
 import { createAction, props } from "@ngrx/store";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { TrainingSessionRatingNoIdOrTimestamp } from "shared-models/train/session-rating.model";
-import { TrainingSession, TrainingSessionNoIdOrTimestamps } from "shared-models/train/training-session.model";
+import { CanonicalTrainingSession, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption } from "shared-models/train/training-session.model";
 import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 
 // Create Training Session
 
 export const createTrainingSessionRequested = createAction(
   '[Edit Training Session] Create Training Session Requested',
-  props<{trainingSessionNoId: TrainingSessionNoIdOrTimestamps}>()
+  props<{trainingSessionNoId: CanonicalTrainingSessionNoIdOrTimestamps, userId: string}>()
 );
 
 export const createTrainingSessionCompleted = createAction(
   '[Train Service] Create Training Session Completed',
-  props<{trainingSession: TrainingSession}>()
+  props<{trainingSession: CanonicalTrainingSession}>()
 );
 
 export const createTrainingSessionFailed = createAction(
@@ -27,7 +27,7 @@ export const createTrainingSessionFailed = createAction(
 
 export const deleteTrainingSessionRequested = createAction(
   '[Edit Training Session] Delete Training Session Requested',
-  props<{sessionId: string}>()
+  props<{trainingSession: CanonicalTrainingSession, userId: string}>()
 );
 
 export const deleteTrainingSessionCompleted = createAction(
@@ -44,11 +44,12 @@ export const deleteTrainingSessionFailed = createAction(
 
 export const fetchAllTrainingSessionsRequested = createAction(
   '[AppWide] Fetch All Training Sessions Requested',
+  props<{userId: string}>()
 );
 
 export const fetchAllTrainingSessionsCompleted = createAction(
   '[Train Service] Fetch All Training Sessions Completed',
-  props<{trainingSessions: TrainingSession[]}>()
+  props<{trainingSessions: CanonicalTrainingSession[]}>()
 );
 
 export const fetchAllTrainingSessionsFailed = createAction(
@@ -60,12 +61,12 @@ export const fetchAllTrainingSessionsFailed = createAction(
 
 export const fetchMultipleTrainingSessionsRequested = createAction(
   '[AppWide] Fetch Multiple Training Sessions Requested',
-  props<{queryParams: FirestoreCollectionQueryParams}>()
+  props<{queryParams: FirestoreCollectionQueryParams, userId: string}>()
 );
 
 export const fetchMultipleTrainingSessionsCompleted = createAction(
   '[Train Service] Fetch Multiple Training Sessions Completed',
-  props<{trainingSessions: TrainingSession[]}>()
+  props<{trainingSessions: CanonicalTrainingSession[]}>()
 );
 
 export const fetchMultipleTrainingSessionsFailed = createAction(
@@ -77,12 +78,12 @@ export const fetchMultipleTrainingSessionsFailed = createAction(
 
 export const fetchSingleTrainingSessionRequested = createAction(
   '[AppWide] Fetch Single Training Session Requested',
-  props<{sessionId: string}>()
+  props<{sessionId: string, userId: string, visibilityCategory: TrainingSessionVisibilityCategoryDbOption}>()
 );
 
 export const fetchSingleTrainingSessionCompleted = createAction(
   '[Train Service] Fetch Single Training Session Completed',
-  props<{trainingSession: TrainingSession}>()
+  props<{trainingSession: CanonicalTrainingSession}>()
 );
 
 export const fetchSingleTrainingSessionFailed = createAction(
@@ -111,6 +112,12 @@ export const fetchYoutubeVideoDataFailed = createAction(
 
 export const purgeTrainingSessionData = createAction(
   '[AppWide] Purge Training Session Data'
+);
+
+// Purge Training Session Errors
+
+export const purgeTrainingSessionErrors = createAction(
+  '[AppWide] Purge Training Session Errors'
 );
 
 // Purge Youtube Video Data
@@ -147,12 +154,12 @@ export const updateSessionRatingFailed = createAction(
 
 export const updateTrainingSessionRequested = createAction(
   '[Edit Training Session] Update Training Session Requested',
-  props<{trainingSessionUpdates: Update<TrainingSession>}>()
+  props<{trainingSessionUpdates: Update<CanonicalTrainingSession>, userId: string, visibilityCategory: TrainingSessionVisibilityCategoryDbOption}>()
 );
 
 export const updateTrainingSessionCompleted = createAction(
   '[Train Service] Update Training Session Completed',
-  props<{trainingSessionUpdates: Update<TrainingSession>}>()
+  props<{trainingSessionUpdates: Update<CanonicalTrainingSession>}>()
 );
 
 export const updateTrainingSessionFailed = createAction(

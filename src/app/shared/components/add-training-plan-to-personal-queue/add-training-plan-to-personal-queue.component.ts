@@ -4,7 +4,7 @@ import { Observable, Subscription, catchError, combineLatest, filter, map, switc
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
-import { TrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -98,24 +98,20 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
     console.log('onBatchAddTrainingSessionsToQueue click registered');
     this.$isActiveButton.set(true);
 
-    
-
-
     // This does the following: 1) Fetch personalSessionFragments 2) convert trainingSession array into personalSessionFragment array 3) add that new array to database
     this.combinedAddTrainingPlanToQueueSubscription = this.combinedAddTrainingPlanToQueueError$
       .pipe(
-        switchMap(processingError => {
+        map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.combinedAddTrainingPlanToQueueSubscription?.unsubscribe();
-
+            this.resetComponentState();
           }
-          return this.allPersonalSessionFragmentsInStore$;
+          return processingError
         }),
-        withLatestFrom(this.userData$, this.combinedAddTrainingPlanToQueueError$),
-        filter(([personalSessionFragments, userData, processingError]) => !processingError),
-        switchMap(([personalSessionFragments, userData, processingError]) => {
-          if (!this.$fetchPersonalSessionFragmentsSubmitted()) {
+        withLatestFrom(this.allPersonalSessionFragmentsInStore$, this.userData$, this.allPersonalSessionFragmentsFetched$),
+        filter(([processingError, personalSessionFragments, userData, allFetched]) => !processingError),
+        switchMap(([processingError, personalSessionFragments, userData, allFetched]) => {
+          if (!allFetched && !this.$fetchPersonalSessionFragmentsSubmitted()) {
             this.$fetchPersonalSessionFragmentsSubmitted.set(true);
             console.log(`no personalSessionFragments in store, fetching from database`);
             this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData!.id}));
@@ -171,13 +167,14 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
         }),
         filter(creationProcessing => !creationProcessing && this.$batchCreatePersonalSessionFragmentsRequestedCycleComplete()),
         tap(creationProcessing => {
+          console.log('Showing added to queue snackbar!')
           this.uiService.showSnackBar(`Training Plan Added to Your Queue!`, 10000, SnackbarActions.VIEW_MY_QUEUE);
+          this.resetComponentState();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
-          this.combinedAddTrainingPlanToQueueSubscription?.unsubscribe();
           this.resetComponentState();
           return throwError(() => new Error(error));
         })
@@ -186,11 +183,13 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
 
 
   private resetComponentState() {
+    this.combinedAddTrainingPlanToQueueSubscription?.unsubscribe();
     this.$isActiveButton.set(false);
     this.$fetchPersonalSessionFragmentsSubmitted.set(false);
     this.$batchCreatePersonalSessionFragmentsRequestedSubmitted.set(false);
     this.$batchCreatePersonalSessionFragmentsRequestedCycleInit.set(false);
     this.$batchCreatePersonalSessionFragmentsRequestedCycleComplete.set(false);
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
   }
 
   ngOnDestroy(): void {

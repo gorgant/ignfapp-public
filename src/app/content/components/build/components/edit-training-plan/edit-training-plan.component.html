@@ -1,5 +1,5 @@
-<div *ngIf="!$deletePlanSessionFragmentCycleInit()" class="content-container" fxLayout="column" fxLayoutAlign="center center">
-  <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" (click)="onNavigateUserToTrainingPlan()">
+<div class="content-container" fxLayout="column" fxLayoutAlign="center center">
+  <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" (click)="onNavigateUserToViewTrainingPlan()">
     <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
   </div>
   <div class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
@@ -10,6 +10,16 @@
       </button>
     </div>
     <form class="training-plan-form" [fxShow]="$editTrainingPlanDetails()" [formGroup]="trainingPlanForm" fxLayout="column" fxLayoutAlign="center center">
+      
+      <ng-container *ngIf="$isNewPlan()">
+        <div class="radial-label">{{ VISIBILITY_FIELD_VALUE }}</div>
+        <mat-radio-group aria-labelledby="Visibility Category" [formControl]="visibilityCategory" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+          <mat-radio-button *ngFor="let visibilityCat of visibilityCategoryMasterList" [value]="visibilityCat.dbValue">
+            {{visibilityCat.uiValue}}
+          </mat-radio-button>
+        </mat-radio-group>
+      </ng-container>
+      
       <div class="form-title"> {{ $isNewPlan() ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
       <mat-form-field class="edit-title-field">
         <mat-label>{{ TITLE_FIELD_VALUE }}</mat-label>
@@ -19,20 +29,19 @@
       <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.title">
         <mat-error *ngIf="title.hasError(validation.type) && title.invalid && (title.dirty || title.touched)">{{ validation.message }}</mat-error>
       </mat-error>
+      
       <div class="form-actions" fxLayout="column" fxLayoutAlign="center center" fxLayout.gt-md="row" fxLayoutGap="16px">
-        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
+        <button class="action-button" *ngIf="!(createTrainingPlanProcessing$ | async)" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
           {{ $isNewPlan() ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
         </button>
-        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
+        <button class="action-button" *ngIf="!(createTrainingPlanProcessing$ | async)" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
           {{ CANCEL_BUTTON_VALUE }}
         </button>
       </div>
+    
     </form>
   </div>
-  <div *ngIf="(serverRequestProcessing$ | async) && !(combinedDeletePlanSessionFragmentProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  </div>
-  <div *ngIf="!$editTrainingPlanDetails() && $localTrainingPlan() && $localPlanSessionFragments()" class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
+  <div *ngIf="!$deletePlanSessionFragmentCycleInit() && !$editTrainingPlanDetails() && $localTrainingPlan() && $localPlanSessionFragments()" class="plan-sessions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <div class="plan-actions-button-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
       <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async)" (click)="onAddTrainingSession()">
         {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
@@ -51,12 +60,12 @@
         </div>
       </div>
     </div>
-    <div *ngIf="combinedDeletePlanSessionFragmentProcessing$ | async" fxLayout="column" fxLayoutAlign="center center">
-      <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-    </div>
   </div>
-</div>
-<div *ngIf="$deletePlanSessionFragmentCycleInit()" class="progress-spinner-container" fxLayout="column" fxLayoutAlign="center center">
-  <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  <div class="progress-spinner-message"> {{ REQUEST_PROCESSING_MESSAGE }} </div>
+  <div *ngIf="(serverRequestProcessing$ | async) && !$deletePlanSessionFragmentCycleInit()" fxLayout="column" fxLayoutAlign="center center">
+    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+  </div>
+  <div *ngIf="$deletePlanSessionFragmentCycleInit()" class="progress-spinner-container" fxLayout="column" fxLayoutAlign="center center">
+    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
+    <div class="progress-spinner-message"> {{ REQUEST_PROCESSING_MESSAGE }} </div>
+  </div>
 </div>

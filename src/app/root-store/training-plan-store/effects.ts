@@ -18,7 +18,7 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.createTrainingPlanRequested),
       concatMap(action => 
-        this.trainingPlanService.createTrainingPlan(action.trainingPlanNoId).pipe(
+        this.trainingPlanService.createTrainingPlan(action.trainingPlanNoId, action.userId).pipe(
           map(trainingPlan => {
             return TrainingPlanStoreActions.createTrainingPlanCompleted({trainingPlan});
           }),
@@ -39,9 +39,9 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.deleteTrainingPlanRequested),
       concatMap(action => 
-        this.trainingPlanService.deleteTrainingPlan(action.trainingPlanId).pipe(
-          map(planId => {
-            return TrainingPlanStoreActions.deleteTrainingPlanCompleted({trainingPlanId: planId});
+        this.trainingPlanService.deleteTrainingPlan(action.trainingPlan, action.userId).pipe(
+          map(trainingPlanId => {
+            return TrainingPlanStoreActions.deleteTrainingPlanCompleted({trainingPlanId});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -60,7 +60,7 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.fetchAllTrainingPlansRequested),
       switchMap(action => 
-        this.trainingPlanService.fetchAllTrainingPlans().pipe(
+        this.trainingPlanService.fetchAllTrainingPlans(action.userId).pipe(
           map(trainingPlans => {
             return TrainingPlanStoreActions.fetchAllTrainingPlansCompleted({trainingPlans});
           }),
@@ -81,7 +81,7 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.fetchMultipleTrainingPlansRequested),
       switchMap(action => 
-        this.trainingPlanService.fetchMultipleTrainingPlans(action.queryParams).pipe(
+        this.trainingPlanService.fetchMultipleTrainingPlans(action.queryParams, action.userId).pipe(
           map(trainingPlans => {
             return TrainingPlanStoreActions.fetchMultipleTrainingPlansCompleted({trainingPlans});
           }),
@@ -102,7 +102,7 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.fetchSingleTrainingPlanRequested),
       switchMap(action => 
-        this.trainingPlanService.fetchSingleTrainingPlan(action.trainingPlanId).pipe(
+        this.trainingPlanService.fetchSingleTrainingPlan(action.trainingPlanId, action.userId, action.visibilityCategory).pipe(
           map(trainingPlan => {
             return TrainingPlanStoreActions.fetchSingleTrainingPlanCompleted({trainingPlan});
           }),
@@ -123,7 +123,7 @@ export class TrainingPlanStoreEffects {
     .pipe(
       ofType(TrainingPlanStoreActions.updateTrainingPlanRequested),
       concatMap(action => 
-        this.trainingPlanService.updateTrainingPlan(action.trainingPlanUpdates).pipe(
+        this.trainingPlanService.updateTrainingPlan(action.trainingPlanUpdates, action.userId, action.visibilityCategory).pipe(
           map(trainingPlanUpdates => {
             return TrainingPlanStoreActions.updateTrainingPlanCompleted({trainingPlanUpdates});
           }),

@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, withLatestFrom, map, switchMap, filter, catchError, throwError } from 'rxjs';
+import { Observable, withLatestFrom, map, switchMap, filter, catchError, throwError, take, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
@@ -14,7 +14,7 @@ import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionF
   templateUrl: './train-dashboard.component.html',
   styleUrls: ['./train-dashboard.component.scss']
 })
-export class TrainDashboardComponent implements OnInit {
+export class TrainDashboardComponent implements OnInit, OnDestroy {
 
   BROWSE_TRAINING_PLANS_BUTTON_VALUE = GlobalFieldValues.BROWSE_TRAINING_PLANS;
   EDIT_MY_QUEUE = GlobalFieldValues.EDIT_MY_QUEUE;
@@ -54,7 +54,7 @@ export class TrainDashboardComponent implements OnInit {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+            this.resetComponentState();
           }
           const personalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore);
           return personalSessionFragmentsInStore$;
@@ -72,10 +72,15 @@ export class TrainDashboardComponent implements OnInit {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+          this.resetComponentState();
           return throwError(() => new Error(error));
         })
       );
+  }
+
+  private resetComponentState() {
+    this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+    // Don't purge error state here, otherwise we get an infinite loop because async pipe in template auto-subscribes! Instead, do onDestroy
   }
 
   onEditPersonalQueue() {
@@ -84,6 +89,18 @@ export class TrainDashboardComponent implements OnInit {
 
   onNavigateToBrowse() {
     this.router.navigate([PublicAppRoutes.BROWSE]);
+  }
+
+  ngOnDestroy(): void {
+    this.fetchAllPersonalSessionFragmentsError$
+      .pipe(
+        take(1),
+        tap(error => {
+          if (error) {
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
+          }
+        })
+      ).subscribe();
   }
 
 }

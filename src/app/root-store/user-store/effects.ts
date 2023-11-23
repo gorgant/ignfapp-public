@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
-import { catchError, concatMap, map, switchMap } from "rxjs/operators";
+import { catchError, concatMap, map, switchMap, take } from "rxjs/operators";
 import { ImageService } from "src/app/core/services/image.service";
 import { UserService } from "src/app/core/services/user.service";
 import * as UserStoreActions from './actions';
@@ -20,7 +20,7 @@ export class UserStoreEffects {
     .pipe(
       ofType(UserStoreActions.createPublicUserRequested),
       concatMap(action => 
-        this.userService.createPublicUser(action.partialNewPublicUserData).pipe(
+        this.userService.createPublicUser(action.partialNewUserData).pipe(
           map(newPublicUser => {
             return UserStoreActions.createPublicUserCompleted({newPublicUser});
           }),
@@ -41,9 +41,9 @@ export class UserStoreEffects {
     .pipe(
       ofType(UserStoreActions.deletePublicUserRequested),
       concatMap(action => 
-        this.userService.deletePublicUser(action.publicUserId).pipe(
+        this.userService.deletePublicUser(action.userId).pipe(
           map(publicUserDeleted => {
-            return UserStoreActions.deletePublicUserCompleted({publicUserDeleted});
+            return UserStoreActions.deletePublicUserCompleted({userDeleted: publicUserDeleted});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -64,7 +64,7 @@ export class UserStoreEffects {
       switchMap(action => 
         this.userService.fetchPublicUser(action.publicUserId).pipe(
           map(publicUser => {
-            return UserStoreActions.fetchPublicUserCompleted({publicUser});
+            return UserStoreActions.fetchPublicUserCompleted({userData: publicUser});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
@@ -127,7 +127,7 @@ export class UserStoreEffects {
       concatMap(action => 
         this.userService.updatePublicUser(action.userUpdateData).pipe(
           map(updatedPublicUser => {
-            return UserStoreActions.updatePublicUserCompleted({updatedPublicUser});
+            return UserStoreActions.updatePublicUserCompleted({updatedUserData: updatedPublicUser});
           }),
           catchError(error => {
             const fbError: FirebaseError = {
