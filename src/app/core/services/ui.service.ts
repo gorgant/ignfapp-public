@@ -57,7 +57,6 @@ export class UiService {
           snackBarRef.dismiss();
           break;
         case SnackbarActions.EDIT_PLAN:
-          // TODO: Make sure these are in the url when adding session to plan in browse
           if (trainingPlanId && trainingPlanVisibilityCategory) {
             const queryParams: ViewTrainingPlanQueryParams = {
               [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory, // Ensures the user views training sessions vs plans

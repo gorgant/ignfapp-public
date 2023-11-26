@@ -384,7 +384,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     }
   }
 
-  // TODO: Confirm this and all other operations work
   private patchExistingDataIntoForm(trainingPlanId: string) {
     const singleTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
     

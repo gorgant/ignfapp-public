@@ -63,7 +63,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     [TrainingSessionKeys.INTENSITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
     [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
     [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
-    // TODO: Ensure this can only be modified if a new trainingSession, otherwise hide from UI and remove from updates
     [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]]
   });
   

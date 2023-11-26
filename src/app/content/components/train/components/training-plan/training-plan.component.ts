@@ -186,7 +186,6 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   onEditTrainingPlan(): void {
-    // TODO: I think this might need more params? Test it out
     const queryParams: ViewTrainingPlanQueryParams = {
       [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!, // Ensures the user views training sessions vs plans
     };

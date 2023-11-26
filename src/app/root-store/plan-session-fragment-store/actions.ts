@@ -5,8 +5,6 @@ import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-colle
 import { PlanSessionFragment, PlanSessionFragmentNoIdOrTimestamp } from "shared-models/train/plan-session-fragment.model";
 import { TrainingPlan, TrainingPlanVisibilityCategoryDbOption } from "shared-models/train/training-plan.model";
 
-// TODO: Update these Actions (and Effects) to match the PlanSessionFragmentService requirements 
-
 // Batch Delete Plan Session Fragments
 
 export const batchDeletePlanSessionFragmentsRequested = createAction(

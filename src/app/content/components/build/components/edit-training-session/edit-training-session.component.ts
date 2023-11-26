@@ -355,7 +355,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, this.$currentTrainingSessionId()], navigationExtras);
   }
 
-  // TODO: This is causing an error for some reason, investigate
   private navigateToBrowseWithTrainingSessionSelection(): void {
     // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
     console.log('BrowseTrainingSessionsUlrParams property', BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
