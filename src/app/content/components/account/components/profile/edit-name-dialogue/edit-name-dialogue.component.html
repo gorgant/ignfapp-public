@@ -1,47 +1,35 @@
-<div fxLayout="column" fxLayoutAlign="center center">
+<div class="content-container">
   
-  <h2 mat-dialog-title>{{ TITLE_FIELD_VALUE }}</h2>
+  <div class="dialogue-title">{{ EDIT_NAME_TITLE_VALUE }}</div>
 
-  <form [formGroup]="nameForm" (ngSubmit)="onSubmit()">
-
-    <mat-dialog-content fxLayout="column" fxLayoutAlign="center center">
+  <div class="dialogue-form">
+    <form [formGroup]="nameForm">
+  
+        <!-- First Name -->
+        <mat-form-field>
+          <input formControlName="firstName" matInput type="text" placeholder="First Name">
+          <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
+            <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
+          </mat-error>
+        </mat-form-field>
+        
+        <!-- Last Name -->
+        <mat-form-field>
+          <input formControlName="lastName" matInput type="text" placeholder="Last Name">
+        </mat-form-field>
+        
+        <!-- Display Name -->
+        <mat-form-field>
+          <input formControlName="displayName" matInput type="text" placeholder="Display Name">
+        </mat-form-field>
       
-      
-      <!-- First Name -->
-      <mat-form-field>
-        <input formControlName="firstName" matInput type="text" placeholder="First Name">
-        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
-          <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
-        </mat-error>
-      </mat-form-field>
-      
-      <!-- Last Name -->
-      <mat-form-field>
-        <input formControlName="lastName" matInput type="text" placeholder="Last Name">
-        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.lastName">
-          <mat-error *ngIf="lastName.hasError(validation.type) && lastName.invalid && (lastName.dirty || lastName.touched)">{{ validation.message }}</mat-error>
-        </mat-error>
-      </mat-form-field>
-      
-      <!-- Display Name -->
-      <mat-form-field>
-        <input formControlName="displayName" matInput type="text" placeholder="Display Name">
-        <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.displayName">
-          <mat-error *ngIf="displayName.hasError(validation.type) && displayName.invalid && (displayName.dirty || displayName.touched)">{{ validation.message }}</mat-error>
-        </mat-error>
-      </mat-form-field>
-    
-    </mat-dialog-content>
-
-    <div class="actions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
-      
-      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="nameForm.invalid" mat-raised-button color="primary" type="submit">{{ SAVE_BUTTON_VALUE }}</button>
-      <button *ngIf="!(userUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-      <div *ngIf="(userUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-        <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-      </div>
-
+      </form>
     </div>
-  </form>
+    
+    <div class="actions-container">
+      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="nameForm.invalid && (nameForm.dirty || nameForm.touched)" mat-raised-button color="primary" type="submit" (click)="onSubmit()">{{ SAVE_BUTTON_VALUE }}</button>
+      <button *ngIf="!(userUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+      <app-processing-spinner *ngIf="(userUpdateProcessing$ | async)"></app-processing-spinner>
+  </div>
 
 </div>

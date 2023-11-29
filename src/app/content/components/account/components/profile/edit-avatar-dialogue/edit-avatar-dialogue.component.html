@@ -1,21 +1,14 @@
-<div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+<div class="content-container">
+  <div class="dialogue-title">{{ EDIT_AVATAR_TITLE_VALUE }}</div>
+  <div class="avatar-container">
+    <img class="avatar" [src]="(userData$ | async)?.avatarUrl || DEFAULT_PROFILE_IMAGE" >
+  </div>
 
-  <h2 mat-dialog-title>{{ EDIT_AVATAR_TITLE_VALUE }}</h2>
-  <mat-dialog-content fxLayout="column" fxLayoutAlign="center center" >
-    
-    <div class="avatar-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-      <img [src]="(userData$ | async)?.avatarUrl || DEFAULT_PROFILE_IMAGE" class="avatar">
-    </div>
-
-  </mat-dialog-content>
-
-  <div class="actions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
+  <div class="actions-container">
     <input #imageInput style="display: none" type="file" accept="image/*" id="file" (change)="onSubmit($event)">
-    <button *ngIf="!(combinedUploadAvatarError$ | async)" mat-raised-button color="primary" (click)="imageInput.click()" [disabled]="combinedUploadAvatarError$ | async">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
-    <button *ngIf="!(combinedUploadAvatarError$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-    <div *ngIf="(combinedUploadAvatarError$ | async)" class="upload-processing-spinner" fxLayout="column" fxLayoutAlign="center center">
-      <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-    </div>
+    <button *ngIf="!(combinedUploadAvatarProcessing$ | async)" mat-raised-button color="primary" (click)="imageInput.click()">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
+    <button *ngIf="!(combinedUploadAvatarProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    <app-processing-spinner *ngIf="(combinedUploadAvatarProcessing$ | async)"></app-processing-spinner>
   </div>
 
 </div>

@@ -8,7 +8,7 @@ import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-re
 import { UnsubscribeRecord, UnsubscribeRecordList } from 'shared-models/email/unsubscribe-record.model';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { PublicUser } from 'shared-models/user/public-user.model';
+import { GoogleCloudFunctionsPublicUser, GoogleCloudFunctionsTimestamp, PublicUser } from 'shared-models/user/public-user.model';
 import { UserUpdateData } from 'shared-models/user/user-update.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
@@ -96,8 +96,7 @@ export class UserService {
             };
             const groupUnsubscribeObjectList: UnsubscribeRecordList = publicUser.emailGroupUnsubscribes;
             Object.keys(groupUnsubscribeObjectList).forEach(key => {
-              // groupUnsubscribeArray.push(groupUnsubscribeObjectList[+key]) // Convert key to number since this object has numeric keys
-              const formattedTimestampValue = (groupUnsubscribeObjectList[+key].unsubscribeTimestamp as Timestamp).toMillis();
+              const formattedTimestampValue = (groupUnsubscribeObjectList[+key].unsubscribeTimestamp as Timestamp).toMillis(); // Convert key to number since this object has numeric keys
               groupUnsubscribeObjectList[+key].unsubscribeTimestamp = formattedTimestampValue;
             });
             formattedUser.emailGroupUnsubscribes = formattedGroupUnsubscribeRecordList;
@@ -172,16 +171,48 @@ export class UserService {
   }
 
   updatePublicUser(publicUserUpdateData: UserUpdateData): Observable<PublicUser> {
+    console.log('updatePublicUser call registered');
     const updatePublicUserHttpCall: (publicUserUpdateData: UserUpdateData) => 
-      Observable<PublicUser> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_UPDATE_PUBLIC_USER);
+      Observable<GoogleCloudFunctionsPublicUser> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_UPDATE_PUBLIC_USER);
 
     return updatePublicUserHttpCall(publicUserUpdateData)
       .pipe(
         take(1),
-        switchMap(serverUserData => {
-          const dbUser = this.fetchPublicUser(serverUserData.id); // Note that Cloud Functions returns a map rather than a Timestamp object, so instead fetch updated user from Firestore to get cleaner timestmap data
-          console.log('publicUser updated', dbUser);
-          return dbUser;
+        map(updatedPublicUser => {
+          // Timestamps from Google Cloud Functions are a static object, so they need to be converted differently
+          const formattedUser: PublicUser = {
+            ...updatedPublicUser,
+            createdTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.createdTimestamp),
+            lastAuthenticatedTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.lastAuthenticatedTimestamp),
+            lastModifiedTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.lastModifiedTimestamp),
+          };
+          if (updatedPublicUser.emailGlobalUnsubscribe) {
+            const formattedGlobalUnsubscribe: UnsubscribeRecord = {
+              ...updatedPublicUser.emailGlobalUnsubscribe,
+              unsubscribeTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.emailGlobalUnsubscribe.unsubscribeTimestamp as GoogleCloudFunctionsTimestamp)
+            }
+            formattedUser.emailGlobalUnsubscribe = formattedGlobalUnsubscribe
+          }
+          if (updatedPublicUser.emailGroupUnsubscribes) {
+            const formattedGroupUnsubscribeRecordList: UnsubscribeRecordList = {
+              ...updatedPublicUser.emailGroupUnsubscribes
+            };
+            const groupUnsubscribeObjectList: UnsubscribeRecordList = updatedPublicUser.emailGroupUnsubscribes;
+            Object.keys(groupUnsubscribeObjectList).forEach(key => {
+              const formattedTimestampValue = this.helperService.convertGoogleCloudTimestampToMs(groupUnsubscribeObjectList[+key].unsubscribeTimestamp as GoogleCloudFunctionsTimestamp); // Convert key to number since this object has numeric keys
+              groupUnsubscribeObjectList[+key].unsubscribeTimestamp = formattedTimestampValue;
+            });
+            formattedUser.emailGroupUnsubscribes = formattedGroupUnsubscribeRecordList;
+          }
+          if (updatedPublicUser.emailOptInTimestamp) {
+            formattedUser.emailOptInTimestamp = this.helperService.convertGoogleCloudTimestampToMs(formattedUser.emailOptInTimestamp as GoogleCloudFunctionsTimestamp);
+          }
+          if (updatedPublicUser.emailSendgridContactCreatedTimestamp) {
+            formattedUser.emailSendgridContactCreatedTimestamp = this.helperService.convertGoogleCloudTimestampToMs(formattedUser.emailSendgridContactCreatedTimestamp as GoogleCloudFunctionsTimestamp);
+          }
+
+          console.log(`Updated single publicUser`, formattedUser);
+          return formattedUser;
         }),
         catchError(error => {
           console.log('Error updating publicUser', error);

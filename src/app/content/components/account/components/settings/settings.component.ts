@@ -1,11 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Component, OnInit, inject } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthStoreActions, RootStoreState } from 'src/app/root-store';
-import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
-
+import { AuthStoreActions } from 'src/app/root-store';
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -15,17 +11,14 @@ export class SettingsComponent implements OnInit {
 
   logoutButtonValue = GlobalFieldValues.LOGOUT;
   
-  userData$!: Observable<PublicUser>;
+  private store$ = inject(Store);
 
   constructor(
-    private store$: Store<RootStoreState.AppState>
+    
   ) { }
 
   ngOnInit(): void {
-  }
-
-  fetchUserData(): void {
-    this.userData$ = this.store$.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
+    
   }
 
   onLogout(): void {

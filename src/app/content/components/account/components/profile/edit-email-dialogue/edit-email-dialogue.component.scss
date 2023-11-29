@@ -1,18 +1,60 @@
 @import '../../../../../../variables';
 
+.content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 32px;
+
+  margin-top: 32px;
+}
+
+.dialogue-title {
+  font-size: 1.5em;
+}
+
 mat-stepper {
   width: 100%;
 }
 
 mat-form-field {
   width: 100%;
-  max-width: $desktop-form-width-standard;
-  margin-top: 16px;
 }
 
 .stepper-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+
   margin-top: 16px;
   width: 100%;
+}
+
+.new-email-container {
+  width: 100%;
+}
+
+
+.email-update-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  font-weight: $font-weight-light;
+  font-size: 1.2em;
+  line-height: 1.2em;
+  word-break: break-word; // See https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
+
+  margin-bottom: 16px;
+}
+
+.email-update-visual-topic-text {
+  font-weight: $font-weight-medium;
 }
 
 button {
@@ -20,16 +62,15 @@ button {
   max-width: $desktop-button-width;
 }
 
-.new-email-container {
-  width: 100%;
+
+.confirm-email-container {
+  @include user-message-styles();
 }
 
-@media screen and (max-width: $mobile-cutoff-width) {
-  .stepper-buttons {
-    margin-top: 8px;
-  }
+.confirm-email-button {
+  margin-top: 16px;
+}
 
-  mat-form-field {
-    margin-top: 8px;
-  }
+.hide {
+  display: none;
 }

@@ -49,10 +49,7 @@ app-training-session-card {
 }
 
 .queue-empty-message {
-  font-size: 1.2em;
-  line-height: 1.2em;
-  font-weight: 300;
-  text-align: center;
+  @include user-message-styles();
 }
 
 .action-buttons {

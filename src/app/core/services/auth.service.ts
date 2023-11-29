@@ -65,7 +65,11 @@ export class AuthService {
           return true;
         }),
         catchError(error => {
-          this.uiService.showSnackBar(error.message, 10000);
+          let errorMessage = error.message;
+          if (errorMessage.includes('wrong-password')) {
+            errorMessage = 'Invalid password. Please try again.';
+          }
+          this.uiService.showSnackBar(errorMessage, 10000);
           console.log('Error confirming password in auth', error);
           return throwError(() => new Error(error));
         })
@@ -142,7 +146,11 @@ export class AuthService {
         return authResultsData;
       }),
       catchError(error => {
-        this.uiService.showSnackBar(error.message, 10000);
+        let errorMessage = error.message;
+        if (errorMessage.includes('wrong-password') || errorMessage.includes('user-not-found')) {
+          errorMessage = 'Invalid login credentials. Please try again.';
+        }
+        this.uiService.showSnackBar(errorMessage, 10000);
         console.log('Error authenticating user', error);
         return throwError(() => new Error(error));
       })

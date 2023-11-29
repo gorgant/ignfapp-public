@@ -8,12 +8,12 @@ import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.mod
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
-import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { EditAvatarDialogueComponent } from './edit-avatar-dialogue/edit-avatar-dialogue.component';
 import { EditEmailDialogueComponent } from './edit-email-dialogue/edit-email-dialogue.component';
 import { EditNameDialogueComponent } from './edit-name-dialogue/edit-name-dialogue.component';
 import { EditPasswordDialogueComponent } from './edit-password-dialogue/edit-password-dialogue.component';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 
 @Component({
   selector: 'app-profile',
@@ -39,13 +39,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private $deletePublicUserCycleInit = signal(false);
   private $deletePublicUserCycleComplete = signal(false);
 
-  private defaultMatDialogConfigOptions: MatDialogConfig = {
-    disableClose: false,
-    width: '90%',
-    maxWidth: '600px',
-    autoFocus: false
-  };
-
   private store$ = inject(Store);
   private dialog = inject(MatDialog);
   private uiService = inject(UiService);
@@ -63,7 +56,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   fetchUserData(): void {
-    this.userData$ = this.store$.pipe(select(selectPublicUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
   }
 
   onEditName() {
@@ -71,7 +64,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         tap(user => {
-          const dialogConfig = this.defaultMatDialogConfigOptions;
+          const dialogConfig = {...DialogueBoxDefaultConfig};
           dialogConfig.data = user;
           const dialogRef = this.dialog.open(EditNameDialogueComponent, dialogConfig);  
         })
@@ -83,7 +76,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         tap(user => {
-          const dialogConfig = this.defaultMatDialogConfigOptions;
+          const dialogConfig = {...DialogueBoxDefaultConfig};
           dialogConfig.data = user;
           const dialogRef = this.dialog.open(EditEmailDialogueComponent, dialogConfig);  
         })
@@ -91,12 +84,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onEditPassword() {
-    const dialogConfig = this.defaultMatDialogConfigOptions;
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const dialogRef = this.dialog.open(EditPasswordDialogueComponent, dialogConfig);
   }
 
   onEditAvatar() {
-    const dialogConfig = this.defaultMatDialogConfigOptions;
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const dialogRef = this.dialog.open(EditAvatarDialogueComponent, dialogConfig);
   }
 
@@ -107,14 +100,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.deletePublicUserSubscription?.unsubscribe();
-            this.resetComponentActionState();
+            this.resetComponentState();
           }
           return processingError;
         }),
         filter(processingError => !processingError ), // Halts function if processingError detected
         switchMap(processingError => {
-          const dialogConfig = this.defaultMatDialogConfigOptions;
+          const dialogConfig = {...DialogueBoxDefaultConfig};
           const actionConfData: ActionConfData = {
             title: this.DELETE_PUBLIC_USER_CONF_TITLE,
             body: this.DELETE_PUBLIC_USER_CONF_BODY,
@@ -147,21 +139,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }),
         filter(deleteProcessing => !deleteProcessing && this.$deletePublicUserCycleComplete()),
         tap(deletionProcessing => {
+          this.resetComponentState();
           this.store$.dispatch(AuthStoreActions.logout()); // This handles all the UI purging and navigating
           this.uiService.showSnackBar(`User Deleted!`, 5000);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
-          this.deletePublicUserSubscription?.unsubscribe();
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetComponentState();
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
-  private resetComponentActionState() {
+  private resetComponentState() {
     this.deletePublicUserSubscription?.unsubscribe();
     this.deletePublicUserSubmitted.set(false);
     this.$deletePublicUserCycleInit.set(false);

@@ -74,7 +74,7 @@ export class BrowseTrainingPlansComponent implements OnInit, OnDestroy {
         withLatestFrom(this.allTrainingPlansFetched$),
         filter(([trainingPlans, allFetched]) => allFetched),
         tap(([trainingPlans, allFetched]) => {
-          console.log('Set training sessions', trainingPlans);
+          console.log('Set trainingPlans', trainingPlans);
           this.$localTrainingPlans.set(trainingPlans);
         }),
         // Catch any local errors

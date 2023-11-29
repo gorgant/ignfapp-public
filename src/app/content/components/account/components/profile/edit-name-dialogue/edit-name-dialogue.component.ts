@@ -20,7 +20,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
   FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
-  TITLE_FIELD_VALUE = GlobalFieldValues.EDIT_NAME;
+  EDIT_NAME_TITLE_VALUE = GlobalFieldValues.EDIT_NAME;
   FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;
   LAST_NAME_FIELD_VALUE = GlobalFieldValues.LAST_NAME;
   DISPLAY_NAME_FIELD_VALUE = GlobalFieldValues.DISPLAY_NAME;
@@ -62,12 +62,22 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
     });
   }
 
+  get firstNameErrorMessage() {
+    let errorMessage = '';
+    if (this.firstName.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
+  }
+
   private monitorUpdateRequests(): void {
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
+    this.userUpdateProcessing$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserProcessing);
+    this.userUpdateError$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserError);
   }
 
   onSubmit() {
+
+    // TODO: Delete all these debugging comments (run the command to find them)
     this.userUpdateSubscription = this.userUpdateError$ 
       .pipe(
         map(processingError => {
@@ -111,13 +121,14 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
         }),
         filter(updateProcessing => !updateProcessing && this.$updateUserCycleComplete()),
         tap(updateProcessing => {
+          this.uiService.showSnackBar(`User details updated!`, 10000);
           this.resetComponentState();
           this.dialogRef.close(true);
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
-          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
+          this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
           this.resetComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
@@ -127,6 +138,7 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
   private resetComponentState() {
     this.userUpdateSubscription?.unsubscribe();
+    this.$updateUserSubmitted.set(false);
     this.$updateUserCycleInit.set(false);
     this.$updateUserCycleComplete.set(false);
     this.store$.dispatch(UserStoreActions.purgePublicUserErrors());

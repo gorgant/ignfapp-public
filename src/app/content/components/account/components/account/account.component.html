@@ -1,32 +1,27 @@
-<div class="component-container" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
+<div class="component-container" *ngIf="(userData$ | async) as user">
   
-  <div fxLayoutAlign="center center" *ngIf="loading$ | async">
-    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-  </div>
-
-  <div class="avatar-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-    <img [src]="user.avatarUrl ? user.avatarUrl : DEFAULT_PROFILE_IMAGE" class="avatar">
-    <div id="email" class="mat-subheading-1">
-      {{ user.email }}
+  <div class="avatar-container">
+    <img class="avatar" [src]="user.avatarUrl ? user.avatarUrl : DEFAULT_PROFILE_IMAGE" >
+    <div class="display-name-text">
+      {{ user.displayName ? user.displayName : user.firstName }}
     </div>
   </div>
 
-  <div fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
-
-    <a class="account-item-button" mat-button [routerLink]="STATS_URL" color="primary">
-      <mat-icon>insights</mat-icon>
-      <span class="button-text">{{ STATS_BUTTON_VALUE }}</span>
-    </a>
+  <div class="actions-container">
+    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_STATS)">
+      <mat-icon class="item-icon">insights</mat-icon>
+      <span class="item-text">{{ STATS_BUTTON_VALUE }}</span>
+    </div>
   
-    <a class="account-item-button" mat-button [routerLink]="PROFILE_URL" color="primary">
-      <mat-icon>badge</mat-icon>
-      <span class="button-text">{{ PROFILE_BUTTON_VALUE }}</span>
-    </a>
+    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_PROFILE)">
+      <mat-icon class="item-icon">badge</mat-icon>
+      <span class="item-text">{{ PROFILE_BUTTON_VALUE }}</span>
+    </div>
   
-    <a class="account-item-button" mat-button [routerLink]="SETTINGS_URL" color="primary">
-      <mat-icon>settings</mat-icon>
-      <span class="button-text">{{ SETTINGS_BUTTON_VALUE }}</span>
-    </a>
+    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_SETTINGS)">
+      <mat-icon class="item-icon">settings</mat-icon>
+      <span class="item-text">{{ SETTINGS_BUTTON_VALUE }}</span>
+    </div>
 
   </div>
 

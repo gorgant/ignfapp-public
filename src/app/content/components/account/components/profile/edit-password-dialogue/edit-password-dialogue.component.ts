@@ -14,7 +14,7 @@ import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreSelector
 })
 export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
 
-  TITLE_FIELD_VALUE = GlobalFieldValues.CHANGE_PASSWORD;
+  CHANGE_PASSWORD_TITLE_VALUE = GlobalFieldValues.CHANGE_PASSWORD;
   CHANGE_PASSWORD_BLURB = GlobalFieldValues.CHANGE_PASSWORD_BLURB;
   SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
@@ -39,9 +39,9 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
   }
 
   monitorResetRequests() {
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
-    this.resetPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordProcessing));
-    this.resetPasswordError$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordError));
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
+    this.resetPasswordProcessing$ = this.store$.select(AuthStoreSelectors.selectResetPasswordProcessing);
+    this.resetPasswordError$ = this.store$.select(AuthStoreSelectors.selectResetPasswordError);
   }
 
   onSubmit() {

@@ -62,11 +62,7 @@
 }
 
 .empty-message {
-  margin-top: 16px;
-  font-size: 1.2em;
-  line-height: 1.2em;
-  font-weight: 300;
-  text-align: center;
+  @include user-message-styles();
 }
 
 @media screen and (min-width: $mobile-cutoff-width) {

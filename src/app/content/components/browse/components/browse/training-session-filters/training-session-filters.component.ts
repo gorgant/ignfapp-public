@@ -96,7 +96,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
         withLatestFrom(this.allTrainingSessionsFetched$),
         filter(([trainingSessions, allFetched]) => allFetched),
         tap(([trainingSessions, allFetched]) => {
-          console.log('Set training sessions', trainingSessions);
+          console.log('Set trainingSessions', trainingSessions);
           this.$filteredTrainingSessions.set(trainingSessions);
         }),
         // Catch any local errors

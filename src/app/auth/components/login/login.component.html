@@ -12,12 +12,7 @@
       <a [routerLink]="SIGNUP_PATH">{{ CREATE_ACCOUNT_BUTTON_VALUE }}</a>
     </div>
   </div>
-  <div class="processing-container" *ngIf="authOrUserUpdateProcessing$ | async">
-    <mat-spinner class="processing-spinner"></mat-spinner>
-    <h2 class="processing-message">
-      {{ AUTH_PROCESSING_BLURB }}
-    </h2>
-  </div>
+  <app-processing-spinner *ngIf="authOrUserUpdateProcessing$ | async" [spinnerMessage]="AUTH_PROCESSING_BLURB"></app-processing-spinner>
   <div class="verify-email" *ngIf="(userData$ | async) && 
       (!(userData$ | async)?.emailVerified || !(authData$ | async)?.emailVerified) && 
       !(authOrUserUpdateProcessing$ | async)" 

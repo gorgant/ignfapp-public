@@ -29,26 +29,39 @@ export enum PublicUserKeys {
   ONBOARDING_WELCOME_EMAIL_SENT = 'onboardingWelcomeEmailSent',
 }
 
+export interface GoogleCloudFunctionsTimestamp {
+  _seconds: number;
+  _nanoseconds: number;
+}
+
+export interface GoogleCloudFunctionsPublicUser extends PublicUser {
+  [PublicUserKeys.CREATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
+  [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
+}
+
 export interface PublicUser {
   [PublicUserKeys.AVATAR_URL]?: string;
   billingDetails?: BillingDetails | Partial<BillingDetails>;
-  [PublicUserKeys.CREATED_TIMESTAMP]: number | Timestamp;
+  [PublicUserKeys.CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.DISPLAY_NAME]: string | undefined;
   [PublicUserKeys.EMAIL]: string;
   [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: UnsubscribeRecordList | undefined;
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: UnsubscribeRecord | undefined;
   [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]: EmailSubSource | undefined,
   [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: boolean | undefined;
-  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: number | Timestamp | undefined;
-  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: number | Timestamp | undefined;
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]: string | undefined;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: SendgridContactListId[] | undefined;
   [PublicUserKeys.EMAIL_VERIFIED]: boolean | undefined;
   [PublicUserKeys.FIRST_NAME]: string | undefined;
   gender?: 'male' | 'female' | 'nonbinary'
   [PublicUserKeys.ID]: string;
-  [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: number | Timestamp;
-  [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp;
+  [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
+  [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.LAST_NAME]: string | undefined;
   isAdmin?: boolean,
   [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]: boolean | undefined;

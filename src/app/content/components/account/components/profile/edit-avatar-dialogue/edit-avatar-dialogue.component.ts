@@ -64,17 +64,17 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 
   private monitorUpdateRequests(): void {
 
-    this.avatarDownloadUrl$ = this.store$.pipe(select(UserStoreSelectors.selectAvatarDownloadUrl));
-    this.uploadAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarError));
-    this.uploadAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUploadAvatarProcessing));
+    this.avatarDownloadUrl$ = this.store$.select(UserStoreSelectors.selectAvatarDownloadUrl);
+    this.uploadAvatarError$ = this.store$.select(UserStoreSelectors.selectUploadAvatarError);
+    this.uploadAvatarProcessing$ = this.store$.select(UserStoreSelectors.selectUploadAvatarProcessing);
 
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData));
-    this.userUpdateError$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserError));
-    this.userUpdateProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing));
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
+    this.userUpdateError$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserError);
+    this.userUpdateProcessing$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserProcessing);
 
-    this.resizeAvatarError$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarError));
-    this.resizeAvatarProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarProcessing));
-    this.resizeAvatarSucceeded$ = this.store$.pipe(select(UserStoreSelectors.selectResizeAvatarSucceeded));
+    this.resizeAvatarError$ = this.store$.select(UserStoreSelectors.selectResizeAvatarError);
+    this.resizeAvatarProcessing$ = this.store$.select(UserStoreSelectors.selectResizeAvatarProcessing);
+    this.resizeAvatarSucceeded$ = this.store$.select(UserStoreSelectors.selectResizeAvatarSucceeded);
 
     this.combinedUploadAvatarProcessing$ = combineLatest(
       [

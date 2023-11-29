@@ -145,7 +145,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.resetComponentActionState();
+            this.resetComponentState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
           return processingError;
@@ -231,7 +231,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetComponentState();
           this.store$.dispatch(AuthStoreActions.logout());
           return throwError(() => new Error(error));
         })
@@ -252,7 +252,7 @@ export class SignupFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private resetComponentActionState() {
+  private resetComponentState() {
     this.emailSignupSubscription?.unsubscribe();
     this.$emailAuthRequested.set(false);
     

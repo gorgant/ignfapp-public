@@ -1,11 +1,7 @@
 @import "./variables";
 
-
 .app-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  width: 100%;
   padding-bottom: 72px;
   max-width: $desktop-screen-width;
 }
@@ -20,23 +16,6 @@ app-nav-bar {
   bottom: 0;
   width: 100%;
   z-index: 1;
-}
-
-.spinner-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-
-}
-
-.processing-spinner {
-  font-size: 96px;
-  height: 96px;
-  width: 96px;
-  color: $primary;
 }
 
 @media screen and (min-width: $mobile-cutoff-width) {

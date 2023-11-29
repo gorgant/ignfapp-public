@@ -68,25 +68,3 @@ app-signup-form {
 .verify-text, .trusted-sender-text {
   font-weight: $font-weight-medium
 }
-
-.processing-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-}
-
-.processing-spinner {
-  font-size: 96px;
-  height: 96px;
-  width: 96px;
-  color: $primary;
-}
-
-.processing-message {
-  text-align: center;
-  font-weight: $font-weight-light;
-  font-size: 1.2em;
-  line-height: 1.2em;
-}

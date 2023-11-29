@@ -1,6 +1,6 @@
-<div fxLayout="column" fxLayoutAlign="center center">
+<div class="content-container">
 
-  <h2 class="section-header" mat-dialog-title>{{ UPDATE_EMAIL_TITLE_VALUE }}</h2>
+  <div class="dialogue-title">{{ UPDATE_EMAIL_TITLE_VALUE }}</div>
 
   <mat-stepper [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #updateEmailStepper>
 
@@ -11,22 +11,15 @@
         
         <ng-template matStepLabel>{{ VERIFY_PASSWORD_STEP_LABEL }}</ng-template>
       
-        <div fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
-          <mat-form-field>
-            <input formControlName="password" matInput type="password" placeholder="Current Password">
-            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.password">
-              <mat-error *ngIf="password.hasError(validation.type) && password.invalid && (password.dirty || password.touched)">{{ validation.message }}</mat-error>
-            </mat-error>
-          </mat-form-field>
-          
-          <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="8px" fxLayout.gt-md="row">
-            
-            <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" [disabled]="passwordForm.invalid" (click)="onConfirmPasswordInAuth()">{{ VERIFY_PASSWORD_BUTTON_VALUE }}</button>
-            <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-            <div *ngIf="(combinedAuthAndUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-            </div>
-          </div>
+        <mat-form-field>
+          <input formControlName="password" matInput type="password" placeholder="Current Password">
+          <mat-error *ngIf="password.invalid && (password.dirty || password.touched)">{{ passwordErrorMessage }}</mat-error>
+        </mat-form-field>
+        
+        <div class="stepper-buttons">
+          <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" [disabled]="password.invalid && (password.dirty || password.touched)" (click)="onConfirmPasswordInAuth()">{{ VERIFY_PASSWORD_BUTTON_VALUE }}</button>
+          <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+          <app-processing-spinner *ngIf="(combinedAuthAndUserUpdateProcessing$ | async)"></app-processing-spinner>
         </div>
 
       </form>
@@ -34,32 +27,30 @@
   
     <!-- Step 2 -->
     <mat-step errorMessage="Error updating email.">
-      <form [formGroup]="emailForm" fxLayout="column" fxLayoutAlign="center center">
+      <form [formGroup]="emailForm">
 
         <ng-template matStepLabel>{{ INPUT_NEW_EMAIL_STEP_LABLE }}</ng-template>
         
-        <div class="new-email-container" [fxHide]="$sendUpdateEmailConfirmationCycleComplete()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center">
+        <div class="new-email-container" [ngClass]="$sendUpdateEmailConfirmationCycleComplete() ? 'hide' : ''">
+          <div class="email-update-visual">
+            <div><span class="email-update-visual-topic-text">Current email:</span> {{ originalUserData.email }}</div>
+            <div><span class="email-update-visual-topic-text">New email:</span> {{ email.value }}</div>
+          </div>
+        
           <mat-form-field>
             <input formControlName="email" matInput type="text" placeholder="Your new email...">
-            <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.email">
-              <mat-error *ngIf="email.hasError(validation.type) && email.invalid && (email.dirty || email.touched)">{{ validation.message }}</mat-error>
-            </mat-error>
+            <mat-error *ngIf="email.invalid && (email.dirty || email.touched)">{{ emailErrorMessage }}</mat-error>
           </mat-form-field>
           
-          <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="8px" fxLayout.gt-md="row">
-            
-            <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" (click)="onSendUpdateEmailConfirmation()">{{ SEND_UPDATE_EMAIL_BUTTON_VALUE }}</button>
+          <div class="stepper-buttons">
+            <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" [disabled]="email.invalid && (email.dirty || email.touched)" (click)="onSendUpdateEmailConfirmation()">{{ SEND_UPDATE_EMAIL_BUTTON_VALUE }}</button>
             <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-            <div *ngIf="(combinedAuthAndUserUpdateProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-              <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-            </div>
-
           </div>
         </div>
 
-        <div [fxShow]="$sendUpdateEmailConfirmationCycleComplete()" fxLayout="column" fxLayoutAlign="center start" fxLayoutAlign.gt-sm="center center" fxLayoutGap="16px">
+        <div class="confirm-email-container" [ngClass]="$sendUpdateEmailConfirmationCycleComplete() ? '' : 'hide'">
           <div>{{ CONFIRM_NEW_EMAIL_BLURB }}</div>
-          <button *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" [mat-dialog-close]="true">
+          <button class="confirm-email-button" *ngIf="!(combinedAuthAndUserUpdateProcessing$ | async)" mat-raised-button color="primary" [mat-dialog-close]="true">
             {{ IVE_CONFIRMED_MY_EMAIL_BUTTON_VALUE }}
           </button>
         </div>

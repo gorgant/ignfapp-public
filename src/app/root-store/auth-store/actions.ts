@@ -20,7 +20,7 @@ export const authGuardFailed = createAction(
 
 export const confirmPasswordRequested = createAction(
   '[Edit Email Component] Confirm Password Requested',
-  props<{passwordConfirmationData: PasswordConfirmationData}>()
+  props<{confirmPasswordData: PasswordConfirmationData}>()
 );
 
 export const confirmPasswordCompleted = createAction(

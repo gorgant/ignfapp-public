@@ -1,9 +1,10 @@
 import { Timestamp } from '@angular/fire/firestore';
+import { GoogleCloudFunctionsTimestamp } from 'shared-models/user/public-user.model';
 
 
 // The base pair
 export interface UnsubscribeRecord {
-  unsubscribeTimestamp: number | Timestamp;
+  unsubscribeTimestamp: number | Timestamp | GoogleCloudFunctionsTimestamp;
   asm_group_id?: number;
 }
 

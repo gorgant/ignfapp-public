@@ -2,7 +2,7 @@ import { Injectable, Signal, signal } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { EnvironmentTypes } from 'shared-models/environments/env-vars.model';
 import { SanitizedFileData } from 'shared-models/utils/sanitized-file-data.model';
-import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
+import { GoogleCloudFunctionsTimestamp, PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { EmailUserData } from 'shared-models/email/email-user-data.model';
 
 @Injectable({
@@ -106,6 +106,17 @@ export class HelperService {
       onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
     };
     return emailUserData;
+  }
+
+  convertGoogleCloudTimestampToMs(timestamp: GoogleCloudFunctionsTimestamp): number {
+    // Convert seconds to milliseconds
+    const millisecondsFromSeconds = timestamp._seconds * 1000;
+
+    // Convert nanoseconds to milliseconds
+    const millisecondsFromNanoseconds = timestamp._nanoseconds / 1000000;
+
+    // Sum both to get the total milliseconds
+    return millisecondsFromSeconds + millisecondsFromNanoseconds;
   }
 
   // Avoid using this whenever possible, default to using the firebase API

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { UiService } from './core/services/ui.service';
+import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,8 @@ import { UiService } from './core/services/ui.service';
 export class AppComponent implements OnInit {
   TITLE = 'ignfapp-public';
   APP_VERSION = '0.2.3'
+
+  VERIFYING_CREDENTIALS_SPINNER_MESSAGE = GlobalFieldValues.VERIFYING_CREDENTIALS;
 
   uiService = inject(UiService);
   

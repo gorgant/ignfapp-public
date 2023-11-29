@@ -38,11 +38,11 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   VERIFY_PASSWORD_STEP_LABEL = GlobalFieldValues.VERIFY_PASSWORD;
 
   private confirmPasswordProcessing$!: Observable<boolean>;
-  private passwordConfirmationSubscription!: Subscription;
+  private confirmPasswordSubscription!: Subscription;
   private confirmPasswordError$!: Observable<{} | null>;
-  private $passwordConfirmationSubmitted = signal(false);
-  private $passwordUpdateCycleInit = signal(false);
-  private $passwordUpdateCycleComplete = signal(false);
+  private $confirmPasswordSubmitted = signal(false);
+  private $confirmPasswordCycleInit = signal(false);
+  private $confirmPasswordCycleComplete = signal(false);
 
   private sendUpdateEmailConfirmationProcessing$!: Observable<boolean>;
   private sendUpdateEmailConfirmationSubscription!: Subscription;
@@ -53,13 +53,13 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   
   combinedAuthAndUserUpdateProcessing$!: Observable<boolean>;
 
-  private userData$!: Observable<PublicUser>;
+  userData$!: Observable<PublicUser>;
 
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<EditNameDialogueComponent>);
   private store$ = inject(Store);
   private uiService = inject(UiService);
-  private userData: PublicUser = inject(MAT_DIALOG_DATA);
+  originalUserData: PublicUser = inject(MAT_DIALOG_DATA);
 
   passwordForm = this.fb.group({
     [UserRegistrationFormFieldKeys.PASSWORD]: ['', [Validators.required]],
@@ -76,15 +76,34 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
     this.setStepperOrientation();
   }
 
+  get passwordErrorMessage() {
+    let errorMessage = '';
+    if (this.password.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
+  }
+
+  get emailErrorMessage() {
+    let errorMessage = '';
+    if (this.email.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.email.hasError('email')) {
+      return errorMessage =  'Not a valid email.';
+    }
+    return errorMessage;
+  }
+
   private monitorUpdateRequests(): void {
 
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
 
-    this.confirmPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordProcessing));
-    this.confirmPasswordError$ = this.store$.pipe(select(AuthStoreSelectors.selectConfirmPasswordError));
+    this.confirmPasswordProcessing$ = this.store$.select(AuthStoreSelectors.selectConfirmPasswordProcessing);
+    this.confirmPasswordError$ = this.store$.select(AuthStoreSelectors.selectConfirmPasswordError);
     
-    this.sendUpdateEmailConfirmationProcessing$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationProcessing));
-    this.sendUpdateEmailConfirmationError$ = this.store$.pipe(select(UserStoreSelectors.selectSendUpdateEmailConfirmationError));
+    this.sendUpdateEmailConfirmationProcessing$ = this.store$.select(UserStoreSelectors.selectSendUpdateEmailConfirmationProcessing);
+    this.sendUpdateEmailConfirmationError$ = this.store$.select(UserStoreSelectors.selectSendUpdateEmailConfirmationError);
 
     this.combinedAuthAndUserUpdateProcessing$ = combineLatest([
         this.confirmPasswordProcessing$,
@@ -104,8 +123,12 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   onConfirmPasswordInAuth() {
+    if (!this.password.dirty) {
+      this.uiService.showSnackBar(`You must provide your password to proceed!`, 10000);
+      return;
+    }
 
-    this.passwordConfirmationSubscription = this.confirmPasswordError$
+    this.confirmPasswordSubscription = this.confirmPasswordError$
       .pipe(
         map(processingError => {
           const errMsg = (processingError as FirebaseError)?.message;
@@ -121,35 +144,35 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
         }),
         filter(processingError => !processingError ), // Halts function if processingError detected
         switchMap(processingError => {
-          if (!this.$passwordConfirmationSubmitted()) {
-            const passwordConfirmationData: PasswordConfirmationData = {
-              email: this.userData.email,
+          if (!this.$confirmPasswordSubmitted()) {
+            const confirmPasswordData: PasswordConfirmationData = {
+              email: this.originalUserData.email,
               password: this.password.value,
             };
-            this.$passwordConfirmationSubmitted.set(true);
-            this.store$.dispatch(AuthStoreActions.confirmPasswordRequested({passwordConfirmationData}));
+            this.$confirmPasswordSubmitted.set(true);
+            this.store$.dispatch(AuthStoreActions.confirmPasswordRequested({confirmPasswordData}));
           }
           return this.confirmPasswordProcessing$;
         }),
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(passwordConfirmationProcessing => {
-          if (passwordConfirmationProcessing) {
-            this.$passwordUpdateCycleInit.set(true);
+        tap(confirmPasswordProcessing => {
+          if (confirmPasswordProcessing) {
+            this.$confirmPasswordCycleInit.set(true);
           }
-          if (!passwordConfirmationProcessing && this.$passwordUpdateCycleInit()) {
-            console.log('passwordUpdate successful, proceeding with pipe.');
-            this.$passwordUpdateCycleInit.set(false);
-            this.$passwordUpdateCycleComplete.set(true);
+          if (!confirmPasswordProcessing && this.$confirmPasswordCycleInit()) {
+            console.log('confirmPassword successful, proceeding with pipe.');
+            this.$confirmPasswordCycleInit.set(false);
+            this.$confirmPasswordCycleComplete.set(true);
           }
         }),
-        filter(passwordConfirmationProcessing => !passwordConfirmationProcessing && this.$passwordUpdateCycleComplete()),
-        tap(passwordConfirmationProcessing => {
+        filter(confirmPasswordProcessing => !confirmPasswordProcessing && this.$confirmPasswordCycleComplete()),
+        tap(confirmPasswordProcessing => {
           // If password confirmation succeeds, proceed to next step
-          this.passwordConfirmationSubscription?.unsubscribe(); // Clear subscription no longer needed
+          this.confirmPasswordSubscription?.unsubscribe(); // Clear subscription no longer needed
           const stepOne = this.updateEmailStepper.steps.get(0); 
           if (stepOne) {
             stepOne.completed = true;
-            this.passwordConfirmationSubscription?.unsubscribe();        
+            this.confirmPasswordSubscription?.unsubscribe();        
             this.updateEmailStepper.next() // Programatically trigger the stepper to move to the next step
           }
         }),
@@ -165,15 +188,20 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   }
 
   private resetConfirmPasswordComponentState() {
-    this.passwordConfirmationSubscription?.unsubscribe();
-    this.$passwordConfirmationSubmitted.set(false);
+    this.confirmPasswordSubscription?.unsubscribe();
+    this.$confirmPasswordSubmitted.set(false);
     this.passwordForm.reset();
-    this.$passwordUpdateCycleInit.set(false);
-    this.$passwordUpdateCycleComplete.set(false);
+    this.$confirmPasswordCycleInit.set(false);
+    this.$confirmPasswordCycleComplete.set(false);
     this.store$.dispatch(AuthStoreActions.purgeAuthErrors());
   }
 
   onSendUpdateEmailConfirmation() {
+    if (!this.email.dirty) {
+      this.uiService.showSnackBar(`You must provide your new email to proceed!`, 10000);
+      return;
+    }
+
     this.sendUpdateEmailConfirmationSubscription = this.sendUpdateEmailConfirmationError$
       .pipe(
         map(processingError => {
@@ -240,7 +268,7 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   get email() { return this.emailForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
 
   ngOnDestroy(): void {
-    this.passwordConfirmationSubscription?.unsubscribe();
+    this.confirmPasswordSubscription?.unsubscribe();
     this.sendUpdateEmailConfirmationSubscription?.unsubscribe();
   }
 

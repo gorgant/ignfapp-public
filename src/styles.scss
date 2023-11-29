@@ -25,4 +25,6 @@
 /* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;}
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif;}
+// This app-root config must be used in conjunction with the app.component.scss .app-content { width: 100% } setting
+app-root {display: flex; flex-direction: column; justify-content: flex-start; align-items: center; width: 100%;}

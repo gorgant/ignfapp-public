@@ -18,10 +18,8 @@
 }
 
 .body-statement {
-  font-size: 1.2em;
+  @include user-message-styles();
   max-width: 80%;
-  line-height: 1.2em;
-  text-align: center;
 }
 
 app-pl-signup {

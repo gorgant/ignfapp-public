@@ -1,9 +1,4 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32 px">
+<div class="component-container">
   <p>Settings works!</p>
-  <div class="verify-email" *ngIf="(userData$ | async) as user" fxLayout="column" fxLayoutAlign="center center">
-    <p>Login successful! Welcome {{user.firstName}}</p>
-  </div>
-  <div fxLayout="column" fxLayoutAlign="center center">
-    <button mat-raised-button color="warn" (click)="onLogout()">{{ logoutButtonValue }}</button>
-  </div>
+  <button class="logout-button" mat-stroked-button color="primary" (click)="onLogout()">{{ logoutButtonValue }}</button>
 </div>

@@ -130,6 +130,7 @@ export enum GlobalFieldValues {
   UPLOAD_IMAGE = `Upload Image`,
   UPDATE_EMAIL = `Update Email`,
   VERIFY_PASSWORD = `Verify Password`,
+  VERIFYING_CREDENTIALS = `Verifying credentials...`,
   VISIBILITY = `Visibility`,
   YES = `Yes`,
 }

@@ -50,13 +50,13 @@ export class SignupComponent implements OnInit {
   private checkAuthStatus() {
     this.authOrUserUpdateProcessing$ = combineLatest(
       [
-        this.store$.pipe(select(AuthStoreSelectors.selectEmailSignupProcessing)),
-        this.store$.pipe(select(AuthStoreSelectors.selectEmailAuthProcessing)),
-        this.store$.pipe(select(AuthStoreSelectors.selectFacebookAuthProcessing)),
-        this.store$.pipe(select(AuthStoreSelectors.selectGoogleAuthProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectCreatePublicUserProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectUpdatePublicUserProcessing)),
-        this.store$.pipe(select(UserStoreSelectors.selectFetchPublicUserProcessing))
+        this.store$.select(AuthStoreSelectors.selectEmailSignupProcessing),
+        this.store$.select(AuthStoreSelectors.selectEmailAuthProcessing),
+        this.store$.select(AuthStoreSelectors.selectFacebookAuthProcessing),
+        this.store$.select(AuthStoreSelectors.selectGoogleAuthProcessing),
+        this.store$.select(UserStoreSelectors.selectCreatePublicUserProcessing),
+        this.store$.select(UserStoreSelectors.selectUpdatePublicUserProcessing),
+        this.store$.select(UserStoreSelectors.selectFetchPublicUserProcessing)
       ]
     ).pipe(
         map(([signupProcessing, emailAuthProcessing, facebookAuthProcessing, googleAuthProcessing, creatingUser, updatingUser, fetchingUser]) => {
@@ -67,8 +67,8 @@ export class SignupComponent implements OnInit {
         })
     );
     
-    this.userData$ = this.store$.pipe(select(UserStoreSelectors.selectPublicUserData)) as Observable<PublicUser>;
-    this.authData$ = this.store$.pipe(select(AuthStoreSelectors.selectAuthResultsData)) as Observable<AuthResultsData>;
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
+    this.authData$ = this.store$.select(AuthStoreSelectors.selectAuthResultsData) as Observable<AuthResultsData>;
   }
 
 }

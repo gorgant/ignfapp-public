@@ -15,6 +15,7 @@ import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.m
 import { AuthStoreActions, AuthStoreSelectors, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { ResetPasswordDialogueComponent } from '../reset-password-dialogue/reset-password-dialogue.component';
 import { UiService } from 'src/app/core/services/ui.service';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 
 @Component({
   selector: 'app-login-form',
@@ -136,7 +137,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.resetComponentActionState();
+            this.resetComponentState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
           return processingError;
@@ -225,7 +226,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetComponentState();
           this.store$.dispatch(AuthStoreActions.logout());
           return throwError(() => new Error(error));
         })
@@ -246,10 +247,8 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   onResetPassword() {
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     dialogConfig.autoFocus = true;
-    dialogConfig.width = '100%';
-    dialogConfig.minHeight = '300px';
     dialogConfig.data = this.email.value;
     console.log('Reset password requested with this config', dialogConfig);
 
@@ -267,7 +266,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.$showResetMessage.set(false);
   }
 
-  private resetComponentActionState() {
+  private resetComponentState() {
     this.emailAuthSubscription?.unsubscribe();
     this.$emailAuthRequested.set(false);
     

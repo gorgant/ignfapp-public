@@ -49,9 +49,5 @@ mat-form-field {
 }
 
 .check-inbox-message {
-  margin-top: 32px;
-  text-align: center;
-  font-size: 1.2em;
-  font-weight: $font-weight-light;
-  line-height: 1.2em;
+  @include user-message-styles(32px);
 }

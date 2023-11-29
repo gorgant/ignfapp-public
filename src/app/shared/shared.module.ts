@@ -19,6 +19,7 @@ import { TrainingPlanSearchFilterPipe } from './pipes/training-plan-search-filte
 import { TrainingPlanCardComponent } from './components/training-plan-card/training-plan-card.component';
 import { AddTrainingSessionToPersonalQueueButtonComponent } from './components/add-training-session-to-personal-queue-button/add-training-session-to-personal-queue-button.component';
 import { AddTrainingPlanToPersonalQueueComponent } from './components/add-training-plan-to-personal-queue/add-training-plan-to-personal-queue.component';
+import { ProcessingSpinnerComponent } from './components/processing-spinner/processing-spinner.component';
 
 
 
@@ -38,7 +39,8 @@ import { AddTrainingPlanToPersonalQueueComponent } from './components/add-traini
     TrainingPlanSearchFilterPipe,
     TrainingPlanCardComponent,
     AddTrainingSessionToPersonalQueueButtonComponent,
-    AddTrainingPlanToPersonalQueueComponent
+    AddTrainingPlanToPersonalQueueComponent,
+    ProcessingSpinnerComponent
   ],
   imports: [
     CommonModule,
@@ -68,7 +70,8 @@ import { AddTrainingPlanToPersonalQueueComponent } from './components/add-traini
     TrainingPlanSearchFilterPipe,
     TrainingPlanCardComponent,
     AddTrainingSessionToPersonalQueueButtonComponent,
-    AddTrainingPlanToPersonalQueueComponent
+    AddTrainingPlanToPersonalQueueComponent,
+    ProcessingSpinnerComponent
   ]
 })
 export class SharedModule { }

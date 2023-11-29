@@ -286,3 +286,18 @@ $opacity-minimal: 0.1;
     }
   
   }
+
+@mixin user-message-styles($margin-top: 16px) {
+    margin-top: $margin-top;
+    text-align: center;
+    font-weight: $font-weight-light;
+    font-size: 1.2em;
+    line-height: 1.2em;
+}
+
+@mixin processing-spinner-styles($size: 96px) {
+    font-size: 96px;
+    height: 96px;
+    width: 96px;
+    color: $primary;
+}

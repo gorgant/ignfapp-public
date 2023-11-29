@@ -48,13 +48,13 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   private monitorStoreState() {
-    this.verifyEmailSucceeded$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailSucceeded));
-    this.verifyEmailProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailProcessing));
-    this.verifyEmailError$ = this.store$.pipe(select(AuthStoreSelectors.selectVerifyEmailError));
+    this.verifyEmailSucceeded$ = this.store$.select(AuthStoreSelectors.selectVerifyEmailSucceeded);
+    this.verifyEmailProcessing$ = this.store$.select(AuthStoreSelectors.selectVerifyEmailProcessing);
+    this.verifyEmailError$ = this.store$.select(AuthStoreSelectors.selectVerifyEmailError);
 
-    this.updateEmailSucceeded$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailSucceeded));
-    this.updateEmailProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailProcessing));
-    this.updateEmailError$ = this.store$.pipe(select(AuthStoreSelectors.selectUpdateEmailError));
+    this.updateEmailSucceeded$ = this.store$.select(AuthStoreSelectors.selectUpdateEmailSucceeded);
+    this.updateEmailProcessing$ = this.store$.select(AuthStoreSelectors.selectUpdateEmailProcessing);
+    this.updateEmailError$ = this.store$.select(AuthStoreSelectors.selectUpdateEmailError);
 
     this.verificationOrUpdateProcessing$ = combineLatest([
       this.verifyEmailProcessing$,

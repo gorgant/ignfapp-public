@@ -121,7 +121,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.resetComponentActionState();
+            this.resetComponentState();
             this.store$.dispatch(AuthStoreActions.logout());
           }
           return this.authData$;
@@ -197,7 +197,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
         catchError((error: any) => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetComponentState();
           this.store$.dispatch(AuthStoreActions.logout());
           return throwError(() => new Error(error));
         })
@@ -242,7 +242,7 @@ export class LoginWithThirdPartyComponent implements OnInit {
     this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
   }
 
-  private resetComponentActionState() {
+  private resetComponentState() {
     this.authenticateUserSubscription?.unsubscribe();
     
     this.$reloadAuthDataSubmitted.set(false);

@@ -18,7 +18,7 @@ export class AuthStoreEffects {
     .pipe(
       ofType(AuthStoreActions.confirmPasswordRequested),
       switchMap(action => 
-        this.authService.confirmPassword(action.passwordConfirmationData).pipe(
+        this.authService.confirmPassword(action.confirmPasswordData).pipe(
           map(passwordConfirmed => {
             return AuthStoreActions.confirmPasswordCompleted({passwordConfirmed});
           }),

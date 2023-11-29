@@ -66,8 +66,8 @@ export class ResetPasswordDialogueComponent implements OnInit {
   }
 
   monitorResetRequests() {
-    this.resetPasswordProcessing$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordProcessing));
-    this.resetPasswordError$ = this.store$.pipe(select(AuthStoreSelectors.selectResetPasswordError));
+    this.resetPasswordProcessing$ = this.store$.select(AuthStoreSelectors.selectResetPasswordProcessing);
+    this.resetPasswordError$ = this.store$.select(AuthStoreSelectors.selectResetPasswordError);
   }
 
   onSubmit() {
@@ -77,7 +77,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
         map(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating dialog', processingError);
-            this.resetComponentActionState();
+            this.resetComponentState();
             this.dialogRef.close(false);
           }
           return processingError;
@@ -109,7 +109,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetComponentActionState();
+          this.resetComponentState();
           this.dialogRef.close(false);
           return throwError(() => new Error(error));
         })
@@ -117,7 +117,7 @@ export class ResetPasswordDialogueComponent implements OnInit {
       .subscribe();
   }
 
-  private resetComponentActionState() {
+  private resetComponentState() {
     this.resetPasswordSubscription?.unsubscribe();
     this.$resetPasswordSubmitted.set(false);
     this.$resetPasswordCycleInit.set(false);
