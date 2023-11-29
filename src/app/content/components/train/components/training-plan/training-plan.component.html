@@ -5,7 +5,7 @@
   <div *ngIf="$localTrainingPlan() as trainingPlan" class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
     <div class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
       <div class="plan-title">{{ trainingPlan.title }}</div>
-      <button *ngIf="(userData$ | async)?.isAdmin" class="action-button"  mat-icon-button (click)="onEditTrainingPlan()" aria-label="Edit training session">
+      <button *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id)" class="action-button"  mat-icon-button (click)="onEditTrainingPlan()" aria-label="Edit training session">
         <mat-icon>edit</mat-icon>
       </button>
     </div>
@@ -14,6 +14,12 @@
   <ng-container *ngIf="$localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0">
     <app-add-training-plan-to-personal-queue [planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
   </ng-container>
+  <div class="no-training-sessions-container" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0">
+    <div>{{ NO_TRAINING_SESSIONS_FOUND_BLURB }}</div>
+    <button class="add-training-session-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingSession()">
+      {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
+    </button>
+  </div>
   <div *ngIf="$localPlanSessionFragments() as planSessionFragments" class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
     <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
       <div class="training-session-card-container" *cdkVirtualFor="let planSessionFragment of planSessionFragments" fxLayout="column" fxLayoutGap="8px">

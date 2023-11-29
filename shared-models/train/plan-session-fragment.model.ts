@@ -11,16 +11,32 @@ export interface PlanSessionFragment extends PlanSessionFragmentNoIdOrTimestamp 
 
 export interface PlanSessionFragmentNoIdOrTimestamp extends TrainingSessionNoIdOrTimestamps {
   [PlanSessionFragmentKeys.CANONICAL_ID]: string,
+  [PlanSessionFragmentKeys.CREATOR_ID]: string,
+  [PlanSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
   [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: string,
   [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: number,
   [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: string,
   [PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption
 }
 
+export type NewDataForPlanSessionFragmentNoIdOrTimestamp = Pick<
+    PlanSessionFragmentNoIdOrTimestamp,
+    PlanSessionFragmentKeys.CANONICAL_ID |
+    PlanSessionFragmentKeys.CREATOR_ID |
+    PlanSessionFragmentKeys.DATABASE_CATEGORY |
+    PlanSessionFragmentKeys.TRAINING_PLAN_ID |
+    PlanSessionFragmentKeys.TRAINING_PLAN_INDEX |
+    PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID |
+    PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY
+  >;
+
+// Ensure this has all of the properties that might overlap with a CanonicalTrainingSession because it is used for a loop to delete those during creation
 export enum PlanSessionFragmentKeys {
-  ID = 'id',
   CANONICAL_ID = 'canonicalId',
   CREATED_TIMESTAMP = 'createdTimestamp',
+  CREATOR_ID = 'creatorId',
+  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+  ID = 'id',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   TRAINING_PLAN_ID = 'trainingPlanId',
   TRAINING_PLAN_INDEX = 'trainingPlanIndex',

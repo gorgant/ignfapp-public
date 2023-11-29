@@ -76,7 +76,7 @@ export class TrainingSessionService {
       );
   }
 
-  // TODO: Confirm that this recursively deletes TrainingRecords, otherwise do a batch delete (see batchDeletePlanSessionFragments for example)
+  // TODO: Confirm that this recursively deletes SessionRatings, otherwise do a batch delete (see batchDeletePlanSessionFragments for example) or run as a cloud function
   deleteTrainingSession(trainingSession: CanonicalTrainingSession, userId: string): Observable<string> {
     const documentId = trainingSession[TrainingSessionKeys.ID];
     const visibilityCategory = trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];

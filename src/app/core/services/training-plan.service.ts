@@ -14,7 +14,7 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class TrainingPlanService {
 
-  deleteTrainingPlanTriggered$: Subject<void> = new Subject();
+  private deleteTrainingPlanTriggered$: Subject<void> = new Subject();
 
   private firestore = inject(Firestore);
   private authService = inject(AuthService);

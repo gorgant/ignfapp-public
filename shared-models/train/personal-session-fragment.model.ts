@@ -11,20 +11,31 @@ export interface PersonalSessionFragment extends PersonalSessionFragmentNoIdOrTi
 export interface PersonalSessionFragmentNoIdOrTimestamp extends TrainingSessionNoIdOrTimestamps {
   [PersonalSessionFragmentKeys.CANONICAL_ID]: string,
   [PersonalSessionFragmentKeys.COMPLETE]: boolean,
+  [PersonalSessionFragmentKeys.CREATOR_ID]: string,
+  [PersonalSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
   [PersonalSessionFragmentKeys.QUEUE_INDEX]: number,
-  [PersonalSessionFragmentKeys.USER_ID]: string
 }
 
+export type NewDataForPersonalSessionFragmentNoIdOrTimestamp = Pick<
+    PersonalSessionFragmentNoIdOrTimestamp,
+    PersonalSessionFragmentKeys.CANONICAL_ID |
+    PersonalSessionFragmentKeys.COMPLETE |
+    PersonalSessionFragmentKeys.CREATOR_ID |
+    PersonalSessionFragmentKeys.DATABASE_CATEGORY |
+    PersonalSessionFragmentKeys.QUEUE_INDEX
+  >;
 
+// Ensure this has all of the properties that might overlap with a CanonicalTrainingSession because it is used for a loop to delete those during creation
 export enum PersonalSessionFragmentKeys {
   CANONICAL_ID = 'canonicalId',
   COMPLETE = 'complete',
   CREATED_TIMESTAMP = 'createdTimestamp',
+  CREATOR_ID = 'creatorId',
+  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
   ID = 'id',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   QUEUE_INDEX = 'queueIndex',
   SCHEDULED_TIMESTAMP = 'scheduledTimestamp',
-  USER_ID = 'userId',
 }
 
 

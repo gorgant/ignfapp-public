@@ -390,6 +390,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.combinedTrainingDataSubscription = this.combinedFetchTrainingDataError$
       .pipe(
         switchMap(processingError => {
+          console.log('deleteTrainingPlanSubmitted:', this.$deleteTrainingPlanSubmitted());
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.resetPatchExistingDataComponentState();
@@ -409,6 +410,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         }),
         filter(trainingPlan => !!trainingPlan),
         switchMap(trainingPlan => {
+          console.log('deleteTrainingPlanSubmitted:', this.$deleteTrainingPlanSubmitted());
           // Only update the local trainingPlan array if there are updates to the trainingPlan
           if (this.$localTrainingPlan() !== trainingPlan) {
             this.$localTrainingPlan.set(trainingPlan!); // Load the current trainingPlan into the instance variable
@@ -423,10 +425,12 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           // Need to combine both observables in order to push new batch of planSessionFragments into store
           return combineLatest([singleTrainingPlan$, this.allPlanSessionFragmentsInStore$]);
         }), 
-        filter(([trainingPlan, planSessionFragments]) => trainingPlan!.trainingSessionCount > 0), // Only fetch planSessionFragments if they exist in plan
+        // filter(([trainingPlan, planSessionFragments]) => trainingPlan!.trainingSessionCount > 0), // Only fetch planSessionFragments if they exist in plan
+        filter(([trainingPlan, planSessionFragments]) => !!trainingPlan && trainingPlan.trainingSessionCount > 0), // Only fetch planSessionFragments if they exist in plan
         withLatestFrom(this.userData$),
         switchMap(([[trainingPlan, planSessionFragments], userData]) => {
           // Determine if data has been fetched by checking if the legnth of the array matches the trainingPlan's count
+          console.log('deleteTrainingPlanSubmitted:', this.$deleteTrainingPlanSubmitted());
           const filteredPlanSessionFragments = planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
           const dataAlreadyInStore = filteredPlanSessionFragments.length === trainingPlan?.trainingSessionCount;
           this.$planSessionFragmentsFetched.set(dataAlreadyInStore);
@@ -607,7 +611,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.visibilityCategory.value, // Ensures the user views training sessions vs plans
     };
     const navigationExtras: NavigationExtras = {queryParams};
-    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, planId], navigationExtras);
+    this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, planId], navigationExtras);
   }
 
   onNavigateUserToViewTrainingPlan(): void {
@@ -637,7 +641,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
       [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
       [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
-    }
+    };
     const navigationExtras: NavigationExtras = {
       queryParams
     };
@@ -980,9 +984,8 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
   }
 
+  // TODO: This throws a fetchTrainingPlan error -- investigate
   onDeleteTrainingPlan() {
-
-    const trainingPlanId = this.$localTrainingPlanId()!;
     const planSessionFragmentIds = this.$localPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
 
     const dialogConfig = new MatDialogConfig();
@@ -990,11 +993,8 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       title: this.DELETE_TRAINING_PLAN_CONF_TITLE,
       body: this.DELETE_TRAINING_PLAN_CONF_BODY,
     };
-
     dialogConfig.data = actionConfData;
-    
     const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
-
     const dialogActionObserver$: Observable<boolean> = dialogRef.afterClosed();
 
     this.deleteTrainingPlanSubscription = this.combinedDeleteTrainingPlanError$

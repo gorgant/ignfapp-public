@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { combineLatest, Observable, Subscription, withLatestFrom, map, catchError, filter, switchMap, tap, throwError, of } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
+import { NewDataForPlanSessionFragmentNoIdOrTimestamp, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -128,7 +128,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
     this.setTrainingPlanId();
     const trainingPlanId = this.$localTrainingPlanId() as string;
     const currentTrainingPlan$ = this.store$.select(TrainingPlanStoreSelectors.selectTrainingPlanById(trainingPlanId));
-    const trainingSessionNoId = this.buildTrainingSessionNoId()
+    const incompleteTrainingSessionNoId = this.buildTrainingSessionNoId()
 
     // This does the following: 1) Fetch training plan 2) create new planSessionFragment and add it to plan 3) update trainingPlan metadata
     this.addTrainingSessionToPlanSubscription = this.combinedAddTrainingSessionToPlanError$
@@ -159,14 +159,18 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         withLatestFrom(this.userData$),
         switchMap(([trainingPlan, userData]) => {
           const indexOfFinalItem = trainingPlan!.trainingSessionCount - 1;
-          const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {
-            ...trainingSessionNoId,
+          const dataToAdd: NewDataForPlanSessionFragmentNoIdOrTimestamp = {
             [PlanSessionFragmentKeys.CANONICAL_ID]: this.trainingSessionData.id,
-            [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT,
+            [PlanSessionFragmentKeys.CREATOR_ID]: trainingPlan!.creatorId,
+            [PlanSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT,
             [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: trainingPlanId,
             [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,
             [PlanSessionFragmentKeys.TRAINING_PLAN_OWNER_ID]: trainingPlan!.creatorId,
             [PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+          };
+          const planSessionFragmentNoId: PlanSessionFragmentNoIdOrTimestamp = {
+            ...incompleteTrainingSessionNoId,
+            ...dataToAdd
           };
           this.$localPlanSessionFragment.set(planSessionFragmentNoId);
           if(!this.$createPlanSessionFragmentSubmitted()) {
@@ -255,18 +259,21 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
   private buildTrainingSessionNoId(): TrainingSessionNoIdOrTimestamps {
     const trainingSession = this.trainingSessionData;
     const clone: any = {...trainingSession};
-    let trainingSessionNoId: TrainingSessionNoIdOrTimestamps;
+    let incompleteTrainingSessionNoId: TrainingSessionNoIdOrTimestamps;
     switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {
       case TrainingSessionDatabaseCategoryTypes.CANONICAL:
-        delete clone[TrainingSessionKeys.CREATED_TIMESTAMP];
-        delete clone[TrainingSessionKeys.ID];
-        delete clone[TrainingSessionKeys.LAST_MODIFIED_TIMESTAMP];
-        trainingSessionNoId = clone;
+        Object.keys(PlanSessionFragmentKeys).forEach(key => {
+          const propertyToDelete = clone[key];
+          if (propertyToDelete) {
+            delete clone[key];
+          }
+        });
+        incompleteTrainingSessionNoId = clone;
         break;
       default:
         throw new Error('No databaseCategory found. Cannot buildTrainingSessionNoId.');
     }
-    return trainingSessionNoId;
+    return incompleteTrainingSessionNoId;
   }
 
   private navigateToBrowseTrainingSessionsWithPlanBuilder() {

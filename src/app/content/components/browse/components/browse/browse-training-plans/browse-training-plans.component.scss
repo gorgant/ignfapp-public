@@ -1,12 +1,23 @@
 @import '../../../../../../variables';
 
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+
 .actions-container {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  margin: 16px 0;
 }
 
 .create-button {
-  margin-top: 16px;
-  margin-bottom: 16px;
   width: $mobile-button-width;
   max-width: $desktop-button-width;
 }

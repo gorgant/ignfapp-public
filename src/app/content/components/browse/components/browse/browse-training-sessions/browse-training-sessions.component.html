@@ -1,5 +1,5 @@
 <div class="tab-contents" fxLayout="column" fxLayoutAlign="center center">
-  <div *ngIf="(userData$ | async)?.isAdmin && !$trainingPlanBuilderRequest()" class="actions-container" fxLayout="column" fxLayoutAlign="center center" >
+  <div *ngIf="!$trainingPlanBuilderRequest()" class="actions-container" fxLayout="column" fxLayoutAlign="center center" >
     <button class="create-button" mat-raised-button color="primary" (click)="onCreateTrainingSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
   </div>
   <button fxFlexAlign="start" *ngIf="$trainingPlanBuilderRequest()" class="back-button" mat-button color="primary" (click)="onReturnToEditPlan()">

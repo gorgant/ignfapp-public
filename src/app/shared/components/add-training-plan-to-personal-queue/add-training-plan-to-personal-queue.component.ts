@@ -2,7 +2,7 @@ import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
+import { NewDataForPersonalSessionFragmentNoIdOrTimestamp, PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -24,7 +24,7 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
   
   $isActiveButton = signal(false); // Identifies the instance of the button being clicked vs all other instances of buttons
 
-  private userData$!: Observable<PublicUser | null>;
+  private userData$!: Observable<PublicUser>;
 
   private batchCreatePersonalSessionFragmentsRequestedProcessing$!: Observable<boolean>;
   private batchCreatePersonalSessionFragmentsRequestedError$!: Observable<{} | null>;
@@ -55,7 +55,7 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
 
   private monitorProcesses() {
 
-    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
 
     this.batchCreatePersonalSessionFragmentsRequestedProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectBatchCreatePersonalSessionFragmentsProcessing);
     this.batchCreatePersonalSessionFragmentsRequestedError$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectBatchCreatePersonalSessionFragmentsError);
@@ -114,7 +114,7 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
           if (!allFetched && !this.$fetchPersonalSessionFragmentsSubmitted()) {
             this.$fetchPersonalSessionFragmentsSubmitted.set(true);
             console.log(`no personalSessionFragments in store, fetching from database`);
-            this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData!.id}));
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: userData.id}));
           }
           return this.allPersonalSessionFragmentsInStore$;
         }),
@@ -126,30 +126,36 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
           // Generate array of personalSessionFragments to upload to database
           const personalSessionFragmentsNoId = this.planSessionFragments.map(trainingSession => {
             // Convert current planSessionFragment into a no-id TrainingSession to serve as the base for the planSessionFragment
-            const currentTrainingSessionClone: any = {...trainingSession};
-            delete currentTrainingSessionClone.id;
+            const clone: any = {...trainingSession};
+            delete clone.id;
             // Delete all the planSessionFragment-specific data
             Object.keys(PlanSessionFragmentKeys).forEach(key => {
-              if (currentTrainingSessionClone[key]) {
-                delete currentTrainingSessionClone[key];
+              const propertyToDelete = clone[key];
+              if (propertyToDelete) {
+                delete clone[key];
               }
-            })
-            const trainingSessionNoId = currentTrainingSessionClone as TrainingSessionNoIdOrTimestamps;
+            });
+            const incompleteTrainingSessionNoId = clone as TrainingSessionNoIdOrTimestamps;
+            
+            // Generate personalSessionFragment and push it to array
+            const dataToAdd: NewDataForPersonalSessionFragmentNoIdOrTimestamp = {
+              [PersonalSessionFragmentKeys.CANONICAL_ID]: trainingSession.id,
+              [PersonalSessionFragmentKeys.COMPLETE]: false,
+              [PersonalSessionFragmentKeys.CREATOR_ID]: userData.id,
+              [PersonalSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
+              [PersonalSessionFragmentKeys.QUEUE_INDEX]: indexOfNewItem,
+            };
 
             // Generate personalSessionFragment and push it to array
             const personalSessionFragmentNoId: PersonalSessionFragmentNoIdOrTimestamp = {
-              ...trainingSessionNoId,
-              [PersonalSessionFragmentKeys.CANONICAL_ID]: trainingSession.id,
-              [PersonalSessionFragmentKeys.COMPLETE]: false,
-              [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
-              [PersonalSessionFragmentKeys.QUEUE_INDEX]: indexOfNewItem,
-              [PersonalSessionFragmentKeys.USER_ID]: userData!.id
+              ...incompleteTrainingSessionNoId,
+              ...dataToAdd
             };
             return personalSessionFragmentNoId;
           })
 
           if(!this.$batchCreatePersonalSessionFragmentsRequestedSubmitted()) {
-            this.store$.dispatch(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsRequested({userId: userData!.id, personalSessionFragmentsNoId}));
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsRequested({userId: userData.id, personalSessionFragmentsNoId}));
             this.$batchCreatePersonalSessionFragmentsRequestedSubmitted.set(true);
           }
           return this.batchCreatePersonalSessionFragmentsRequestedProcessing$;

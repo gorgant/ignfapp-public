@@ -77,7 +77,6 @@ export class EditNameDialogueComponent implements OnInit, OnDestroy {
 
   onSubmit() {
 
-    // TODO: Delete all these debugging comments (run the command to find them)
     this.userUpdateSubscription = this.userUpdateError$ 
       .pipe(
         map(processingError => {

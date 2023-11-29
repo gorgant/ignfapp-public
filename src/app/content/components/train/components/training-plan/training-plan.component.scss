@@ -40,9 +40,16 @@ app-add-training-plan-to-personal-queue {
   margin-bottom: 16px;
 }
 
-@media screen and (min-width: $mobile-cutoff-width) {
-  .scrolling-container {
-    width: $desktop-screen-width;
-    height: calc(100vh - 200px);
-  }
+.no-training-sessions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 32px;
+  @include user-message-styles();
+}
+
+.add-training-session-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }

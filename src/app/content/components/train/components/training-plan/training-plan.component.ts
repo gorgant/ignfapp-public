@@ -5,7 +5,7 @@ import { catchError, combineLatest, filter, map, Observable, of, Subscription, s
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
-import { TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -16,9 +16,11 @@ import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, Roo
   styleUrls: ['./training-plan.component.scss']
 })
 export class TrainingPlanComponent implements OnInit, OnDestroy {
-
-  TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
+  
+  ADD_A_TRAINING_SESSION_BUTTON_VALUE = GlobalFieldValues.ADD_SESSION_TO_PLAN;
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
+  NO_TRAINING_SESSIONS_FOUND_BLURB = GlobalFieldValues.NO_TRAINING_SESSIONS;
+  TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
 
   trainingSessionCardHeight = 300;
 
@@ -30,7 +32,6 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
   private fetchSingleTrainingPlanError$!: Observable<{} | null>;
   private $fetchSingleTrainingPlanSubmitted = signal(false);
 
-  // allPlanSessionFragmentsFetched$!: Observable<boolean>;
   private allPlanSessionFragmentsInStore$!: Observable<PlanSessionFragment[]>;
   $localPlanSessionFragments = signal(undefined as PlanSessionFragment[] | undefined);
   private fetchAllPlanSessionFragmentsProcessing$!: Observable<boolean>;
@@ -62,7 +63,6 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
     this.fetchSingleTrainingPlanError$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanError);
     this.fetchSingleTrainingPlanProcessing$ = this.store$.select(TrainingPlanStoreSelectors.selectFetchSingleTrainingPlanProcessing);
     
-    // this.allPlanSessionFragmentsFetched$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsFetched); // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
     this.allPlanSessionFragmentsInStore$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectAllPlanSessionFragmentsInStore);
     this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError);
     this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
@@ -191,6 +191,19 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
     };
     const navigationExtras: NavigationExtras = {queryParams};
     this.router.navigate([PublicAppRoutes.BUILD_EDIT_TRAINING_PLAN, this.$localTrainingPlanId()], navigationExtras);
+  }
+
+  onAddTrainingSession() {
+    const queryParams: AddTrainingSessionToPlanQueryParams = {
+      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
+      [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+    };
+    const navigationExtras: NavigationExtras = {
+      queryParams
+    };
+    this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
   }
 
   ngOnDestroy(): void {
