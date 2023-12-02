@@ -1,7 +1,17 @@
 @import '../../../../../variables';
 
-.section-header {
-  margin-top: 32px;
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  padding: 0 16px;
+}
+
+.session-title {
+  margin: 32px 0;
+  @include default-header-style($font-weight-regular);
 }
 
 mat-stepper {
@@ -9,17 +19,36 @@ mat-stepper {
   max-width: $desktop-screen-width;
 }
 
-// app-edit-training-session-step-one {
-//   margin-bottom: 16px;
-// }
+.stepper-buttons-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
 
 .step-one-buttons {
   margin-top: 32px;
 }
 
-button {
+.action-button {
   width: 100%;
-  max-width: 300px;
+  max-width: $desktop-button-width;
+}
+
+.step-two-buttons {
+  margin: 16px 0;
+
+}
+
+.video-content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  margin-top: 16px;
 }
 
 .video-thumbnail {
@@ -27,8 +56,15 @@ button {
   max-width: $desktop-screen-width;
 }
 
-.video-exists-in-database-warning {
-  color: $warn;
+.video-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  width: 100%;
+  
 }
 
 .video-details-container {
@@ -37,4 +73,5 @@ button {
 
 .video-details-prefix {
   font-weight: $font-weight-medium;
+  padding-left: 16px;
 }

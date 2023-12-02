@@ -10,6 +10,7 @@ import { TrainingSessionFormValidationMessages } from 'shared-models/forms/valid
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
 import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
+import { UiService } from 'src/app/core/services/ui.service';
 
 @Component({
   selector: 'app-edit-training-session-step-two',
@@ -29,7 +30,10 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   EDIT_SESSION_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   EQUIPMENT_FIELD_VALUE = GlobalFieldValues.EQUIPMENT;
   INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
+  KEYWORD_FIELD_VALUE = GlobalFieldValues.OTHER_KEYWORDS;
+  KEYWORD_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
+  VISIBILITY_FIELD_TOOLTIP = GlobalFieldValues.VISIBILITY_TOOLTIP;
   VISIBILITY_FIELD_VALUE = GlobalFieldValues.VISIBILITY;
 
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
@@ -41,29 +45,31 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   chipListSeparatorKeysCodes: number[] = [ENTER, COMMA];
   trainingSessionActivityCategoryUserInputForm = new FormControl('');
+  keywordListUserInputForm = new FormControl('');
   filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
 
   readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
   private readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
-  // private readonly trainingSessionActivityCategoryDbValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.dbValue);
   private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
   readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
   readonly VISIBILITY_CATEGORY_DB_OPTIONS = TrainingSessionVisibilityCategoryDbOption;
-  // private readonly visibilityCategoryDbValues = Object.values(TrainingSessionVisibilityTypeList).map(visibilityCategoryOption => visibilityCategoryOption.dbValue);
-  // private readonly visibilityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(visibilityCategoryOption => visibilityCategoryOption.uiValue);
+
+  showKeywordsForm = signal(false);
 
 
   private fb = inject(FormBuilder);
+  private uiService = inject(UiService);
 
   trainingSessionForm = this.fb.group({
     [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [[] as TrainingSessionActivityCategoryDbOption[], [Validators.required]],
     [TrainingSessionKeys.COMPLEXITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]],
     [TrainingSessionKeys.EQUIPMENT]: [false, [Validators.required]],
     [TrainingSessionKeys.INTENSITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
+    [TrainingSessionKeys.KEYWORD_LIST]: [[] as string[]],
     [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
     [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
-    [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]]
+    [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]],
   });
   
   constructor() { }
@@ -72,6 +78,48 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     this.patchExistingDataIfExists();
     this.initializeFilteredActivityCategoryList();
     console.log('isNewSession: ', this.$isNewSession());
+  }
+
+  get complexityDefaultErrorMessage() {
+    let errorMessage = '';
+    if (this.complexityDefault.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.complexityDefault.hasError('pattern')) {
+      return errorMessage = 'Value must be a number';
+    }
+    if (this.complexityDefault.hasError('min')) {
+      return errorMessage = `Value must be greater than ${this.complexityMin}`;
+    }
+    if (this.complexityDefault.hasError('max')) {
+      return errorMessage = `Value must be at most ${this.complexityMax}`;
+    }
+    return errorMessage;
+  }
+
+  get intensityDefaultErrorMessage() {
+    let errorMessage = '';
+    if (this.intensityDefault.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.intensityDefault.hasError('pattern')) {
+      return errorMessage = 'Value must be a number';
+    }
+    if (this.intensityDefault.hasError('min')) {
+      return errorMessage = `Value must be greater than ${this.intensityMin}`;
+    }
+    if (this.intensityDefault.hasError('max')) {
+      return errorMessage = `Value must be at most ${this.intensityMax}`;
+    }
+    return errorMessage;
+  }
+
+  get activityCategoryListErrorMessage() {
+    let errorMessage = '';
+    if (this.activityCategoryList.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
   }
 
   private patchExistingDataIfExists() {
@@ -85,6 +133,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
         [TrainingSessionKeys.EQUIPMENT]: trainingSessionData[TrainingSessionKeys.EQUIPMENT],
         [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: trainingSessionData[TrainingSessionKeys.ACTIVITY_CATEGORY_LIST],
         [TrainingSessionKeys.INTENSITY_DEFAULT]: trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT],
+        [TrainingSessionKeys.KEYWORD_LIST]: trainingSessionData[TrainingSessionKeys.KEYWORD_LIST],
         [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
         [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
         [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: trainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
@@ -100,6 +149,13 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       map((userInput) => (userInput ? this.filterActivityCategoryListWithUserInput(userInput) : this.filterActivityCategoryListWithoutUserInput())),
     );
   }
+
+  // private initializeKeywordList() {
+  //   this.keywordList = this.keywordListUserInputForm.valueChanges.pipe(
+  //     startWith(null),
+  //     map((userInput) => (userInput ? this.filterActivityCategoryListWithUserInput(userInput) : this.filterActivityCategoryListWithoutUserInput())),
+  //   );
+  // }
 
   // Match user input to a activityCategory option and filter out existing selected options
   private filterActivityCategoryListWithUserInput(userInput: string): TrainingSessionActivityCategoryObject[] {
@@ -147,12 +203,10 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
 
   addActivityCategoryChipFromKeyboard(event: MatChipInputEvent): void {
-
     const uiValue = (event.value || '').trim() as TrainingSessionActivityCategoryUiOption;
-    
     const dbValue = this.trainingSessionActivityCategoryMasterList.find(activityCategoryOption => activityCategoryOption.uiValue == uiValue)?.dbValue;
 
-    // Add our fruit if it is valid
+    // Add item if it is valid
     if (dbValue) {
       this.activityCategoryList.setValue([...this.activityCategoryList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection so formControl thinks empty
       // Clear the input value
@@ -171,7 +225,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
 
   removeActivityCategoryChip(activityCategory: TrainingSessionActivityCategoryDbOption): void {
-
     console.log('Preparing to remove activityCategory chip, current activityCategoryListValue', this.activityCategoryList.value);
     console.log('Db option to remove', activityCategory);
     
@@ -191,16 +244,77 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       this.trainingSessionActivityCategoryUserInputForm.setValue(''); 
     }
   }
+
+  onShowKeywordsForm() {
+    this.showKeywordsForm.set(true);
+  }
+
+  addKewordChipFromKeyboard(event: MatChipInputEvent): void {
+    const keyword = (event.value || '')?.trim().toLocaleLowerCase();
+    const minKeywordCharacterLength = 3;
+    const maxKeywordCharacterLength = 30;
+    const maxKeywordCount = 5;
+
+    // if (keyword.includes(' ')) {
+    //   this.uiService.showSnackBar(`Keywords cannot contain spaces`, 10000);
+    //   return;
+    // }
+
+    if (keyword.length < minKeywordCharacterLength) {
+      this.uiService.showSnackBar(`Keywords must be at least ${minKeywordCharacterLength} characters`, 10000);
+      return;
+    }
+
+    if (keyword.length > maxKeywordCharacterLength) {
+      this.uiService.showSnackBar(`Keywords cannot exceed ${maxKeywordCharacterLength} characters`, 10000);
+      return;
+    }
+
+    if (this.keywordList.value.length > maxKeywordCount - 1) {
+      this.uiService.showSnackBar(`Cannot add more than ${maxKeywordCount} keywords`, 10000);
+      return;
+    }
+    
+    // Add item if it is valid
+    if (keyword) {
+      this.keywordList.setValue([...this.keywordList.value, keyword]); // Using setValue vs push because push doesn't trigger changeDetection so formControl thinks empty
+      // Clear the input value
+      event.chipInput!.clear();
+  
+      this.keywordListUserInputForm.setValue(null);
+    }
+
+    console.log('New keywordList', this.keywordList.value);
+  }
+
+  removeKeywordChip(keyword: string) {
+    console.log('Preparing to remove keyword chip, current this.keywordList.value', this.keywordList.value);
+    console.log('Keyword to remove', keyword);
+    
+    const keywordIndex = this.keywordList.value.indexOf(keyword);
+    // Using a temp array here bc splicing the activityCategoryList directly causes initialization issues
+    const tempArray = [...this.keywordList.value];
+    tempArray.splice(keywordIndex,1);
+    this.keywordList.setValue(tempArray);
+    // Splicing the form value doesn't trigger form detection so here we also manually set it to blank to ensure formControl detects the change to invalid
+    if (this.keywordList.value.length < 1) {
+      this.keywordList.patchValue([]);
+    }
+    // This invisible action ensures the valuechange observable fires in initializeFilteredActivityCategoryList, which triggers update to filterActivityCategoryListWithoutUserInput
+    this.keywordListUserInputForm.setValue(''); 
+    console.log('New keywordList', this.keywordList.value);
+  }
   
   ngOnDestroy(): void {
 
   }
 
   // These getters are used for easy access in the HTML template
-  get activityCategoryList() { return (this.trainingSessionForm.get(TrainingSessionKeys.ACTIVITY_CATEGORY_LIST) as FormControl<TrainingSessionActivityCategoryDbOption[]>); } // Typed to eliminate formControl type error in HTML
+  get activityCategoryList() { return (this.trainingSessionForm.get(TrainingSessionKeys.ACTIVITY_CATEGORY_LIST) as FormControl<TrainingSessionActivityCategoryDbOption[]>); }
   get complexityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.COMPLEXITY_DEFAULT) as FormControl<number>; }
   get equipment() { return this.trainingSessionForm.get(TrainingSessionKeys.EQUIPMENT) as FormControl<boolean>; }
   get intensityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.INTENSITY_DEFAULT) as FormControl<number>; }
+  get keywordList() { return this.trainingSessionForm.get(TrainingSessionKeys.KEYWORD_LIST) as FormControl<string[]>; }
   get muscleGroup() {return this.trainingSessionForm.get(TrainingSessionKeys.MUSCLE_GROUP) as FormControl<TrainingSessionMuscleGroupDbOption>;}
   get visibilityCategory() {return this.trainingSessionForm.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as FormControl<TrainingSessionVisibilityCategoryDbOption>;}
 

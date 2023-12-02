@@ -1,33 +1,35 @@
 @import '../../../../../../variables';
 
-.actions-container {
-  width: 100%;
-}
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 
-.back-button {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  padding: 0 16px;
 }
 
 .create-button {
-  margin-top: 16px;
-  margin-bottom: 16px;
+  margin: 16px 0;
   width: $mobile-button-width;
-  max-width: $desktop-button-width;
 }
 
-.select-sessions-title {
-  font-size: 1.2em;
+.back-button {
+  align-self: flex-start;
+  margin: 8px 0;
 }
 
 .search-options-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
   width: 100%
 }
 
 .search-form-field {
-  padding-left: 16px;
   width: 100%;
-  max-width: 400px;
 }
 
 .search-icon {
@@ -35,39 +37,60 @@
   margin-right: 4px;
 }
 
-.loading-spinner {
-  margin-top: 64px;
+.filters-icon-button {
+  margin-bottom: 12px;
 }
 
-.filter-actions {
-  margin-bottom: 16px;
-}
-
-.filter-button {
-  width: 100%;
-  max-width: 300px;
+.filters-icon {
+  font-size: 1.1em;
+  height: 1.1em;
+  width: 1.1em;
 }
 
 .filters-icon-active {
-  color: $accent;
+  color: $primary;
 }
 
-// .scrolling-container {
-//   width: 100vw;
-//   height: 100vh;
-// }
+.filters-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+}
+
+app-training-session-filters {
+  width: 100%;
+}
+
+.filter-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  
+  width: 100%;
+}
+
+.filter-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
 
 .training-session-card-container {
-  height: 356px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.hide {
+  display: none;
 }
 
 .empty-message {
-  @include user-message-styles();
-}
-
-@media screen and (min-width: $mobile-cutoff-width) {
-  .scrolling-container {
-    width: $desktop-screen-width;
-    height: calc(100vh - 200px);
-  }
+  @include default-text-style();
 }

@@ -22,8 +22,6 @@ export class BrowseTrainingPlansComponent implements OnInit, OnDestroy {
 
   userData$!: Observable<PublicUser | null>;
 
-  trainingPlanCardHeight = 300;
-
   private $fetchTrainingPlansSubmitted = signal(false);
   $localTrainingPlans = signal([] as TrainingPlan[]);
   private allTrainingPlansFetched$!: Observable<boolean>;

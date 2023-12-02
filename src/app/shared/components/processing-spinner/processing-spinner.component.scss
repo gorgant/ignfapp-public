@@ -15,5 +15,5 @@
 }
 
 .spinner-message {
-  @include user-message-styles();
+  @include default-text-style();
 }

@@ -22,8 +22,6 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
   NO_TRAINING_SESSIONS_FOUND_BLURB = GlobalFieldValues.NO_TRAINING_SESSIONS;
   TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
 
-  trainingSessionCardHeight = 300;
-
   userData$!: Observable<PublicUser>;
 
   $localTrainingPlan = signal(undefined as TrainingPlan | undefined);

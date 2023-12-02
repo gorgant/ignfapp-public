@@ -7,7 +7,6 @@ import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSes
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable, throwError } from 'rxjs';
-import { StepperOrientation } from '@angular/material/stepper';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
@@ -28,8 +27,6 @@ import { CanDeactivateData } from 'shared-models/utils/can-deactivate-data.model
   }]
 })
 export class EditTrainingSessionComponent implements OnInit, OnDestroy, ComponentCanDeactivate {
-  
-  stepperOrientation!: StepperOrientation;
   
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   CHANNEL_BLURB = GlobalFieldValues.CHANNEL;
@@ -91,7 +88,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   ngOnInit(): void {
     this.monitorProcesses();
-    this.setStepperOrientation();
     this.configureTrainingSessionInterface();
   }
 
@@ -126,11 +122,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   }
 
-  private setStepperOrientation(): void {
-    this.uiService.$screenIsMobile() ? this.stepperOrientation = 'vertical' : this.stepperOrientation = 'horizontal';
-  }
-
-  
   private configureTrainingSessionInterface(): void {
     this.setTrainingSessionId();
     this.setTrainingSessionVisibilityCategory();
@@ -227,6 +218,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
               [TrainingSessionKeys.INTENSITY_AVERAGE]: stepTwoData.intensityDefault.value,
               [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
               [TrainingSessionKeys.INTENSITY_RATING_COUNT]: 1,
+              [TrainingSessionKeys.KEYWORD_LIST]: stepTwoData.keywordList.value,
               [TrainingSessionKeys.MUSCLE_GROUP]: stepTwoData.muscleGroup.value,
               [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
               [TrainingSessionKeys.VIDEO_DATA]: videoData!,

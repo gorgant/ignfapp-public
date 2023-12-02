@@ -1,29 +1,55 @@
 @import '../../../variables';
 
-.training-session-thumbnail, .training-session-details-container {
+.training-session-card-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+
+  padding-bottom: 16px;
+}
+
+.training-session-thumbnail {
   width: 100%;
-  max-width: $desktop-button-width;
+}
+
+.training-session-sub-image-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+}
+
+app-add-training-session-to-plan-button {
+  padding-left: 12px;
+}
+
+app-add-training-session-to-personal-queue-button {
+  padding-left: 12px;
 }
 
 .training-session-details-container {
-  padding-left: 16px;
-  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+
+  width: 100%;
+  padding-left: 12px;
+  box-sizing: border-box;
 }
 
 .training-session-title {
   font-size: 15px;
   font-weight: $font-weight-regular;
+  line-height: 18px;
 }
 
 .training-session-subtext {
   font-size: 13px;
   color: $font-subheader-color;
-}
-
-app-add-training-session-to-plan-button {
-  width: 100%;
-}
-
-app-add-training-session-to-personal-queue-button {
-  width: 100%;
 }

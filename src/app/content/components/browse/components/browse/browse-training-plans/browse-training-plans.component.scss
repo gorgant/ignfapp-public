@@ -5,31 +5,26 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+
+  padding: 0 16px;
 }
 
+.create-button {
+  margin: 16px 0;
+  width: $mobile-button-width;
+}
 
-.actions-container {
+.search-options-container {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
 
-  margin: 16px 0;
-}
-
-.create-button {
-  width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-
-.search-options-container {
-  width: 100%
+  width: 100%;
 }
 
 .search-form-field {
-  padding-left: 16px;
   width: 100%;
-  max-width: 400px;
 }
 
 .search-icon {
@@ -37,22 +32,14 @@
   margin-right: 4px;
 }
 
-.loading-spinner {
-  margin-top: 64px;
-}
-
 .training-plan-card-container {
-  height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 24px;
 }
 
 .empty-message {
-  @include user-message-styles();
+  @include default-text-style();
 }
-
-@media screen and (min-width: $mobile-cutoff-width) {
-  .scrolling-container {
-    width: $desktop-screen-width;
-    height: calc(100vh - 200px);
-  }
-}
-

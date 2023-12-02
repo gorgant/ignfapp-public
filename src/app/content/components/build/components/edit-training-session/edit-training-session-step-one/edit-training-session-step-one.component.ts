@@ -6,8 +6,10 @@ import { Observable, Subscription, throwError } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
+import { SocialUrlPrefixes } from 'shared-models/meta/social-urls.model';
 import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
 import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
+import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 
@@ -40,6 +42,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private store$ = inject(Store);
   private uiService = inject(UiService);
+  private helperService = inject(HelperService);
 
   youtubeVideoDataForm = this.fb.group({
     [YoutubeVideoDataKeys.VIDEO_URL]: ['', [Validators.required, Validators.pattern(/^((https:\/\/www\.youtube\.com)|(https:\/\/youtu\.be))/)]],
@@ -59,6 +62,17 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     this.youtubeVideoData$ = this.store$.select(TrainingSessionStoreSelectors.selectYoutubeVideoData) as Observable<YoutubeVideoDataCompact>;
   }
 
+  get videoUrlErrorMessage() {
+    let errorMessage = '';
+    if (this.videoUrl.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.videoUrl.hasError('pattern')) {
+      return errorMessage = `Video url must begin with '${SocialUrlPrefixes.YOUTUBE_VIDEO}' or '${SocialUrlPrefixes.YOUTUBE_VIDEO_LONG}'`;
+    }
+    return errorMessage;
+  }
+
   // Note this observable is handled in the parent component
   private checkForExistingData() {
     const trainingSessionData = this.$localTrainingSession();
@@ -73,11 +87,14 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   onGetYoutubeVideoData() {
     const url = this.videoUrl.value as string;
-    let videoId = url.split('/').pop() as string; // Grab the video ID from the end of the url https://stackoverflow.com/a/8376542/6572208
-    // Parse out video ID if there's a query param
-    if (videoId.includes('?')) {
-      videoId = videoId.split('?')[0];
+
+    const videoId = this.helperService.extractYoutubeVideoIdFromUrl(url);
+
+    if (!videoId) {
+      this.uiService.showSnackBar('Invalid YouTube URL. Please try again.', 10000);
+      return;
     }
+
     this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clear out any errors if they exist before proceeding
     
     this.fetchYoutubeVideoDataSubscription = this.fetchYoutubeVideoDataError$

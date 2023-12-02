@@ -5,6 +5,7 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { NewDataForPersonalSessionFragmentNoIdOrTimestamp, PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
 import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { EMPTY_SPINNER_MESSAGE } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -18,8 +19,10 @@ import { PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActi
 export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit, OnDestroy {
 
   @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment;
+  @Input() useMiniFabButton!: boolean;
 
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
+  EMPTY_MESSAGE = EMPTY_SPINNER_MESSAGE;
 
   $isActiveButton = signal(false); // Identifies the instance of the button being clicked vs all other instances of buttons
 

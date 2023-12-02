@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
-import { MatButtonToggle, MatButtonToggleChange } from '@angular/material/button-toggle';
+import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { FormGroup, FormControl, FormBuilder } from '@angular/forms';
+import { MatButtonToggle, MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
 import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -20,6 +20,8 @@ import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSe
 })
 export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
+  @ViewChild(MatButtonToggleGroup) equipmentToggleGroup!: MatButtonToggleGroup;
+
   ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
   BODYWEIGHT_FIELD_VALUE = GlobalFieldValues.BODYWEIGHT;
   COMPLEXITY_FIELD_VALUE = GlobalFieldValues.COMPLEXITY;
@@ -37,15 +39,6 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   private fetchAllTrainingSessionsProcessing$!: Observable<boolean>;
   private trainingSessionsSubscription!: Subscription;
 
-
-  trainingSessionFilterForm = new FormGroup<TrainingSessionFilterForm>({
-    [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: new FormControl([]),
-    [TrainingSessionFilterFormKeys.COMPLEXITY_FILTER_ARRAY]: new FormControl([]),
-    [TrainingSessionKeys.EQUIPMENT]: new FormControl([]),
-    [TrainingSessionFilterFormKeys.INTENSITY_FILTER_ARRAY]: new FormControl([]),
-    [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: new FormControl([]),
-  });
-
   readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
   readonly trainingSessionComplexityMasterList: TrainingSessionComplexityObject[] = Object.values(TrainingSessionComplexityList);
   readonly trainingSessionIntensityMasterList: TrainingSessionIntensityObject[] = Object.values(TrainingSessionIntensityList);
@@ -55,6 +48,16 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
   private store$ = inject(Store);
   private uiService = inject(UiService);
+  private fb = inject(FormBuilder);
+
+  trainingSessionFilterForm = this.fb.group({
+    [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: [[] as TrainingSessionActivityCategoryDbOption[]],
+    [TrainingSessionFilterFormKeys.COMPLEXITY_FILTER_ARRAY]: [[] as TrainingSessionComplexityDbOption[]],
+    [TrainingSessionKeys.EQUIPMENT]: [[] as boolean[] | null],
+    [TrainingSessionFilterFormKeys.INTENSITY_FILTER_ARRAY]: [[] as TrainingSessionIntensityDbOption[]],
+    [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: [[] as TrainingSessionMuscleGroupDbOption[]],
+  }); 
+  
 
   constructor() { }
 
@@ -227,7 +230,7 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
     // If no value selected, set form value to blank
     if (fieldValueChangeArray.length < 1) {
-      this.equipmentFilterArray.setValue([]);
+      this.equipmentFilterArray.setValue(null);
       return;
     }
 
@@ -243,11 +246,16 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   
   private applyEquipmentFilter() {
     const equipmentFilterArray = this.equipmentFilterArray.value;
-    // Do nothing if no filter option selected
-    if (equipmentFilterArray.length < 1) {
+    console.log('equipmentFilterArray', equipmentFilterArray);
+    // Do nothing if filter option is null
+    if (!equipmentFilterArray) {
       return;
     }
-    const equipmentFilterValue = this.equipmentFilterArray.value[0];
+    // Do nothing if no filter option selected
+    if (equipmentFilterArray && equipmentFilterArray.length < 1) {
+      return;
+    }
+    const equipmentFilterValue = equipmentFilterArray[0];
     this.$filteredTrainingSessions.update(currentValue => currentValue.filter(session => session.equipment === equipmentFilterValue));
   }
 
@@ -318,9 +326,9 @@ export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get activityCategoryFilterArray() { return (this.trainingSessionFilterForm.get(TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY) as FormControl<TrainingSessionActivityCategoryDbOption[]>); } // Typed to eliminate formControl type error in HTML
+  get activityCategoryFilterArray() { return this.trainingSessionFilterForm.get(TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY) as FormControl<TrainingSessionActivityCategoryDbOption[]>; } // Typed to eliminate formControl type error in HTML
   get complexityFilterArray() { return this.trainingSessionFilterForm.get(TrainingSessionFilterFormKeys.COMPLEXITY_FILTER_ARRAY) as FormControl<TrainingSessionComplexityDbOption[]>; }
-  get equipmentFilterArray() { return this.trainingSessionFilterForm.get(TrainingSessionKeys.EQUIPMENT) as FormControl<boolean[]>; }
+  get equipmentFilterArray() { return this.trainingSessionFilterForm.get(TrainingSessionKeys.EQUIPMENT) as FormControl<boolean[] | null>; }
   get intensityFilterArray() { return this.trainingSessionFilterForm.get(TrainingSessionFilterFormKeys.INTENSITY_FILTER_ARRAY) as FormControl<TrainingSessionIntensityDbOption[]>; }
   get muscleGroupFilterArray() {return this.trainingSessionFilterForm.get(TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY) as FormControl<TrainingSessionMuscleGroupDbOption[]>;}
 

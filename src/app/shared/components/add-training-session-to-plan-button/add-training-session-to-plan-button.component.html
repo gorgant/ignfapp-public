@@ -1,7 +1,13 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center">
   <!-- This *ngIf logic ensures the button always shows for buttons that aren't being interacted with, whereas if it is button being clicked, it only shows if a server request isn't processing -->
-  <button *ngIf="!$isActiveButton() || ($isActiveButton() && !(serverRequestProcessing$ | async))" [disabled]="(serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToPlan()">+ {{ ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE }}</button>
-  <div *ngIf="$isActiveButton() && (serverRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  </div>
-</div>
+  <ng-container *ngIf="!$isActiveButton() || ($isActiveButton() && !(serverRequestProcessing$ | async))">
+    <button class="standard-button" *ngIf="!useMiniFabButton; else miniFabButton" [disabled]="(serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToPlan()">+ {{ ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE }}</button>
+  </ng-container>
+  
+  <ng-template #miniFabButton>
+    <button class="fab-button" *ngIf="!$isActiveButton() || ($isActiveButton() && !(serverRequestProcessing$ | async))" [disabled]="(serverRequestProcessing$ | async)" mat-mini-fab color="primary" (click)="onAddTrainingSessionToPlan()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </ng-template>
+  
+
+  <app-processing-spinner *ngIf="$isActiveButton() && (serverRequestProcessing$ | async)" [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>

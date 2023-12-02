@@ -49,7 +49,7 @@ app-training-session-card {
 }
 
 .queue-empty-message {
-  @include user-message-styles();
+  @include default-text-style();
 }
 
 .action-buttons {

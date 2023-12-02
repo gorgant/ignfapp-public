@@ -1,39 +1,93 @@
 @import '../../../../../variables';
-@include edit-training-plan-drag-drop();
+@include edit-training-plan-drag-drop(); // Implement custom drag-and-drop animations
 
-.back-button-container {
-  width: 100%;
-  max-width: $desktop-screen-width;
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  padding: 0 16px;
+}
+
+.back-button {
+  align-self: flex-start;
+  
+  margin-top: 8px;
 }
 
 .plan-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
   width: 100%;
-  padding-left: 16px;
-  padding-right: 16px;
-  max-width: $desktop-screen-width;
-  margin-bottom: 16px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.plan-title-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  margin-left: 12px;
+}
+
+.plan-title {
+  @include default-header-style();
+}
+
+.edit-title-button-container:hover {
+  cursor: pointer;
 }
 
 .training-plan-form {
   width: 100%;
+  margin-bottom: 16px;
 }
 
-.radial-label {
+.form-title {
+  margin-bottom: 32px;
+  @include default-header-style($font-weight-regular);
+}
+
+.radio-group-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 24px;
+}
+
+.visibility-category-title {
   font-weight: $font-weight-medium;
 }
 
-mat-form-field {
+mat-radio-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.edit-title-field {
   width: 100%;
-  max-width: $desktop-form-width-wide;
+  margin-bottom: 24px;
 }
 
 .form-actions {
-  width: 100%;
-  margin-top: 16px;
-}
-
-.plan-actions-button-container {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
 }
 
 .action-button {
@@ -41,16 +95,32 @@ mat-form-field {
   max-width: $desktop-button-width;
 }
 
-.form-title, .plan-title {
-  font-size: 1.2em;
-  text-align: center;
-  line-height: 1.1em;
-}
 
 .plan-sessions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 32px;
+
   width: 100%;
-  max-width: $desktop-screen-width;
 }
+
+
+.plan-actions-button-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+}
+
+
+
+
+
 
 .drag-drop-list {
   width: 100%;
@@ -94,6 +164,9 @@ app-training-session-card {
   margin-top: 32px;
 }
 
+.hide {
+  display: none;
+}
 
 
 @media screen and (min-width: $mobile-cutoff-width) {

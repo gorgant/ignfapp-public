@@ -2,6 +2,7 @@ import { PASSWORD_MIN_LENGTH } from "shared-models/auth/password-vars.model";
 
 export enum GlobalFieldValues {
   ACTIVITY_CATEGORY = `Activity Category`,
+  ADD_A_KEYWORD = `Add a keyword...`,
   ADD_A_PLAN = `Add a Plan`,
   ADD_AN_ACTIVITY_CATEGORY = `Add an activity category...`,
   ADD_PLAN_TO_MY_QUEUE = `Add Plan to My Queue`,
@@ -92,6 +93,7 @@ export enum GlobalFieldValues {
   NO = `No`,
   NO_TRAINING_PLANS = `No training plans found. Try creating a new one!`,
   NO_TRAINING_SESSIONS = `No training sessions found. Try creating a new one!`,
+  OTHER_KEYWORDS = `Other Keywords`,
   OR_CAPS = `OR`,
   PASSWORD = `Password`,
   PAUSE_TRAINING = `Pause Training`,
@@ -132,5 +134,6 @@ export enum GlobalFieldValues {
   VERIFY_PASSWORD = `Verify Password`,
   VERIFYING_CREDENTIALS = `Verifying credentials...`,
   VISIBILITY = `Visibility`,
+  VISIBILITY_TOOLTIP = `Public: all users can see this\nPrivate: only you can see this`,
   YES = `Yes`,
 }

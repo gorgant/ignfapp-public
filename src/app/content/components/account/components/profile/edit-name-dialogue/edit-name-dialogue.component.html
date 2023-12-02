@@ -8,9 +8,7 @@
         <!-- First Name -->
         <mat-form-field>
           <input formControlName="firstName" matInput type="text" placeholder="First Name">
-          <mat-error *ngFor="let validation of FORM_VALIDATION_MESSAGES.firstName">
-            <mat-error *ngIf="firstName.hasError(validation.type) && firstName.invalid && (firstName.dirty || firstName.touched)">{{ validation.message }}</mat-error>
-          </mat-error>
+          <mat-error *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)">{{ firstNameErrorMessage }}</mat-error>
         </mat-form-field>
         
         <!-- Last Name -->

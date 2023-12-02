@@ -11,7 +11,7 @@
 }
 
 .dialogue-title {
-  font-size: 1.5em;
+  @include default-header-style($font-weight-regular);
 }
 
 .avatar {

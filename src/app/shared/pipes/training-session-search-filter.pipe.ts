@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 
 @Pipe({
   name: 'trainingSessionSearchFilter'
@@ -23,10 +23,16 @@ export class TrainingSessionSearchFilterPipe implements PipeTransform {
     searchText = searchText.toLocaleLowerCase();
 
     return trainingSessions.filter(trainingSession => {
-      const combinedVideoTitleChannelTitle = [trainingSession.videoData.title.toLocaleLowerCase(), trainingSession.videoData.channelTitle.toLocaleLowerCase()].join(' ');
+      
+      const combinedVideoTitleChannelTitle = [
+        trainingSession.videoData.title.toLocaleLowerCase(),
+        trainingSession.videoData.channelTitle.toLocaleLowerCase(),
+      ].join(' ');
+
+      const combinedChannelDataAndKeywords = combinedVideoTitleChannelTitle + ' ' + trainingSession[TrainingSessionKeys.KEYWORD_LIST]?.join(' ');
       
       // Simple character match
-      const isCharacterMatch = combinedVideoTitleChannelTitle.toLocaleLowerCase().includes(searchText);
+      const isCharacterMatch = combinedChannelDataAndKeywords.toLocaleLowerCase().includes(searchText);
 
       // This checks any combination of keywords against the reference keywords
       let isKeywordMatch = false;
@@ -37,7 +43,7 @@ export class TrainingSessionSearchFilterPipe implements PipeTransform {
         
         // match every keyword against the video and channel titles, if all match, return 'true'
         isKeywordMatch = keywords.every(val => { 
-          return combinedVideoTitleChannelTitle.includes(val);
+          return combinedChannelDataAndKeywords.includes(val);
         });
       }
 

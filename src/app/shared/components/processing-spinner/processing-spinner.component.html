@@ -1,4 +1,4 @@
 <div class="spinner-container">
-  <mat-spinner class="processing-spinner"></mat-spinner>
-  <div class="spinner-message">{{ spinnerMessage }}</div>
+  <mat-spinner class="processing-spinner" [diameter]="spinnerDiameter"></mat-spinner>
+  <div *ngIf="spinnerMessage !== EMPTY_MESSAGE" class="spinner-message">{{ spinnerMessage || DEFAULT_SPINNER_MESSAGE }}</div>
 </div>

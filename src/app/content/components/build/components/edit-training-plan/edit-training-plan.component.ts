@@ -38,7 +38,9 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   REQUEST_PROCESSING_MESSAGE = GlobalFieldValues.REQUEST_PROCESSING;
   SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   TITLE_FIELD_VALUE = GlobalFieldValues.TITLE;
+  VISIBILITY_FIELD_TOOLTIP = GlobalFieldValues.VISIBILITY_TOOLTIP;
   VISIBILITY_FIELD_VALUE = GlobalFieldValues.VISIBILITY;
+
 
   TITLE_MIN_LENGTH = TrainingPlanFormVars.titleMinLength;
   TITLE_MAX_LENGTH = TrainingPlanFormVars.titleMaxLength;
@@ -307,6 +309,14 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         })
       );
 
+  }
+
+  get titleErrorMessage() {
+    let errorMessage = '';
+    if (this.title.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    return errorMessage;
   }
 
   private configureTrainingPlanInterface(): void {
@@ -615,11 +625,15 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   }
 
   onNavigateUserToViewTrainingPlan(): void {
-    const queryParams: ViewTrainingPlanQueryParams = {
-      [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!, // Ensures the user views training sessions vs plans
-    };
-    const navigationExtras: NavigationExtras = {queryParams};
-    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, this.$localTrainingPlanId()], navigationExtras);
+    if (this.$isNewPlan()) {
+      this.uiService.routeUserToPreviousPage(); 
+    } else {
+      const queryParams: ViewTrainingPlanQueryParams = {
+        [ViewTrainingPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!, // Ensures the user views training sessions vs plans
+      };
+      const navigationExtras: NavigationExtras = {queryParams};
+      this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, this.$localTrainingPlanId()], navigationExtras);
+    }
   }
 
   // Dictates the behavior when the user aborts editing the trainingPlan title
@@ -984,7 +998,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
   }
 
-  // TODO: This throws a fetchTrainingPlan error -- investigate
   onDeleteTrainingPlan() {
     const planSessionFragmentIds = this.$localPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
 

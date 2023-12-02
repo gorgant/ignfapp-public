@@ -1,6 +1,6 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
+<div class="component-container">
   <img class="training-plan-thumbnail" [src]="trainingPlanData.thumbnailUrlLarge ? trainingPlanData.thumbnailUrlLarge : PLACEHOLDER_PLAN_THUMBNAIL" alt="training plan thumbnail" >
-  <div class="training-plan-details-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="4px">
+  <div class="training-plan-details-container">
     <div class="training-plan-title">{{ trainingPlanData.title }}</div>
     <div class="training-plan-subtext">{{ trainingPlanData.trainingSessionCount }} {{ TRAINING_SESSIONS_SUBTEXT }}</div>
   </div>

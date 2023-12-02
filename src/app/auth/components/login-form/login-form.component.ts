@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
@@ -289,7 +289,7 @@ export class LoginFormComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get email() { return this.authForm.get(PublicUserKeys.EMAIL) as AbstractControl; }
-  get password() { return this.authForm.get(UserRegistrationFormFieldKeys.PASSWORD) as AbstractControl; }
+  get email() { return this.authForm.get(PublicUserKeys.EMAIL) as FormControl<string>; }
+  get password() { return this.authForm.get(UserRegistrationFormFieldKeys.PASSWORD) as FormControl<string>; }
 
 }

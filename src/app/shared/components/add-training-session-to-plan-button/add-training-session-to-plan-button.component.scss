@@ -1,6 +1,6 @@
 @import "../../../variables";
 
-button {
-  width: 100%; // Using 100% vs $mobile-button-width bc this is nested in parent component (use $mobile-button-width there)
+.standard-button {
+  width: 100%;
   max-width: $desktop-button-width;
 }

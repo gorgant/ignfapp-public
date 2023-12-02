@@ -27,6 +27,7 @@ export interface TrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.INTENSITY_AVERAGE]: number, // the average value of submitted ratings
   [TrainingSessionKeys.INTENSITY_DEFAULT]: number, // the starting value set by the creator
   [TrainingSessionKeys.INTENSITY_RATING_COUNT]: number, // the number of ratings submitted 
+  [TrainingSessionKeys.KEYWORD_LIST]: string[],
   [TrainingSessionKeys.MUSCLE_GROUP]: TrainingSessionMuscleGroupDbOption,
   [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform,
   [TrainingSessionKeys.VIDEO_DATA]: YoutubeVideoDataCompact,
@@ -59,6 +60,7 @@ export enum TrainingSessionKeys {
   INTENSITY_AVERAGE = 'intensityAverage',
   INTENSITY_DEFAULT = 'intensityDefault',
   INTENSITY_RATING_COUNT = 'intensityRatingCount',
+  KEYWORD_LIST = 'keywords',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   MUSCLE_GROUP = 'muscleGroup',
   VIDEO_DATA = 'videoData',
@@ -98,7 +100,7 @@ export interface ViewCanonicalTrainingSessionQueryParams {
   [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: TrainingSessionVisibilityCategoryDbOption,
 }
 
-// Swap these to static values below when deploying to cloud functions due to compiler complaint
+// If needed, swap these to static values below when deploying to cloud functions due to compiler complaint
 export enum ViewCanonicalTrainingSessionQueryParamsKeys {
   DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
   TRAINING_SESSION_VISIBILITY_CATEGORY = TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY,
@@ -115,8 +117,8 @@ export enum TrainingSessionVisibilityCategoryDbOption {
 }
 
 export enum TrainingSessionVisibilityCategoryUiOption {
-  PUBLIC = 'Public',
-  PRIVATE = 'Private'
+  PUBLIC = 'Everyone',
+  PRIVATE = 'Only You'
 }
 
 export interface TrainingSessionVisibilityCategoryObject {

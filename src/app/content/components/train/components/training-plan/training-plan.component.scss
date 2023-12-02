@@ -1,41 +1,57 @@
 @import '../../../../../variables';
 
-.back-button-container {
-  width: $mobile-button-width;
-  max-width: $desktop-screen-width;
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  padding: 0 16px;
+}
+
+.back-button {
+  align-self: flex-start;
+  
+  margin-top: 8px;
 }
 
 .plan-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
   width: 100%;
-  padding-left: 16px;
-  padding-right: 16px;
-  max-width: $desktop-screen-width;
-  margin-bottom: 16px;
+  margin-top: 8px;
+  margin-bottom: 24px;
 }
 
-.scrolling-container {
-  width: 100vw;
-  height: 100vh;
-}
+.plan-title-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 
-.training-session-card-container {
-  height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
+  margin-left: 12px;
 }
 
 .plan-title {
-  font-size: 1.6em;
-  font-weight: $font-weight-light;
-  line-height: 1.1em;
-  text-align: center;
+  @include default-header-style();
 }
 
-.lesson-count {
+.edit-plan-button-container:hover {
+  cursor: pointer;
+}
+
+.session-count {
   font-size: 0.9em;
   color: $font-subheader-color;
 }
 
 app-add-training-plan-to-personal-queue {
-  width: 90%;
+  width: 100%;
   max-width: $desktop-button-width;
   margin-bottom: 16px;
 }
@@ -46,10 +62,10 @@ app-add-training-plan-to-personal-queue {
   justify-content: flex-start;
   align-items: center;
   gap: 32px;
-  @include user-message-styles();
+  @include default-text-style();
 }
 
 .add-training-session-button {
-  width: $mobile-button-width;
+  width: 100%;
   max-width: $desktop-button-width;
 }

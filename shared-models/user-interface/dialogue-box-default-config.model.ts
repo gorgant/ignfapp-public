@@ -7,3 +7,5 @@ export const DialogueBoxDefaultConfig: MatDialogConfig = {
   height: '100vh',
   autoFocus: false
 };
+
+export const EMPTY_SPINNER_MESSAGE = 'none';

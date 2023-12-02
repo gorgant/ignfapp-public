@@ -1,7 +1,7 @@
-<div class="component-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <h2 class="section-header" mat-dialog-title>{{ $isNewSession() ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</h2>
+<div class="component-container">
+  <div class="session-title">{{ $isNewSession() ? CREATE_SESSION_TITLE_VALUE : EDIT_SESSION_TITLE_VALUE }}</div>
 
-  <mat-stepper *ngIf="$isNewSession() || $localTrainingSession()" class="mat-elevation-z5" [orientation]="stepperOrientation" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
+  <mat-stepper *ngIf="$isNewSession() || $localTrainingSession()" class="mat-elevation-z5" orientation="vertical" [linear]="true" labelPosition="bottom" #editTrainingSessionStepper>
 
     <!-- Step 1 -->
     <mat-step [stepControl]="stepOne.youtubeVideoDataForm" errorMessage="Error collecting video data." [editable]="true" >
@@ -9,20 +9,19 @@
       
       <app-edit-training-session-step-one [editTrainingSessionStepper]="editTrainingSessionStepper" [$localTrainingSession]="$localTrainingSession" #stepOne></app-edit-training-session-step-one>
       
-      <div class="stepper-buttons step-one-buttons" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
+      <div class="stepper-buttons-container step-one-buttons">
       
-        <button *ngIf="$isNewSession() && !(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
+        <button class="action-button" *ngIf="$isNewSession() && !(getYoutubeVideoDataProcessing$ | async)" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">
           {{ FETCH_VIDEO_DATA_BUTTON_VALUE }}
         </button>
-        <div *ngIf="(getYoutubeVideoDataProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-          <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-        </div>
 
-        <button *ngIf="(youtubeVideoData$ | async) && !$isNewSession()" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" matStepperNext>
+        <app-processing-spinner *ngIf="(getYoutubeVideoDataProcessing$ | async)"></app-processing-spinner>
+
+        <button class="action-button" *ngIf="!(getYoutubeVideoDataProcessing$ | async) && (youtubeVideoData$ | async) && !$isNewSession()" [disabled]="stepOne.videoUrl.invalid" mat-raised-button color="primary" type="button" matStepperNext>
           {{ EDIT_SESSION_BUTTON_VALUE }}
         </button>
         
-        <button *ngIf="!(getYoutubeVideoDataProcessing$ | async)" color="primary" mat-stroked-button type="button" backButton>
+        <button class="action-button" *ngIf="!(getYoutubeVideoDataProcessing$ | async)" color="primary" mat-stroked-button type="button" backButton>
           {{ CANCEL_BUTTON_VALUE }}
         </button>
       
@@ -35,17 +34,16 @@
 
       <app-edit-training-session-step-two [$localTrainingSession]="$localTrainingSession" [$isNewSession]="$isNewSession" #stepTwo></app-edit-training-session-step-two>
       
-      <div class="stepper-buttons" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px" fxLayout.gt-md="row" fxLayoutGap.gt-md="16px">
+      <div class="stepper-buttons-container step-two-buttons">
             
-        <button *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!stepTwo.trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm(stepTwo)">
+        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" [disabled]="!stepTwo.trainingSessionForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingSessionForm(stepTwo)">
           {{ $isNewSession() ? CREATE_SESSION_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
         </button>
-        <button *ngIf="!(serverRequestProcessing$ | async)" color="primary" mat-stroked-button type="button" backButton>
+        <button class="action-button" *ngIf="!(serverRequestProcessing$ | async)" color="primary" mat-stroked-button type="button" backButton>
           {{ CANCEL_BUTTON_VALUE }}
         </button>
-        <div *ngIf="(serverRequestProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center">
-          <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-        </div>
+
+        <app-processing-spinner *ngIf="(serverRequestProcessing$ | async)"></app-processing-spinner>
 
       </div>
     </mat-step>
@@ -53,9 +51,9 @@
 
   </mat-stepper>
 
-  <div *ngIf="(youtubeVideoData$ | async) as videoData" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="16px">
+  <div class="video-content-container mat-elevation-z5" *ngIf="(youtubeVideoData$ | async) as videoData">
     <img class="video-thumbnail" [src]="videoData.thumbnailUrlLarge" alt="Video Thumbnail">
-    <div class="video-details-container" fxLayout="column" fxLayoutGap="16px">
+    <div class="video-details-container">
       <div><span class="video-details-prefix">{{ TITLE_BLURB }}:</span> {{ videoData.title }}</div>
       <div><span class="video-details-prefix">{{ CHANNEL_BLURB }}:</span> {{ videoData.channelTitle }}</div>
       <div><span class="video-details-prefix">{{ DURATION_BLURB }}:</span> {{ videoData.durationIso | durationIsoToMmSs }}</div>

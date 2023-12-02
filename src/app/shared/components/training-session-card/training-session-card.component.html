@@ -1,17 +1,17 @@
-<div *ngIf="!compressedDisplay else listView" class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
-  <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px" (click)="onSelectTrainingSession()">
-    <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" >
-    <div class="training-session-details-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="4px">
+<div class="training-session-card-container" *ngIf="!useCompressedDisplay; else compressedDisplay">
+  <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" (click)="onSelectTrainingSession()" >
+  <div class="training-session-sub-image-content">
+    <app-add-training-session-to-plan-button *ngIf="trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-plan-button>
+    <app-add-training-session-to-personal-queue-button *ngIf="$isViewTrainingSessions() && !trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-personal-queue-button>
+    <div class="training-session-details-container" (click)="onSelectTrainingSession()">
       <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
       <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
     </div>
   </div>
-  <app-add-training-session-to-plan-button *ngIf="trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!"></app-add-training-session-to-plan-button>
-  <app-add-training-session-to-personal-queue-button *ngIf="$isViewTrainingSessions() && !trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!"></app-add-training-session-to-personal-queue-button>
 </div>
 
-<ng-template #listView>
-  <div class="training-session-details-container" fxLayout="column" fxLayoutAlign="center start" fxLayoutGap="4px">
+<ng-template #compressedDisplay>
+  <div class="training-session-details-container">
     <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
     <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
   </div>

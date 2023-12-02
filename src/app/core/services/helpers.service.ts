@@ -119,6 +119,27 @@ export class HelperService {
     return millisecondsFromSeconds + millisecondsFromNanoseconds;
   }
 
+  // Currently handles these formats
+  // Type 1: https://www.youtube.com/watch?v=FU6r3BmlgBM
+  // Type 2: https://www.youtube.com/live/FU6r3BmlgBM?si=AldRFZ5RuU95KkQw
+  // Type 3: https://youtu.be/UJeSWbR6W04?si=THyX9RYEJoeRsSgA
+  extractYoutubeVideoIdFromUrl(url: string): string | undefined {
+    let videoId: string | undefined;
+
+    // Handle Type 1
+    if (url.includes('watch')) {
+      videoId = url.split('v=').pop();
+    } else {
+      // Handle Type 2
+      videoId = url.split('/').pop();
+      // Handle Type 3
+      if (videoId?.includes('?')) {
+        videoId = videoId.split('?')[0];
+      }
+    }
+    return videoId;
+  }
+
   // Avoid using this whenever possible, default to using the firebase API
   // generateFirestoreId(): string {
   //   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

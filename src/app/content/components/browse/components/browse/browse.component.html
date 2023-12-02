@@ -1,4 +1,4 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" >
+<div class="content-container">
   <mat-tab-group mat-align-tabs="center" mat-stretch-tabs [selectedIndex]="$trainingSessionsTabActive() ? 1 : 0" #matTabGroup>
       <mat-tab [label]="PLANS_TAB_VALUE" [disabled]="$trainingPlanBuilderRequest()">
         <ng-template matTabContent>

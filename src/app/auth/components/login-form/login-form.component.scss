@@ -49,5 +49,5 @@ mat-form-field {
 }
 
 .check-inbox-message {
-  @include user-message-styles(32px);
+  @include default-text-style(32px);
 }

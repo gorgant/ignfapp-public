@@ -1,21 +1,39 @@
 @import '../../../variables';
 
-.training-plan-thumbnail, .training-plan-details-container {
-  width: 100%;
-  max-width: $desktop-button-width;
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
 }
 
 .training-plan-details-container {
-  padding-left: 16px;
-  padding-right: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.training-plan-thumbnail {
+  width: 100%;
 }
 
 .training-plan-title {
+  padding-left: 8px;
+  padding-right: 8px;
+
   font-size: 15px;
   font-weight: $font-weight-regular;
+  line-height: 18px;
 }
 
 .training-plan-subtext {
+  margin-left: 8px;
   font-size: 13px;
   color: $font-subheader-color;
 }

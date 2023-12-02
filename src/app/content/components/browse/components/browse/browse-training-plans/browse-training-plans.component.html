@@ -1,8 +1,6 @@
 <div class="component-container">
-  <div class="actions-container">
-    <button class="create-button" mat-raised-button color="primary" (click)="onCreatePlan()">{{ CREATE_PLAN_BUTTON_VALUE }}</button>
-  </div>
-  <div class="search-options-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutAlign.gt-xs="center center">
+  <button class="create-button" mat-raised-button color="primary" (click)="onCreatePlan()">{{ CREATE_PLAN_BUTTON_VALUE }}</button>
+  <div class="search-options-container">
     <mat-form-field class="search-form-field">
       <mat-icon *ngIf="!searchInput.focused" matPrefix class="search-icon">search</mat-icon>
       <mat-label>{{ SEARCH_PLAN_OR_CHANNEL_TITLE_PLACEHOLDER }}</mat-label>
@@ -12,13 +10,11 @@
       </button>
     </mat-form-field>
   </div>
-  <div *ngIf="(fetchAllTrainingPlansProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center" class="loading-spinner">
-    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  </div>
-  <div class="empty-message" *ngIf="!(fetchAllTrainingPlansError$ | async) && $localTrainingPlans()?.length === 0">
+  <app-processing-spinner *ngIf="(fetchAllTrainingPlansProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+  <div class="empty-message" *ngIf="!(fetchAllTrainingPlansProcessing$ | async) && !(fetchAllTrainingPlansError$ | async) && $localTrainingPlans()?.length === 0">
     {{ NO_TRAINING_PLANS_FOUND_BLURB }}
   </div>
-  <div class="training-plan-card-container" *ngFor="let plan of $localTrainingPlans() | trainingPlanSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
-    <app-training-plan-card [trainingPlanData]="plan" fxLayout="column" (click)="onSelectTrainingPlan(plan)"></app-training-plan-card>
-  </div>
+</div>
+<div class="training-plan-card-container">
+  <app-training-plan-card *ngFor="let plan of $localTrainingPlans() | trainingPlanSearchFilter: searchText" [trainingPlanData]="plan" (click)="onSelectTrainingPlan(plan)"></app-training-plan-card>
 </div>

@@ -58,8 +58,8 @@ export enum TrainingPlanVisibilityCategoryDbOption {
 }
 
 export enum TrainingPlanVisibilityCategoryUiOption {
-  PUBLIC = 'Public',
-  PRIVATE = 'Private'
+  PUBLIC = 'Everyone',
+  PRIVATE = 'Only You'
 }
 
 export interface TrainingPlanVisibilityCategoryObject {

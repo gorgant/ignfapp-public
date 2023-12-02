@@ -1,24 +1,66 @@
 @import '../../../../../../variables';
 
 .form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  gap: 24px;
+}
+
+mat-form-field {
   width: 100%;
 }
 
-mat-form-field, mat-radio-group {
-  width: 100%;
-  max-width: $desktop-form-width-standard;
-}
-
-mat-slide-toggle {
-  margin-top: 8px;
-}
-
-.slider-container, .slider-label, mat-slider {
-  width: 100%;
-  max-width: $desktop-form-width-standard;
+.form-field-label {
   font-weight: $font-weight-medium;
 }
 
-.activity-category-container {
-  margin-top: 16px;
+.radio-group-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+
+  width: 100%;
+}
+
+mat-radio-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.slide-toggle-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  margin-bottom: 8px;
+}
+
+.slider-container {
+  width: 100%;
+}
+
+mat-slider {
+  width: 90%;
+}
+
+.add-keywords-button {
+  margin-bottom: 16px;
+}
+
+.keywords-container {
+  margin-bottom: 16px;
+}
+
+.hide {
+  display: none;
 }

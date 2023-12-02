@@ -8,6 +8,7 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { NewDataForPlanSessionFragmentNoIdOrTimestamp, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
 import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { EMPTY_SPINNER_MESSAGE } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -21,8 +22,10 @@ import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, Tra
 export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestroy {
 
   @Input() trainingSessionData!: CanonicalTrainingSession;
+  @Input() useMiniFabButton!: boolean;
 
   ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
+  EMPTY_MESSAGE = EMPTY_SPINNER_MESSAGE;
 
   serverRequestProcessing$!: Observable<boolean>;
   $isActiveButton = signal(false); // Identifies the instance of the button being clicked vs all other instances of buttons

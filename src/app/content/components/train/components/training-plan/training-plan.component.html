@@ -1,15 +1,15 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center">
-  <div class="back-button-container" fxLayout="row" fxLayoutAlign="start center" (click)="onNavigateUserToBrowse()">
-    <button class="back-button" mat-icon-button><mat-icon>arrow_back</mat-icon></button>
-  </div>
-  <div *ngIf="$localTrainingPlan() as trainingPlan" class="plan-details-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px" fxFill>
-    <div class="plan-title-container" fxLayout="row" fxLayoutAlign="center center">
+<div class="component-container">
+  <button mat-icon-button class="back-button" (click)="onNavigateUserToBrowse()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <div class="plan-details-container" *ngIf="$localTrainingPlan() as trainingPlan">
+    <div class="plan-title-container">
       <div class="plan-title">{{ trainingPlan.title }}</div>
-      <button *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id)" class="action-button"  mat-icon-button (click)="onEditTrainingPlan()" aria-label="Edit training session">
-        <mat-icon>edit</mat-icon>
-      </button>
+      <div class="edit-plan-button-container" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id)">
+        <mat-icon (click)="onEditTrainingPlan()">edit</mat-icon>
+      </div>
     </div>
-    <div class="lesson-count">{{ trainingPlan.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
+    <div class="session-count">{{ trainingPlan.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
   </div>
   <ng-container *ngIf="$localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0">
     <app-add-training-plan-to-personal-queue [planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
@@ -20,11 +20,5 @@
       {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
     </button>
   </div>
-  <div *ngIf="$localPlanSessionFragments() as planSessionFragments" class="plan-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">
-    <cdk-virtual-scroll-viewport [itemSize]="trainingSessionCardHeight" class="scrolling-container">
-      <div class="training-session-card-container" *cdkVirtualFor="let planSessionFragment of planSessionFragments" fxLayout="column" fxLayoutGap="8px">
-        <app-training-session-card [trainingSesssionData]="planSessionFragment" fxLayout="column"></app-training-session-card>
-      </div>
-    </cdk-virtual-scroll-viewport>
-  </div>
 </div>
+<app-training-session-card *ngFor="let planSessionFragment of $localPlanSessionFragments()" [trainingSesssionData]="planSessionFragment"></app-training-session-card>

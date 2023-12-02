@@ -5,7 +5,7 @@ import { CanonicalTrainingSession, TrainingSessionKeys } from '../../../shared-m
 import { YoutubeVideoDataKeys } from '../../../shared-models/youtube/youtube-video-data.model';
 import { publicFirestore } from '../config/db-config';
 
-export const findSessionByVideoId = async (videoId: string): Promise<CanonicalTrainingSession | null> => {
+export const findPublicTrainingSessionByVideoId = async (videoId: string): Promise<CanonicalTrainingSession | null> => {
 
   const trainingSessionCollectionPath: string = PublicCollectionPaths.PUBLIC_TRAINING_SESSIONS;
 

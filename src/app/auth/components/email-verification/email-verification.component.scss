@@ -60,7 +60,7 @@
 }
 
 .failure-message, .success-message, .processing-message, .check-your-inbox {
-  @include user-message-styles();
+  @include default-text-style();
 }
 
 .support-text {

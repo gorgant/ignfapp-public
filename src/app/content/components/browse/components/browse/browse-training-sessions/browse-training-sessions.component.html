@@ -1,11 +1,9 @@
-<div class="tab-contents" fxLayout="column" fxLayoutAlign="center center">
-  <div *ngIf="!$trainingPlanBuilderRequest()" class="actions-container" fxLayout="column" fxLayoutAlign="center center" >
-    <button class="create-button" mat-raised-button color="primary" (click)="onCreateTrainingSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
-  </div>
-  <button fxFlexAlign="start" *ngIf="$trainingPlanBuilderRequest()" class="back-button" mat-button color="primary" (click)="onReturnToEditPlan()">
+<div class="component-container">
+  <button class="create-button" *ngIf="!$trainingPlanBuilderRequest()" mat-raised-button color="primary" (click)="onCreateTrainingSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
+  <button class="back-button" *ngIf="$trainingPlanBuilderRequest()" mat-button color="primary" (click)="onReturnToEditPlan()">
     <mat-icon>arrow_back</mat-icon> {{ RETURN_TO_EDIT_PLAN_BUTTON_VALUE }}
   </button>
-  <div class="search-options-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutAlign.gt-xs="center center">
+  <div class="search-options-container">
     <mat-form-field class="search-form-field">
       <mat-icon *ngIf="!searchInput.focused" matPrefix class="search-icon">search</mat-icon>
       <mat-label>{{ SEARCH_VIDEO_OR_CHANNEL_TITLE_PLACEHOLDER }}</mat-label>
@@ -14,24 +12,23 @@
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>
-    <button mat-icon-button (click)="onToggleFilters()">
-      <mat-icon [ngClass]="{'filters-icon-active': $filtersActive()}">tune</mat-icon>
+    <button class="filters-icon-button" mat-icon-button (click)="onToggleFilters()">
+      <mat-icon class="filters-icon" [ngClass]="$filtersActive() ? 'filters-icon-active' : ''">tune</mat-icon>
     </button>
+    <!-- <div>Bob is cool!</div> -->
   </div>
-  <div [fxHide]="!$showFilters()" class="filters-container">
+  <div class="filters-container" [ngClass]="$showFilters() ? '' : 'hide'">
     <app-training-session-filters #trainingSessionFilters></app-training-session-filters>
-    <div class="filter-actions" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="16px">
+    <div class="filter-actions">
       <button class="filter-button" mat-raised-button color="primary" (click)="onApplyFilters()">Apply Filters</button>
       <button class="filter-button" mat-stroked-button color="primary" (click)="onClearFilters()">Clear Filters</button>
     </div>
   </div>
-  <div *ngIf="(fetchAllTrainingSessionsProcessing$ | async)" fxLayout="column" fxLayoutAlign="center center" class="loading-spinner">
-    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  </div>
-  <div class="empty-message" *ngIf="!(fetchAllTrainingSessionsError$ | async) && trainingSessionFilters.$filteredTrainingSessions().length === 0">
+  <app-processing-spinner *ngIf="(fetchAllTrainingSessionsProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+  <div class="empty-message" [ngClass]="$showFilters() ? 'hide' : ''" *ngIf="!(fetchAllTrainingSessionsProcessing$ | async) && !(fetchAllTrainingSessionsError$ | async) && trainingSessionFilters.$filteredTrainingSessions().length === 0">
     {{ NO_TRAINING_SESSIONS_FOUND_BLURB }}
   </div>
-  <div class="training-session-card-container" *ngFor="let session of trainingSessionFilters.$filteredTrainingSessions() | trainingSessionSearchFilter: searchText" fxLayout="column" fxLayoutGap="8px">
-    <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="$trainingPlanBuilderRequest()" fxLayout="column" ></app-training-session-card>
-  </div>
+</div>
+<div class="training-session-card-container" [ngClass]="$showFilters() ? 'hide' : ''">
+  <app-training-session-card *ngFor="let session of trainingSessionFilters.$filteredTrainingSessions() | trainingSessionSearchFilter: searchText" [trainingSesssionData]="session" [trainingPlanBuilderRequest]="$trainingPlanBuilderRequest()"></app-training-session-card>
 </div>

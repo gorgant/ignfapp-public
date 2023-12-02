@@ -15,7 +15,7 @@ import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, Trainin
 export class TrainingSessionCardComponent implements OnInit {
 
   @Input() trainingSesssionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment; 
-  @Input() compressedDisplay?: boolean; // Used for edit plan display
+  @Input() useCompressedDisplay?: boolean; // Used for edit plan display
   @Input() trainingPlanBuilderRequest?: boolean;
 
   $localCanonicalTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);

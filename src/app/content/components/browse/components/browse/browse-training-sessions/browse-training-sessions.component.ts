@@ -18,7 +18,6 @@ import { TrainingSessionFiltersComponent } from '../training-session-filters/tra
 export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 
   @Input() $trainingPlanBuilderRequest!: Signal<boolean>;
-  $trainingSessionCardHeight = signal(356);
   
   userData$!: Observable<PublicUser | null>;
 
@@ -70,10 +69,18 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
     this.trainingSessionFiltersComponent.trainingSessionFilterForm.patchValue({
       [TrainingSessionFilterFormKeys.ACTIVITY_CATEGORY_FILTER_ARRAY]: [],
       [TrainingSessionFilterFormKeys.COMPLEXITY_FILTER_ARRAY]: [],
-      [TrainingSessionKeys.EQUIPMENT]: [],
+      [TrainingSessionKeys.EQUIPMENT]: null,
       [TrainingSessionFilterFormKeys.INTENSITY_FILTER_ARRAY]: [],
       [TrainingSessionFilterFormKeys.MUSCLE_GROUP_FILTER_ARRAY]: [],
     });
+    // This removes the selected animation from the toggle group
+    const equipmentToggleGroup = this.trainingSessionFiltersComponent.equipmentToggleGroup;
+    if (equipmentToggleGroup) {
+      equipmentToggleGroup.value = null; // Reset the button toggle group
+      equipmentToggleGroup._buttonToggles.forEach(toggle => {
+        toggle.checked = false; // Ensure each toggle button is unchecked
+      });
+    }
     this.$showFilters.set(!this.$showFilters());
   }
 
@@ -108,7 +115,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
           tap(filterForm => {
             const activityCategoryFilterHasValue = this.trainingSessionFiltersComponent.activityCategoryFilterArray.value.length > 0;
             const complexityFilterHasValue = this.trainingSessionFiltersComponent.complexityFilterArray.value.length > 0;
-            const equipmentFilterHasValue = this.trainingSessionFiltersComponent.equipmentFilterArray.value.length > 0;
+            const equipmentFilterHasValue = this.trainingSessionFiltersComponent.equipmentFilterArray.value && this.trainingSessionFiltersComponent.equipmentFilterArray.value.length > 0;
             const intensityFilterHasValue = this.trainingSessionFiltersComponent.intensityFilterArray.value.length > 0;
             const muscleGroupFilterHasValue = this.trainingSessionFiltersComponent.muscleGroupFilterArray.value.length > 0;
             const anyFilterActive = activityCategoryFilterHasValue || complexityFilterHasValue || equipmentFilterHasValue || intensityFilterHasValue || muscleGroupFilterHasValue;

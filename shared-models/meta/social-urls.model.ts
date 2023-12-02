@@ -30,5 +30,6 @@ export enum SocialHandles {
 
 export enum SocialUrlPrefixes {
   YOUTUBE_CHANNEL = 'https://www.youtube.com/channel',
-  YOUTUBE_VIDEO = 'https://youtu.be'
+  YOUTUBE_VIDEO = 'https://youtu.be',
+  YOUTUBE_VIDEO_LONG = 'https://www.youtube.com'
 }

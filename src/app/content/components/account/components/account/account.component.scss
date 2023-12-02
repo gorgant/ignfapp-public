@@ -28,7 +28,7 @@
 }
 
 .display-name-text {
-  @include user-message-styles();
+  @include default-text-style();
 }
 
 .actions-container {

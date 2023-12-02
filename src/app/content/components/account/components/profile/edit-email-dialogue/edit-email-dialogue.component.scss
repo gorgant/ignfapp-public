@@ -11,7 +11,7 @@
 }
 
 .dialogue-title {
-  font-size: 1.5em;
+  @include default-header-style($font-weight-regular);
 }
 
 mat-stepper {
@@ -64,7 +64,7 @@ button {
 
 
 .confirm-email-container {
-  @include user-message-styles();
+  @include default-text-style();
 }
 
 .confirm-email-button {

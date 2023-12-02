@@ -1,10 +1,6 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="start center">
+<div class="content-container">
 
-  <form [formGroup]="trainingSessionFilterForm" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="16px">
-    <!-- <div class="slider-container">
-      <div class="slider-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
-      <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>
-    </div> -->
+  <form [formGroup]="trainingSessionFilterForm">
     <mat-button-toggle-group multiple (change)="onEquipmentToggle($event)">
       <mat-button-toggle [value]="false">{{ BODYWEIGHT_FIELD_VALUE }}</mat-button-toggle>
       <mat-button-toggle [value]="true">{{ EQUIPMENT_FIELD_VALUE }}</mat-button-toggle>

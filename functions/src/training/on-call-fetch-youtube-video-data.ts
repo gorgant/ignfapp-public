@@ -2,7 +2,7 @@ import { logger } from 'firebase-functions/v2';
 import { CallableOptions, CallableRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
 import { submitHttpRequest } from '../config/global-helpers';
 import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from '../../../shared-models/youtube/youtube-video-data.model';
-import { findSessionByVideoId } from './find-session-by-video-id';
+import { findPublicTrainingSessionByVideoId } from './find-session-by-video-id';
 import { SocialUrlPrefixes } from '../../../shared-models/meta/social-urls.model';
 import { Duration } from 'luxon';
 import { youtubeApiSecret } from '../config/api-key-config';
@@ -77,11 +77,11 @@ export const onCallFetchYoutubeVideoData = onCall(callableOptions, async (reques
   const videoId = request.data;
   logger.log(`Fetch Youtube Video data request received with this data`, videoId);
 
-  const existingTrainingSession = await findSessionByVideoId(videoId);
+  const existingTrainingSession = await findPublicTrainingSessionByVideoId(videoId);
 
   // Exit function if training session with that videoId already exists (prevents duplicates)
   if (existingTrainingSession) {
-    logger.log('Matching training session found, exiting function', existingTrainingSession);
+    logger.log('Matching public training session found, exiting function', existingTrainingSession);
     return null;
   }
 

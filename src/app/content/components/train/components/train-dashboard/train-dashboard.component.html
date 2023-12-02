@@ -1,3 +1,5 @@
+<!-- TODO: Modify this so that the first one is framed and has a button that says "train now" and the rest are a more compressed list below it -->
+
 <div *ngIf="(personalSessionFragments$ | async) && (personalSessionFragments$ | async)!.length > 0" class="content-container" fxLayout="column" fxLayoutAlign="center center">
   <button class="edit-queue-button" mat-raised-button color="primary" (click)="onEditPersonalQueue()">{{ EDIT_MY_QUEUE }}</button>
   <div *ngIf="(personalSessionFragments$ | async) as personalSessionFragmentData" class="personal-session-fragments-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="32px">

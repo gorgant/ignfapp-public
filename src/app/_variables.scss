@@ -287,17 +287,25 @@ $opacity-minimal: 0.1;
   
   }
 
-@mixin user-message-styles($margin-top: 16px) {
+@mixin default-text-style($margin-top: 16px) {
     margin-top: $margin-top;
-    text-align: center;
-    font-weight: $font-weight-light;
     font-size: 1.2em;
+    font-weight: $font-weight-light;
     line-height: 1.2em;
+    text-align: center;
 }
 
-@mixin processing-spinner-styles($size: 96px) {
-    font-size: 96px;
-    height: 96px;
-    width: 96px;
+@mixin default-header-style($font-weight: $font-weight-light) {
+    font-size: 1.5em;
+    font-weight: $font-weight;
+    line-height: 1.2em;
+    text-align: center;
+}
+
+@mixin processing-spinner-styles() {
+    color: $primary;
+}
+
+@mixin processing-spinner-styles() {
     color: $primary;
 }
