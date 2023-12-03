@@ -1,45 +1,178 @@
 @import '../../../../../variables';
 
-.edit-queue-button {
-  margin-top: 16px;
-  margin-bottom: 16px;
-  width: $mobile-button-width;
-}
-
-.training-session-card-container {
-  height: 300px; // Height must be set for virtual scroll to work, must match itemSize on cdk-virtual-scroll-viewport element
-}
-
-.loading-spinner {
-  margin-top: 64px;
-}
-
-.queue-empty-container {
+.component-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 24px;
+
   margin-top: 32px;
+  padding: 0 16px;
+}
+
+.queue-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
   width: 100%;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.queue-title-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  margin-left: 12px;
+}
+
+.queue-title {
+  @include default-header-style();
+}
+
+.edit-queue-button-container:hover {
+  cursor: pointer;
+}
+
+.session-count {
+  font-size: 0.9em;
+  color: $font-subheader-color;
+}
+
+.empty-message-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;  
 }
 
 .browse-button {
   width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }
 
 .empty-message {
-  font-size: 1.2em;
-  line-height: 1.2em;
-  font-weight: 300;
+  @include default-text-style();
+}
+
+.queue-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  margin-top: 16px;
+}
+
+.queue-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+
+  // @include default-header-style($font-weight-light);
+  font-size: 1.8em;
+  font-weight: $font-weight-light;
+  margin-bottom: 16px;
+}
+
+.up-next-overall-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+  
+  margin-left: 4px;
+  margin-right: 4px;
+  margin-bottom: 32px;
+  
+  border: 1px solid $primary;
+  padding: 16px 0;
+}
+
+.up-next-content-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.up-next-image-and-title-container {
+  flex: 55;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 16px;
+}
+
+.up-next-image {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.up-next-item-title {
+  font-size: 15px;
+  line-height: 18px;
+  font-weight: $font-weight-regular;
   text-align: center;
 }
 
-@media screen and (min-width: $mobile-cutoff-width) {
-  .edit-queue-button {
-    width: $desktop-button-width;
-  }
 
-  .scrolling-container {
-    width: $desktop-screen-width;
-    height: calc(100vh - 200px);
-  }
+
+.up-next-session-details-container {
+  flex: 45;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  padding-right: 8px;
+}
+
+.up-next-details-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.start-now-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
+
+.training-session-card-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  
+}
+
+// Hide the first item since we will re-create it manually
+.first-training-session-card {
+  display: none;
 }

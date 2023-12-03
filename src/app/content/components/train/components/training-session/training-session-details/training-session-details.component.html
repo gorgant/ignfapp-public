@@ -1,32 +1,32 @@
-<div class="content-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="16px">
-  <mat-accordion >
+<div class="component-container">
+  <mat-accordion class="accordion">
     <mat-expansion-panel hideToggle="false" #expansionPanel [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
           <div class="session-title">{{ trainingSessionData.videoData.title }}</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="session-details" fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="16px">
-        <div class="details-item-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+      <div class="session-details-container">
+        <div class="session-details-item">
           <mat-icon>accessibility_new</mat-icon>
           <div class="muscle-group">{{ trainingSessionData.muscleGroup | muscleGroupDbToUi }}</div>
         </div>
-        <div class="details-item-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div class="session-details-item">
           <mat-icon>schema</mat-icon>
           <div class="complexity">{{ trainingSessionData.complexityDefault | complexityDbToUi }}</div>
         </div>
-        <div class="details-item-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div class="session-details-item">
           <mat-icon>network_check</mat-icon>
           <div class="intensity">{{ trainingSessionData.intensityDefault | intensityDbToUi }}</div>
         </div>
-        <div class="details-item-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div class="session-details-item">
           <mat-icon>timer</mat-icon>
           <div class="duration">{{ trainingSessionData.videoData.durationIso | durationIsoToMmSs }}</div>
         </div>
-        <div class="details-item-container activity-categories-container" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <div class="session-details-item activity-categories-item">
           <div class="tags-title">{{ TAGS_TITLE_VALUE }}: </div>
           <div class="activity-categories">
-            <ng-container *ngFor="let activityCategory of trainingSessionData.activityCategoryList, last as lastCategory">
+            <ng-container *ngFor="let activityCategory of trainingSessionData.activityCategoryList; last as lastCategory">
               {{ activityCategory | activityCategoryDbToUi }}<span *ngIf="!lastCategory">,</span>
             </ng-container>
           </div>

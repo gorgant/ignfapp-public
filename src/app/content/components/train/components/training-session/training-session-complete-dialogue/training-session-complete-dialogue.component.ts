@@ -22,15 +22,17 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   FORM_VALIDATION_MESSAGES = TrainingRecordFormValidationMessages;
   
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
+  COMPLEXITY_FIELD_VALUE = GlobalFieldValues.COMPLEXITY;
+  COMPLEXITY_TITLE_VALUE = GlobalFieldValues.COMPLEXITY;
+  DURATION_TITLE_VALUE = GlobalFieldValues.DURATION;
   EDIT_BUTTON_VALUE = GlobalFieldValues.EDIT;
+  HOURS_FIELD_VALUE = GlobalFieldValues.HOURS_SHORT;
+  INTENSITY_FIELD_VALUE = GlobalFieldValues.INTENSITY;
+  INTENSITY_TITLE_VALUE = GlobalFieldValues.INTENSITY;
+  MINUTES_FIELD_VALUE = GlobalFieldValues.MINUTES_SHORT;
   SAVE_BUTTON_VALUE = GlobalFieldValues.SAVE;
   SAVE_TRAINING_SESSION_TITLE_VALUE = GlobalFieldValues.SAVE_TRAINING_SESSION_TITLE;
-  HOURS_FIELD_VALUE = GlobalFieldValues.HOURS_SHORT;
-  MINUTES_FIELD_VALUE = GlobalFieldValues.MINUTES_SHORT;
   SECONDS_FIELD_VALUE = GlobalFieldValues.SECONDS_SHORT;
-  DURATION_TITLE_VALUE = GlobalFieldValues.DURATION;
-  COMPLEXITY_TITLE_VALUE = GlobalFieldValues.COMPLEXITY;
-  INTENSITY_TITLE_VALUE = GlobalFieldValues.INTENSITY;
 
   intensityMin = TrainingSessionFormVars.complexityMin;
   intensityMax = TrainingSessionFormVars.complexityMax;
@@ -84,6 +86,51 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     this.initForm();
     this.monitorFormValidity();
     this.monitorProcesses();
+  }
+
+  get trainingRecordFormErrorMessage() {
+    let errorMessage = '';
+    if (this.trainingRecordForm.hasError('durationIsInteger')) {
+      return errorMessage = 'Duration must be an integer.';
+    }
+    if (this.trainingRecordForm.hasError('durationGreaterThanZero')) {
+      return errorMessage =  'Duration must be greater than zero.';
+    }
+    return errorMessage;
+  }
+
+  get complexityRatingErrorMessage() {
+    let errorMessage = '';
+    if (this.complexityRating.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.complexityRating.hasError('pattern')) {
+      return errorMessage = 'Value must be a number';
+    }
+    if (this.complexityRating.hasError('min')) {
+      return errorMessage = `Value must be greater than ${this.complexityMin}`;
+    }
+    if (this.complexityRating.hasError('max')) {
+      return errorMessage = `Value must be at most ${this.complexityMax}`;
+    }
+    return errorMessage;
+  }
+
+  get intensityRatingErrorMessage() {
+    let errorMessage = '';
+    if (this.intensityRating.hasError('required')) {
+      return errorMessage = 'You must enter a value';
+    }
+    if (this.intensityRating.hasError('pattern')) {
+      return errorMessage = 'Value must be a number';
+    }
+    if (this.intensityRating.hasError('min')) {
+      return errorMessage = `Value must be greater than ${this.intensityMin}`;
+    }
+    if (this.intensityRating.hasError('max')) {
+      return errorMessage = `Value must be at most ${this.intensityMax}`;
+    }
+    return errorMessage;
   }
 
   onEditDuration() {

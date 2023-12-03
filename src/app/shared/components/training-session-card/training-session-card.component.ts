@@ -98,9 +98,9 @@ export class TrainingSessionCardComponent implements OnInit {
       return;
     }
     if (this.$localPersonalSessionFragment()) {
-      const planSessionFragmentData = this.$localPersonalSessionFragment()!;
+      const personalSessionFragmentData = this.$localPersonalSessionFragment()!;
       const queryParams: ViewPersonalSessionFragmentQueryParams = {
-        [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: planSessionFragmentData.canonicalId,
+        [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: personalSessionFragmentData.canonicalId,
         [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
       };
       navigationExtras = {queryParams};

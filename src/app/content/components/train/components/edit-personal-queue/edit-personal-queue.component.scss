@@ -9,6 +9,8 @@
 }
 
 .back-button {
+  margin-top: 32px;
+  margin-left: 16px;
   display: flex;
   align-self: flex-start;
 }
@@ -71,10 +73,4 @@ app-training-session-card {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
-
-@media screen and (min-width: $mobile-cutoff-width) {
-  .drag-drop-icon, .delete-icon {
-    padding-left: 0px;
-  }
 }

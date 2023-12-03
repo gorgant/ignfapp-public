@@ -1,8 +1,8 @@
-<h2 class="section-header" mat-dialog-title>{{ confData.title }}</h2>
-<mat-dialog-content>
-  {{ confData.body }}
-</mat-dialog-content>
-<div class="actions-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px">
-  <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ YES_BUTTON_VALUE }}</button>
-  <button mat-stroked-button color="primary" [mat-dialog-close] cdkFocusInitial="false">{{ NO_BUTTON_VALUE }}</button>
+<div class="content-container">
+  <div class="dialogue-title">{{ confData.title }}</div>
+  <div class="dialogue-content">{{ confData.body }}</div>
+  <div class="actions-container">
+    <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ YES_BUTTON_VALUE }}</button>
+    <button mat-stroked-button color="primary" [mat-dialog-close] cdkFocusInitial="false">{{ NO_BUTTON_VALUE }}</button>
+  </div>
 </div>

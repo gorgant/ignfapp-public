@@ -1,30 +1,40 @@
 @import '../../../../../variables';
 
-.header-container, .session-thumbnail, app-training-session-details, .actions {
-  width: 100%;
-  max-width: $desktop-screen-width;
-}
-
-.actions {
-  margin-top: 16px;
-}
-
-button {
-  width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-
-app-add-training-session-to-plan-button, app-add-training-session-to-personal-queue-button {
-  width: $mobile-button-width;
-  max-width: $desktop-button-width;
-}
-.spinner-container {
-  width: 100%;
+.component-container {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
+  gap: 16px;
 }
 
-.loading-spinner {
-  margin-top: 64px;
+.header-container {
+  width: 100%;
+}
+
+.session-thumbnail {
+  width: 100%;
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+}
+
+.action-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
+
+app-processing-spinner {
+  margin-top: 32px;
+}
+
+.hide {
+  display: none;
 }

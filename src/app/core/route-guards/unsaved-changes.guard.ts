@@ -4,6 +4,7 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { CanDeactivateData } from 'shared-models/utils/can-deactivate-data.model';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 
 // Courtesy of https://stackoverflow.com/a/41187919/6572208
 
@@ -35,7 +36,7 @@ export class UnsavedChangesGuard {
 
     // Otherwise, prompt user to proceed or abort
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const deleteConfData: ActionConfData = canDeactivateData.warningMessage;
 
     dialogConfig.data = deleteConfData;

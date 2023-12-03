@@ -17,6 +17,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 
 @Component({
   selector: 'app-edit-training-plan',
@@ -767,12 +768,11 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   onDeletePlanSessionFragment(selectedPlanSessionFragment: PlanSessionFragment) {
     
     const trainingPlanId = this.$localTrainingPlanId()!;
-    const planSessionFragmentId = selectedPlanSessionFragment.id;
     let planSessionFragmentUpdates: Update<PlanSessionFragment>[];
     let trainingPlanUpdates: Update<TrainingPlan>;
     let updatesConfigured = false;
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.REMOVE_TRAINING_SESSION_CONF_TITLE,
       body: this.REMOVE_TRAINING_SESSION_CONF_BODY,
@@ -1001,7 +1001,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   onDeleteTrainingPlan() {
     const planSessionFragmentIds = this.$localPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.DELETE_TRAINING_PLAN_CONF_TITLE,
       body: this.DELETE_TRAINING_PLAN_CONF_BODY,

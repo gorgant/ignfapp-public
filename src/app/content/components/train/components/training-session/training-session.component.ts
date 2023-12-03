@@ -23,6 +23,7 @@ import { Timestamp } from '@angular/fire/firestore';
 import { DeletePersonalSessionFragmentUrlParams, DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentQueryParams } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TypedAction } from '@ngrx/store/src/models';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 
 @Component({
   selector: 'app-training-session',
@@ -421,12 +422,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
             personalSessionFragmentId: this.$localPersonalSessionFragment()?.id,
           }
   
-          const dialogConfig = new MatDialogConfig();
-        
-          dialogConfig.autoFocus = false;
-          dialogConfig.width = '90%';
-          dialogConfig.maxWidth = '600px';
-      
+          const dialogConfig = {...DialogueBoxDefaultConfig};   
           dialogConfig.data = sessionCompletionData;
           
           const dialogRef = this.dialog.open(TrainingSessionCompleteDialogueComponent, dialogConfig);
@@ -448,7 +444,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   onCancelTrainingSession() {
     this.onPauseTrainingSession();
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.CANCEL_TRAINING_CONF_TITLE,
       body: this.CANCEL_TRAINING_CONF_BODY,
@@ -513,7 +509,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         console.log('canonical trainingSession detected, proceeding with delete');
     }
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.DELETE_TRAINING_SESSION_CONF_TITLE,
       body: this.DELETE_TRAINING_SESSION_CONF_BODY,

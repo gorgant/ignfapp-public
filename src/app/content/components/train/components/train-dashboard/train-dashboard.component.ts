@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, withLatestFrom, map, switchMap, filter, catchError, throwError, take, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
+import { PersonalSessionFragment, ViewPersonalSessionFragmentQueryParams, ViewPersonalSessionFragmentQueryParamsKeys } from 'shared-models/train/personal-session-fragment.model';
+import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActions, UserStoreSelectors } from 'src/app/root-store';
@@ -16,9 +17,15 @@ import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionF
 })
 export class TrainDashboardComponent implements OnInit, OnDestroy {
 
+  AFTER_THAT_HEADER_VALUE = GlobalFieldValues.AFTER_THAT;
   BROWSE_TRAINING_PLANS_BUTTON_VALUE = GlobalFieldValues.BROWSE_TRAINING_PLANS;
   EDIT_MY_QUEUE = GlobalFieldValues.EDIT_MY_QUEUE;
   QUEUE_IS_EMPTY_BLURB = GlobalFieldValues.QUEUE_IS_EMPTY;
+  START_NOW_BUTTON_VALUE = GlobalFieldValues.START_NOW;
+  TAGS_TITLE_VALUE = GlobalFieldValues.TAGS;
+  TRAINING_QUEUE_TITLE = GlobalFieldValues.MY_TRAINING_QUEUE;
+  TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
+  UP_NEXT_HEADER_VALUE = GlobalFieldValues.UP_NEXT;
 
   trainingSessionCardHeight = 300;
 
@@ -89,6 +96,29 @@ export class TrainDashboardComponent implements OnInit, OnDestroy {
 
   onNavigateToBrowse() {
     this.router.navigate([PublicAppRoutes.BROWSE]);
+  }
+
+  onSelectFirstTrainingSession(personalSessionFragmentData: PersonalSessionFragment) {
+    let navigationExtras: NavigationExtras = {};
+    const queryParams: ViewPersonalSessionFragmentQueryParams = {
+      [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: personalSessionFragmentData.canonicalId,
+      [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
+    };
+    navigationExtras = {queryParams};
+    this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, personalSessionFragmentData.id], navigationExtras);
+    // this.personalSessionFragments$
+    //   .pipe(
+    //     take(1),
+    //     tap(personalSessionFragments => {
+    //       const planSessionFragmentData = personalSessionFragments[0];
+    //       const queryParams: ViewPersonalSessionFragmentQueryParams = {
+    //         [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: planSessionFragmentData.canonicalId,
+    //         [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
+    //       };
+    //       navigationExtras = {queryParams};
+    //       this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, planSessionFragmentData.id], navigationExtras);
+    //     })
+    //   ).subscribe();
   }
 
   ngOnDestroy(): void {

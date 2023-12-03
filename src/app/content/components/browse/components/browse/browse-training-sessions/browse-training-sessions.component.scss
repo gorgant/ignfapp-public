@@ -12,6 +12,7 @@
 .create-button {
   margin: 16px 0;
   width: $mobile-button-width;
+  max-width: $desktop-button-width;
 }
 
 .back-button {

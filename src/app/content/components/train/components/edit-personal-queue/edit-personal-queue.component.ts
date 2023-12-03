@@ -10,6 +10,7 @@ import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentQueryParams, ViewPersonalSessionFragmentQueryParamsKeys } from 'shared-models/train/personal-session-fragment.model';
 import { TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
+import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -351,7 +352,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
     let personalSessionFragmentUpdates: Update<PersonalSessionFragment>[];
     let updatesConfigured = false;
 
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.REMOVE_PERSONAL_SESSION_FRAGMENT_CONF_TITLE,
       body: this.REMOVE_PERSONAL_SESSION_FRAGMENT_CONF_BODY,
@@ -494,7 +495,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   }
 
   onClearPersonalQueue() {
-    const dialogConfig = new MatDialogConfig();
+    const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
       title: this.CLEAR_PERSONAL_QUEUE_CONF_TITLE,
       body: this.CLEAR_PERSONAL_QUEUE_CONF_BODY,

@@ -12,15 +12,12 @@
       </div>
     </div>
   </div>
-  <div *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0" class="queue-empty-message">
+  <div class="queue-empty-message" *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0">
     {{ QUEUE_IS_EMPTY_BLURB }}
   </div>
-  <div *ngIf="!(combinedDeletePersonalSessionFragmentProcessing$ | async)" class="action-buttons">
+  <div class="action-buttons" *ngIf="!(combinedDeletePersonalSessionFragmentProcessing$ | async)">
     <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length > 0" class="clear-queue-button" button mat-stroked-button color="primary" (click)="onClearPersonalQueue()">{{ CLEAR_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
     <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0" class="browse-button" button mat-stroked-button color="primary" (click)="onNavigateToBrowse()">{{ BROWSE_TRAINING_PLANS_BUTTON_VALUE }}</button>
   </div>
-  <div class="progress-spinner-container" *ngIf="combinedDeletePersonalSessionFragmentProcessing$ | async">
-    <mat-progress-spinner diameter=40 color="primary" mode="indeterminate"></mat-progress-spinner>
-  </div>
-
+  <app-processing-spinner *ngIf="(combinedDeletePersonalSessionFragmentProcessing$ | async)"></app-processing-spinner>
 </div>
