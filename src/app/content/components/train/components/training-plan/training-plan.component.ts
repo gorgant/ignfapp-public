@@ -42,6 +42,7 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
 
   combinedTrainingDataSubscription!: Subscription;
   fetchCombinedTrainingDataError$!: Observable<boolean>;
+  fetchCombinedTrainingDataProcessing$!: Observable<boolean>;
 
   private store$ = inject(Store);
   private route = inject(ActivatedRoute);
@@ -65,14 +66,28 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
     this.fetchAllPlanSessionFragmentsError$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsError);
     this.fetchAllPlanSessionFragmentsProcessing$ = this.store$.select(PlanSessionFragmentStoreSelectors.selectFetchAllPlanSessionFragmentsProcessing);
 
+    this.fetchCombinedTrainingDataProcessing$ = combineLatest(
+      [
+        this.fetchSingleTrainingPlanProcessing$,
+        this.fetchAllPlanSessionFragmentsProcessing$
+      ]
+    ).pipe(
+        map(([fetchTrainingPlanProcessing, fetchPlanSessionFragmentsProcessing]) => {
+          if (fetchTrainingPlanProcessing || fetchPlanSessionFragmentsProcessing) {
+            return true;
+          }
+          return false;
+        })
+      );
+
     this.fetchCombinedTrainingDataError$ = combineLatest(
       [
         this.fetchSingleTrainingPlanError$,
         this.fetchAllPlanSessionFragmentsError$
       ]
     ).pipe(
-        map(([fetchTrainingPlanError, fetchTrainingSessionsError]) => {
-          if (fetchTrainingPlanError || fetchTrainingSessionsError) {
+        map(([fetchTrainingPlanError, fetchPlanSessionFragmentsError]) => {
+          if (fetchTrainingPlanError || fetchPlanSessionFragmentsError) {
             return true;
           }
           return false;

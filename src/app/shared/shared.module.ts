@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from './material/material.module';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActionConfirmDialogueComponent } from './components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { DurationIsoToMmSsPipe } from './pipes/duration-iso-to-mm-ss.pipe';
@@ -45,7 +44,6 @@ import { ProcessingSpinnerComponent } from './components/processing-spinner/proc
   imports: [
     CommonModule,
     MaterialModule,
-    FlexLayoutModule,
     ReactiveFormsModule,
     FormsModule,
     YouTubePlayerModule,
@@ -53,7 +51,6 @@ import { ProcessingSpinnerComponent } from './components/processing-spinner/proc
   exports: [
     CommonModule,
     MaterialModule,
-    FlexLayoutModule,
     ReactiveFormsModule,
     FormsModule,
     DurationIsoToMmSsPipe,

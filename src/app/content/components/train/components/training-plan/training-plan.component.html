@@ -22,3 +22,4 @@
   </div>
 </div>
 <app-training-session-card *ngFor="let planSessionFragment of $localPlanSessionFragments()" [trainingSesssionData]="planSessionFragment"></app-training-session-card>
+<app-processing-spinner *ngIf="(fetchCombinedTrainingDataProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
