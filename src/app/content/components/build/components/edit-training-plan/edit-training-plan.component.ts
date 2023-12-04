@@ -34,6 +34,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   DELETE_TRAINING_PLAN_CONF_BODY = GlobalFieldValues.DELETE_TRAINING_PLAN_CONF_BODY;
   DELETE_TRAINING_PLAN_CONF_TITLE = GlobalFieldValues.DELETE_TRAINING_PLAN_CONF_TITLE;
   EDIT_TRAINING_PLAN_TITLE_VALUE = GlobalFieldValues.EDIT_TRAINING_PLAN;
+  NO_TRAINING_SESSIONS_FOUND_BLURB = GlobalFieldValues.NO_TRAINING_SESSIONS;
   REMOVE_TRAINING_SESSION_CONF_BODY = GlobalFieldValues.REMOVE_TRAINING_SESSION_CONF_BODY;
   REMOVE_TRAINING_SESSION_CONF_TITLE = GlobalFieldValues.REMOVE_TRAINING_SESSION_CONF_TITLE;
   REQUEST_PROCESSING_MESSAGE = GlobalFieldValues.REQUEST_PROCESSING;
@@ -102,15 +103,11 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private combinedDeletePlanSessionFragmentError$!: Observable<{} | null>;
 
   private deleteTrainingPlanError$!: Observable<{} | null>;
-  private deleteTrainingPlanProcessing$!: Observable<boolean>;
+  deleteTrainingPlanProcessing$!: Observable<boolean>;
   private $deleteTrainingPlanSubmitted = signal(false);
   private $deleteTrainingPlanCycleInit = signal(false);
   private $deleteTrainingPlanCycleComplete = signal(false);
   private deleteTrainingPlanSubscription!: Subscription;
-
-  combinedDeleteTrainingPlanProcessing$!: Observable<boolean>;
-  private combinedDeleteTrainingPlanError$!: Observable<{} | null>;
-
 
   serverRequestProcessing$!: Observable<boolean>;
   
@@ -179,6 +176,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         this.batchModifyPlanSessionFragmentsProcessing$,
         this.createTrainingPlanProcessing$,
         this.deletePlanSessionFragmentProcessing$,
+        this.deleteTrainingPlanProcessing$,
         this.fetchAllPlanSessionFragmentsProcessing$,
         this.fetchSingleTrainingPlanProcessing$,
         this.updateTrainingPlanProcessing$,
@@ -189,6 +187,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           batchModifyPlanSessionFragmentsProcessing,
           createTrainingPlanProcessing, 
           deletePlanSessionFragmentProcessing,
+          deleteTrainingPlanProcessing,
           fetchAllPlanSessionFragmentsProcessing,
           fetchSingleTrainingPlanProcessing, 
           updateTrainingPlanProcessing, 
@@ -198,6 +197,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
             batchModifyPlanSessionFragmentsProcessing ||
             createTrainingPlanProcessing || 
             deletePlanSessionFragmentProcessing ||
+            deleteTrainingPlanProcessing ||
             fetchAllPlanSessionFragmentsProcessing ||
             fetchSingleTrainingPlanProcessing || 
             updateTrainingPlanProcessing
@@ -253,48 +253,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           return false;
         })
       );
-
-    this.combinedDeleteTrainingPlanProcessing$ = combineLatest(
-      [
-        this.deleteTrainingPlanProcessing$,
-        this.batchDeletePlanSessionFragmentsProcessing$
-      ]
-    ).pipe(
-        map(([
-          deleteTrainingPlanProcessing,
-          batchDeletPlanSessionFragmentsProcessing
-        ]) => {
-          if (
-            deleteTrainingPlanProcessing ||
-            batchDeletPlanSessionFragmentsProcessing
-            ) {
-              return deleteTrainingPlanProcessing || batchDeletPlanSessionFragmentsProcessing;
-          }
-          return false;
-        })
-      );
-    
-    this.combinedDeleteTrainingPlanError$ = combineLatest(
-      [
-        this.deleteTrainingPlanError$,
-        this.batchDeletePlanSessionFragmentsError$
-      ]
-    ).pipe(
-      map(([
-        deleteTrainingPlanError,
-        batchDeletPlanSessionFragmentsError
-      ]) => {
-        if (
-          deleteTrainingPlanError ||
-          batchDeletPlanSessionFragmentsError
-        ) {
-          return deleteTrainingPlanError || batchDeletPlanSessionFragmentsError;
-        }
-        return false;
-      })
-    );
-
-    
 
     this.combinedFetchTrainingDataError$ = combineLatest(
       [
@@ -998,9 +956,8 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
   }
 
-  // TODO: Update this to be a cloud function that recursively deletes the plan and all the fragments
+  // This will also recursively delete all planSessionFragments
   onDeleteTrainingPlan() {
-    const planSessionFragmentIds = this.$localPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
 
     const dialogConfig = {...DialogueBoxDefaultConfig};
     const actionConfData: ActionConfData = {
@@ -1011,7 +968,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ActionConfirmDialogueComponent, dialogConfig);
     const dialogActionObserver$: Observable<boolean> = dialogRef.afterClosed();
 
-    this.deleteTrainingPlanSubscription = this.combinedDeleteTrainingPlanError$
+    this.deleteTrainingPlanSubscription = this.deleteTrainingPlanError$
       .pipe(
         switchMap(processingError => {
           if (processingError) {
@@ -1020,7 +977,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           }
           return dialogActionObserver$;
         }),
-        withLatestFrom(this.combinedDeleteTrainingPlanError$, this.userData$),
+        withLatestFrom(this.deleteTrainingPlanError$, this.userData$),
         tap(([dialogAction, processingError, userData]) => {
           if (!dialogAction) {
             console.log('User canceled delete request');
@@ -1046,31 +1003,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
           }
         }),
         filter(deleteProcessing => !deleteProcessing && this.$deleteTrainingPlanCycleComplete()),
-        withLatestFrom(this.userData$),
-        switchMap(([deleteProcessing, userData]) => {
-          if (!this.$batchDeletePlanSessionFragmentsSubmitted()) {
-            this.$batchDeletePlanSessionFragmentsSubmitted.set(true);
-            this.store$.dispatch(PlanSessionFragmentStoreActions.batchDeletePlanSessionFragmentsRequested({
-              trainingPlan: this.$localTrainingPlan()!, 
-              planSessionFragmentIds,
-              userId: userData.id
-            }));
-          }
-          return this.batchDeletePlanSessionFragmentsProcessing$;
-        }),
-        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(batchDeleteProcessing => {
-          if (batchDeleteProcessing) {
-            this.$batchDeletePlanSessionFragmentsCycleInit.set(true);
-          }
-          if (!batchDeleteProcessing && this.$batchDeletePlanSessionFragmentsCycleInit()) {
-            console.log('batchDeletePlanSessionFragments successful, proceeding with pipe.');
-            this.$batchDeletePlanSessionFragmentsCycleInit.set(false)
-            this.$batchDeletePlanSessionFragmentsCycleComplete.set(true);
-          }
-        }),
-        filter(batchDeleteProcessing => !batchDeleteProcessing && this.$batchDeletePlanSessionFragmentsCycleComplete()),
-        tap(batchDeleteProcessing => {
+        tap(deleteProcessing => {
           this.uiService.showSnackBar(`Training Plan deleted!`, 10000);
           this.router.navigate([PublicAppRoutes.BROWSE]);
         }),

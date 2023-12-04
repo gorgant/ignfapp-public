@@ -197,7 +197,7 @@ export class PlanSessionFragmentService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        // takeUntil(this.deletePlanSessionFragmentTriggered$),
+        takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
             throw new Error(`Error fetching ${visibilityCategory} planSessionFragments for plan ${trainingPlan.id}`, );
@@ -370,7 +370,7 @@ export class PlanSessionFragmentService {
   }
 
   // This prevents Firebase from fetching a document after it has been deleted
-  private triggerDeletePlanSessionFragmentObserver() {
+  triggerDeletePlanSessionFragmentObserver() {
     this.deletePlanSessionFragmentTriggered$.next(); // Send signal to Firebase subscriptions to unsubscribe
     this.deletePlanSessionFragmentTriggered$.complete(); // Send signal to Firebase subscriptions to unsubscribe
     this.deletePlanSessionFragmentTriggered$ = new Subject<void>(); // Reinitialize the unsubscribe subject in case page isn't refreshed after logout (which means auth wouldn't reset)

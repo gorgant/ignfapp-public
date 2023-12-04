@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { collection, setDoc, doc, docData, DocumentReference, CollectionReference, Firestore, deleteDoc, collectionData, query, where, limit, QueryConstraint, updateDoc, orderBy } from '@angular/fire/firestore';
 import { Update } from '@ngrx/entity';
-import { from, Observable, throwError, catchError, map, takeUntil, Subject, shareReplay, combineLatest } from 'rxjs';
+import { from, Observable, throwError, catchError, map, takeUntil, Subject, shareReplay, combineLatest, take } from 'rxjs';
 import { TrainingPlan, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { UiService } from './ui.service';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
 import { Timestamp } from '@angular/fire/firestore';
+import { DeleteTrainingPlanData } from 'shared-models/train/delete-training-plan-data.model';
+import { Functions, httpsCallableData } from '@angular/fire/functions';
+import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
+import { PlanSessionFragmentService } from './plan-session-fragment.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +23,8 @@ export class TrainingPlanService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
+  private functions = inject(Functions);
+  private planSessionFragmentService = inject(PlanSessionFragmentService);
 
   constructor() {}
 
@@ -70,30 +76,57 @@ export class TrainingPlanService {
       );
   }
 
+  // deleteTrainingPlan(trainingPlan: TrainingPlan, userId: string): Observable<string> {
+  //   const documentId = trainingPlan[TrainingPlanKeys.ID];
+  //   const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+  //   const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
+
+  //   let trainingPlanDeleteRequest: Promise<void>
+
+  //   if (isPublicTrainingPlan) {
+  //     trainingPlanDeleteRequest = deleteDoc(this.getPublicTrainingPlanDoc(documentId));
+  //   } else {
+  //     trainingPlanDeleteRequest = deleteDoc(this.getPrivateTrainingPlanDoc(documentId, userId));
+  //   }
+
+  //   this.triggerDeleteTrainingPlanObserver();
+
+  //   return from(trainingPlanDeleteRequest)
+  //     .pipe(
+  //       map(empty => {
+  //         console.log(`Deleted ${visibilityCategory} trainingPlan`, documentId);
+  //         return documentId;
+  //       }),
+  //       catchError(error => {
+  //         this.uiService.showSnackBar(error.message, 10000);
+  //         console.log(`Error deleting ${visibilityCategory} trainingPlan`, error);
+  //         return throwError(() => new Error(error));
+  //       })
+  //     );
+  // }
+
+  // This triggers a recursive delete cloud function which also deletes all the subcollections
   deleteTrainingPlan(trainingPlan: TrainingPlan, userId: string): Observable<string> {
-    const documentId = trainingPlan[TrainingPlanKeys.ID];
-    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
-    const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
-
-    let trainingPlanDeleteRequest: Promise<void>
-
-    if (isPublicTrainingPlan) {
-      trainingPlanDeleteRequest = deleteDoc(this.getPublicTrainingPlanDoc(documentId));
-    } else {
-      trainingPlanDeleteRequest = deleteDoc(this.getPrivateTrainingPlanDoc(documentId, userId));
-    }
+    const deleteTrainingPlanData: DeleteTrainingPlanData = {
+      trainingPlan,
+      userId
+    };
+    const deleteTrainingPlanHttpCall: (deleteData: DeleteTrainingPlanData) => 
+      Observable<void> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_DELETE_TRAINING_PLAN);
 
     this.triggerDeleteTrainingPlanObserver();
+    this.planSessionFragmentService.triggerDeletePlanSessionFragmentObserver();
 
-    return from(trainingPlanDeleteRequest)
+    return deleteTrainingPlanHttpCall(deleteTrainingPlanData)
       .pipe(
-        map(empty => {
-          console.log(`Deleted ${visibilityCategory} trainingPlan`, documentId);
-          return documentId;
+        take(1),
+        map( empty => {
+          console.log(`Deleted ${trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]} trainingPlan`);
+          return trainingPlan.id;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log(`Error deleting ${visibilityCategory} trainingPlan`, error);
+          console.log(`Error deleting ${trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );

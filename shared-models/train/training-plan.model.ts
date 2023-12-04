@@ -1,6 +1,4 @@
-import { Params } from "@angular/router"
 import { Timestamp } from '@angular/fire/firestore';
-import { BrowseTrainingSessionsQueryParamsKeys, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys } from "./training-session.model";
 
 export interface TrainingPlan extends TrainingPlanNoIdOrTimestamp {
   createdTimestamp: number | Timestamp,
@@ -34,11 +32,20 @@ export interface AddTrainingSessionToPlanQueryParams {
   [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption,
 }
 
+// // If function deployment triggers an error, use the alternate version below
+// export enum AddTrainingSessionUrlToPlanParamsKeys {
+//   DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+//   TRAINING_PLAN_BUILDER_REQUEST = 'trainingPlanBuilderRequest',
+//   TRAINING_PLAN_ID = 'trainingPlanId',
+//   TRAINING_PLAN_VISIBILITY_CATEGORY = TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY,
+//   VIEW_TRAINING_SESSIONS = 'viewTrainingSessions'
+// }
+
 export enum AddTrainingSessionUrlToPlanParamsKeys {
-  DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
+  DATABASE_CATEGORY = 'databaseCategory',
   TRAINING_PLAN_BUILDER_REQUEST = 'trainingPlanBuilderRequest',
   TRAINING_PLAN_ID = 'trainingPlanId',
-  TRAINING_PLAN_VISIBILITY_CATEGORY = TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY,
+  TRAINING_PLAN_VISIBILITY_CATEGORY = 'trainingPlanVisibilityCategory',
   VIEW_TRAINING_SESSIONS = 'viewTrainingSessions'
 }
 

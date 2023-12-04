@@ -52,6 +52,9 @@
         {{ DELETE_TRAINING_PLAN_BUTTON_VALUE }}
       </button>
     </div>
+    <div class="no-training-sessions-message" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0">
+      {{ NO_TRAINING_SESSIONS_FOUND_BLURB }}
+    </div>
     <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
       <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of $localPlanSessionFragments()" [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
         <div class="drop-placeholder" *cdkDragPlaceholder></div>
@@ -63,5 +66,5 @@
       </div>
     </div>
   </div>
-  <app-processing-spinner *ngIf="(serverRequestProcessing$ | async) || $deletePlanSessionFragmentCycleInit()"></app-processing-spinner>
+  <app-processing-spinner *ngIf="(serverRequestProcessing$ | async)"></app-processing-spinner>
 </div>

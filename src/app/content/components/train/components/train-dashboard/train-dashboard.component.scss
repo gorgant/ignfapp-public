@@ -90,7 +90,29 @@
   color: white;
 
   border-radius: 5px 5px 0 0;
+  opacity: 80%;
 }
+
+// .up-next {
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: flex-start;
+//   align-items: center;
+
+//   width: 100%;
+//   margin-bottom: 8px;
+//   padding: 12px 0;
+//   box-sizing: border-box;
+
+//   font-size: 1.8em;
+//   font-weight: $font-weight-regular;
+
+//   // background-color: $primary;
+//   color: $primary;
+
+//   border-radius: 5px 5px 0 0;
+//   border: 2px solid $primary;
+// }
 
 .up-next-overall-container {
   display: flex;

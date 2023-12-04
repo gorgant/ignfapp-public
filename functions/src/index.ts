@@ -1,6 +1,7 @@
 export { onCallCreatePublicUser } from './user/on-call-create-public-user';
 export { onCallUpdateEmail } from './auth/on-call-update-email';
 export { onCallDeletePublicUser } from './user/on-call-delete-public-user';
+export { onCallDeleteTrainingPlan } from './training/on-call-delete-training-plan';
 export { onCallFetchYoutubeVideoData } from './training/on-call-fetch-youtube-video-data';
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
 export { onCallResizeAvatar } from './user/on-call-resize-avatar';

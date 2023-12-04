@@ -117,10 +117,9 @@ mat-radio-group {
   width: 100%;
 }
 
-
-
-
-
+.no-training-sessions-message {
+  @include default-text-style();
+}
 
 .drag-drop-list {
   width: 100%;

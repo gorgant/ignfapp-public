@@ -98,7 +98,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     }
   }
 
-  // TODO: Handle situation where video exists (need to re-enable the radial form)
   onGetYoutubeVideoData() {
     
     const url = this.videoUrl.value as string;

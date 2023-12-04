@@ -31,7 +31,7 @@ export const onCallUpdateSessionRating = onCall(callableOptions, async (request:
 
   const sessionRating = request.data;
   
-  logger.log(`Update rating with this data ${sessionRating}`);
+  logger.log(`onCallUpdateSessionRating requested with this data ${sessionRating}`);
   
   return publishUpdateRating(sessionRating);
 });

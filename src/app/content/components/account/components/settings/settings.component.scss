@@ -10,6 +10,11 @@
   margin-top: 32px;
 }
 
+.settings-title {
+  @include default-header-style();
+  margin-bottom: 32px;
+}
+
 .logout-button {
   width: $mobile-button-width;
 }

@@ -9,7 +9,8 @@ import { AuthStoreActions } from 'src/app/root-store';
 })
 export class SettingsComponent implements OnInit {
 
-  logoutButtonValue = GlobalFieldValues.LOGOUT;
+  LOGOUT_BUTTON_VALUE = GlobalFieldValues.LOGOUT;
+  SETTINGS_TITLE_VALUE = GlobalFieldValues.SETTINGS;
   
   private store$ = inject(Store);
 
