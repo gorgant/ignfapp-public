@@ -4,9 +4,11 @@ import { submitHttpRequest } from '../config/global-helpers';
 import { YoutubeVideoDataCompact, YoutubeVideoDataRaw } from '../../../shared-models/youtube/youtube-video-data.model';
 import { findPublicTrainingSessionByVideoId } from './find-session-by-video-id';
 import { SocialUrlPrefixes } from '../../../shared-models/meta/social-urls.model';
+import { FetchYoutubeVideoData, FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE, FetchYoutubeVideoDuplicateErrorMessage } from '../../../shared-models/youtube/fetch-youtube-video-data.model';
 import { Duration } from 'luxon';
 import { youtubeApiSecret } from '../config/api-key-config';
 import { AxiosRequestConfig } from 'axios';
+import { TrainingSessionVisibilityCategoryDbOption } from '../../../shared-models/train/training-session.model';
 
 const executeActions = async (videoId: string): Promise<YoutubeVideoDataRaw> => {
   // Guide to setting secrets using firebase CLI: https://firebase.google.com/docs/functions/config-env
@@ -58,7 +60,7 @@ const convertRawDataToCompactData = (rawVideoData: YoutubeVideoDataRaw): Youtube
     title: rawVideoData.items[0].snippet.title,
     thumbnailUrlSmall: compactThumbnail,
     thumbnailUrlLarge: maxResThumbnail,
-    videoUrl: `${SocialUrlPrefixes.YOUTUBE_VIDEO}/${rawVideoData.items[0].id}`
+    videoUrl: `${SocialUrlPrefixes.YOUTUBE_VIDEO}/${rawVideoData.items[0].id}`,
   }
 
   logger.log('Compact video data created', compactVideoData);
@@ -72,18 +74,24 @@ const callableOptions: CallableOptions = {
   enforceAppCheck: true
 };
 
-export const onCallFetchYoutubeVideoData = onCall(callableOptions, async (request: CallableRequest<string>): Promise<YoutubeVideoDataCompact | null> => {
+export const onCallFetchYoutubeVideoData = onCall(callableOptions, async (request: CallableRequest<FetchYoutubeVideoData>): Promise<YoutubeVideoDataCompact | FetchYoutubeVideoDuplicateErrorMessage> => {
 
-  const videoId = request.data;
-  logger.log(`Fetch Youtube Video data request received with this data`, videoId);
+  const fetchYoutubeVideoData = request.data ;
+  const videoId = fetchYoutubeVideoData.videoId;
+  const visibilityCategory = fetchYoutubeVideoData.visibilityCategory;
+  logger.log(`Fetch Youtube Video data request received with this data`, fetchYoutubeVideoData);
 
-  const existingTrainingSession = await findPublicTrainingSessionByVideoId(videoId);
-
-  // Exit function if training session with that videoId already exists (prevents duplicates)
-  if (existingTrainingSession) {
-    logger.log('Matching public training session found, exiting function', existingTrainingSession);
-    return null;
+  // If this is a public trainingSession video, confirm it doesn't already exist in the public database
+  if (visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC) {
+    const existingTrainingSession = await findPublicTrainingSessionByVideoId(videoId);
+  
+    // Exit function if training session with that videoId already exists (prevents duplicates)
+    if (existingTrainingSession) {
+      logger.log('Matching public training session found, exiting function', existingTrainingSession);
+      return FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE;
+    }
   }
+
 
   logger.log('No matching training session exists, proceeding to fetch Youtube Video Data');
 

@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatStepper, StepperOrientation } from '@angular/material/stepper';
-import { Store, select } from '@ngrx/store';
+import { MatStepper } from '@angular/material/stepper';
+import { Store } from '@ngrx/store';
 import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -23,8 +23,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   @ViewChild('updateEmailStepper') private updateEmailStepper!: MatStepper;
 
-  stepperOrientation!: StepperOrientation;
-  
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   CONFIRM_NEW_EMAIL_BLURB = GlobalFieldValues.CONFIRM_NEW_EMAIL;
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
@@ -73,7 +71,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.monitorUpdateRequests();
-    this.setStepperOrientation();
   }
 
   get passwordErrorMessage() {
@@ -116,10 +113,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
           return false
         })
     );
-  }
-
-  private setStepperOrientation(): void {
-    this.uiService.$screenIsMobile() ? this.stepperOrientation = 'vertical' : this.stepperOrientation = 'horizontal';
   }
 
   onConfirmPasswordInAuth() {

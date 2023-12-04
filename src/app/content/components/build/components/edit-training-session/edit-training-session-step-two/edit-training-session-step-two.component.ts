@@ -53,7 +53,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
   readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
-  readonly VISIBILITY_CATEGORY_DB_OPTIONS = TrainingSessionVisibilityCategoryDbOption;
 
   showKeywordsForm = signal(false);
 
@@ -69,7 +68,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     [TrainingSessionKeys.KEYWORD_LIST]: [[] as string[]],
     [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
     [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
-    [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]],
   });
   
   constructor() { }
@@ -136,7 +134,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
         [TrainingSessionKeys.KEYWORD_LIST]: trainingSessionData[TrainingSessionKeys.KEYWORD_LIST],
         [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
         [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
-        [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: trainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
       });
     }
   }
@@ -149,13 +146,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       map((userInput) => (userInput ? this.filterActivityCategoryListWithUserInput(userInput) : this.filterActivityCategoryListWithoutUserInput())),
     );
   }
-
-  // private initializeKeywordList() {
-  //   this.keywordList = this.keywordListUserInputForm.valueChanges.pipe(
-  //     startWith(null),
-  //     map((userInput) => (userInput ? this.filterActivityCategoryListWithUserInput(userInput) : this.filterActivityCategoryListWithoutUserInput())),
-  //   );
-  // }
 
   // Match user input to a activityCategory option and filter out existing selected options
   private filterActivityCategoryListWithUserInput(userInput: string): TrainingSessionActivityCategoryObject[] {
@@ -316,6 +306,5 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   get intensityDefault() { return this.trainingSessionForm.get(TrainingSessionKeys.INTENSITY_DEFAULT) as FormControl<number>; }
   get keywordList() { return this.trainingSessionForm.get(TrainingSessionKeys.KEYWORD_LIST) as FormControl<string[]>; }
   get muscleGroup() {return this.trainingSessionForm.get(TrainingSessionKeys.MUSCLE_GROUP) as FormControl<TrainingSessionMuscleGroupDbOption>;}
-  get visibilityCategory() {return this.trainingSessionForm.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as FormControl<TrainingSessionVisibilityCategoryDbOption>;}
 
 }

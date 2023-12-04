@@ -15,7 +15,7 @@
       
       <div class="form-title"> {{ $isNewPlan() ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
       
-      <div class="radio-group-container" *ngIf="$isNewPlan()">
+      <div class="radio-group-container" *ngIf="$isNewPlan() && (userData$ | async)?.isAdmin">
         <div class="visibility-category-title" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
         <mat-radio-group [formControl]="visibilityCategory" >
           

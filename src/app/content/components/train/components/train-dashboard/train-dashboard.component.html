@@ -20,9 +20,10 @@
 <div class="queue-container" *ngIf="(personalSessionFragments$ | async) as personalSessionFragments">
   <ng-container *ngIf="personalSessionFragments.length > 0">
     
-    <div class="queue-header">{{ UP_NEXT_HEADER_VALUE }}</div>
-
+    
     <div class="up-next-overall-container mat-elevation-z5">
+      <div class="queue-header up-next">{{ UP_NEXT_HEADER_VALUE }}</div>
+      <!-- <div class="queue-header up-next">Next Session...</div> -->
 
       <div class="up-next-content-container" *ngIf="(personalSessionFragments$ | async) as personalSessionFragments">
         
@@ -54,9 +55,9 @@
       <button class="start-now-button" color="primary" mat-raised-button (click)="onSelectFirstTrainingSession(personalSessionFragments[0])">{{ START_NOW_BUTTON_VALUE }}</button>
     </div>
 
-    <div class="queue-header">{{ AFTER_THAT_HEADER_VALUE }}</div>
     
     <div class="training-session-card-container">
+      <div class="queue-header after-that">{{ AFTER_THAT_HEADER_VALUE }}</div>
       <app-training-session-card *ngFor="let personalSessionFragment of personalSessionFragments; let isFirst = first" [class.first-training-session-card]="isFirst" [trainingSesssionData]="personalSessionFragment"></app-training-session-card>
     </div>
   </ng-container>

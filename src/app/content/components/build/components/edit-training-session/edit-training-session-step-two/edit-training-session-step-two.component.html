@@ -1,14 +1,5 @@
 <form class="form-container" [formGroup]="trainingSessionForm">
   
-  <div class="radio-group-container" *ngIf="$isNewSession()">
-    <div class="form-field-label" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
-    <mat-radio-group [formControl]="visibilityCategory" >
-      <mat-radio-button *ngFor="let visibilityCat of visibilityCategoryMasterList" [value]="visibilityCat.dbValue">
-        {{visibilityCat.uiValue}}
-      </mat-radio-button>
-    </mat-radio-group>
-  </div>
-      
   <div class="slide-toggle-container">
     <div class="form-field-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
     <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>

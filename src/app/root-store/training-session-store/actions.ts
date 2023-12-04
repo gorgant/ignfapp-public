@@ -4,6 +4,7 @@ import { createAction, props } from "@ngrx/store";
 import { FirestoreCollectionQueryParams } from "shared-models/firestore/fs-collection-query-params.model";
 import { TrainingSessionRatingNoIdOrTimestamp } from "shared-models/train/session-rating.model";
 import { CanonicalTrainingSession, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption } from "shared-models/train/training-session.model";
+import { FetchYoutubeVideoData } from "shared-models/youtube/fetch-youtube-video-data.model";
 import { YoutubeVideoDataCompact } from "shared-models/youtube/youtube-video-data.model";
 
 // Create Training Session
@@ -95,7 +96,7 @@ export const fetchSingleTrainingSessionFailed = createAction(
 
 export const fetchYoutubeVideoDataRequested = createAction(
   '[Edit Training Session] Fetch Youtube Video Data Requested',
-  props<{videoId: string}>()
+  props<{fetchYoutubeVideoData: FetchYoutubeVideoData}>()
 );
 
 export const fetchYoutubeVideoDataCompleted = createAction(

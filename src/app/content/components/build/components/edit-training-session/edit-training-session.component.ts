@@ -17,6 +17,7 @@ import { EditTrainingSessionStepTwoComponent } from './edit-training-session-ste
 import { Update } from '@ngrx/entity';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { CanDeactivateData } from 'shared-models/utils/can-deactivate-data.model';
+import { MatStepper } from '@angular/material/stepper';
 
 @Component({
   selector: 'app-edit-training-session',
@@ -68,8 +69,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   serverRequestProcessing$!: Observable<boolean>;
 
+  // @ViewChild('stepZero') private stepZero!: EditTrainingSessionStepZeroComponent;
+  @ViewChild('editTrainingSessionStepper') private editTrainingSessionStepper!: MatStepper;
   @ViewChild('stepOne') private stepOne!: EditTrainingSessionStepOneComponent;
   @ViewChild('stepTwo') private stepTwo!: EditTrainingSessionStepTwoComponent;
+
+  $stepOneComplete = signal(false);
 
   $isNewSession = signal(false);
   $trainingSessionVisibilityCategory = signal(undefined as TrainingSessionVisibilityCategoryDbOption | undefined);
@@ -120,6 +125,24 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         })
     );
 
+  }
+
+  // This listens for an event emitted from the Step 1 component
+  handleStepOneCompletion(isComplete: boolean) {
+    this.$stepOneComplete.set(isComplete);
+    if (isComplete) {
+      console.log('Step one complete, proceeding to next step');
+      const stepOne = this.editTrainingSessionStepper.steps.get(0); 
+      if (stepOne) {
+        stepOne.completed = true;
+        this.editTrainingSessionStepper.next() // Programatically trigger the stepper to move to the next step
+      }
+    } else {
+      const stepOne = this.editTrainingSessionStepper.steps.get(0); 
+      if (stepOne) {
+        stepOne.completed = false;
+      }
+    }
   }
 
   private configureTrainingSessionInterface(): void {
@@ -187,12 +210,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
-  onSubmitTrainingSessionForm(stepTwoData: EditTrainingSessionStepTwoComponent): void {
+  onSubmitTrainingSessionForm(): void {
     console.log('Submit training session form detected');
-    this.$isNewSession() ? this.createNewSession(stepTwoData) : this.updateExistingSession(stepTwoData);
+    this.$isNewSession() ? this.createNewSession() : this.updateExistingSession();
   }
 
-  private createNewSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
+  private createNewSession() {
     this.createTrainingSessionSubscription = this.createTrainingSessionError$
       .pipe(
         switchMap(processingError => {
@@ -208,21 +231,21 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           if (!this.createTrainingSessionSubmitted()) {
             this.createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
             const trainingSessionNoId: CanonicalTrainingSessionNoIdOrTimestamps = {
-              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (stepTwoData.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
-              [TrainingSessionKeys.COMPLEXITY_AVERAGE]: stepTwoData.complexityDefault.value,
-              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
+              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (this.stepTwo.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
+              [TrainingSessionKeys.COMPLEXITY_AVERAGE]: this.stepTwo.complexityDefault.value,
+              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.stepTwo.complexityDefault.value,
               [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: 1,
               [TrainingSessionKeys.CREATOR_ID]: userData.id,
               [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-              [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-              [TrainingSessionKeys.INTENSITY_AVERAGE]: stepTwoData.intensityDefault.value,
-              [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
+              [TrainingSessionKeys.EQUIPMENT]: this.stepTwo.equipment.value,
+              [TrainingSessionKeys.INTENSITY_AVERAGE]: this.stepTwo.intensityDefault.value,
+              [TrainingSessionKeys.INTENSITY_DEFAULT]: this.stepTwo.intensityDefault.value,
               [TrainingSessionKeys.INTENSITY_RATING_COUNT]: 1,
-              [TrainingSessionKeys.KEYWORD_LIST]: stepTwoData.keywordList.value,
-              [TrainingSessionKeys.MUSCLE_GROUP]: stepTwoData.muscleGroup.value,
+              [TrainingSessionKeys.KEYWORD_LIST]: this.stepTwo.keywordList.value,
+              [TrainingSessionKeys.MUSCLE_GROUP]: this.stepTwo.muscleGroup.value,
               [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
               [TrainingSessionKeys.VIDEO_DATA]: videoData!,
-              [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: stepTwoData.visibilityCategory.value
+              [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.stepOne.visibilityCategory.value
             };
             console.log('Training Session Data', trainingSessionNoId);
             this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId, userId: userData.id}));
@@ -264,7 +287,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
-  private updateExistingSession(stepTwoData: EditTrainingSessionStepTwoComponent) {
+  private updateExistingSession() {
     const sessionId = this.$currentTrainingSessionId() as string;
     const currentTrainingSessionData$ = this.store$.select(TrainingSessionStoreSelectors.selectTrainingSessionById(sessionId)) as Observable<CanonicalTrainingSession>;
 
@@ -285,11 +308,11 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             const updatedTrainingSession: Update<CanonicalTrainingSession> = {
               id: currentTrainingSessionData.id,
               changes: {
-                [TrainingSessionKeys.COMPLEXITY_DEFAULT]: stepTwoData.complexityDefault.value,
-                [TrainingSessionKeys.EQUIPMENT]: stepTwoData.equipment.value,
-                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...stepTwoData.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
-                [TrainingSessionKeys.MUSCLE_GROUP]: (stepTwoData.muscleGroup.value),
-                [TrainingSessionKeys.INTENSITY_DEFAULT]: stepTwoData.intensityDefault.value,
+                [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.stepTwo.complexityDefault.value,
+                [TrainingSessionKeys.EQUIPMENT]: this.stepTwo.equipment.value,
+                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...this.stepTwo.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
+                [TrainingSessionKeys.MUSCLE_GROUP]: (this.stepTwo.muscleGroup.value),
+                [TrainingSessionKeys.INTENSITY_DEFAULT]: this.stepTwo.intensityDefault.value,
               }            
             };
             console.log('Training Session Updates', updatedTrainingSession);

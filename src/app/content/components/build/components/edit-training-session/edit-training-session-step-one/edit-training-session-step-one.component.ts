@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
@@ -7,11 +7,13 @@ import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { SocialUrlPrefixes } from 'shared-models/meta/social-urls.model';
-import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionKeys, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
+import { PublicUser } from 'shared-models/user/public-user.model';
+import { FetchYoutubeVideoData } from 'shared-models/youtube/fetch-youtube-video-data.model';
 import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
 import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
-import { TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
+import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 
 @Component({
   selector: 'app-edit-training-session-step-one',
@@ -22,6 +24,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   @Input() editTrainingSessionStepper!: MatStepper;
   @Input() $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
+  @Output() stepOneCompleted: EventEmitter<boolean> = new EventEmitter(); // This emits a value to the parent component which then proceeds to the next step
 
   FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
@@ -29,6 +32,10 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   INPUT_YOUTUBE_VIDEO_URL_HINT = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_HINT
   INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE;
   INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_TITLE;
+  VISIBILITY_FIELD_TOOLTIP = GlobalFieldValues.VISIBILITY_TOOLTIP;
+  VISIBILITY_FIELD_VALUE = GlobalFieldValues.WHO_CAN_SEE_THIS;
+
+  userData$!: Observable<PublicUser>;
 
   private fetchYoutubeVideoDataProcessing$!: Observable<boolean>;
   private fetchYoutubeVideoDataSubscription!: Subscription;
@@ -37,7 +44,11 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   private youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
   private videoUrlSubscription!: Subscription;
 
+  private $unfetchedUrlActive = signal(false);
+
   private existingTrainingSessionDataSubscription!: Subscription;
+
+  readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
 
   private fb = inject(FormBuilder);
   private store$ = inject(Store);
@@ -45,8 +56,8 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   private helperService = inject(HelperService);
 
   youtubeVideoDataForm = this.fb.group({
+    [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]],
     [YoutubeVideoDataKeys.VIDEO_URL]: ['', [Validators.required, Validators.pattern(/^((https:\/\/www\.youtube\.com)|(https:\/\/youtu\.be))/)]],
-    [YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED]: [false, [Validators.requiredTrue]]
   });
 
   constructor() { }
@@ -57,6 +68,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   private monitorProcesses() {
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
     this.fetchYoutubeVideoDataProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataProcessing);
     this.fetchYoutubeVideoDataError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchYoutubeVideoDataError);
     this.youtubeVideoData$ = this.store$.select(TrainingSessionStoreSelectors.selectYoutubeVideoData) as Observable<YoutubeVideoDataCompact>;
@@ -73,19 +85,22 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
     return errorMessage;
   }
 
-  // Note this observable is handled in the parent component
+  // Note this signal is provided from the parent component
   private checkForExistingData() {
     const trainingSessionData = this.$localTrainingSession();
     console.log('Found this trainingSessionData in step one', trainingSessionData);
     if (trainingSessionData) {
+      this.visibilityCategory.setValue(trainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]);
+      this.visibilityCategory.disable();
       this.videoUrl.setValue(trainingSessionData.videoData.videoUrl);
       this.videoUrl.disable();
-      this.videoDataRetreived.setValue(true);
-      this.proceedToNextStep();
+      this.stepOneCompleted.emit(true);
     }
   }
 
+  // TODO: Handle situation where video exists (need to re-enable the radial form)
   onGetYoutubeVideoData() {
+    
     const url = this.videoUrl.value as string;
 
     const videoId = this.helperService.extractYoutubeVideoIdFromUrl(url);
@@ -95,8 +110,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clear out any errors if they exist before proceeding
-    
     this.fetchYoutubeVideoDataSubscription = this.fetchYoutubeVideoDataError$
       .pipe(
         map(processingError => {
@@ -109,7 +122,11 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         filter(processingError => !processingError),
         switchMap(processingError => {
           if (!this.fetchYoutubeVideoDataSubmitted()) {
-            this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({videoId}));
+            const fetchYoutubeVideoData: FetchYoutubeVideoData = {
+              videoId,
+              visibilityCategory: this.visibilityCategory.value
+            }
+            this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({fetchYoutubeVideoData}));
             this.fetchYoutubeVideoDataSubmitted.set(true);
           }
           return this.youtubeVideoData$;
@@ -117,10 +134,11 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
         filter(videoData => !!videoData),
         tap(videoData => {
           console.log('Video data retreival successful', videoData);
-          this.videoDataRetreived.setValue(true); // Ensures youtube data is retreived before user can proceed
           this.fetchYoutubeVideoDataSubscription?.unsubscribe(); // Clear subscription no longer needed
+          this.visibilityCategory.disable();
           this.monitorYoutubeVideoUrlChange(); // Prevents user from proceeding if url edits are made after previous query
-          this.proceedToNextStep();
+          this.$unfetchedUrlActive.set(false);
+          this.stepOneCompleted.emit(true); 
         }),
         // Catch any local errors
         catchError(error => {
@@ -133,27 +151,28 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   private resetComponentState() {
+    this.stepOneCompleted.emit(false);
     this.fetchYoutubeVideoDataSubscription?.unsubscribe();
-    this.fetchYoutubeVideoDataSubmitted.set(false);
     this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
+    this.visibilityCategory.enable();
+    this.visibilityCategory.setValue(TrainingSessionVisibilityCategoryDbOption.PRIVATE);
+    this.fetchYoutubeVideoDataSubmitted.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
+    this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
   }
 
+  // Ensures new youtube data must be retreived if user goes back to edit the video url
   private monitorYoutubeVideoUrlChange() {
     this.videoUrlSubscription = this.videoUrl.statusChanges
       .pipe(
         tap(change => {
-          // Ensures new youtube data is retreived if user makes additional edits
-          if (this.videoDataRetreived.value) {
-            this.videoDataRetreived.setValue(false);
+          if (!this.$unfetchedUrlActive()) {
+            
+            this.$unfetchedUrlActive.set(true); // This only gets disabled when a video has been successfully fetched
+            this.resetComponentState();
           }
         })
       ).subscribe();
-  }
-
-  private proceedToNextStep() {
-    console.log('Proceeding to next step');
-    this.editTrainingSessionStepper.next();
   }
 
   ngOnDestroy(): void {
@@ -163,7 +182,8 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   }
 
   // These getters are used for easy access in the HTML template
-  get videoDataRetreived() { return this.youtubeVideoDataForm.get(YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED) as FormControl<boolean>; }
+  // get videoDataRetreived() { return this.youtubeVideoDataForm.get(YoutubeVideoDataKeys.YOUTUBE_VIDEO_DATA_RETREIVED) as FormControl<boolean>; }
   get videoUrl() { return this.youtubeVideoDataForm.get(YoutubeVideoDataKeys.VIDEO_URL) as FormControl<string>; }
+  get visibilityCategory() {return this.youtubeVideoDataForm.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as FormControl<TrainingSessionVisibilityCategoryDbOption>;}
 
 }

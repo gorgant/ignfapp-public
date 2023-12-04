@@ -72,20 +72,24 @@
   margin-top: 16px;
 }
 
-.queue-header {
+.up-next {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
 
   width: 100%;
-  padding: 8px;
+  margin-bottom: 8px;
+  padding: 12px 0;
   box-sizing: border-box;
 
-  // @include default-header-style($font-weight-light);
   font-size: 1.8em;
-  font-weight: $font-weight-light;
-  margin-bottom: 16px;
+  font-weight: $font-weight-regular;
+
+  background-color: $primary;
+  color: white;
+
+  border-radius: 5px 5px 0 0;
 }
 
 .up-next-overall-container {
@@ -99,8 +103,11 @@
   margin-right: 4px;
   margin-bottom: 32px;
   
-  border: 1px solid $primary;
-  padding: 16px 0;
+  // border: 1px solid $accent;
+  // padding: 16px 0;
+  padding-bottom: 16px;
+
+  border-radius: 5px;
 }
 
 .up-next-content-container {
@@ -158,6 +165,8 @@
 }
 
 .start-now-button {
+  // color: white !important;
+  // font-weight: $font-weight-medium !important;
   width: $mobile-button-width;
   max-width: $desktop-button-width;
 }
@@ -170,6 +179,21 @@
   gap: 16px;
 
   
+}
+
+.after-that {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+  padding: 12px 0;
+  box-sizing: border-box;
+
+  font-size: 1.8em;
+  font-weight: $font-weight-regular;
+  // display: none;
 }
 
 // Hide the first item since we will re-create it manually

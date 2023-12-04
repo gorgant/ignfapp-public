@@ -40,7 +40,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   SUBMIT_BUTTON_VALUE = GlobalFieldValues.SUBMIT;
   TITLE_FIELD_VALUE = GlobalFieldValues.TITLE;
   VISIBILITY_FIELD_TOOLTIP = GlobalFieldValues.VISIBILITY_TOOLTIP;
-  VISIBILITY_FIELD_VALUE = GlobalFieldValues.VISIBILITY;
+  VISIBILITY_FIELD_VALUE = GlobalFieldValues.WHO_CAN_SEE_THIS;
 
 
   TITLE_MIN_LENGTH = TrainingPlanFormVars.titleMinLength;
@@ -48,7 +48,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   FORM_VALIDATION_MESSAGES = TrainingPlanFormValidationMessages;
 
-  private userData$!: Observable<PublicUser>;
+  userData$!: Observable<PublicUser>;
 
   private createTrainingPlanError$!: Observable<{} | null>;
   createTrainingPlanProcessing$!: Observable<boolean>;
@@ -998,6 +998,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
   }
 
+  // TODO: Update this to be a cloud function that recursively deletes the plan and all the fragments
   onDeleteTrainingPlan() {
     const planSessionFragmentIds = this.$localPlanSessionFragments()!.map(planSessionFragment => planSessionFragment.id); // Gather array of planSessionFragmentIds to delete
 

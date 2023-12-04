@@ -123,7 +123,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested),
       switchMap(action => 
-        this.trainingSessionService.fetchYoutubeVideoData(action.videoId).pipe(
+        this.trainingSessionService.fetchYoutubeVideoData(action.fetchYoutubeVideoData).pipe(
           map(youtubeVideoData => {
             return TrainingSessionStoreActions.fetchYoutubeVideoDataCompleted({youtubeVideoData});
           }),

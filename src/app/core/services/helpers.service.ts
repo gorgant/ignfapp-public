@@ -128,15 +128,17 @@ export class HelperService {
 
     // Handle Type 1
     if (url.includes('watch')) {
-      videoId = url.split('v=').pop();
+      const parsedUrl = new URL(url);
+      const params = new URLSearchParams(parsedUrl.search);
+      videoId = params.get('v') as string | undefined;
     } else {
-      // Handle Type 2
+      // Handle Type 2 & 3
       videoId = url.split('/').pop();
-      // Handle Type 3
       if (videoId?.includes('?')) {
         videoId = videoId.split('?')[0];
       }
     }
+    console.log('Extracted this video ID', videoId);
     return videoId;
   }
 

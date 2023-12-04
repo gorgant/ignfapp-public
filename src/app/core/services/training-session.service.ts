@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-collection-query-params.model';
 import { TrainingSessionRating, TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
 import { Timestamp } from '@angular/fire/firestore';
+import { FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE, FetchYoutubeVideoData, FetchYoutubeVideoDuplicateErrorMessage } from 'shared-models/youtube/fetch-youtube-video-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -244,18 +245,19 @@ export class TrainingSessionService {
       );
   }
 
-  fetchYoutubeVideoData(videoId: string): Observable<YoutubeVideoDataCompact> {
-    const fetchYoutubeDataHttpCall: (videoId: string) => 
-      Observable<YoutubeVideoDataCompact | null> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_FETCH_YOUTUBE_VIDEO_DATA);
+  fetchYoutubeVideoData(fetchYoutubeVideoData: FetchYoutubeVideoData): Observable<YoutubeVideoDataCompact> {
+    const fetchYoutubeDataHttpCall: (fetchVideoData: FetchYoutubeVideoData) => 
+      Observable<YoutubeVideoDataCompact | FetchYoutubeVideoDuplicateErrorMessage> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_FETCH_YOUTUBE_VIDEO_DATA);
     
     const duplicateVideoErrorMessage = `That video already exists in our database. Please try a different video.`;
 
-    return fetchYoutubeDataHttpCall(videoId)
+    return fetchYoutubeDataHttpCall(fetchYoutubeVideoData)
       .pipe(
         take(1),
         map( videoData => {
-          if (!videoData) {
-            throw new Error(duplicateVideoErrorMessage);
+          // This ensures that only video data makes it through
+          if (videoData === FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE) {
+            throw new Error(FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE);
           }
           console.log('Video data retreived', videoData)
           return videoData;
@@ -264,8 +266,8 @@ export class TrainingSessionService {
         catchError(error => {
           console.log('Error fetching youtube video data', error);
           // If duplicate video error, show that specific error message
-          if (error.message === duplicateVideoErrorMessage) {
-            this.uiService.showSnackBar(duplicateVideoErrorMessage, 10000);  
+          if (error.message === FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE) {
+            this.uiService.showSnackBar(FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE, 10000);  
           } else {
           // Otherwise show generic message
             this.uiService.showSnackBar('Hmm, something went wrong. Refresh the page and try again.', 10000);
