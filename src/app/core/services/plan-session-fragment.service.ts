@@ -197,7 +197,7 @@ export class PlanSessionFragmentService {
       .pipe(
         // If logged out, this triggers unsub of this observable
         takeUntil(this.authService.unsubTrigger$),
-        takeUntil(this.deletePlanSessionFragmentTriggered$),
+        // takeUntil(this.deletePlanSessionFragmentTriggered$),
         map(planSessionFragments => {
           if (!planSessionFragments) {
             throw new Error(`Error fetching ${visibilityCategory} planSessionFragments for plan ${trainingPlan.id}`, );

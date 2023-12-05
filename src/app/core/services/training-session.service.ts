@@ -77,7 +77,7 @@ export class TrainingSessionService {
       );
   }
 
-  // TODO: Confirm that this recursively deletes SessionRatings, otherwise do a batch delete (see batchDeletePlanSessionFragments for example) or run as a cloud function
+  // TODO: Rework this to run as a cloud function (see deleteTrainingPlan cloud function)
   deleteTrainingSession(trainingSession: CanonicalTrainingSession, userId: string): Observable<string> {
     const documentId = trainingSession[TrainingSessionKeys.ID];
     const visibilityCategory = trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];
@@ -277,20 +277,20 @@ export class TrainingSessionService {
       );
   }
 
-  updateSessionRating(trainingSessionRatingNoIdOrTimestamp: TrainingSessionRatingNoIdOrTimestamp): Observable<string> {
+  createSessionRating(trainingSessionRatingNoIdOrTimestamp: TrainingSessionRatingNoIdOrTimestamp): Observable<string> {
     const currentTime = Timestamp.now();
 
-    const newId = this.generateNewSessionRatingDocumentId(trainingSessionRatingNoIdOrTimestamp.trainingSessionId);
+    const newId = this.generateNewSessionRatingDocumentId(trainingSessionRatingNoIdOrTimestamp.canonicalTrainingSessionId);
     const trainingSessionRatingWithIdAndTimestamp: TrainingSessionRating = {
       ...trainingSessionRatingNoIdOrTimestamp, 
       id: newId,
       ratingTimestamp: currentTime
     };
 
-    const updateSessionRatingHttpCall: (trainingSessionRatingWithId: TrainingSessionRating) => 
-      Observable<string> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_UPDATE_SESSION_RATING);
+    const createSessionRatingHttpCall: (trainingSessionRatingWithId: TrainingSessionRating) => 
+      Observable<string> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_CREATE_SESSION_RATING);
     
-    return updateSessionRatingHttpCall(trainingSessionRatingWithIdAndTimestamp)
+    return createSessionRatingHttpCall(trainingSessionRatingWithIdAndTimestamp)
       .pipe(
         take(1),
         map( pubSubMessageId => {

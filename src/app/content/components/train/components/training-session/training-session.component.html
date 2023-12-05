@@ -9,8 +9,8 @@
   <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
 
   <div class="actions-container" *ngIf="!$trainingPlanBuilderRequest()">
-    <button class="action-button" *ngIf="!videoInitialized()" mat-raised-button color="primary" (click)="onBeginTrainingSession()">{{ START_NOW_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="videoInitialized()" mat-raised-button color="primary" (click)="onCompleteTrainingSession()">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
+    <button class="action-button" *ngIf="!videoInitialized() && (userData$ | async) as userData" mat-raised-button color="primary" (click)="onBeginTrainingSession(userData)">{{ START_NOW_BUTTON_VALUE }}</button>
+    <button class="action-button" *ngIf="videoInitialized() && (userData$ | async) as userData" mat-raised-button color="primary" (click)="onCompleteTrainingSession(userData)">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
     <app-add-training-session-to-personal-queue-button class="action-button" *ngIf="!videoInitialized() && ($localCanonicalTrainingSession() || $localPlanSessionFragment())" [trainingSessionData]="$localCanonicalTrainingSession() || $localPlanSessionFragment()!" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
     <button class="action-button" *ngIf="!videoInitialized()" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
     <button class="action-button" *ngIf="videoInitialized() && !sessionPaused()" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
@@ -24,7 +24,7 @@
 
   <div *ngIf="$trainingPlanBuilderRequest() && $localCanonicalTrainingSession()" class="actions-container">
     <app-add-training-session-to-plan-button class="action-button" [trainingSessionData]="$localCanonicalTrainingSession()!" #addTrainingSessionToPlanButton></app-add-training-session-to-plan-button>
-    <button class="action-button" *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onNavigateToBrowseTrainingSessionsWithPlanBuilder()">{{ GO_BACK_BUTTON_VALUE }}</button>
+    <button class="action-button" *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onNavigateToBrowseTrainingSessions()">{{ GO_BACK_BUTTON_VALUE }}</button>
   </div>
 
 </div>

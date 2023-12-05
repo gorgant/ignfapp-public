@@ -224,8 +224,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
             this.resetFetchPersonalSessionFragmentsComponentState();
             this.onBackToDashboard();
           }
-          const personalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore);
-          return personalSessionFragmentsInStore$;
+          return this.allPersonalSessionFragmentsInStore$;
         }),
         withLatestFrom(this.fetchAllPersonalSessionFragmentsError$, this.userData$, this.allPersonalSessionFragmentsFetched$),
         filter(([personalSessionFragments, processingError, userData, allFetched]) => !processingError),
@@ -323,6 +322,9 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
 
   private buildAndDispatchReorderRequest(userId: string, serverPersonalSessionFragments: PersonalSessionFragment[]) {
     // Filter the serverPersonalSessionFragments for the currrent plan
+
+    console.log('Server personalSessionFragments', serverPersonalSessionFragments);
+    console.log('Local personalSessionFragments', this.$localPersonalSessionFragments());
 
     // Build an array of server updates that only updates the items that have changed
     const personalSessionFragmentUpdates = [] as Update<PersonalSessionFragment>[]; // This will be used to send batch update to database
@@ -460,22 +462,24 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
         const itemToUpdate = {...personalSessionFragment};
         itemToUpdate[PersonalSessionFragmentKeys.QUEUE_INDEX] = index;
         updatedArray[index] = itemToUpdate;
-        // If itemToUpdate matches the UI item of the same index, no update is necessary, so don't push to server
-        if (itemToUpdate.id === this.$localPersonalSessionFragments()![index].id) {
+        // If no change to index, don't push changes to server
+        if (personalSessionFragment[PersonalSessionFragmentKeys.QUEUE_INDEX] === index) {
           return;
         }
         // Otherwise, create an update object and push it to the update array
-        const altAffectedItemUpdateObject: Update<PersonalSessionFragment> = {
+        const affectedItemUpdateObject: Update<PersonalSessionFragment> = {
           id: itemToUpdate.id,
           changes: {
             queueIndex: itemToUpdate.queueIndex
           }
         };
-        personalSessionFragmentUpdates.push(altAffectedItemUpdateObject);
+        personalSessionFragmentUpdates.push(affectedItemUpdateObject);
       })
+      console.log('Updated personalSessionFragment array', updatedArray);
       return updatedArray; // This updated array will replace the UI's current array in the signal
     })
 
+    console.log('List of updates for server', personalSessionFragmentUpdates);
     return personalSessionFragmentUpdates;
   }
 

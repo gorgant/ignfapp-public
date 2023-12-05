@@ -1,4 +1,5 @@
 export { onCallCreatePublicUser } from './user/on-call-create-public-user';
+export { onCallCreateSessionRating } from './training/on-call-create-session-rating';
 export { onCallUpdateEmail } from './auth/on-call-update-email';
 export { onCallDeletePublicUser } from './user/on-call-delete-public-user';
 export { onCallDeleteTrainingPlan } from './training/on-call-delete-training-plan';
@@ -6,8 +7,8 @@ export { onCallFetchYoutubeVideoData } from './training/on-call-fetch-youtube-vi
 export { onCallRemoveUserFromSgContactList } from './email/on-call-remove-user-from-sg-contact-list';
 export { onCallResizeAvatar } from './user/on-call-resize-avatar';
 export { onCallSendUpdateEmailConfirmation } from './user/on-call-send-update-email-confirmation';
+export { onCallTestFunction } from './test/test-function';
 export { onCallUpdatePublicUser } from './user/on-call-update-public-user';
-export { onCallUpdateSessionRating } from './training/on-call-update-session-rating';
 export { onCallVerifyEmail } from './auth/on-call-verify-email';
 export { onDeleteRemovePublicUserData } from './user/on-delete-remove-public-user-data';
 export { onPubCreateOrUpdateSgContact } from './email/on-pub-create-or-update-sg-contact';
@@ -15,6 +16,5 @@ export { onPubDeleteSgContact } from './email/on-pub-delete-sg-contact';
 export { onPubDispatchEmail } from './email/on-pub-dispatch-email';
 export { onPubRemoveUserFromSgContactList } from './email/on-pub-remove-user-from-sg-contact-list';
 export { onPubResizeAvatar } from './user/on-pub-resize-avatar';
+export { onPubCreateSessionRating } from './training/on-pub-create-session-rating';
 export { onReqSgEmailWebhookEndpoint } from './email/on-req-sg-email-webhook-endpoint';
-export { onPubUpdateSessionRating } from './training/on-pub-update-session-rating';
-export { onCallTestFunction } from './test/test-function';

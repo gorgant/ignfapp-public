@@ -252,7 +252,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.resetSetTrainingSessionComponentState();
-            this.onNavigateToBrowseTrainingSessionsWithPlanBuilder();
+            this.onNavigateToBrowseTrainingSessions();
           }
           // Build the storeFetchQuery based on the databaseCategoryType
           if (!this.$trainingSessionFetchDataConfigured()) {
@@ -289,7 +289,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 10000);
           this.resetSetTrainingSessionComponentState();
-          this.onNavigateToBrowseTrainingSessionsWithPlanBuilder();
+          this.onNavigateToBrowseTrainingSessions();
           return throwError(() => new Error(error));
         })
       ).subscribe();
@@ -299,6 +299,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.localTrainingSessionSubscription?.unsubscribe();
     this.$fetchSingleTrainingSessionSubmitted.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
+    this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
+    this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
   }
 
   // This will fetch the data from the matching databaseCategoryType, ensuring, for example, that a personalSessionFragment whose canonical trainingPlan was deleted will still load properly
@@ -342,7 +344,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   // Update training status if user interacts with video widget directly
-  private monitorVideoState() {
+  private monitorVideoState(userData: PublicUser) {
     this.videoStateSubscription = this.videoComponent.ytVideoPlayerApi.stateChange
       .pipe(
         distinctUntilChanged(),
@@ -359,7 +361,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
             
             case YT.PlayerState.ENDED: {
               if (!this.sessionCompleted()) {
-                this.onCompleteTrainingSession();
+                this.onCompleteTrainingSession(userData);
               }
               break;
             }
@@ -375,12 +377,12 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
       ).subscribe();
   }
 
-  onBeginTrainingSession() {
+  onBeginTrainingSession(userData: PublicUser) {
     this.videoInitialized.set(true);
     this.detailsComponent.expansionPanel.close();
     this.videoComponent.ytVideoPlayerApi.playVideo();
     this.sessionStartTime.set(Timestamp.now().toMillis());
-    this.monitorVideoState();
+    this.monitorVideoState(userData);
   }
 
   onPauseTrainingSession() {
@@ -405,30 +407,27 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.sessionPaused.set(false);
   }
 
-  onCompleteTrainingSession() {
+  onCompleteTrainingSession(userData: PublicUser) {
     if (!this.sessionPaused()) {
       this.onPauseTrainingSession();
     }
 
-    this.userData$
+    const trainingSession = this.$combinedLocalTrainingSessionData();
+    const sessionCompletionData: TrainingSessionCompletionData = {
+      trainingSession: trainingSession!,
+      sessionDuration: this.sessionDuration()!,
+      userId: userData!.id,
+    }
+
+    const dialogConfig = {...DialogueBoxDefaultConfig};   
+    dialogConfig.data = sessionCompletionData;
+    
+    const dialogRef = this.dialog.open(TrainingSessionCompleteDialogueComponent, dialogConfig);
+
+    const userSubmissionObserver = dialogRef.afterClosed() as Observable<boolean>;
+    userSubmissionObserver
       .pipe(
         take(1),
-        switchMap(userData => {
-          const trainingSession = this.$combinedLocalTrainingSessionData();
-          const sessionCompletionData: TrainingSessionCompletionData = {
-            trainingSession: trainingSession!,
-            sessionDuration: this.sessionDuration()!,
-            userId: userData!.id,
-            personalSessionFragmentId: this.$localPersonalSessionFragment()?.id,
-          }
-  
-          const dialogConfig = {...DialogueBoxDefaultConfig};   
-          dialogConfig.data = sessionCompletionData;
-          
-          const dialogRef = this.dialog.open(TrainingSessionCompleteDialogueComponent, dialogConfig);
-          const userSubmissionObserver = dialogRef.afterClosed() as Observable<boolean>;          
-          return userSubmissionObserver;
-        }),
         tap(userConfirmedSubmission => {
           if (userConfirmedSubmission) {
             this.videoComponent.ytVideoPlayerApi.stopVideo();
@@ -438,7 +437,18 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           }
         })
       ).subscribe();
-    
+
+    // This is used to pre-emptively unsubscribe from the localTrainingSessionSubscription so that a fetch error isn't triggered once deleted
+    const deletePersonalSessionFragmentObserver = dialogRef.componentInstance.deletePersonalSessionFragmentInitiated.asObservable();
+    deletePersonalSessionFragmentObserver
+      .pipe(
+        take(1),
+        tap(deletePersonalSessionFragmentDetected => {
+          if (deletePersonalSessionFragmentDetected) {
+            this.localTrainingSessionSubscription?.unsubscribe();
+          }
+        })
+      ).subscribe();
   }
 
   onCancelTrainingSession() {
@@ -525,7 +535,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         switchMap(processingError => {
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
-            this.resetDeleteTrainingComponentState();
+            this.resetDeleteTrainingSessionComponentState();
           }
           return userConfirmedDelete$;
         }),
@@ -555,19 +565,19 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         filter(deleteProcessing => !deleteProcessing && this.$deleteTrainingSessionCycleComplete()),
         tap(deletionProcessing => {
           this.uiService.showSnackBar(`Training Session deleted.`, 10000);
-          this.onNavigateToBrowseTrainingSessionsWithPlanBuilder();
+          this.onNavigateToBrowseTrainingSessions();
         }),
         // Catch any local errors
         catchError(error => {
           console.log('Error in component:', error);
           this.uiService.showSnackBar(`Something went wrong. Please try again.`, 7000);
-          this.resetDeleteTrainingComponentState();
+          this.resetDeleteTrainingSessionComponentState();
           return throwError(() => new Error(error));
         })
       ).subscribe();
   }
 
-  private resetDeleteTrainingComponentState() {
+  private resetDeleteTrainingSessionComponentState() {
     this.deleteTrainingSessionSubscription?.unsubscribe();
     this.$deleteTrainingSessionSubmitted.set(false);
     this.$deleteTrainingSessionCycleInit.set(false)
@@ -575,8 +585,9 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
-  onNavigateToBrowseTrainingSessionsWithPlanBuilder() {
+  onNavigateToBrowseTrainingSessions() {
     if (this.$trainingPlanBuilderRequest() && this.$localCanonicalTrainingSession()) {
+      console.log('trainingPlanBuilderRequest detected, constructing trainingPlanBuilder Browse url');
       const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
       const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
       const queryParams: AddTrainingSessionToPlanQueryParams = {
@@ -588,7 +599,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
       const navigationExtras: NavigationExtras = {queryParams};
       this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
     } else {
-      console.log('Missing url data, routing to Browse rather than planBuilder')
+      console.log('no trainingPlanBuilderRequest detected, constructing standard Browse url');
       const queryParams: BrowseTrainingSessionsQueryParams = {
         [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true
       };
@@ -619,12 +630,14 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.videoStateSubscription?.unsubscribe();
     this.deleteTrainingSessionSubscription?.unsubscribe();
 
-    this.fetchTrainingSessionError$
+    this.combinedFetchTrainingSessionDataError$
       .pipe(
         take(1),
         tap(fetchError => {
           if (fetchError) {
             this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
+            this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.purgePersonalSessionFragmentErrors());
           }
         })
       ).subscribe();

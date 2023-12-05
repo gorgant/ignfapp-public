@@ -144,7 +144,7 @@ export class TrainingSessionStoreEffects {
     .pipe(
       ofType(TrainingSessionStoreActions.updateSessionRatingRequested),
       concatMap(action => 
-        this.trainingSessionService.updateSessionRating(action.sessionRating).pipe(
+        this.trainingSessionService.createSessionRating(action.sessionRating).pipe(
           map(pubSubMessageId => {
             return TrainingSessionStoreActions.updateSessionRatingCompleted({pubSubMessageId});
           }),

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -7,10 +7,13 @@ import { TrainingRecordFormValidationMessages } from 'shared-models/forms/valida
 import { TrainingSessionCompletionData, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 import { Duration, DurationLikeObject } from 'luxon';
-import { catchError, combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError } from 'rxjs';
-import { TrainingSessionFormVars, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { catchError, combineLatest, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
+import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionFormVars, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
+import { PersonalSessionFragment, PersonalSessionFragmentKeys } from 'shared-models/train/personal-session-fragment.model';
+import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
+import { Update } from '@ngrx/entity';
 
 @Component({
   selector: 'app-training-session-complete-dialogue',
@@ -18,8 +21,8 @@ import { TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/sessio
   styleUrls: ['./training-session-complete-dialogue.component.scss']
 })
 export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestroy {
-  
-  FORM_VALIDATION_MESSAGES = TrainingRecordFormValidationMessages;
+
+  deletePersonalSessionFragmentInitiated = new EventEmitter<boolean>(); // This is used to pre-emptively unsubscribe from the localTrainingSessionSubscription in the parent component so that a fetch error isn't triggered once deleted
   
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   COMPLEXITY_FIELD_VALUE = GlobalFieldValues.COMPLEXITY;
@@ -59,6 +62,18 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   private $deletePersonalSessionFragmentCycleComplete = signal(false);
   private deletePersonalSessionFragmentProcessing$!: Observable<boolean>;
   private deletePersonalSessionFragmentError$!: Observable<{} | null>;
+
+  private $fetchPersonalSessionFragmentsSubmitted = signal(false);
+  private allPersonalSessionFragmentsFetched$!: Observable<boolean>;
+  private allPersonalSessionFragmentsInStore$!: Observable<PersonalSessionFragment[]>;
+  private fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
+  private fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
+
+  private $batchModifyPersonalSessionFragmentsSubmitted = signal(false);
+  private $batchModifyPersonalSessionFragmentsCycleInit = signal(false);
+  private $batchModifyPersonalSessionFragmentsCycleComplete = signal(false);
+  private batchModifyPersonalSessionFragmentsProcessing$!: Observable<boolean>;
+  private batchModifyPersonalSessionFragmentsError$!: Observable<{} | null>;
 
   combinedCreateTrainingRecordProcessing$!: Observable<boolean>;
   private combinedCreateTrainingRecordError$!: Observable<{} | null>;
@@ -186,16 +201,27 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     this.deletePersonalSessionFragmentProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectDeletePersonalSessionFragmentProcessing);
     this.deletePersonalSessionFragmentError$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectDeletePersonalSessionFragmentError);
 
+    this.allPersonalSessionFragmentsFetched$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsFetched);  // We use this to determine if the initial empty array returned when the store is fetched is a pre-loaded state or the actual state
+    this.allPersonalSessionFragmentsInStore$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectAllPersonalSessionFragmentsInStore); // Used to contrast the server version against the local version for debounce purposes
+    this.fetchAllPersonalSessionFragmentsError$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectFetchAllPersonalSessionFragmentsError);
+    this.fetchAllPersonalSessionFragmentsProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectFetchAllPersonalSessionFragmentsProcessing);
+
+    this.batchModifyPersonalSessionFragmentsError$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectBatchModifyPersonalSessionFragmentsError);
+    this.batchModifyPersonalSessionFragmentsProcessing$ = this.store$.select(PersonalSessionFragmentStoreSelectors.selectBatchModifyPersonalSessionFragmentsProcessing);
+
     this.combinedCreateTrainingRecordProcessing$ = combineLatest(
       [
         this.createTrainingRecordProcessing$,
         this.updateSessionRatingProcessing$,
-        this.deletePersonalSessionFragmentProcessing$
+        this.deletePersonalSessionFragmentProcessing$,
+        this.fetchAllPersonalSessionFragmentsProcessing$,
+        this.batchModifyPersonalSessionFragmentsProcessing$,
+
       ]
     ).pipe(
-        map(([createProcessing, updateProcessing, deleteProcessing]) => {
-          if (createProcessing || updateProcessing || deleteProcessing) {
-            return createProcessing || updateProcessing || deleteProcessing;
+        map(([createProcessing, updateProcessing, deleteProcessing, fetchProcessing, batchModifyProcessing]) => {
+          if (createProcessing || updateProcessing || deleteProcessing || fetchProcessing || batchModifyProcessing) {
+            return createProcessing || updateProcessing || deleteProcessing || fetchProcessing || batchModifyProcessing;
           }
           return false;
         })
@@ -205,25 +231,27 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       [
         this.createTrainingRecordError$,
         this.updateSessionRatingError$,
-        this.deletePersonalSessionFragmentError$
+        this.deletePersonalSessionFragmentError$,
+        this.fetchAllPersonalSessionFragmentsError$,
+        this.batchModifyPersonalSessionFragmentsError$,
       ]
     ).pipe(
-        map(([createError, updateError, deleteError]) => {
-          if (createError || updateError || deleteError) {
-            return createError || updateError || deleteError;
+        map(([createError, updateError, deleteError, fetchProcessing, batchModifyProcessing]) => {
+          if (createError || updateError || deleteError || fetchProcessing || batchModifyProcessing) {
+            return createError || updateError || deleteError || fetchProcessing || batchModifyProcessing;
           }
           return false;
         })
       );
   }
 
-  // TODO: Test that this works
+  
   onSubmitTrainingRecord() {
     const userId = this.sessionCompletionData.userId;
 
     const [trainingRecordNoId, sessionRating] = this.generateTrainingRecordAndRating(userId);
     
-    // This 1) creates a trainingRecord 2) updates a sessionRating with the new rating values, and 3) deletes a personalSessionFragment if it exists
+    // This 1) creates a trainingRecord 2) creates a sessionRating and updates the trainingSession's ratings with the new rating values, and 3) deletes a personalSessionFragment if it exists
     this.createTrainingRecordSubscription = this.combinedCreateTrainingRecordError$
       .pipe(
         map(processingError => {
@@ -274,26 +302,28 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
         }),
         filter(updateProcessing => !updateProcessing && this.$updateSessionRatingCycleComplete()),
         tap(updateProcessing => {
-          if (this.sessionCompletionData.personalSessionFragmentId) {
-            console.log('Not a personalSessionFragment, completing pipe and closing dialogue');
+          const databaseCategory = this.sessionCompletionData.trainingSession[TrainingSessionKeys.DATABASE_CATEGORY];
+          if (databaseCategory !== TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT) {
+            console.log(`All actions complete: 1) Created trainingRecord, 2) Updated sessionRating, 3) Did not delete personalSessionFragment since this was a ${databaseCategory}`);
             this.uiService.showSnackBar(`Training Record created!`, 10000);
             this.resetComponentState();
             this.dialogRef.close(true);
           }
         }),
         // Only proceed beyond this point if this is a personalSessionFragment
-        filter(updateProcessing => !!this.sessionCompletionData.personalSessionFragmentId), 
-        switchMap(updateProcessing => {
-          if (!this.$deletePersonalSessionFragmentSubmitted() && this.sessionCompletionData.personalSessionFragmentId) {
+        filter((updateProcessing: boolean) => !!this.sessionCompletionData.trainingSession[TrainingSessionKeys.ID]), 
+        switchMap((updateProcessing: boolean) => {
+          if (!this.$deletePersonalSessionFragmentSubmitted()) {
+            this.deletePersonalSessionFragmentInitiated.emit(true);
             this.store$.dispatch(PersonalSessionFragmentStoreActions.deletePersonalSessionFragmentRequested({
               userId: this.sessionCompletionData.userId, 
-              personalSessionFragmentId: this.sessionCompletionData.personalSessionFragmentId
+              personalSessionFragmentId: this.sessionCompletionData.trainingSession[TrainingSessionKeys.ID]
             }));
           }
           return this.deletePersonalSessionFragmentProcessing$;
         }),
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(deleteProcessing => {
+        tap((deleteProcessing: boolean) => {
           if (deleteProcessing) {
             this.$deletePersonalSessionFragmentCycleInit.set(true);
           }
@@ -303,9 +333,39 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
             this.$deletePersonalSessionFragmentCycleComplete.set(true);
           }
         }),
-        filter(deleteProcessing => !deleteProcessing && this.$deletePersonalSessionFragmentCycleComplete()),
-        tap(deleteProcessing => {
-          console.log('Training Record creation successful.');
+        filter((deleteProcessing: boolean) => !deleteProcessing && this.$deletePersonalSessionFragmentCycleComplete()),
+        withLatestFrom(this.allPersonalSessionFragmentsFetched$),
+        switchMap(([deleteProcessing, allFetched]: [boolean, boolean]) => {
+          if (!allFetched && !this.$fetchPersonalSessionFragmentsSubmitted()) {
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.fetchAllPersonalSessionFragmentsRequested({userId: this.sessionCompletionData.userId}));
+            this.$fetchPersonalSessionFragmentsSubmitted.set(true);
+          }
+          return this.allPersonalSessionFragmentsInStore$;
+        }),
+        withLatestFrom(this.allPersonalSessionFragmentsFetched$),
+        filter(([personalSessionFragments, allFetched ]: [PersonalSessionFragment[], boolean]) => allFetched),
+        switchMap(([personalSessionFragments, allFetched ]: [PersonalSessionFragment[], boolean]) => {
+          if (!this.$batchModifyPersonalSessionFragmentsSubmitted()) {
+            const personalSessionFragmentUpdates = this.updateIndexesOfRemainingPersonalSessionFragments(personalSessionFragments);
+            this.$batchModifyPersonalSessionFragmentsSubmitted.set(true);
+            this.store$.dispatch(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsRequested({userId: this.sessionCompletionData.userId, personalSessionFragmentUpdates}));
+          }
+          return this.batchModifyPersonalSessionFragmentsProcessing$;
+        }),
+        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
+        tap((batchModifyProcessing: boolean) => {
+          if (batchModifyProcessing) {
+            this.$batchModifyPersonalSessionFragmentsCycleInit.set(true);
+          }
+          if (!batchModifyProcessing && this.$batchModifyPersonalSessionFragmentsCycleInit()) {
+            console.log('batchModifyPersonalSessionFragments successful, proceeding with pipe.');
+            this.$batchModifyPersonalSessionFragmentsCycleInit.set(false)
+            this.$batchModifyPersonalSessionFragmentsCycleComplete.set(true);
+          }
+        }),
+        filter((batchModifyProcessing: boolean) => !batchModifyProcessing && this.$batchModifyPersonalSessionFragmentsCycleComplete()),
+        tap((batchModifyProcessing: boolean) => {
+          console.log('All actions complete: 1) Created trainingRecord, 2) Updated sessionRating, 3) Deleted personalSessionFragment 4) Batch-modified personalSessionFragment queue');
           this.uiService.showSnackBar(`Training Record created!`, 10000);
           this.resetComponentState();
           this.dialogRef.close(true);
@@ -320,6 +380,59 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
         })
       ).subscribe()
   }
+
+  // This prepares a batch update for the planSessionFragment queue
+  private updateIndexesOfRemainingPersonalSessionFragments(allPersonalSessionFragments: PersonalSessionFragment[]): Update<PersonalSessionFragment>[] {
+    const personalSessionFragmentUpdates = [] as Update<PersonalSessionFragment>[]; // This will be used to send batch update to database
+    // Get a mutable array of personalSessionFragments for current trainingPlan
+    const updatedArray = [...allPersonalSessionFragments!];
+    
+    updatedArray.forEach((personalSessionFragment, index) => {
+      const itemToUpdate = {...personalSessionFragment};
+      itemToUpdate[PersonalSessionFragmentKeys.QUEUE_INDEX] = index;
+      updatedArray[index] = itemToUpdate;
+      // If no change to index, don't push changes to server
+      if (personalSessionFragment[PersonalSessionFragmentKeys.QUEUE_INDEX] === index) {
+        return;
+      }
+      // Otherwise, create an update object and push it to the update array
+      const affectedItemUpdateObject: Update<PersonalSessionFragment> = {
+        id: itemToUpdate.id,
+        changes: {
+          queueIndex: itemToUpdate.queueIndex
+        }
+      };
+      personalSessionFragmentUpdates.push(affectedItemUpdateObject);
+    })
+
+    console.log('Updated personalSessionFragment array', updatedArray);
+    console.log('List of updates for server', personalSessionFragmentUpdates);
+
+    return personalSessionFragmentUpdates;
+  }
+
+  // // This prepares a batch update for the planSessionFragment queue
+  // private prepareUpdatesForPersonalSessionFragmentQueue(deletedPersonalSessionFragment: PersonalSessionFragment, allPersonalSessionFragments: PersonalSessionFragment[]): Update<PersonalSessionFragment>[] {
+  //   // Filter out the deleted session fragment
+  //   const updatedSessions = allPersonalSessionFragments.filter(session => session.id !== deletedPersonalSessionFragment.id);
+
+  //   // Update the queueIndex of the remaining sessions and prepare the NgRx update objects
+  //   const sessionUpdates = updatedSessions.map((session, index) => {
+  //     if (session.queueIndex !== index) {
+  //       session.queueIndex = index;
+  //       const altAffectedItemUpdateObject: Update<PersonalSessionFragment> = {
+  //         id: session.id,
+  //         changes: {
+  //           queueIndex: index
+  //         }
+  //       };
+  //      return altAffectedItemUpdateObject;
+  //     }
+  //     return null;
+  //   }).filter(update => update !== null);
+
+  //   return sessionUpdates as Update<PersonalSessionFragment>[];
+  // }
 
   private generateTrainingRecordAndRating(userId: string): [TrainingRecordNoIdOrTimestamp, TrainingSessionRatingNoIdOrTimestamp] {
     // Create a duration object and convert to ms
@@ -345,14 +458,33 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
 
     const sessionRating: TrainingSessionRatingNoIdOrTimestamp = {
       complexityRating: this.complexityRating.value,
+      databaseCategory: this.sessionCompletionData.trainingSession[TrainingSessionKeys.DATABASE_CATEGORY],
       intensityRating: this.intensityRating.value,
-      trainingSessionId: this.sessionCompletionData.trainingSession.id,
+      canonicalTrainingSessionId: this.getCanonicalId(this.sessionCompletionData.trainingSession),
       trainingSessionVisibilityCategory: this.sessionCompletionData.trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
       userId: this.sessionCompletionData.userId,
     };
     console.log('sessionRating generated', sessionRating);
 
     return [trainingRecordNoId, sessionRating];
+  }
+
+  private getCanonicalId(trainingSession: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment): string {
+    let canonicalId: string;
+    switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {
+      case TrainingSessionDatabaseCategoryTypes.CANONICAL:
+        canonicalId = (trainingSession as CanonicalTrainingSession)[TrainingSessionKeys.ID];
+        break;
+      case TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT:
+        canonicalId = (trainingSession as PlanSessionFragment)[PlanSessionFragmentKeys.CANONICAL_ID];
+        break;
+      case TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT:
+        canonicalId = (trainingSession as PersonalSessionFragment)[PersonalSessionFragmentKeys.CANONICAL_ID];
+        break;
+      default:
+        throw new Error ('No databaseCategory found on trainingSession');
+    }
+    return canonicalId;
   }
 
   private resetComponentState() {
@@ -369,6 +501,12 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     this.$deletePersonalSessionFragmentSubmitted.set(false);
     this.$deletePersonalSessionFragmentCycleInit.set(false);
     this.$deletePersonalSessionFragmentCycleComplete.set(false);
+
+    this.$fetchPersonalSessionFragmentsSubmitted.set(false);
+
+    this.$batchModifyPersonalSessionFragmentsSubmitted.set(false);
+    this.$batchModifyPersonalSessionFragmentsCycleInit.set(false);
+    this.$batchModifyPersonalSessionFragmentsCycleComplete.set(false);
 
     this.store$.dispatch(TrainingRecordStoreActions.purgeTrainingRecordErrors());
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());

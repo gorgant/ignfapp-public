@@ -123,40 +123,8 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
         withLatestFrom(this.userData$, this.allPersonalSessionFragmentsFetched$),
         filter(([personalSessionFragments, userData, allFetched]) => allFetched),
         switchMap(([personalSessionFragments, userData, allFetched]) => {
-          const indexOfNewItem = personalSessionFragments.length;
-
-          // Generate array of personalSessionFragments to upload to database
-          const personalSessionFragmentsNoId = this.planSessionFragments.map(trainingSession => {
-            // Convert current planSessionFragment into a no-id TrainingSession to serve as the base for the planSessionFragment
-            const clone: any = {...trainingSession};
-            delete clone.id;
-            // Delete all the planSessionFragment-specific data
-            Object.keys(PlanSessionFragmentKeys).forEach(key => {
-              const propertyToDelete = clone[key];
-              if (propertyToDelete) {
-                delete clone[key];
-              }
-            });
-            const incompleteTrainingSessionNoId = clone as TrainingSessionNoIdOrTimestamps;
-            
-            // Generate personalSessionFragment and push it to array
-            const dataToAdd: NewDataForPersonalSessionFragmentNoIdOrTimestamp = {
-              [PersonalSessionFragmentKeys.CANONICAL_ID]: trainingSession.id,
-              [PersonalSessionFragmentKeys.COMPLETE]: false,
-              [PersonalSessionFragmentKeys.CREATOR_ID]: userData.id,
-              [PersonalSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
-              [PersonalSessionFragmentKeys.QUEUE_INDEX]: indexOfNewItem,
-            };
-
-            // Generate personalSessionFragment and push it to array
-            const personalSessionFragmentNoId: PersonalSessionFragmentNoIdOrTimestamp = {
-              ...incompleteTrainingSessionNoId,
-              ...dataToAdd
-            };
-            return personalSessionFragmentNoId;
-          })
-
-          if(!this.$batchCreatePersonalSessionFragmentsRequestedSubmitted()) {
+          if (!this.$batchCreatePersonalSessionFragmentsRequestedSubmitted()) {
+            const personalSessionFragmentsNoId = this.generatePersonalSessionFragmentQueue(personalSessionFragments, userData);
             this.store$.dispatch(PersonalSessionFragmentStoreActions.batchCreatePersonalSessionFragmentsRequested({userId: userData.id, personalSessionFragmentsNoId}));
             this.$batchCreatePersonalSessionFragmentsRequestedSubmitted.set(true);
           }
@@ -175,7 +143,6 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
         }),
         filter(creationProcessing => !creationProcessing && this.$batchCreatePersonalSessionFragmentsRequestedCycleComplete()),
         tap(creationProcessing => {
-          console.log('Showing added to queue snackbar!')
           this.uiService.showSnackBar(`Training Plan Added to Your Queue!`, 10000, SnackbarActions.VIEW_MY_QUEUE);
           this.resetComponentState();
         }),
@@ -187,6 +154,42 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
           return throwError(() => new Error(error));
         })
       ).subscribe();
+  }
+
+  // Generate array of personalSessionFragments to upload to database
+  private generatePersonalSessionFragmentQueue(personalSessionFragments: PersonalSessionFragment[], userData: PublicUser): PersonalSessionFragmentNoIdOrTimestamp[] {
+    let indexOfNewItem = personalSessionFragments.length;
+    // Generate array of personalSessionFragments to upload to database
+    const personalSessionFragmentsQueue = this.planSessionFragments.map(planSessionFragment => {
+      // Convert current planSessionFragment into a no-id TrainingSession to serve as the base for the planSessionFragment
+      const clone: any = {...planSessionFragment};
+      // Delete all the planSessionFragment-specific data
+      Object.keys(PlanSessionFragmentKeys).forEach(key => {
+        const propertyToDelete = clone[key];
+        if (propertyToDelete) {
+          delete clone[key];
+        }
+      });
+      const incompleteTrainingSessionNoId = clone as TrainingSessionNoIdOrTimestamps;
+      
+      // Generate personalSessionFragment and push it to array
+      const dataToAdd: NewDataForPersonalSessionFragmentNoIdOrTimestamp = {
+        [PersonalSessionFragmentKeys.CANONICAL_ID]: planSessionFragment.id,
+        [PersonalSessionFragmentKeys.COMPLETE]: false,
+        [PersonalSessionFragmentKeys.CREATOR_ID]: userData.id,
+        [PersonalSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
+        [PersonalSessionFragmentKeys.QUEUE_INDEX]: indexOfNewItem
+      };
+
+      // Generate personalSessionFragment and push it to array
+      const personalSessionFragmentNoId: PersonalSessionFragmentNoIdOrTimestamp = {
+        ...incompleteTrainingSessionNoId,
+        ...dataToAdd
+      };
+      indexOfNewItem++;
+      return personalSessionFragmentNoId;
+    });
+    return personalSessionFragmentsQueue;
   }
 
 

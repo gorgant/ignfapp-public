@@ -6,8 +6,8 @@ import { TrainingSessionRating } from '../../../shared-models/train/session-rati
 const pubSub = new PubSub();
 
 // Publish request to remove user from SG contact list
-const publishUpdateRating = async(sessionRating: TrainingSessionRating) => {
-  const topicName = PublicTopicNames.UPDATE_SESSION_RATING;
+const publishCreateSessionRating = async(sessionRating: TrainingSessionRating) => {
+  const topicName = PublicTopicNames.CREATE_SESSION_RATING;
   const projectId = publicAppProjectId;
   const topic = pubSub.topic(`projects/${projectId}/topics/${topicName}`);
   const pubsubMsg: TrainingSessionRating = {
@@ -27,11 +27,11 @@ const callableOptions: CallableOptions = {
   enforceAppCheck: true
 };
 
-export const onCallUpdateSessionRating = onCall(callableOptions, async (request: CallableRequest<TrainingSessionRating>): Promise<string> => {
+export const onCallCreateSessionRating = onCall(callableOptions, async (request: CallableRequest<TrainingSessionRating>): Promise<string> => {
 
   const sessionRating = request.data;
   
-  logger.log(`onCallUpdateSessionRating requested with this data ${sessionRating}`);
+  logger.log(`onCallCreateSessionRating requested with this data ${sessionRating}`);
   
-  return publishUpdateRating(sessionRating);
+  return publishCreateSessionRating(sessionRating);
 });

@@ -1,5 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { TrainingSessionVisibilityCategoryDbOption } from './training-session.model';
+import { TrainingSessionDatabaseCategoryTypes, TrainingSessionVisibilityCategoryDbOption } from './training-session.model';
 
 export interface TrainingSessionRating extends TrainingSessionRatingNoIdOrTimestamp {
   id: string;
@@ -8,8 +8,9 @@ export interface TrainingSessionRating extends TrainingSessionRatingNoIdOrTimest
 
 export interface TrainingSessionRatingNoIdOrTimestamp {
   complexityRating: number;
+  databaseCategory: TrainingSessionDatabaseCategoryTypes;
   intensityRating: number;
-  trainingSessionId: string;
+  canonicalTrainingSessionId: string;
   trainingSessionVisibilityCategory: TrainingSessionVisibilityCategoryDbOption;
   userId: string;
 }

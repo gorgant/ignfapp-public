@@ -379,7 +379,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         }),
         filter(trainingPlan => !!trainingPlan),
         switchMap(trainingPlan => {
-          console.log('deleteTrainingPlanSubmitted:', this.$deleteTrainingPlanSubmitted());
           // Only update the local trainingPlan array if there are updates to the trainingPlan
           if (this.$localTrainingPlan() !== trainingPlan) {
             this.$localTrainingPlan.set(trainingPlan!); // Load the current trainingPlan into the instance variable
@@ -399,7 +398,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         withLatestFrom(this.userData$),
         switchMap(([[trainingPlan, planSessionFragments], userData]) => {
           // Determine if data has been fetched by checking if the legnth of the array matches the trainingPlan's count
-          console.log('deleteTrainingPlanSubmitted:', this.$deleteTrainingPlanSubmitted());
           const filteredPlanSessionFragments = planSessionFragments.filter(fragment => fragment.trainingPlanId === trainingPlanId);
           const dataAlreadyInStore = filteredPlanSessionFragments.length === trainingPlan?.trainingSessionCount;
           this.$planSessionFragmentsFetched.set(dataAlreadyInStore);
@@ -628,12 +626,8 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       [ViewPlanSessionFragmentQueryParamsKeys.TRAINING_PLAN_ID]: planSessionFragmentData.trainingPlanId,
       [ViewPlanSessionFragmentQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: planSessionFragmentData[PlanSessionFragmentKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]
     };
-    // const visibilityCategoryQueryParams: ViewCanonicalTrainingPlanUrlParams = {
-    //   visibilityCategory: this.$trainingPlanVisibilityCategory()!
-    // };
     const queryParams = {
       ...viewPlanSessionFragmentQueryParams,
-      // ...visibilityCategoryQueryParams
     };
     const navigationExtras = {queryParams};
     this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, planSessionFragmentData.id], navigationExtras);
@@ -674,7 +668,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       }
   
       return altUpdatedArray;
-    })
+    });
 
     // Trigger server update request to be processed according to the debounce policy
     this.debounceDragDropServerCall$.next();
@@ -916,18 +910,18 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
         const itemToUpdate = {...planSessionFragment};
         itemToUpdate[PlanSessionFragmentKeys.TRAINING_PLAN_INDEX] = index;
         updatedArray[index] = itemToUpdate;
-        // If itemToUpdate matches the UI item of the same index, no update is necessary, so don't push to server
-        if (itemToUpdate.id === this.$localPlanSessionFragments()![index].id) {
+        // If no change to index, don't push changes to server
+        if (planSessionFragment[PlanSessionFragmentKeys.TRAINING_PLAN_INDEX] === index) {
           return;
         }
         // Otherwise, create an update object and push it to the update array
-        const altAffectedItemUpdateObject: Update<PlanSessionFragment> = {
+        const affectedItemUpdateObject: Update<PlanSessionFragment> = {
           id: itemToUpdate.id,
           changes: {
             trainingPlanIndex: itemToUpdate.trainingPlanIndex
           }
         };
-        planSessionFragmentUpdates.push(altAffectedItemUpdateObject);
+        planSessionFragmentUpdates.push(affectedItemUpdateObject);
       })
       return updatedArray; // This updated array will replace the UI's current array in the signal
     })

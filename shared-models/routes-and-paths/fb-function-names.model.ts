@@ -1,13 +1,6 @@
-export enum AdminFunctionNames {
-  
-}
-
-export enum AdminTopicNames {
-  
-}
-
 export enum PublicFunctionNames {
   ON_CALL_CREATE_PUBLIC_USER = 'onCallCreatePublicUser',
+  ON_CALL_CREATE_SESSION_RATING = 'onCallCreateSessionRating',
   ON_CALL_DELETE_PUBLIC_USER = 'onCallDeletePublicUser',
   ON_CALL_DELETE_TRAINING_PLAN = 'onCallDeleteTrainingPlan',
   ON_CALL_FETCH_YOUTUBE_VIDEO_DATA = 'onCallFetchYoutubeVideoData',
@@ -17,7 +10,6 @@ export enum PublicFunctionNames {
   ON_CALL_UPDATE_EMAIL = 'onCallUpdateEmail',
   ON_CALL_UPDATE_PRELAUNCH_USER = 'onCallUpdatePrelaunchUser',
   ON_CALL_UPDATE_PUBLIC_USER = 'onCallUpdatePublicUser',
-  ON_CALL_UPDATE_SESSION_RATING = 'onCallUpdateSessionRating',
   ON_CALL_SEND_UPDATE_EMAIL_CONFIRMATION = 'onCallSendUpdateEmailConfirmation',
   ON_CALL_TEST_FUNCTION = 'onCallTestFunction',
   ON_CALL_VERIFY_EMAIL = 'onCallVerifyEmail',
@@ -33,10 +25,10 @@ export enum PublicFunctionNames {
 
 export enum PublicTopicNames {
   CREATE_OR_UPDATE_SG_CONTACT_TOPIC = 'create-or-update-sg-contact-topic',
+  CREATE_SESSION_RATING = 'create-session-rating',
   DELETE_SG_CONTACT_TOPIC = 'delete-sg-contact-topic',
   DISPATCH_EMAIL_TOPIC = 'dispatch-email-topic',
   REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC = 'remove-user-from-sg-contact-list-topic',
   RESIZE_AVATAR_TOPIC = 'resize-avatar-topic',
   SAVE_WEBPAGE_TO_CACHE_TOPIC = 'save-webpage-to-cache-topic',
-  UPDATE_SESSION_RATING = 'update-session-rating',
 }

@@ -27,8 +27,6 @@ export class TrainDashboardComponent implements OnInit, OnDestroy {
   TRAINING_SESSIONS_TEXT = GlobalFieldValues.TRAINING_SESSIONS;
   UP_NEXT_HEADER_VALUE = GlobalFieldValues.UP_NEXT;
 
-  trainingSessionCardHeight = 300;
-
   private userData$!: Observable<PublicUser>;
 
   private allPersonalSessionFragmentsFetched$!: Observable<boolean>;
@@ -106,19 +104,6 @@ export class TrainDashboardComponent implements OnInit, OnDestroy {
     };
     navigationExtras = {queryParams};
     this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, personalSessionFragmentData.id], navigationExtras);
-    // this.personalSessionFragments$
-    //   .pipe(
-    //     take(1),
-    //     tap(personalSessionFragments => {
-    //       const planSessionFragmentData = personalSessionFragments[0];
-    //       const queryParams: ViewPersonalSessionFragmentQueryParams = {
-    //         [ViewPersonalSessionFragmentQueryParamsKeys.CANONICAL_ID]: planSessionFragmentData.canonicalId,
-    //         [ViewPersonalSessionFragmentQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
-    //       };
-    //       navigationExtras = {queryParams};
-    //       this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, planSessionFragmentData.id], navigationExtras);
-    //     })
-    //   ).subscribe();
   }
 
   ngOnDestroy(): void {

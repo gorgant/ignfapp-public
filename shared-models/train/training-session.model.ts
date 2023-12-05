@@ -1,10 +1,15 @@
 import { FormControl } from "@angular/forms"
-import { Timestamp } from '@angular/fire/firestore';
+import { FieldValue, Timestamp } from '@angular/fire/firestore';
 import { YoutubeVideoDataCompact } from "../youtube/youtube-video-data.model"
 import { TrainingSessionActivityCategoryDbOption } from "./activity-category.model";
 import { TrainingSessionMuscleGroupDbOption } from "./muscle-group.model";
 import { TrainingSessionComplexityDbOption } from "./training-complexity.model";
 import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
+
+export interface CanonicalTrainingSessionRatingUpdate extends Omit<CanonicalTrainingSession, TrainingSessionKeys.COMPLEXITY_RATING_COUNT | TrainingSessionKeys.INTENSITY_RATING_COUNT> {
+  [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: FieldValue, // the number of ratings submitted
+  [TrainingSessionKeys.INTENSITY_RATING_COUNT]: FieldValue,
+}
 
 export interface CanonicalTrainingSession extends CanonicalTrainingSessionNoIdOrTimestamps {
   [TrainingSessionKeys.CREATED_TIMESTAMP]: number | Timestamp,

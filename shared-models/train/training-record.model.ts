@@ -32,5 +32,5 @@ export interface TrainingSessionCompletionData {
   sessionDuration: number,
   trainingSession: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment,
   userId: string,
-  personalSessionFragmentId?: string
+  // personalSessionFragmentId?: string
 }
