@@ -117,6 +117,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   private debounceDragDropServerCall$ = new Subject<void>();
   private debounceDragDropServerCallSubscription!: Subscription;
+  $debounceActionPending = signal(false); // Prevents user from navigating away while list reorder is processing
 
   private store$ = inject(Store);
   private route = inject(ActivatedRoute);
@@ -678,6 +679,9 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
   private initializeDebounceDragDropServerCallObserver() {
     this.debounceDragDropServerCallSubscription = this.debounceDragDropServerCall$
       .pipe(
+        tap(empty => {
+          this.$debounceActionPending.set(true);
+        }),
         debounceTime(2000), // Determines how frequently updates are sent to the server
         withLatestFrom(this.allPlanSessionFragmentsInStore$, this.userData$),
         switchMap(([empty, serverPlanSessionFragments, userData]) => {
@@ -715,6 +719,7 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
       planSessionFragmentUpdates, 
       userId: userData.id
     }));
+    this.$debounceActionPending.set(false);
   } 
 
   onDeletePlanSessionFragment(selectedPlanSessionFragment: PlanSessionFragment) {

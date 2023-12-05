@@ -76,37 +76,10 @@ export class TrainingPlanService {
       );
   }
 
-  // deleteTrainingPlan(trainingPlan: TrainingPlan, userId: string): Observable<string> {
-  //   const documentId = trainingPlan[TrainingPlanKeys.ID];
-  //   const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
-  //   const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
-
-  //   let trainingPlanDeleteRequest: Promise<void>
-
-  //   if (isPublicTrainingPlan) {
-  //     trainingPlanDeleteRequest = deleteDoc(this.getPublicTrainingPlanDoc(documentId));
-  //   } else {
-  //     trainingPlanDeleteRequest = deleteDoc(this.getPrivateTrainingPlanDoc(documentId, userId));
-  //   }
-
-  //   this.triggerDeleteTrainingPlanObserver();
-
-  //   return from(trainingPlanDeleteRequest)
-  //     .pipe(
-  //       map(empty => {
-  //         console.log(`Deleted ${visibilityCategory} trainingPlan`, documentId);
-  //         return documentId;
-  //       }),
-  //       catchError(error => {
-  //         this.uiService.showSnackBar(error.message, 10000);
-  //         console.log(`Error deleting ${visibilityCategory} trainingPlan`, error);
-  //         return throwError(() => new Error(error));
-  //       })
-  //     );
-  // }
-
   // This triggers a recursive delete cloud function which also deletes all the subcollections
   deleteTrainingPlan(trainingPlan: TrainingPlan, userId: string): Observable<string> {
+    const visibilityCategory = trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY];
+
     const deleteTrainingPlanData: DeleteTrainingPlanData = {
       trainingPlan,
       userId
@@ -120,13 +93,13 @@ export class TrainingPlanService {
     return deleteTrainingPlanHttpCall(deleteTrainingPlanData)
       .pipe(
         take(1),
-        map( empty => {
-          console.log(`Deleted ${trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]} trainingPlan`);
+        map(empty => {
+          console.log(`Deleted ${visibilityCategory} trainingPlan`);
           return trainingPlan.id;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
-          console.log(`Error deleting ${trainingPlan[TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]} trainingPlan`, error);
+          console.log(`Error deleting ${visibilityCategory} trainingPlan`, error);
           return throwError(() => new Error(error));
         })
       );

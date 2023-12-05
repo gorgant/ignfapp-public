@@ -36,10 +36,11 @@ const callableOptions: CallableOptions = {
 export const onCallDeleteTrainingPlan = onCall(callableOptions, async (request: CallableRequest<DeleteTrainingPlanData>): Promise<void> => {
 
   const deleteTrainingPlanData = request.data;
+  logger.log(`onCallDeleteTrainingPlan requested with this data ${deleteTrainingPlanData}`);
+  
   const trainingPlan = deleteTrainingPlanData.trainingPlan;
   const userId = deleteTrainingPlanData.userId;
   
-  logger.log(`onCallDeleteTrainingPlan requested with this data ${deleteTrainingPlanData}`);
   
   return deleteTrainingPlan(trainingPlan, userId);
 });

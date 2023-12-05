@@ -70,6 +70,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
 
   private debounceDragDropServerCall$ = new Subject<void>();
   private debounceDragDropServerCallSubscription!: Subscription;
+  $debounceActionPending = signal(false); // Prevents user from navigating away while list reorder is processing
 
   private store$ = inject(Store);
   private route = inject(ActivatedRoute);
@@ -312,6 +313,9 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   private initializeDebounceDragDropServerCallObserver() {
     this.debounceDragDropServerCallSubscription = this.debounceDragDropServerCall$
       .pipe(
+        tap(empty => {
+          this.$debounceActionPending.set(true);
+        }),
         debounceTime(2000), // Determines how frequently updates are sent to the server
         withLatestFrom(this.allPersonalSessionFragmentsInStore$, this.userData$),
         switchMap(([empty, serverPersonalSessionFragments, userData]) => {
@@ -321,11 +325,6 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
   }
 
   private buildAndDispatchReorderRequest(userId: string, serverPersonalSessionFragments: PersonalSessionFragment[]) {
-    // Filter the serverPersonalSessionFragments for the currrent plan
-
-    console.log('Server personalSessionFragments', serverPersonalSessionFragments);
-    console.log('Local personalSessionFragments', this.$localPersonalSessionFragments());
-
     // Build an array of server updates that only updates the items that have changed
     const personalSessionFragmentUpdates = [] as Update<PersonalSessionFragment>[]; // This will be used to send batch update to database
     this.$localPersonalSessionFragments()?.forEach((itemToUpdate, index) => {
@@ -346,6 +345,7 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
     console.log('personalSessionFragmentUpdates', personalSessionFragmentUpdates);
     // Dispatch update array to the server
     this.store$.dispatch(PersonalSessionFragmentStoreActions.batchModifyPersonalSessionFragmentsRequested({userId, personalSessionFragmentUpdates}));
+    this.$debounceActionPending.set(false);
   }
 
   onDeletePersonalSessionFragment(selectedPersonalSessionFragment: PersonalSessionFragment) {

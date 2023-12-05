@@ -15,6 +15,8 @@ import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
 })
 export class AccountComponent implements OnInit {
 
+  // TODO: Add a Training History component with the ability to add a training record to queue
+
   PUBLIC_APP_ROUTES = PublicAppRoutes;
 
   STATS_BUTTON_VALUE = GlobalFieldValues.STATS;

@@ -1,5 +1,5 @@
 <div class="component-container">
-  <button class="back-button" mat-icon-button (click)="onNavigateUserToViewTrainingPlan()">
+  <button class="back-button" mat-icon-button (click)="onNavigateUserToViewTrainingPlan()" [disabled]="$debounceActionPending()">
     <mat-icon>arrow_back</mat-icon>
   </button>
 
@@ -45,10 +45,10 @@
 
   <div class="plan-sessions-container" *ngIf="!$deletePlanSessionFragmentCycleInit() && !$editTrainingPlanDetails() && $localTrainingPlan() && $localPlanSessionFragments()">
     <div class="plan-actions-button-container">
-      <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async)" (click)="onAddTrainingSession()">
+      <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onAddTrainingSession()">
         {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
       </button>
-      <button class="action-button" mat-stroked-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async)" (click)="onDeleteTrainingPlan()">
+      <button class="action-button" mat-stroked-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onDeleteTrainingPlan()">
         {{ DELETE_TRAINING_PLAN_BUTTON_VALUE }}
       </button>
     </div>

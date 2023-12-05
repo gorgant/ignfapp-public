@@ -14,6 +14,7 @@ import { FirestoreCollectionQueryParams } from 'shared-models/firestore/fs-colle
 import { TrainingSessionRating, TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/session-rating.model';
 import { Timestamp } from '@angular/fire/firestore';
 import { FETCH_YOUTUBE_VIDEO_DUPLICATE_ERROR_MESSAGE, FetchYoutubeVideoData, FetchYoutubeVideoDuplicateErrorMessage } from 'shared-models/youtube/fetch-youtube-video-data.model';
+import { DeleteTrainingSessionData } from 'shared-models/train/delete-training-session-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -77,27 +78,25 @@ export class TrainingSessionService {
       );
   }
 
-  // TODO: Rework this to run as a cloud function (see deleteTrainingPlan cloud function)
+  // This triggers a recursive delete cloud function which also deletes all the subcollections
   deleteTrainingSession(trainingSession: CanonicalTrainingSession, userId: string): Observable<string> {
-    const documentId = trainingSession[TrainingSessionKeys.ID];
     const visibilityCategory = trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];
-    const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
 
-    let trainingSessionDeleteRequest: Promise<void>
-
-    if (isPublicTrainingSession) {
-      trainingSessionDeleteRequest = deleteDoc(this.getPublicTrainingSessionDoc(documentId));
-    } else {
-      trainingSessionDeleteRequest = deleteDoc(this.getPrivateTrainingSessionDoc(documentId, userId));
-    }
+    const deleteTrainingSessionData: DeleteTrainingSessionData = {
+      trainingSession,
+      userId
+    };
+    const deleteTrainingSessionHttpCall: (deleteData: DeleteTrainingSessionData) => 
+      Observable<void> = httpsCallableData(this.functions, PublicFunctionNames.ON_CALL_DELETE_TRAINING_SESSION);
 
     this.triggerDeleteTrainingSessionObserver();
 
-    return from(trainingSessionDeleteRequest)
+    return deleteTrainingSessionHttpCall(deleteTrainingSessionData)
       .pipe(
+        take(1),
         map(empty => {
-          console.log(`Deleted ${visibilityCategory} trainingSession`, documentId);
-          return documentId;
+          console.log(`Deleted ${visibilityCategory} trainingSession`);
+          return trainingSession.id;
         }),
         catchError(error => {
           this.uiService.showSnackBar(error.message, 10000);
@@ -105,7 +104,7 @@ export class TrainingSessionService {
           return throwError(() => new Error(error));
         })
       );
-  }
+    }
 
   fetchAllTrainingSessions(userId: string) {
     const publicTrainingSessionCollectionDataRequest = collectionData(this.getPublicTrainingSessionCollection());

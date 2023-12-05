@@ -1,5 +1,5 @@
 <div class="content-container">
-  <button class="back-button" mat-button color="primary" (click)="onBackToDashboard()">
+  <button class="back-button" mat-button color="primary" (click)="onBackToDashboard()" [disabled]="$debounceActionPending()">
     <mat-icon>arrow_back</mat-icon> {{ BACK_TO_DASHBOARD_BUTTON_VALUE }}
   </button>
   <div *ngIf="$localPersonalSessionFragments() && !$batchDeletePersonalSessionFragmentsSubmitted()" class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
@@ -16,7 +16,7 @@
     {{ QUEUE_IS_EMPTY_BLURB }}
   </div>
   <div class="action-buttons" *ngIf="!(combinedDeletePersonalSessionFragmentProcessing$ | async)">
-    <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length > 0" class="clear-queue-button" button mat-stroked-button color="primary" (click)="onClearPersonalQueue()">{{ CLEAR_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
+    <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length > 0" class="clear-queue-button" button mat-stroked-button color="primary" (click)="onClearPersonalQueue()" [disabled]="$debounceActionPending()">{{ CLEAR_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
     <button *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0" class="browse-button" button mat-stroked-button color="primary" (click)="onNavigateToBrowse()">{{ BROWSE_TRAINING_PLANS_BUTTON_VALUE }}</button>
   </div>
   <app-processing-spinner *ngIf="(combinedDeletePersonalSessionFragmentProcessing$ | async)"></app-processing-spinner>

@@ -6,10 +6,12 @@ import { TrainingSessionIntensityDbOption, TrainingSessionIntensityUiOption, Tra
 })
 export class IntensityDbToUiPipe implements PipeTransform {
 
+  // Round input to the nearest integer and match to the UI value
   transform(activityCategoryDbOption: TrainingSessionIntensityDbOption): TrainingSessionIntensityUiOption {
+    const roundedValue = Math.round(activityCategoryDbOption) as TrainingSessionIntensityDbOption;
     const trainingSessionIntensityMasterList = Object.values(TrainingSessionIntensityList);  
     // Query master list for matching object
-    return trainingSessionIntensityMasterList.find(activityCategoryObject => activityCategoryObject.dbValue === activityCategoryDbOption)?.uiValue as TrainingSessionIntensityUiOption;
+    return trainingSessionIntensityMasterList.find(activityCategoryObject => activityCategoryObject.dbValue === roundedValue)?.uiValue as TrainingSessionIntensityUiOption;
   }
 
 }
