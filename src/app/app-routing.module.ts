@@ -16,7 +16,7 @@ const routes: Routes = [
     path: '',
     loadChildren: () => import('./content/modules/content.module').then(m => m.ContentModule),
     canLoad: [authGuardCanLoad],
-    canActivate: [authGuardCanActivate, prelaunchGuardCanActivate] // Remove prelaunchGuard once app is live
+    canActivate: [authGuardCanActivate]
   },
   {
     path: '**', 

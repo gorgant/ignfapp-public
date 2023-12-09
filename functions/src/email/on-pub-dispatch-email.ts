@@ -119,7 +119,7 @@ const pubSubOptions: PubSubOptions = {
 // Listen for pubsub message
 export const onPubDispatchEmail = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<EmailPubMessage>>) => {
   const emailData = event.data.message.json;
-  logger.log(`${PublicTopicNames.DISPATCH_EMAIL_TOPIC} request received with this data:`, emailData);
+  logger.log(`${PublicTopicNames.DISPATCH_EMAIL_TOPIC} requested with this data:`, emailData);
 
   await executeActions(emailData);
   await addEmailLogEntry(emailData);

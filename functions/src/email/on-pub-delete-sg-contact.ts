@@ -50,7 +50,7 @@ const pubSubOptions: PubSubOptions = {
 // Listen for pubsub message
 export const onPubDeleteSgContact = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<EmailUserData>>) =>  {
   const userData = event.data.message.json;
-  logger.log(`${PublicTopicNames.DELETE_SG_CONTACT_TOPIC} request received with this data:`, userData);
+  logger.log(`${PublicTopicNames.DELETE_SG_CONTACT_TOPIC} requested with this data:`, userData);
 
   return deleteSendgridContact(userData);
 

@@ -4,6 +4,7 @@ import { publicFirestore } from "../config/db-config";
 import { PublicCollectionPaths } from "../../../shared-models/routes-and-paths/fb-collection-paths.model";
 import { CanonicalTrainingSession, TrainingSessionKeys, TrainingSessionVisibilityCategoryDbOption } from "../../../shared-models/train/training-session.model";
 import { DeleteTrainingSessionData } from "../../../shared-models/train/delete-training-session-data.model";
+import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from "../config/global-helpers";
 
 
 
@@ -37,11 +38,12 @@ const callableOptions: CallableOptions = {
 export const onCallDeleteTrainingSession = onCall(callableOptions, async (request: CallableRequest<DeleteTrainingSessionData>): Promise<void> => {
 
   const deleteTrainingSessionData = request.data;
-  logger.log(`onCallDeleteTrainingSession requested with this data ${deleteTrainingSessionData}`);
+  logger.log(`onCallDeleteTrainingSession requested with this data:`, deleteTrainingSessionData);
+
+  const documentUserId = deleteTrainingSessionData.userId;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
   
   const trainingSession = deleteTrainingSessionData.trainingSession;
-  const userId = deleteTrainingSessionData.userId;
   
-  
-  return deleteTrainingSession(trainingSession, userId);
+  return deleteTrainingSession(trainingSession, documentUserId);
 });

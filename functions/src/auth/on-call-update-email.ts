@@ -8,7 +8,7 @@ import { currentEnvironmentType } from '../config/environments-config';
 import { createOrUpdateSgContact } from '../email/helpers/create-or-update-sg-contact';
 import { EnvironmentTypes } from '../../../shared-models/environments/env-vars.model';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import { convertPublicUserDataToEmailUserData, fetchAuthUserById } from '../config/global-helpers';
+import { convertPublicUserDataToEmailUserData, fetchAuthUserById, verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { publicAppFirebaseInstance } from '../config/app-config';
@@ -106,8 +106,13 @@ const callableOptions: CallableOptions = {
 };
 
 export const onCallUpdateEmail = onCall(callableOptions, async (request: CallableRequest<EmailUpdateData>): Promise<boolean> => {
+  
   const emailUpdateData = request.data;
-  logger.log('Update email request received with this data', emailUpdateData);
+  logger.log('onCallUpdateEmail requested with this data', emailUpdateData);
+  
+  const documentUserId = emailUpdateData.userId;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
+
   
   const emailUpdated = await updateEmailInAuthAndDb(emailUpdateData);
 

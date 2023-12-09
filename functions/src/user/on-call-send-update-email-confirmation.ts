@@ -3,6 +3,7 @@ import { EmailUserData } from "../../../shared-models/email/email-user-data.mode
 import { logger } from "firebase-functions/v2";
 import { dispatchEmail } from "../email/helpers/dispatch-email";
 import { EmailIdentifiers } from "../../../shared-models/email/email-vars.model";
+import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from "../config/global-helpers";
 
 
 
@@ -13,7 +14,10 @@ const callableOptions: CallableOptions = {
 
 export const onCallSendUpdateEmailConfirmation = onCall(callableOptions, async (request: CallableRequest<EmailUserData>): Promise<string> => {
   const userData = request.data;
-  logger.log('Received sendUpdateEmailConfirmation request with these params', userData);
+  logger.log('onCallSendUpdateEmailConfirmation requested with this data', userData);
+
+  const documentUserId = userData.id;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
 
   const publishedMsgId = await dispatchEmail(userData, EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION);
  

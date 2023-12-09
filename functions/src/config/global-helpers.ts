@@ -1,4 +1,4 @@
-import { HttpsError } from 'firebase-functions/v2/https';
+import { CallableRequest, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 // import * as Axios from 'axios';
 import axios, { AxiosRequestConfig } from 'axios';
@@ -6,6 +6,8 @@ import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-u
 import { UserRecord, getAuth } from 'firebase-admin/auth';
 import { publicAppFirebaseInstance } from './app-config';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
+import { publicFirestore } from './db-config';
+import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 
 
 
@@ -150,4 +152,29 @@ export const convertPublicUserDataToEmailUserData = (userData: PublicUser): Emai
     onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
   };
   return emailUserData;
+}
+
+export const verifyAuthUidMatchesDocumentUserIdOrIsAdmin = async (request: CallableRequest, documentUserId: string): Promise<boolean> => {
+  const authId = request.auth?.uid;
+
+  if (!authId) {
+    logger.log(`no authId found, permission to proceed denied`);
+    throw new HttpsError('permission-denied', 'Caller does not have permission to modify this document');
+  }
+
+  if (authId === documentUserId) {
+    logger.log(`authId matches documentUserId, permission to proceed granted.`);
+    return true;
+  }
+
+  const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
+  const userData = await fetchDbUserById(authId, publicUsersCollection);
+  const isAdmin = userData.isAdmin;
+
+  if (isAdmin) {
+    logger.log(`User is admin, permission to proceed granted.`);
+    return true;
+  }
+
+  throw new HttpsError('permission-denied', 'Caller does not have permission to modify this document');
 }

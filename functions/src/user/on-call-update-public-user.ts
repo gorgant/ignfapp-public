@@ -4,7 +4,7 @@ import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/f
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from '../../../shared-models/user/user-update.model';
 import { publicFirestore } from '../config/db-config';
-import { fetchDbUserById, fetchAuthUserById } from '../config/global-helpers';
+import { fetchDbUserById, fetchAuthUserById, verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
@@ -72,7 +72,10 @@ const callableOptions: CallableOptions = {
 
 export const onCallUpdatePublicUser = onCall(callableOptions, async (request: CallableRequest<UserUpdateData>) => {
   const userUpdateData = request.data;
-  logger.log('Received updatePublicUser request with these params', userUpdateData);
+  logger.log('onCallUpdatePublicUser requested with this data:', userUpdateData);
+
+  const documentUserId = userUpdateData.userData.id!;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
 
   const updatedUser = await executeActions(userUpdateData);
  

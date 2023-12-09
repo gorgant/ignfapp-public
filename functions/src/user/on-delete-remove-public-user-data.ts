@@ -63,7 +63,6 @@ const executeActions = async(deletedUser: PublicUser) => {
 const watchedDocumentPath = `${PublicCollectionPaths.PUBLIC_USERS}/{wildcardUserId}`;
 export const onDeleteRemovePublicUserData = onDocumentDeleted(watchedDocumentPath, async (event) => {
   const deletedUser = event.data?.data() as PublicUser;
-  
   logger.log('Detected deletePublicUser in database, processing removal of user data and account', deletedUser);
 
   const deletionResponse = await executeActions(deletedUser);

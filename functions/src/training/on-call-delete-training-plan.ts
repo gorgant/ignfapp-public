@@ -4,6 +4,7 @@ import { logger } from "firebase-functions/v2";
 import { TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from "../../../shared-models/train/training-plan.model";
 import { publicFirestore } from "../config/db-config";
 import { PublicCollectionPaths } from "../../../shared-models/routes-and-paths/fb-collection-paths.model";
+import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from "../config/global-helpers";
 
 
 const deleteTrainingPlan = async (trainingPlan: TrainingPlan, userId: string) => {
@@ -36,11 +37,12 @@ const callableOptions: CallableOptions = {
 export const onCallDeleteTrainingPlan = onCall(callableOptions, async (request: CallableRequest<DeleteTrainingPlanData>): Promise<void> => {
 
   const deleteTrainingPlanData = request.data;
-  logger.log(`onCallDeleteTrainingPlan requested with this data ${deleteTrainingPlanData}`);
+  logger.log(`onCallDeleteTrainingPlan requested with this data`, deleteTrainingPlanData);
+  
+  const documentUserId = deleteTrainingPlanData.userId;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
   
   const trainingPlan = deleteTrainingPlanData.trainingPlan;
-  const userId = deleteTrainingPlanData.userId;
   
-  
-  return deleteTrainingPlan(trainingPlan, userId);
+  return deleteTrainingPlan(trainingPlan, documentUserId);
 });

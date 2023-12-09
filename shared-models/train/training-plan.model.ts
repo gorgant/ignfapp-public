@@ -6,18 +6,20 @@ export interface TrainingPlan extends TrainingPlanNoIdOrTimestamp {
   lastModifiedTimestamp: number | Timestamp,
 }
 export interface TrainingPlanNoIdOrTimestamp {
-  creatorId: string,
-  [TrainingPlanKeys.TITLE]: string,
-  trainingSessionCount: number,
+  [TrainingPlanKeys.CREATOR_ID]: string,
   thumbnailUrlLarge?: string | null,
   thumbnailUrlSmall?: string | null,
+  [TrainingPlanKeys.TITLE]: string,
   [TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption
+  [TrainingPlanKeys.TRAINING_SESSION_COUNT]: number,
 }
 
 export enum TrainingPlanKeys {
-  TITLE = 'title',
+  CREATOR_ID = 'creatorId',
   ID = 'id',
+  TITLE = 'title',
   TRAINING_PLAN_VISIBILITY_CATEGORY = 'trainingPlanVisibilityCategory',
+  TRAINING_SESSION_COUNT = 'trainingSessionCount',
 }
 
 export const TrainingPlanFormVars = {

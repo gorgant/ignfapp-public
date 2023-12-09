@@ -108,6 +108,7 @@ export class TrainingPlanService {
   fetchAllTrainingPlans(userId: string): Observable<TrainingPlan[]> {
 
     const publicTrainingPlanCollectionDataRequest = collectionData(this.getPublicTrainingPlanCollection());
+    // const privateTrainingPlanCollectionDataRequest = collectionData(this.getPrivateTrainingPlanCollection(userId));
     const privateTrainingPlanCollectionDataRequest = collectionData(this.getPrivateTrainingPlanCollection(userId));
 
     // Combine both public and private training plans

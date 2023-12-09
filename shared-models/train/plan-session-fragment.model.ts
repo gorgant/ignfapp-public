@@ -11,7 +11,7 @@ export interface PlanSessionFragment extends PlanSessionFragmentNoIdOrTimestamp 
 
 export interface PlanSessionFragmentNoIdOrTimestamp extends TrainingSessionNoIdOrTimestamps {
   [PlanSessionFragmentKeys.CANONICAL_ID]: string,
-  [PlanSessionFragmentKeys.CREATOR_ID]: string,
+  // [PlanSessionFragmentKeys.CREATOR_ID]: string,
   [PlanSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes,
   [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: string,
   [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: number,
@@ -22,7 +22,7 @@ export interface PlanSessionFragmentNoIdOrTimestamp extends TrainingSessionNoIdO
 export type NewDataForPlanSessionFragmentNoIdOrTimestamp = Pick<
     PlanSessionFragmentNoIdOrTimestamp,
     PlanSessionFragmentKeys.CANONICAL_ID |
-    PlanSessionFragmentKeys.CREATOR_ID |
+    // PlanSessionFragmentKeys.CREATOR_ID |
     PlanSessionFragmentKeys.DATABASE_CATEGORY |
     PlanSessionFragmentKeys.TRAINING_PLAN_ID |
     PlanSessionFragmentKeys.TRAINING_PLAN_INDEX |
@@ -34,7 +34,7 @@ export type NewDataForPlanSessionFragmentNoIdOrTimestamp = Pick<
 export enum PlanSessionFragmentKeys {
   CANONICAL_ID = 'canonicalId',
   CREATED_TIMESTAMP = 'createdTimestamp',
-  CREATOR_ID = 'creatorId',
+  // CREATOR_ID = 'creatorId',
   DATABASE_CATEGORY = TrainingSessionKeys.DATABASE_CATEGORY,
   ID = 'id',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',

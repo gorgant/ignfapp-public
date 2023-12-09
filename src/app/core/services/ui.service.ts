@@ -9,6 +9,8 @@ import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angula
 import { DOCUMENT, Location } from '@angular/common';
 import { AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
+import { DeviceDetectorService } from 'ngx-device-detector';
+import { DeviceOSType } from 'shared-models/user-interface/device-os-types.model';
 
 
 @Injectable({
@@ -20,6 +22,7 @@ export class UiService {
   private $privateHideNavBar = signal(true);
   private $privateRouteGuardProcessing = signal(false); // Accessed by route guards to update UI loading symbol
   private $privateScreenIsMobile = signal(false);
+  private $privateDeviceOS = signal('' as  DeviceOSType)
   private window: Window;
 
   // private $snackBarData = signal(undefined as ViewTrainingPlanUrlParams | undefined);
@@ -30,11 +33,13 @@ export class UiService {
   private document = inject(DOCUMENT);
   private location = inject(Location);
   private route = inject(ActivatedRoute);
+  private deviceDetector = inject(DeviceDetectorService);
 
   constructor() {
     this.monitorScreenSize();
     this.evaluateNavBarVisibility();
     this.monitorNavigationHistory();
+    this.monitorDeviceOS();
     this.window = this.document.defaultView as Window;
   }
 
@@ -142,6 +147,15 @@ export class UiService {
         this.history.push(event.urlAfterRedirects);
       }
     });
+  }
+
+  private monitorDeviceOS() {
+    this.$privateDeviceOS.set(this.deviceDetector.os as DeviceOSType);
+    console.log('Detected this os', this.$privateDeviceOS());
+  }
+
+  get $deviceOS(): Signal<DeviceOSType> {
+    return this.$privateDeviceOS.asReadonly();
   }
 
   // Courtesy of https://nils-mehlhorn.de/posts/angular-navigate-back-previous-page

@@ -79,7 +79,7 @@ export const onCallFetchYoutubeVideoData = onCall(callableOptions, async (reques
   const fetchYoutubeVideoData = request.data ;
   const videoId = fetchYoutubeVideoData.videoId;
   const visibilityCategory = fetchYoutubeVideoData.visibilityCategory;
-  logger.log(`Fetch Youtube Video data request received with this data`, fetchYoutubeVideoData);
+  logger.log(`onCallFetchYoutubeVideoData requested with this data`, fetchYoutubeVideoData);
 
   // If this is a public trainingSession video, confirm it doesn't already exist in the public database
   if (visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC) {

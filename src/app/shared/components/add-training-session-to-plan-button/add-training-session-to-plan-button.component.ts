@@ -164,7 +164,6 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
           const indexOfFinalItem = trainingPlan!.trainingSessionCount - 1;
           const dataToAdd: NewDataForPlanSessionFragmentNoIdOrTimestamp = {
             [PlanSessionFragmentKeys.CANONICAL_ID]: this.trainingSessionData.id,
-            [PlanSessionFragmentKeys.CREATOR_ID]: trainingPlan!.creatorId,
             [PlanSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT,
             [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: trainingPlanId,
             [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,

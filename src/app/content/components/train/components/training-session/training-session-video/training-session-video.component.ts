@@ -1,8 +1,11 @@
-import { Component, Input, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
-import { CanonicalTrainingSession } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { DeviceOSType, IOSDeviceTypes } from 'shared-models/user-interface/device-os-types.model';
+import { YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
+import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 
 @Component({
@@ -17,11 +20,19 @@ export class TrainingSessionVideoComponent implements OnInit {
   private apiLoaded = signal(false);
   
   @ViewChild('ytVideoPlayerApi') ytVideoPlayerApi!: YouTubePlayer; // Accessed by parent component
-  videoPlayerWidth = signal(undefined as number | undefined);
-  videoPlayerHeight = signal(undefined as number | undefined);
-  videoPlayerOptions = signal({});
+  $videoPlayerWidth = signal(undefined as number | undefined);
+  $videoPlayerHeight = signal(undefined as number | undefined);
+  $videoPlayerOptions = signal({});
 
   private uiService = inject(UiService);
+
+  $screenIsMobile = computed(() => {
+    return this.uiService.$screenIsMobile();
+  });
+  $youtubeDeeplinkUri = signal(undefined as string | undefined);
+  $deviceOS = computed(() => {
+    return this.uiService.$deviceOS();
+  });
 
   constructor() { }
 
@@ -32,6 +43,7 @@ export class TrainingSessionVideoComponent implements OnInit {
   private initializeYoutubePlayer() {
     this.configurePlayerDimensions();
     this.configurePlayerOptions();
+    this.configureYoutubeAppDeeplink();
 
     if (!this.apiLoaded()) {
       // Courtesy of https://github.com/angular/components/tree/main/src/youtube-player#readme
@@ -51,16 +63,43 @@ export class TrainingSessionVideoComponent implements OnInit {
       screenWidth = 800;
     }
     let screenHeight = Math.round((screenWidth*360)/640);
-    this.videoPlayerWidth.set(screenWidth);
-    this.videoPlayerHeight.set(screenHeight);
+    this.$videoPlayerWidth.set(screenWidth);
+    this.$videoPlayerHeight.set(screenHeight);
   }
 
   private configurePlayerOptions() {
-    this.videoPlayerOptions.set({
+    this.$videoPlayerOptions.set({
       controls: 1, 
       modestbranding: 1, 
       rel: 0
     });
   }
+
+  private configureYoutubeAppDeeplink() {
+
+    let deepLinkUri: string;
+
+    const androidYoutubeDeeplinkUriBase = 'vnd.youtube://';
+    const iOSYoutubeDeeplinkUriBase = 'youtube://';
+
+    const currentDeviceOS = this.uiService.$deviceOS();
+    
+    if (this.isIOSDeviceType(currentDeviceOS)) {
+      deepLinkUri = iOSYoutubeDeeplinkUriBase;  
+    } else {
+      deepLinkUri = androidYoutubeDeeplinkUriBase;
+    }
+
+    const videoId = this.trainingSessionData[TrainingSessionKeys.VIDEO_DATA][YoutubeVideoDataKeys.ID];
+
+    const fullUri = deepLinkUri + videoId;
+    this.$youtubeDeeplinkUri.set(fullUri);
+  }
+
+  private isIOSDeviceType(deviceType: string): deviceType is IOSDeviceTypes {
+    return deviceType === 'MAC' || deviceType === 'IOS';
+  }
+
+  
 
 }

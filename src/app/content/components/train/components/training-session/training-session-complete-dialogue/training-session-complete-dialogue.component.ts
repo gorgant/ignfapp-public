@@ -452,7 +452,7 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       duration: updatedDuration,
       intensityRating: this.intensityRating.value,
       trainingSessionData: this.sessionCompletionData.trainingSession,
-      userId,
+      creatorId: userId,
     };
     console.log('Training session record data', trainingRecordNoId);
 

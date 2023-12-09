@@ -104,7 +104,7 @@ export const onPubCreateOrUpdateSgContact = onMessagePublished(pubSubOptions, as
   const userData = sgCreateOrUpdateContactData.emailUserData;
   const isNewContact = sgCreateOrUpdateContactData.isNewContact;
 
-  logger.log(`${PublicTopicNames.CREATE_OR_UPDATE_SG_CONTACT_TOPIC} request received with this data:`, userData);
+  logger.log(`${PublicTopicNames.CREATE_OR_UPDATE_SG_CONTACT_TOPIC} requested with this data:`, userData);
 
   await createOrUpdateSendgridContact(sgCreateOrUpdateContactData);
 

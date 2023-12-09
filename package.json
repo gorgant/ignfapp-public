@@ -29,6 +29,7 @@
     "@ngrx/store-devtools": "^16.2.0",
     "firebase": "^9.23.0",
     "luxon": "^3.4.3",
+    "ngx-device-detector": "^6.0.2",
     "rxfire": "^6.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

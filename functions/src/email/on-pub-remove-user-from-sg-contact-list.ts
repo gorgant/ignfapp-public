@@ -102,7 +102,7 @@ const pubSubOptions: PubSubOptions = {
 // Listen for pubsub message
 export const onPubRemoveUserFromSgContactList = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<SgContactListRemovalData>>) => {
   const sgContactListRemovalData = event.data.message.json;
-  logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC} request received with this data:`, sgContactListRemovalData);
+  logger.log(`${PublicTopicNames.REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC} requested with this data:`, sgContactListRemovalData);
 
   await executeActions(sgContactListRemovalData);
 });

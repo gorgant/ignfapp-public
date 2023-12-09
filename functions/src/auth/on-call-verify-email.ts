@@ -104,7 +104,7 @@ const callableOptions: CallableOptions = {
 
 export const onCallVerifyEmail = onCall(callableOptions, async (request: CallableRequest<EmailVerificationData>): Promise<boolean> => {
   const emailVerificationData = request.data;
-  logger.log('Verify email request received with this data', emailVerificationData);
+  logger.log('onCallVerifyEmail requested with this data', emailVerificationData);
   
   const emailVerified = await verifyEmailAndUpdateUser(emailVerificationData);
 

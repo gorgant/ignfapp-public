@@ -4,6 +4,7 @@ import { PubSub } from '@google-cloud/pubsub';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { AvatarImageMetaData } from '../../../shared-models/images/image-metadata.model';
 import { publicAppProjectId } from '../config/app-config';
+import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 const pubSub = new PubSub();
 
 // Publish request to remove user from SG contact list
@@ -29,7 +30,10 @@ const callableOptions: CallableOptions = {
 
 export const onCallResizeAvatar = onCall(callableOptions, async (request: CallableRequest<AvatarImageMetaData>): Promise<string> => {
   const imageMetaData = request.data;  
-  logger.log(`Resize avatar image for user with id ${imageMetaData.customMetadata.publicUserId}`);
+  logger.log(`onCallResizeAvatar requested with this data:`, imageMetaData);
+
+  const documentUserId = imageMetaData.customMetadata.publicUserId;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
   
   return publishResizeAvatar(imageMetaData);
 });

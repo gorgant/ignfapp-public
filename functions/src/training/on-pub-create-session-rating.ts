@@ -109,7 +109,7 @@ const pubSubOptions: PubSubOptions = {
 // Listen for pubsub message
 export const onPubCreateSessionRating = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<TrainingSessionRating>>) => {
   const sessionRating = event.data.message.json;
-  logger.log(`${PublicTopicNames.CREATE_SESSION_RATING} request received with this data:`, sessionRating);
+  logger.log(`${PublicTopicNames.CREATE_SESSION_RATING} requested with this data:`, sessionRating);
   logger.log(`Here's the session rating id`, sessionRating.id);
 
   await executeActions(sessionRating);

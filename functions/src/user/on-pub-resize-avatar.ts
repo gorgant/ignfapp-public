@@ -134,7 +134,7 @@ const pubSubOptions: PubSubOptions = {
 // Listen for pubsub message
 export const onPubResizeAvatar = onMessagePublished(pubSubOptions, async (event: CloudEvent<MessagePublishedData<AvatarImageMetaData>>) => {
   const imageMetaData = event.data.message.json;
-  logger.log(`${PublicTopicNames.RESIZE_AVATAR_TOPIC} request received with this data:`, imageMetaData);
+  logger.log(`${PublicTopicNames.RESIZE_AVATAR_TOPIC} requested with this data:`, imageMetaData);
 
   // Exit function if invalid object
   if(!objectIsValidCheck(imageMetaData)) {

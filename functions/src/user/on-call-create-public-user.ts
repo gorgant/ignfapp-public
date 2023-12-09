@@ -6,7 +6,7 @@ import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model'
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { publicFirestore } from '../config/db-config';
-import { fetchDbUserById } from '../config/global-helpers';
+import { fetchDbUserById, verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
@@ -57,7 +57,10 @@ const callableOptions: CallableOptions = {
 
 export const onCallCreatePublicUser = onCall(callableOptions, async (request: CallableRequest<PublicUser>): Promise<PublicUser> => {
   const userData = request.data;
-  logger.log('Received createPublicUser request with these params', userData);
+  logger.log('onCallCreatePublicUser requested with these params', userData);
+
+  const documentUserId = userData.id;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
 
   const newUser = await executeActions(userData);
  

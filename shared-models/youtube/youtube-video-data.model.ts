@@ -71,12 +71,12 @@ export interface YoutubeVideoDataCompact {
   title: string;
   thumbnailUrlSmall: string;
   thumbnailUrlLarge: string;
-  videoUrl: string;
+  [YoutubeVideoDataKeys.VIDEO_URL]: string;
 }
 
 export enum YoutubeVideoDataKeys {
   ID = 'id',
-  VIDEO_ID = 'videoId',
+  // VIDEO_ID = 'videoId',
   VIDEO_URL = 'videoUrl',
   YOUTUBE_VIDEO_DATA_RETREIVED = 'youtubeVideoDataRetrieved'
 }

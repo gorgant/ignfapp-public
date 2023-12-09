@@ -3,6 +3,7 @@ import { CallableOptions, CallableRequest, HttpsError, onCall } from 'firebase-f
 import { PubSub } from '@google-cloud/pubsub';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { TrainingSessionRating } from '../../../shared-models/train/session-rating.model';import { publicAppProjectId } from '../config/app-config';
+import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 const pubSub = new PubSub();
 
 // Publish request to remove user from SG contact list
@@ -30,8 +31,11 @@ const callableOptions: CallableOptions = {
 export const onCallCreateSessionRating = onCall(callableOptions, async (request: CallableRequest<TrainingSessionRating>): Promise<string> => {
 
   const sessionRating = request.data;
+  logger.log(`onCallCreateSessionRating requested with this data:`, sessionRating);
   
-  logger.log(`onCallCreateSessionRating requested with this data ${sessionRating}`);
+  const documentUserId = sessionRating.userId;
+  await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
+  
   
   return publishCreateSessionRating(sessionRating);
 });

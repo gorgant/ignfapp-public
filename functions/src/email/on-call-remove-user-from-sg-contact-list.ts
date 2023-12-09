@@ -32,7 +32,7 @@ const callableOptions: CallableOptions = {
 
 export const onCallRemoveUserFromSgContactList = onCall(callableOptions, async (request: CallableRequest<SgContactListRemovalData>): Promise<string> => {
   const sgContactListRemovalData = request.data;
-  logger.log(`Remove user ${sgContactListRemovalData.emailUserData.id} from these SG contact lists`, sgContactListRemovalData.listsToUpdate);
+  logger.log(`onCallRemoveUserFromSgContactList requested to remove user ${sgContactListRemovalData.emailUserData.id} from these SG contact lists`, sgContactListRemovalData.listsToUpdate);
   
   return publishRemoveUserFromSgContactList(sgContactListRemovalData);
 });
