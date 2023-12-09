@@ -57,12 +57,14 @@
     </div>
     <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
       <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of $localPlanSessionFragments()" [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
-        <div class="drop-placeholder" *cdkDragPlaceholder></div>
         <div class="training-session-card-details">
-          <mat-icon class="drag-drop-icon">drag_indicator</mat-icon>
+          <div class="drag-drop-icon-container" cdkDragHandle>
+            <mat-icon class="drag-drop-icon" (click)="onDragIconClick($event)">drag_indicator</mat-icon>
+          </div>
           <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPlanSessionFragment(fragment)"></app-training-session-card>
           <mat-icon class="delete-icon" (click)="onDeletePlanSessionFragment(fragment)">delete</mat-icon>
         </div>
+        <div class="drop-placeholder" *cdkDragPlaceholder></div>
       </div>
     </div>
   </div>

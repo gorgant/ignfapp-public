@@ -9,11 +9,12 @@ import { AvatarImageMetaData } from 'shared-models/images/image-metadata.model';
 import { ImageType } from 'shared-models/images/image-type.model';
 import { PublicCSDirectoryPaths } from 'shared-models/routes-and-paths/cs-directory-paths.model';
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
-import { PublicUser } from 'shared-models/user/public-user.model';
+import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-edit-avatar-dialogue',
@@ -36,17 +37,16 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   private uploadAvatarProcessing$!: Observable<boolean>;
   private uploadAvatarError$!: Observable<{} | null>;
 
+  $resizeAvatarCycleInit = signal(false);
+  private $resizeAvatarCycleComplete = signal(false);
+  private $resizeAvatarSubmitted = signal(false);
   private resizeAvatarError$!: Observable<{} | null>;
   private resizeAvatarProcessing$!: Observable<boolean>;
-  private $resizeAvatarSubmitted = signal(false);
   private resizeAvatarSucceeded$!: Observable<boolean>;
 
-  userData$!: Observable<PublicUser | null>;
-  private userUpdateError$!: Observable<{} | null>;
-  private userUpdateProcessing$!: Observable<boolean>;
-  private $userUpdateSubmitted = signal(false);
-  private $userUpdateCycleInit = signal(false);
-  private $userUpdateCycleComplete = signal(false);
+  userData$!: Observable<PublicUser>;
+  // private userUpdateError$!: Observable<{} | null>;
+  // private userUpdateProcessing$!: Observable<boolean>;
 
   combinedUploadAvatarProcessing$!: Observable<boolean>;
   combinedUploadAvatarError$!: Observable<{} | null>;
@@ -68,9 +68,9 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.uploadAvatarError$ = this.store$.select(UserStoreSelectors.selectUploadAvatarError);
     this.uploadAvatarProcessing$ = this.store$.select(UserStoreSelectors.selectUploadAvatarProcessing);
 
-    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
-    this.userUpdateError$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserError);
-    this.userUpdateProcessing$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserProcessing);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
+    // this.userUpdateError$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserError);
+    // this.userUpdateProcessing$ = this.store$.select(UserStoreSelectors.selectUpdatePublicUserProcessing);
 
     this.resizeAvatarError$ = this.store$.select(UserStoreSelectors.selectResizeAvatarError);
     this.resizeAvatarProcessing$ = this.store$.select(UserStoreSelectors.selectResizeAvatarProcessing);
@@ -79,12 +79,11 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.combinedUploadAvatarProcessing$ = combineLatest(
       [
         this.uploadAvatarProcessing$,
-        this.userUpdateProcessing$,
         this.resizeAvatarProcessing$,
       ]
     ).pipe(
-        map(([uploadingAvatar, updatingUser, resizingAvatar]) => {
-          if (uploadingAvatar || updatingUser || resizingAvatar) {
+        map(([uploadingAvatar, resizingAvatar]) => {
+          if (uploadingAvatar || resizingAvatar) {
             return true
           }
           return false
@@ -94,13 +93,12 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     this.combinedUploadAvatarError$ = combineLatest(
       [
         this.uploadAvatarError$,
-        this.userUpdateError$,
         this.resizeAvatarError$,
       ]
     ).pipe(
-        map(([uploadError, updateError, resizeError]) => {
-          if (uploadError || updateError || resizeError) {
-            return uploadError || updateError || resizeError;
+        map(([uploadError, resizeError]) => {
+          if (uploadError || resizeError) {
+            return uploadError || resizeError;
           }
           return false
         })
@@ -118,7 +116,8 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   }
 
   private processAvatarImage(imageFile: File) {
-    // 1) Get user data 2) add avatar URL to user in DB 3) resize avatar image in cloud function 4) close dialogue
+    let originalImageUrl: string;
+    // 1) Get user data 2) resize avatar image in cloud function (which also updates user) 3) wait for user avatarUrl update 4) close dialogue
     this.processAvatarImageSubscription = this.combinedUploadAvatarError$
       .pipe(
         map(processingError => {
@@ -134,8 +133,9 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
         switchMap(([processingError, userData]) => {
           console.log('processAvatarImage triggered');
           if (!this.$avatarImageDataSubmitted()) {
+            originalImageUrl = userData[PublicUserKeys.AVATAR_URL] || 'none';
             this.$avatarImageDataSubmitted.set(true);
-            const avatarData = this.generateImageData(imageFile, userData!);
+            const avatarData = this.generateImageData(imageFile, userData);
             if (!avatarData) {
               throw new Error('Error generating avatar image data!');
             }
@@ -145,46 +145,22 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
           return this.avatarDownloadUrl$
         }),
         filter(downloadUrl => !!downloadUrl),
-        withLatestFrom(this.userData$),
-        switchMap(([downloadUrl, userData]) => {
-          if (!this.$userUpdateSubmitted()) {
-            this.$userUpdateSubmitted.set(true);
-            const userUpdateData: UserUpdateData = {
-              userData: { 
-                id: userData!.id,
-                avatarUrl: downloadUrl! 
-              },
-              updateType: UserUpdateType.BIO_UPDATE
-            };
-            console.log(`Updating avatar with this url: ${downloadUrl}`);
-            this.store$.dispatch(UserStoreActions.updatePublicUserRequested({userUpdateData}));
-            
-          }
-          return this.userUpdateProcessing$;
-        }),
-        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(updateProcessing => {
-          if (updateProcessing) {
-            this.$userUpdateCycleInit.set(true);
-          }
-          if (!updateProcessing && this.$userUpdateCycleInit()) {
-            console.log('user update successful, proceeding with pipe.');
-            this.$userUpdateCycleInit.set(false);
-            this.$userUpdateCycleComplete.set(true);
-          }
-        }),
-        filter(updateProcessing => !updateProcessing && this.$userUpdateCycleComplete()),
-        switchMap(updateProcessing => {
+        switchMap(downloadUrl => {
+          console.log('avatar upload successful, proceeding with pipe');
           if (!this.$resizeAvatarSubmitted()) {
-            const imageMetaData = this.avatarImageData.imageMetadata;
-            this.store$.dispatch(UserStoreActions.resizeAvatarRequested({imageMetaData}));
             this.$resizeAvatarSubmitted.set(true);
+            this.$resizeAvatarCycleInit.set(true);
+            const imageMetaData = this.avatarImageData.imageMetadata;
+            // Note, this cloud function also updates the user
+            this.store$.dispatch(UserStoreActions.resizeAvatarRequested({imageMetaData}));
           }
-          return this.resizeAvatarSucceeded$;
+          return combineLatest([this.resizeAvatarSucceeded$, this.userData$]);
         }),
-        filter(resizeSucceeded => resizeSucceeded),
+        filter(([resizeSucceeded, userData]) => resizeSucceeded && originalImageUrl !== userData[PublicUserKeys.AVATAR_URL]),
         tap(resizeSucceeded => {
-          console.log('Avatar resize request submitted, closing dialogue box');
+          console.log('Avatar resize complete, closing dialogue box');
+          this.$resizeAvatarCycleInit.set(false);
+          this.$resizeAvatarCycleComplete.set(true);
           this.dialogRef.close(true);
         }),
         // Catch any local errors
@@ -201,10 +177,9 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   private resetComponentState() {
     this.processAvatarImageSubscription?.unsubscribe();
     this.$avatarImageDataSubmitted.set(false);
-    this.$userUpdateSubmitted.set(false);
-    this.$userUpdateCycleInit.set(false);
-    this.$userUpdateCycleComplete.set(false);
     this.$resizeAvatarSubmitted.set(false);
+    this.$resizeAvatarCycleInit.set(false);
+    this.$resizeAvatarCycleComplete.set(true);
     this.store$.dispatch(UserStoreActions.purgePublicUserErrors());
   }
 
@@ -226,12 +201,13 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
   }
 
   private generateImageData(file: File, userData: PublicUser): AvatarImageData | undefined {
+    const fileNameNoExt: string = `${ImageType.AVATAR}-${DateTime.now().toMillis()}`;
     const imageMetadata: AvatarImageMetaData = {
       contentType: file.type,
       customMetadata: {
         fileExt: this.helperService.sanitizeFileName(file).fileExt,
-        fileNameNoExt: ImageType.AVATAR,
-        filePath: this.generateAvatarImagePath(file, userData),
+        fileNameNoExt,
+        filePath: this.generateAvatarImagePath(file, fileNameNoExt, userData),
         imageType: ImageType.AVATAR,
         publicUserId: userData.id,
         resizedImage: 'false',
@@ -247,10 +223,10 @@ export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
     return avatarData;
   }
 
-  private generateAvatarImagePath(file: File, userData: PublicUser): string {
+  private generateAvatarImagePath(file: File, fileNameNoExt: string, userData: PublicUser): string {
     const userId = userData.id;
     const folder = `${userId}/${PublicCSDirectoryPaths.AVATAR}`;
-    const name = `${ImageType.AVATAR}.${this.helperService.sanitizeFileName(file).fileExt}`;
+    const name = `${fileNameNoExt}.${this.helperService.sanitizeFileName(file).fileExt}`;
     const filePath = `${folder}/${name}`;
     return filePath;
   }

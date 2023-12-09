@@ -4,12 +4,20 @@
   </button>
   <div *ngIf="$localPersonalSessionFragments() && !$batchDeletePersonalSessionFragmentsSubmitted()" class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
     <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of $localPersonalSessionFragments()" [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
-      <div class="drop-placeholder" *cdkDragPlaceholder></div>
-      <div class="training-session-card-details">
+      
+      <!-- <div class="training-session-card-details">
         <mat-icon class="drag-drop-icon">drag_indicator</mat-icon>
         <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPersonalSessionFragment(fragment)"></app-training-session-card>
         <mat-icon class="delete-icon" (click)="onDeletePersonalSessionFragment(fragment)">delete</mat-icon>
+      </div> -->
+      <div class="training-session-card-details">
+        <div class="drag-drop-icon-container" cdkDragHandle>
+          <mat-icon class="drag-drop-icon" (click)="onDragIconClick($event)">drag_indicator</mat-icon>
+        </div>
+        <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPersonalSessionFragment(fragment)"></app-training-session-card>
+        <mat-icon class="delete-icon" (click)="onDeletePersonalSessionFragment(fragment)">delete</mat-icon>
       </div>
+      <div class="drop-placeholder" *cdkDragPlaceholder></div>
     </div>
   </div>
   <div class="queue-empty-message" *ngIf="$localPersonalSessionFragments() && $localPersonalSessionFragments()!.length === 0">

@@ -634,6 +634,11 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
     this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, planSessionFragmentData.id], navigationExtras);
   }
 
+  // This helps eliminate some strange clicking behavior
+  onDragIconClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
   onListItemDrop(event: CdkDragDrop<PlanSessionFragment[]>) {
     
     const previousIndex = event.previousIndex;

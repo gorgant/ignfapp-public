@@ -42,6 +42,7 @@ const updateUser = async (userUpdateData: UserUpdateData): Promise<PublicUser> =
 
   // If authentication update, just update auth specific fields
   if (updateType === UserUpdateType.AUTHENTICATION) {
+    logger.log(`Auth update detected`);
     const userAuthData = await fetchAuthUserById(updatedUser.id); // This is a precaution to ensure the auth DB is the primary record of email verification
     updatedUser.emailVerified = userAuthData.emailVerified;
     updatedUser.lastAuthenticatedTimestamp = Timestamp.now() as any;

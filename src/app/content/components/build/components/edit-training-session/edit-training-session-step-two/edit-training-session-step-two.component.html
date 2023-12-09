@@ -58,9 +58,9 @@
     <mat-error *ngIf="activityCategoryList.invalid && (activityCategoryList.dirty || activityCategoryList.touched)">{{ activityCategoryListErrorMessage }}</mat-error>
   </mat-form-field>
 
-  <button class="add-keywords-button" *ngIf="!showKeywordsForm()" color="primary" mat-button (click)="onShowKeywordsForm()">Add Other Keywords</button>
+  <button class="add-keywords-button" *ngIf="!$showKeywordsForm()" color="primary" mat-button (click)="onShowKeywordsForm()">Add Other Keywords</button>
 
-  <mat-form-field class="keywords-container" [ngClass]="showKeywordsForm() ? '' : 'hide'">
+  <mat-form-field class="keywords-container" [ngClass]="$showKeywordsForm() ? '' : 'hide'">
     <mat-label>{{ KEYWORD_FIELD_VALUE }} (optional)</mat-label>
     <mat-chip-grid #keywordChipGrid [formControl]="keywordList" >
       <mat-chip-row 

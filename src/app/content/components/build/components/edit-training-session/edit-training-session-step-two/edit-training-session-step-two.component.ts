@@ -54,7 +54,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
   readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
 
-  showKeywordsForm = signal(false);
+  $showKeywordsForm = signal(false);
 
 
   private fb = inject(FormBuilder);
@@ -135,6 +135,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
         [TrainingSessionKeys.MUSCLE_GROUP]: trainingSessionData[TrainingSessionKeys.MUSCLE_GROUP],
         [TrainingSessionKeys.VIDEO_PLATFORM]: trainingSessionData[TrainingSessionKeys.VIDEO_PLATFORM],
       });
+      if (trainingSessionData[TrainingSessionKeys.KEYWORD_LIST].length > 0) {
+        this.$showKeywordsForm.set(true);
+      }
     }
   }
 
@@ -236,7 +239,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   }
 
   onShowKeywordsForm() {
-    this.showKeywordsForm.set(true);
+    this.$showKeywordsForm.set(true);
   }
 
   addKewordChipFromKeyboard(event: MatChipInputEvent): void {

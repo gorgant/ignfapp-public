@@ -25,7 +25,7 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .training-session-card-container {
@@ -33,21 +33,31 @@
   cursor: pointer;
 }
 
+.drag-drop-icon-container {
+  flex: 15;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .drag-drop-icon {
-  flex: 10;
-  padding-left: 16px;
+  @include md-icon-size($size: 28px);
 }
 
 .delete-icon {
   flex: 10;
+  
   opacity: 0.3;
+  @include md-icon-size($size: 26px);
   text-align: center;
 }
 
 app-training-session-card {
   display: flex;
   flex-direction: column;
-  flex: 80;
+  flex: 75;
 }
 
 .queue-empty-message {

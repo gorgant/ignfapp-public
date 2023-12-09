@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
+import { AfterContentInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
@@ -20,7 +20,7 @@ import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSe
   templateUrl: './edit-training-session-step-one.component.html',
   styleUrls: ['./edit-training-session-step-one.component.scss']
 })
-export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
+export class EditTrainingSessionStepOneComponent implements OnInit, AfterContentInit, OnDestroy {
 
   @Input() editTrainingSessionStepper!: MatStepper;
   @Input() $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
@@ -54,6 +54,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
   private store$ = inject(Store);
   private uiService = inject(UiService);
   private helperService = inject(HelperService);
+  
 
   youtubeVideoDataForm = this.fb.group({
     [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: [TrainingSessionVisibilityTypeList[TrainingSessionVisibilityCategoryDbOption.PRIVATE].dbValue as TrainingSessionVisibilityCategoryDbOption, [Validators.required]],
@@ -64,7 +65,10 @@ export class EditTrainingSessionStepOneComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.monitorProcesses();
-    this.checkForExistingData()
+  }
+
+  ngAfterContentInit(): void {
+    this.checkForExistingData(); // Have to do this after contentInit to prevent a ExpressionChangedAfterItHasBeenCheckedError
   }
 
   private monitorProcesses() {

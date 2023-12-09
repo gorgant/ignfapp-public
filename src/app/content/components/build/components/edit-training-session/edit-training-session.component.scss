@@ -71,7 +71,22 @@ mat-stepper {
   margin: 16px;
 }
 
-.video-details-prefix {
-  font-weight: $font-weight-medium;
+.video-details-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  
+  width: 100%;
   padding-left: 16px;
 }
+
+.video-details-prefix {
+  flex: 15;
+  font-weight: $font-weight-medium;
+}
+
+.video-details-content {
+  flex: 75;
+}
+

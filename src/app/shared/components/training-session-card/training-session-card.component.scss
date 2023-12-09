@@ -44,12 +44,16 @@ app-add-training-session-to-personal-queue-button {
 }
 
 .training-session-title {
+  padding-left: 8px;
+  padding-right: 8px;
+
   font-size: 15px;
   font-weight: $font-weight-regular;
   line-height: 18px;
 }
 
 .training-session-subtext {
+  margin-left: 8px;
   font-size: 13px;
   color: $font-subheader-color;
 }

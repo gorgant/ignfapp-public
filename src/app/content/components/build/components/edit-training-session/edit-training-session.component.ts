@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
@@ -86,6 +86,8 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private route = inject(ActivatedRoute);
   private uiService = inject(UiService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
   private combinedComponentErrors$!: Observable<{} | null>;
   
 
@@ -130,9 +132,10 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   // This listens for an event emitted from the Step 1 component
   handleStepOneCompletion(isComplete: boolean) {
     this.$stepOneComplete.set(isComplete);
+    this.cdr.detectChanges(); // This prevents a ExpressionChangedAfterItHasBeenCheckedError if loading an existing trainingSession
     if (isComplete) {
       console.log('Step one complete, proceeding to next step');
-      const stepOne = this.editTrainingSessionStepper.steps.get(0); 
+      const stepOne = this.editTrainingSessionStepper?.steps.get(0); 
       if (stepOne) {
         stepOne.completed = true;
         this.editTrainingSessionStepper.next() // Programatically trigger the stepper to move to the next step
@@ -308,11 +311,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             const updatedTrainingSession: Update<CanonicalTrainingSession> = {
               id: currentTrainingSessionData.id,
               changes: {
+                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...this.stepTwo.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
                 [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.stepTwo.complexityDefault.value,
                 [TrainingSessionKeys.EQUIPMENT]: this.stepTwo.equipment.value,
-                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...this.stepTwo.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
-                [TrainingSessionKeys.MUSCLE_GROUP]: (this.stepTwo.muscleGroup.value),
                 [TrainingSessionKeys.INTENSITY_DEFAULT]: this.stepTwo.intensityDefault.value,
+                [TrainingSessionKeys.KEYWORD_LIST]: this.stepTwo.keywordList.value,
+                [TrainingSessionKeys.MUSCLE_GROUP]: (this.stepTwo.muscleGroup.value),
               }            
             };
             console.log('Training Session Updates', updatedTrainingSession);

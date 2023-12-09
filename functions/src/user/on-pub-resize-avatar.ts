@@ -62,7 +62,7 @@ const resizeImage = async (imageMetaData: AvatarImageMetaData) => {
   // 3. Resize the image
   // Currently this is configured to REPLACE origin file, meaning only final output will exist
 
-  const thumbName = `${fileNameNoExt}${PublicCSDirectoryPaths.RESIZED_AVATAR_FILENAME_PREFIX}${resizedImageSize}.${fileExt}`;
+  const thumbName = `${fileNameNoExt}${PublicCSDirectoryPaths.RESIZED_AVATAR_FILENAME_SUFFIX}${resizedImageSize}.${fileExt}`;
   const thumbPath = join(workingDir, thumbName);
   const destination = join(sourceDir, thumbName);
   const metadata = {

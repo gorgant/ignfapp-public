@@ -3,12 +3,11 @@
   <div class="avatar-container">
     <img class="avatar" [src]="(userData$ | async)?.avatarUrl || DEFAULT_PROFILE_IMAGE" >
   </div>
-
   <div class="actions-container">
     <input #imageInput style="display: none" type="file" accept="image/*" id="file" (change)="onSubmit($event)">
-    <button *ngIf="!(combinedUploadAvatarProcessing$ | async)" mat-raised-button color="primary" (click)="imageInput.click()">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
-    <button *ngIf="!(combinedUploadAvatarProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-    <app-processing-spinner *ngIf="(combinedUploadAvatarProcessing$ | async)"></app-processing-spinner>
+    <button *ngIf="!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()" mat-raised-button color="primary" (click)="imageInput.click()">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
+    <button *ngIf="!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
   </div>
+  <app-processing-spinner *ngIf="(combinedUploadAvatarProcessing$ | async) || $resizeAvatarCycleInit()"></app-processing-spinner>
 
 </div>

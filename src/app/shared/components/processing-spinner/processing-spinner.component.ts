@@ -13,4 +13,5 @@ export class ProcessingSpinnerComponent {
 
   @Input() spinnerMessage: string | undefined;
   @Input() spinnerDiameter = 96;
+  @Input() spinnerMargin = '0 0 0 0';
 }

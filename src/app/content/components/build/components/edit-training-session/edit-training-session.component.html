@@ -54,9 +54,20 @@
   <div class="video-content-container mat-elevation-z5" *ngIf="(youtubeVideoData$ | async) as videoData">
     <img class="video-thumbnail" [src]="videoData.thumbnailUrlLarge" alt="Video Thumbnail">
     <div class="video-details-container">
-      <div><span class="video-details-prefix">{{ TITLE_BLURB }}:</span> {{ videoData.title }}</div>
-      <div><span class="video-details-prefix">{{ CHANNEL_BLURB }}:</span> {{ videoData.channelTitle }}</div>
-      <div><span class="video-details-prefix">{{ DURATION_BLURB }}:</span> {{ videoData.durationIso | durationIsoToMmSs }}</div>
+      <div class="video-details-item">
+        <div class="video-details-prefix">{{ TITLE_BLURB }}:</div>
+        <div class="video-details-content">{{ videoData.title }}</div>
+      </div>
+      <div class="video-details-item">
+        <div class="video-details-prefix">{{ CHANNEL_BLURB }}:</div>
+        <div class="video-details-content">{{ videoData.channelTitle }}</div>
+      </div>
+      <div class="video-details-item">
+        <div class="video-details-prefix">{{ DURATION_BLURB }}:</div>
+        <div class="video-details-content">{{ videoData.durationIso | durationIsoToMmSs }}</div>
+      </div>
+      <!-- <div class="video-details-content"><span class="video-details-prefix">{{ CHANNEL_BLURB }}:</span> {{ videoData.channelTitle }}</div>
+      <div class="video-details-content"><span class="video-details-prefix">{{ DURATION_BLURB }}:</span> {{ videoData.durationIso | durationIsoToMmSs }}</div> -->
     </div>
   </div>
 

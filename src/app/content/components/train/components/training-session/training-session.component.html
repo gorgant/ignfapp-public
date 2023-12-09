@@ -28,5 +28,5 @@
   </div>
 
 </div>
-<app-processing-spinner *ngIf="(combinedFetchTrainingSessionDataProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+<app-processing-spinner *ngIf="(combinedFetchTrainingSessionDataProcessing$ | async)" [spinnerMessage]="'Loading data...'" [spinnerMargin]="'64px 0 0 0'"></app-processing-spinner>
 <app-processing-spinner *ngIf="$deleteTrainingSessionCycleInit()" [spinnerMessage]=""></app-processing-spinner>

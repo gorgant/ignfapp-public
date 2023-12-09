@@ -268,6 +268,11 @@ export class EditPersonalQueueComponent implements OnInit, OnDestroy {
     this.router.navigate([`${PublicAppRoutes.TRAIN_TRAINING_SESSION}`, personalSessionFragmentData.id], navigationExtras);
   }
 
+  // This helps eliminate some strange clicking behavior
+  onDragIconClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
   onListItemDrop(event: CdkDragDrop<PersonalSessionFragment[]>) {
     
     const previousIndex = event.previousIndex;
