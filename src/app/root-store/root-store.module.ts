@@ -38,7 +38,7 @@ import { TrainingSessionStoreModule } from './training-session-store';
         }
       }),
       EffectsModule.forRoot([]),
-      StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: !environment.production }),
+      StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: !environment.production}), // Try adding 'connectInZone: true' to this object if running into issues, default is false
       StoreRouterConnectingModule.forRoot({ serializer: CustomSerializer }),
   ],
   providers: [
