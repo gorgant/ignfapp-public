@@ -9,11 +9,22 @@ import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/traini
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { IntensityDbToUiPipe } from '../../../../../shared/pipes/intensity-db-to-ui.pipe';
+import { ComplexityDbToUiPipe } from '../../../../../shared/pipes/complexity-db-to-ui.pipe';
+import { MuscleGroupDbToUiPipe } from '../../../../../shared/pipes/muscle-group-db-to-ui.pipe';
+import { DurationIsoToMmSsPipe } from '../../../../../shared/pipes/duration-iso-to-mm-ss.pipe';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { TrainingSessionCardComponent } from '../../../../../shared/components/training-session-card/training-session-card.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-train-dashboard',
-  templateUrl: './train-dashboard.component.html',
-  styleUrls: ['./train-dashboard.component.scss']
+    selector: 'app-train-dashboard',
+    templateUrl: './train-dashboard.component.html',
+    styleUrls: ['./train-dashboard.component.scss'],
+    standalone: true,
+    imports: [MatIconModule, MatButtonModule, TrainingSessionCardComponent, ProcessingSpinnerComponent, AsyncPipe, DurationIsoToMmSsPipe, MuscleGroupDbToUiPipe, ComplexityDbToUiPipe, IntensityDbToUiPipe]
 })
 export class TrainDashboardComponent implements OnInit, OnDestroy {
 

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
+import { Validators, AbstractControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, combineLatest, throwError } from 'rxjs';
@@ -14,11 +14,17 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-signup-form',
-  templateUrl: './signup-form.component.html',
-  styleUrls: ['./signup-form.component.scss']
+    selector: 'app-signup-form',
+    templateUrl: './signup-form.component.html',
+    styleUrls: ['./signup-form.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule]
 })
 export class SignupFormComponent implements OnInit, OnDestroy {
 

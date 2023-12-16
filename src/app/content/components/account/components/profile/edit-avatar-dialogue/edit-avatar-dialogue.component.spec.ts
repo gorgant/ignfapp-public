@@ -8,8 +8,8 @@ describe('EditAvatarDialogueComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ EditAvatarDialogueComponent ]
-    })
+    imports: [EditAvatarDialogueComponent]
+})
     .compileComponents();
   });
 

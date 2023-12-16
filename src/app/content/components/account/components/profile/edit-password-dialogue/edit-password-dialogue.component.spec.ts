@@ -8,8 +8,8 @@ describe('EditPasswordDialogueComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ EditPasswordDialogueComponent ]
-    })
+    imports: [EditPasswordDialogueComponent]
+})
     .compileComponents();
   });
 

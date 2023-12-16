@@ -24,11 +24,19 @@ import { DeletePersonalSessionFragmentUrlParams, DeletePersonalSessionFragmentUr
 import { UiService } from 'src/app/core/services/ui.service';
 import { TypedAction } from '@ngrx/store/src/models';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { AddTrainingSessionToPlanButtonComponent } from '../../../../../shared/components/add-training-session-to-plan-button/add-training-session-to-plan-button.component';
+import { BackButtonDirective } from '../../../../../shared/directives/back-button.directive';
+import { AddTrainingSessionToPersonalQueueButtonComponent } from '../../../../../shared/components/add-training-session-to-personal-queue-button/add-training-session-to-personal-queue-button.component';
+import { MatButtonModule } from '@angular/material/button';
+import { NgClass, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'app-training-session',
-  templateUrl: './training-session.component.html',
-  styleUrls: ['./training-session.component.scss']
+    selector: 'app-training-session',
+    templateUrl: './training-session.component.html',
+    styleUrls: ['./training-session.component.scss'],
+    standalone: true,
+    imports: [NgClass, TrainingSessionVideoComponent, TrainingSessionDetailsComponent, MatButtonModule, AddTrainingSessionToPersonalQueueButtonComponent, BackButtonDirective, AddTrainingSessionToPlanButtonComponent, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate, OnDestroy {
 

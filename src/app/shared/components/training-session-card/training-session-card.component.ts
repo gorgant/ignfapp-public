@@ -6,11 +6,16 @@ import { PersonalSessionFragment, ViewPersonalSessionFragmentQueryParams, ViewPe
 import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentQueryParams, ViewPlanSessionFragmentQueryParamsKeys } from 'shared-models/train/plan-session-fragment.model';
 import { AddTrainingSessionUrlToPlanParamsKeys, AddTrainingSessionToPlanQueryParams, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, BrowseTrainingSessionsQueryParamsKeys, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
+import { DurationMsToMmSsPipe } from '../../pipes/duration-ms-to-mm-ss.pipe';
+import { AddTrainingSessionToPersonalQueueButtonComponent } from '../add-training-session-to-personal-queue-button/add-training-session-to-personal-queue-button.component';
+import { AddTrainingSessionToPlanButtonComponent } from '../add-training-session-to-plan-button/add-training-session-to-plan-button.component';
 
 @Component({
-  selector: 'app-training-session-card',
-  templateUrl: './training-session-card.component.html',
-  styleUrls: ['./training-session-card.component.scss']
+    selector: 'app-training-session-card',
+    templateUrl: './training-session-card.component.html',
+    styleUrls: ['./training-session-card.component.scss'],
+    standalone: true,
+    imports: [AddTrainingSessionToPlanButtonComponent, AddTrainingSessionToPersonalQueueButtonComponent, DurationMsToMmSsPipe]
 })
 export class TrainingSessionCardComponent implements OnInit {
 

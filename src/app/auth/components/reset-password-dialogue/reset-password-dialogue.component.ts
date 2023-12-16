@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { AbstractControl, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, throwError } from 'rxjs';
 import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
@@ -8,11 +8,18 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-reset-password-dialogue',
-  templateUrl: './reset-password-dialogue.component.html',
-  styleUrls: ['./reset-password-dialogue.component.scss']
+    selector: 'app-reset-password-dialogue',
+    templateUrl: './reset-password-dialogue.component.html',
+    styleUrls: ['./reset-password-dialogue.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class ResetPasswordDialogueComponent implements OnInit {
 

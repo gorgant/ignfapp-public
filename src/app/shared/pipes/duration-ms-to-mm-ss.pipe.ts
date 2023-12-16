@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Duration } from 'luxon';
 
 @Pipe({
-  name: 'durationMsToMmSs'
+    name: 'durationMsToMmSs',
+    standalone: true
 })
 export class DurationMsToMmSsPipe implements PipeTransform {
 

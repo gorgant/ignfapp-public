@@ -8,8 +8,8 @@ describe('ResetPasswordDialogueComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ResetPasswordDialogueComponent ]
-    })
+    imports: [ResetPasswordDialogueComponent]
+})
     .compileComponents();
   });
 

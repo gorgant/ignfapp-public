@@ -8,11 +8,21 @@ import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthStoreSelectors, RootStoreState, UserStoreSelectors } from 'src/app/root-store';
+import { ProcessingSpinnerComponent } from '../../../shared/components/processing-spinner/processing-spinner.component';
+import { RouterLink } from '@angular/router';
+import { LoginFormComponent } from '../login-form/login-form.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { LoginWithThirdPartyComponent } from '../login-with-third-party/login-with-third-party.component';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
+    standalone: true,
+    imports: [AuthHeaderComponent, NgClass, LoginWithThirdPartyComponent, MatButtonModule, MatIconModule, LoginFormComponent, RouterLink, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class LoginComponent implements OnInit {
 

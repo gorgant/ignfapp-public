@@ -8,8 +8,8 @@ describe('AddTrainingPlanToPersonalQueueComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [AddTrainingPlanToPersonalQueueComponent]
-    });
+    imports: [AddTrainingPlanToPersonalQueueComponent]
+});
     fixture = TestBed.createComponent(AddTrainingPlanToPersonalQueueComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

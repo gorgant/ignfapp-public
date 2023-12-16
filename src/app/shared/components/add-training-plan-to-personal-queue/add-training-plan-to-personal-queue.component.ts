@@ -10,11 +10,16 @@ import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-add-training-plan-to-personal-queue',
-  templateUrl: './add-training-plan-to-personal-queue.component.html',
-  styleUrls: ['./add-training-plan-to-personal-queue.component.scss']
+    selector: 'app-add-training-plan-to-personal-queue',
+    templateUrl: './add-training-plan-to-personal-queue.component.html',
+    styleUrls: ['./add-training-plan-to-personal-queue.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
   

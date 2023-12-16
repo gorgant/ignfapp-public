@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { CanonicalTrainingSession, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 
 @Pipe({
-  name: 'trainingSessionSearchFilter'
+    name: 'trainingSessionSearchFilter',
+    standalone: true
 })
 export class TrainingSessionSearchFilterPipe implements PipeTransform {
 

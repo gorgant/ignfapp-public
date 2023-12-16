@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 
 @Pipe({
-  name: 'activityCategoryDbToUi'
+    name: 'activityCategoryDbToUi',
+    standalone: true
 })
 export class ActivityCategoryDbToUiPipe implements PipeTransform {
 

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
-import { YouTubePlayer } from '@angular/youtube-player';
+import { YouTubePlayer, YouTubePlayerModule } from '@angular/youtube-player';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
 import { CanonicalTrainingSession, TrainingSessionKeys } from 'shared-models/train/training-session.model';
@@ -7,11 +7,14 @@ import { DeviceOSType, IOSDeviceTypes } from 'shared-models/user-interface/devic
 import { YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
 import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-training-session-video',
-  templateUrl: './training-session-video.component.html',
-  styleUrls: ['./training-session-video.component.scss']
+    selector: 'app-training-session-video',
+    templateUrl: './training-session-video.component.html',
+    styleUrls: ['./training-session-video.component.scss'],
+    standalone: true,
+    imports: [YouTubePlayerModule, MatButtonModule]
 })
 export class TrainingSessionVideoComponent implements OnInit {
   

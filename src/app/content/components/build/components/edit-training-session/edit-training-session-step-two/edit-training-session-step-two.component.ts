@@ -1,8 +1,8 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Component, ElementRef, Input, OnDestroy, OnInit, Signal, ViewChild, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipInputEvent } from '@angular/material/chips';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocompleteSelectedEvent, MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -11,11 +11,22 @@ import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategor
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
 import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
+import { ActivityCategoryDbToUiPipe } from '../../../../../../shared/pipes/activity-category-db-to-ui.pipe';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
-  selector: 'app-edit-training-session-step-two',
-  templateUrl: './edit-training-session-step-two.component.html',
-  styleUrls: ['./edit-training-session-step-two.component.scss']
+    selector: 'app-edit-training-session-step-two',
+    templateUrl: './edit-training-session-step-two.component.html',
+    styleUrls: ['./edit-training-session-step-two.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatSlideToggleModule, MatSliderModule, MatFormFieldModule, MatRadioModule, MatChipsModule, MatIconModule, MatAutocompleteModule, MatOptionModule, MatButtonModule, NgClass, AsyncPipe, ActivityCategoryDbToUiPipe]
 })
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 

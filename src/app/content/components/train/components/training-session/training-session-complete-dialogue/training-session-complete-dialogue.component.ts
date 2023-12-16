@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingRecordFormValidationMessages } from 'shared-models/forms/validation-messages.model';
@@ -14,11 +14,20 @@ import { TrainingSessionRatingNoIdOrTimestamp } from 'shared-models/train/sessio
 import { PersonalSessionFragment, PersonalSessionFragmentKeys } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
 import { Update } from '@ngrx/entity';
+import { DurationMsToMmSsPipe } from '../../../../../../shared/pipes/duration-ms-to-mm-ss.pipe';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-training-session-complete-dialogue',
-  templateUrl: './training-session-complete-dialogue.component.html',
-  styleUrls: ['./training-session-complete-dialogue.component.scss']
+    selector: 'app-training-session-complete-dialogue',
+    templateUrl: './training-session-complete-dialogue.component.html',
+    styleUrls: ['./training-session-complete-dialogue.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, ReactiveFormsModule, NgClass, MatFormFieldModule, MatInputModule, MatSliderModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe, DurationMsToMmSsPipe]
 })
 export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestroy {
 

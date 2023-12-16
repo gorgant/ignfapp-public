@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TrainingPlan } from 'shared-models/train/training-plan.model';
 
 @Pipe({
-  name: 'trainingPlanSearchFilter'
+    name: 'trainingPlanSearchFilter',
+    standalone: true
 })
 export class TrainingPlanSearchFilterPipe implements PipeTransform {
 

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogClose } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -15,11 +15,16 @@ import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
 import { DateTime } from 'luxon';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-edit-avatar-dialogue',
-  templateUrl: './edit-avatar-dialogue.component.html',
-  styleUrls: ['./edit-avatar-dialogue.component.scss']
+    selector: 'app-edit-avatar-dialogue',
+    templateUrl: './edit-avatar-dialogue.component.html',
+    styleUrls: ['./edit-avatar-dialogue.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditAvatarDialogueComponent implements OnInit, OnDestroy {
 

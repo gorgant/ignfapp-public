@@ -8,8 +8,8 @@ describe('PlLandingPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PlLandingPageComponent ]
-    })
+    imports: [PlLandingPageComponent]
+})
     .compileComponents();
   });
 

@@ -8,8 +8,8 @@ describe('TrainingSessionFiltersComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TrainingSessionFiltersComponent ]
-    })
+    imports: [TrainingSessionFiltersComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(TrainingSessionFiltersComponent);

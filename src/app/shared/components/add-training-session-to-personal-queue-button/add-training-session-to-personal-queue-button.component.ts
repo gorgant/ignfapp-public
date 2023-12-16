@@ -10,11 +10,17 @@ import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreSelectors, PersonalSessionFragmentStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../processing-spinner/processing-spinner.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-add-training-session-to-personal-queue-button',
-  templateUrl: './add-training-session-to-personal-queue-button.component.html',
-  styleUrls: ['./add-training-session-to-personal-queue-button.component.scss']
+    selector: 'app-add-training-session-to-personal-queue-button',
+    templateUrl: './add-training-session-to-personal-queue-button.component.html',
+    styleUrls: ['./add-training-session-to-personal-queue-button.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit, OnDestroy {
 

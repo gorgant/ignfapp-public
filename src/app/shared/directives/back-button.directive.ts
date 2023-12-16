@@ -2,7 +2,8 @@ import { Directive, HostListener } from '@angular/core';
 import { UiService } from 'src/app/core/services/ui.service';
 
 @Directive({
-  selector: '[backButton]'
+    selector: '[backButton]',
+    standalone: true
 })
 export class BackButtonDirective {
 

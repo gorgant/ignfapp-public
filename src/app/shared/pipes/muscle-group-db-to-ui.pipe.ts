@@ -3,7 +3,8 @@ import { } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupUiOption, TrainingSessionMuscleGroupList } from 'shared-models/train/muscle-group.model';
 
 @Pipe({
-  name: 'muscleGroupDbToUi'
+    name: 'muscleGroupDbToUi',
+    standalone: true
 })
 export class MuscleGroupDbToUiPipe implements PipeTransform {
 

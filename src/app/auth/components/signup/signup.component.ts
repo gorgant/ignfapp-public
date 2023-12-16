@@ -8,11 +8,21 @@ import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { AuthStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { ProcessingSpinnerComponent } from '../../../shared/components/processing-spinner/processing-spinner.component';
+import { RouterLink } from '@angular/router';
+import { SignupFormComponent } from '../signup-form/signup-form.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { LoginWithThirdPartyComponent } from '../login-with-third-party/login-with-third-party.component';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
-  selector: 'app-signup',
-  templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.scss']
+    selector: 'app-signup',
+    templateUrl: './signup.component.html',
+    styleUrls: ['./signup.component.scss'],
+    standalone: true,
+    imports: [AuthHeaderComponent, NgClass, LoginWithThirdPartyComponent, MatButtonModule, MatIconModule, SignupFormComponent, RouterLink, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class SignupComponent implements OnInit {
 

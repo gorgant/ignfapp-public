@@ -9,11 +9,17 @@ import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { EmailVerificationData, EmailVerificationUrlParamKeys } from 'shared-models/email/email-verification-data';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { AuthStoreActions, AuthStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-email-verification',
-  templateUrl: './email-verification.component.html',
-  styleUrls: ['./email-verification.component.scss']
+    selector: 'app-email-verification',
+    templateUrl: './email-verification.component.html',
+    styleUrls: ['./email-verification.component.scss'],
+    standalone: true,
+    imports: [MatProgressSpinnerModule, MatIconModule, MatButtonModule, AsyncPipe]
 })
 export class EmailVerificationComponent implements OnInit {
 

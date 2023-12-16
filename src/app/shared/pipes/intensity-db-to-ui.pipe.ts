@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TrainingSessionIntensityDbOption, TrainingSessionIntensityUiOption, TrainingSessionIntensityList } from 'shared-models/train/training-intensity.model';
 
 @Pipe({
-  name: 'intensityDbToUi'
+    name: 'intensityDbToUi',
+    standalone: true
 })
 export class IntensityDbToUiPipe implements PipeTransform {
 

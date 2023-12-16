@@ -8,8 +8,8 @@ describe('AddTrainingSessionToPlanButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AddTrainingSessionToPlanButtonComponent ]
-    })
+    imports: [AddTrainingSessionToPlanButtonComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(AddTrainingSessionToPlanButtonComponent);

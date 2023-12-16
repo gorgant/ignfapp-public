@@ -8,8 +8,8 @@ describe('AddTrainingSessionToPersonalQueueButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AddTrainingSessionToPersonalQueueButtonComponent ]
-    })
+    imports: [AddTrainingSessionToPersonalQueueButtonComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(AddTrainingSessionToPersonalQueueButtonComponent);

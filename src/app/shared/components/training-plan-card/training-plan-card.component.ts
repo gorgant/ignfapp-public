@@ -4,9 +4,10 @@ import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.mod
 import { TrainingPlan } from 'shared-models/train/training-plan.model';
 
 @Component({
-  selector: 'app-training-plan-card',
-  templateUrl: './training-plan-card.component.html',
-  styleUrls: ['./training-plan-card.component.scss']
+    selector: 'app-training-plan-card',
+    templateUrl: './training-plan-card.component.html',
+    styleUrls: ['./training-plan-card.component.scss'],
+    standalone: true
 })
 export class TrainingPlanCardComponent implements OnInit {
 

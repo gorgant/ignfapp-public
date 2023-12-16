@@ -2,10 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { AuthStoreActions } from 'src/app/root-store';
+import { MatButtonModule } from '@angular/material/button';
 @Component({
-  selector: 'app-settings',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss']
+    selector: 'app-settings',
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule]
 })
 export class SettingsComponent implements OnInit {
 

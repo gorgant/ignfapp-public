@@ -14,11 +14,16 @@ import { EditEmailDialogueComponent } from './edit-email-dialogue/edit-email-dia
 import { EditNameDialogueComponent } from './edit-name-dialogue/edit-name-dialogue.component';
 import { EditPasswordDialogueComponent } from './edit-password-dialogue/edit-password-dialogue.component';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
+import { AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+    selector: 'app-profile',
+    templateUrl: './profile.component.html',
+    styleUrls: ['./profile.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, AsyncPipe]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
 

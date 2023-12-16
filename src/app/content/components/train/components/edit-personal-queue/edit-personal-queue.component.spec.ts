@@ -8,8 +8,8 @@ describe('EditPersonalQueueComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [EditPersonalQueueComponent]
-    });
+    imports: [EditPersonalQueueComponent]
+});
     fixture = TestBed.createComponent(EditPersonalQueueComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

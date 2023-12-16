@@ -9,11 +9,22 @@ import { TrainingSessionFilterFormKeys, TrainingSessionKeys, BrowseTrainingSessi
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { TrainingSessionFiltersComponent } from '../training-session-filters/training-session-filters.component';
+import { TrainingSessionSearchFilterPipe } from '../../../../../../shared/pipes/training-session-search-filter.pipe';
+import { TrainingSessionCardComponent } from '../../../../../../shared/components/training-session-card/training-session-card.component';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-browse-training-sessions',
-  templateUrl: './browse-training-sessions.component.html',
-  styleUrls: ['./browse-training-sessions.component.scss']
+    selector: 'app-browse-training-sessions',
+    templateUrl: './browse-training-sessions.component.html',
+    styleUrls: ['./browse-training-sessions.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, FormsModule, NgClass, TrainingSessionFiltersComponent, ProcessingSpinnerComponent, TrainingSessionCardComponent, AsyncPipe, TrainingSessionSearchFilterPipe]
 })
 export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
 

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { AbstractControl, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -9,11 +9,18 @@ import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { RootStoreState, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-edit-name-dialogue',
-  templateUrl: './edit-name-dialogue.component.html',
-  styleUrls: ['./edit-name-dialogue.component.scss']
+    selector: 'app-edit-name-dialogue',
+    templateUrl: './edit-name-dialogue.component.html',
+    styleUrls: ['./edit-name-dialogue.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditNameDialogueComponent implements OnInit, OnDestroy {
 

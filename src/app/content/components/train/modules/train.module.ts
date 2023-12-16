@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { SharedModule } from 'src/app/shared/shared.module';
+
 import { TrainRoutingModule } from './train-routing.module';
 import { TrainingSessionComponent } from '../components/training-session/training-session.component';
 import { TrainingPlanComponent } from '../components/training-plan/training-plan.component';
@@ -12,18 +12,15 @@ import { EditPersonalQueueComponent } from '../components/edit-personal-queue/ed
 
 
 @NgModule({
-  declarations: [
+    imports: [
+    TrainRoutingModule,
     TrainingSessionComponent,
     TrainingPlanComponent,
     TrainDashboardComponent,
     TrainingSessionDetailsComponent,
     TrainingSessionVideoComponent,
     TrainingSessionCompleteDialogueComponent,
-    EditPersonalQueueComponent,
-  ],
-  imports: [
-    SharedModule,
-    TrainRoutingModule
-  ]
+    EditPersonalQueueComponent
+]
 })
 export class TrainModule { }

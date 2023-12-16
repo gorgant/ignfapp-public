@@ -17,15 +17,22 @@ import { EditTrainingSessionStepTwoComponent } from './edit-training-session-ste
 import { Update } from '@ngrx/entity';
 import { YoutubeVideoDataCompact } from 'shared-models/youtube/youtube-video-data.model';
 import { CanDeactivateData } from 'shared-models/utils/can-deactivate-data.model';
-import { MatStepper } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { DurationIsoToMmSsPipe } from '../../../../../shared/pipes/duration-iso-to-mm-ss.pipe';
+import { AsyncPipe } from '@angular/common';
+import { BackButtonDirective } from '../../../../../shared/directives/back-button.directive';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-edit-training-session',
-  templateUrl: './edit-training-session.component.html',
-  styleUrls: ['./edit-training-session.component.scss'],
-  providers: [ {
-    provide: STEPPER_GLOBAL_OPTIONS, useValue: {showError: true} // Required for stepper error to show
-  }]
+    selector: 'app-edit-training-session',
+    templateUrl: './edit-training-session.component.html',
+    styleUrls: ['./edit-training-session.component.scss'],
+    providers: [{
+            provide: STEPPER_GLOBAL_OPTIONS, useValue: { showError: true } // Required for stepper error to show
+        }],
+    standalone: true,
+    imports: [MatStepperModule, EditTrainingSessionStepOneComponent, MatButtonModule, ProcessingSpinnerComponent, BackButtonDirective, EditTrainingSessionStepTwoComponent, AsyncPipe, DurationIsoToMmSsPipe]
 })
 export class EditTrainingSessionComponent implements OnInit, OnDestroy, ComponentCanDeactivate {
   

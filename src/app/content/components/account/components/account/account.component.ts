@@ -7,11 +7,15 @@ import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model
 import { PublicImagePaths } from 'shared-models/routes-and-paths/image-paths.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { selectPublicUserData } from 'src/app/root-store/user-store/selectors';
+import { AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-account',
-  templateUrl: './account.component.html',
-  styleUrls: ['./account.component.scss']
+    selector: 'app-account',
+    templateUrl: './account.component.html',
+    styleUrls: ['./account.component.scss'],
+    standalone: true,
+    imports: [MatIconModule, AsyncPipe]
 })
 export class AccountComponent implements OnInit {
 

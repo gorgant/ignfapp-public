@@ -1,16 +1,21 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogClose } from '@angular/material/dialog';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subscription, catchError, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-edit-password-dialogue',
-  templateUrl: './edit-password-dialogue.component.html',
-  styleUrls: ['./edit-password-dialogue.component.scss']
+    selector: 'app-edit-password-dialogue',
+    templateUrl: './edit-password-dialogue.component.html',
+    styleUrls: ['./edit-password-dialogue.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
 

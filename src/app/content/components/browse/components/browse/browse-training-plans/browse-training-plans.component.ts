@@ -8,11 +8,22 @@ import { TrainingPlan, TrainingPlanKeys, ViewTrainingPlanQueryParams, ViewTraini
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { TrainingPlanSearchFilterPipe } from '../../../../../../shared/pipes/training-plan-search-filter.pipe';
+import { AsyncPipe } from '@angular/common';
+import { TrainingPlanCardComponent } from '../../../../../../shared/components/training-plan-card/training-plan-card.component';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-browse-training-plans',
-  templateUrl: './browse-training-plans.component.html',
-  styleUrls: ['./browse-training-plans.component.scss']
+    selector: 'app-browse-training-plans',
+    templateUrl: './browse-training-plans.component.html',
+    styleUrls: ['./browse-training-plans.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, FormsModule, ProcessingSpinnerComponent, TrainingPlanCardComponent, AsyncPipe, TrainingPlanSearchFilterPipe]
 })
 export class BrowseTrainingPlansComponent implements OnInit, OnDestroy {
 

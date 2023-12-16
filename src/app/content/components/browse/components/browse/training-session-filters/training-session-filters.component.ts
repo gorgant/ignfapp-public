@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder } from '@angular/forms';
-import { MatButtonToggle, MatButtonToggleChange, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { FormGroup, FormControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonToggle, MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
 import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -12,11 +12,16 @@ import { CanonicalTrainingSession, TrainingSessionFilterForm, TrainingSessionFil
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-training-session-filters',
-  templateUrl: './training-session-filters.component.html',
-  styleUrls: ['./training-session-filters.component.scss']
+    selector: 'app-training-session-filters',
+    templateUrl: './training-session-filters.component.html',
+    styleUrls: ['./training-session-filters.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatOptionModule]
 })
 export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 

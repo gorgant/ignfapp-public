@@ -1,5 +1,5 @@
 import { AfterContentInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, throwError } from 'rxjs';
@@ -14,11 +14,18 @@ import { YoutubeVideoDataCompact, YoutubeVideoDataKeys } from 'shared-models/you
 import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-edit-training-session-step-one',
-  templateUrl: './edit-training-session-step-one.component.html',
-  styleUrls: ['./edit-training-session-step-one.component.scss']
+    selector: 'app-edit-training-session-step-one',
+    templateUrl: './edit-training-session-step-one.component.html',
+    styleUrls: ['./edit-training-session-step-one.component.scss'],
+    standalone: true,
+    imports: [ReactiveFormsModule, MatTooltipModule, MatRadioModule, MatFormFieldModule, MatInputModule, AsyncPipe]
 })
 export class EditTrainingSessionStepOneComponent implements OnInit, AfterContentInit, OnDestroy {
 

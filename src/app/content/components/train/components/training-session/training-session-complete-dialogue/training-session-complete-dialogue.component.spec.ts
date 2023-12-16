@@ -8,8 +8,8 @@ describe('TrainingSessionCompleteDialogueComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TrainingSessionCompleteDialogueComponent ]
-    })
+    imports: [TrainingSessionCompleteDialogueComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(TrainingSessionCompleteDialogueComponent);

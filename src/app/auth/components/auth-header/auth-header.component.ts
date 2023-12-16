@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 
 @Component({
-  selector: 'app-auth-header',
-  templateUrl: './auth-header.component.html',
-  styleUrls: ['./auth-header.component.scss']
+    selector: 'app-auth-header',
+    templateUrl: './auth-header.component.html',
+    styleUrls: ['./auth-header.component.scss'],
+    standalone: true
 })
 export class AuthHeaderComponent implements OnInit {
 

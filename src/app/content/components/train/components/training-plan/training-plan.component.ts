@@ -9,11 +9,19 @@ import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsK
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { TrainingSessionCardComponent } from '../../../../../shared/components/training-session-card/training-session-card.component';
+import { AddTrainingPlanToPersonalQueueComponent } from '../../../../../shared/components/add-training-plan-to-personal-queue/add-training-plan-to-personal-queue.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-training-plan',
-  templateUrl: './training-plan.component.html',
-  styleUrls: ['./training-plan.component.scss']
+    selector: 'app-training-plan',
+    templateUrl: './training-plan.component.html',
+    styleUrls: ['./training-plan.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, AddTrainingPlanToPersonalQueueComponent, TrainingSessionCardComponent, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class TrainingPlanComponent implements OnInit, OnDestroy {
   

@@ -11,11 +11,15 @@ import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { AuthStoreActions, AuthStoreSelectors, UserStoreActions, UserStoreSelectors } from 'src/app/root-store';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-login-with-third-party',
-  templateUrl: './login-with-third-party.component.html',
-  styleUrls: ['./login-with-third-party.component.scss']
+    selector: 'app-login-with-third-party',
+    templateUrl: './login-with-third-party.component.html',
+    styleUrls: ['./login-with-third-party.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule]
 })
 export class LoginWithThirdPartyComponent implements OnInit {
 

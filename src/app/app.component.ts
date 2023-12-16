@@ -1,11 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { UiService } from './core/services/ui.service';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
+import { RouterOutlet } from '@angular/router';
+import { ProcessingSpinnerComponent } from "./shared/components/processing-spinner/processing-spinner.component";
+import { NavBarComponent } from "./navigation/components/nav-bar/nav-bar.component";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: true,
+    imports: [RouterOutlet, ProcessingSpinnerComponent, NavBarComponent]
 })
 export class AppComponent implements OnInit {
   TITLE = 'ignfapp-public';

@@ -8,8 +8,8 @@ describe('LoginWithThirdPartyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LoginWithThirdPartyComponent ]
-    })
+    imports: [LoginWithThirdPartyComponent]
+})
     .compileComponents();
   });
 

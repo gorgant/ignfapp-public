@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
@@ -15,11 +15,18 @@ import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
+import { AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { TrainingSessionCardComponent } from '../../../../../shared/components/training-session-card/training-session-card.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-edit-personal-queue',
-  templateUrl: './edit-personal-queue.component.html',
-  styleUrls: ['./edit-personal-queue.component.scss']
+    selector: 'app-edit-personal-queue',
+    templateUrl: './edit-personal-queue.component.html',
+    styleUrls: ['./edit-personal-queue.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, CdkDropList, CdkDrag, CdkDragHandle, TrainingSessionCardComponent, CdkDragPlaceholder, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditPersonalQueueComponent implements OnInit, OnDestroy {
 

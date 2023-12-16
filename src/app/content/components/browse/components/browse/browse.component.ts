@@ -1,15 +1,19 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { MatTabGroup } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Subscription, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { AddTrainingSessionUrlToPlanParamsKeys } from 'shared-models/train/training-plan.model';
 import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
+import { BrowseTrainingSessionsComponent } from './browse-training-sessions/browse-training-sessions.component';
+import { BrowseTrainingPlansComponent } from './browse-training-plans/browse-training-plans.component';
 
 @Component({
-  selector: 'app-browse',
-  templateUrl: './browse.component.html',
-  styleUrls: ['./browse.component.scss']
+    selector: 'app-browse',
+    templateUrl: './browse.component.html',
+    styleUrls: ['./browse.component.scss'],
+    standalone: true,
+    imports: [MatTabsModule, BrowseTrainingPlansComponent, BrowseTrainingSessionsComponent]
 })
 export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
 

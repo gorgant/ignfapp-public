@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TrainingSessionComplexityDbOption, TrainingSessionComplexityList, TrainingSessionComplexityUiOption } from 'shared-models/train/training-complexity.model';
 
 @Pipe({
-  name: 'complexityDbToUi'
+    name: 'complexityDbToUi',
+    standalone: true
 })
 export class ComplexityDbToUiPipe implements PipeTransform {
 

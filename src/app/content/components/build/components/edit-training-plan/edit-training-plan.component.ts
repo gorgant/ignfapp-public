@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { combineLatest, map, Observable, Subscription, withLatestFrom, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
@@ -13,16 +13,27 @@ import { UiService } from 'src/app/core/services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { DeletePlanSessionFragmentQueryParamsKeys, PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentQueryParams, ViewPlanSessionFragmentQueryParamsKeys } from 'shared-models/train/plan-session-fragment.model';
 import { TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
+import { ProcessingSpinnerComponent } from '../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { TrainingSessionCardComponent } from '../../../../../shared/components/training-session-card/training-session-card.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-edit-training-plan',
-  templateUrl: './edit-training-plan.component.html',
-  styleUrls: ['./edit-training-plan.component.scss']
+    selector: 'app-edit-training-plan',
+    templateUrl: './edit-training-plan.component.html',
+    styleUrls: ['./edit-training-plan.component.scss'],
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, NgClass, ReactiveFormsModule, MatTooltipModule, MatRadioModule, MatFormFieldModule, MatInputModule, CdkDropList, CdkDrag, CdkDragHandle, TrainingSessionCardComponent, CdkDragPlaceholder, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 

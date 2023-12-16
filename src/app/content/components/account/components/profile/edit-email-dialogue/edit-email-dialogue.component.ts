@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { Validators, AbstractControl, FormBuilder } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatStepper } from '@angular/material/stepper';
+import { Validators, AbstractControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
 import { catchError, combineLatest, filter, map, Observable, Subscription, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
@@ -13,11 +13,18 @@ import { UiService } from 'src/app/core/services/ui.service';
 import { UserStoreSelectors, UserStoreActions, AuthStoreSelectors, AuthStoreActions } from 'src/app/root-store';
 import { EditNameDialogueComponent } from '../edit-name-dialogue/edit-name-dialogue.component';
 import { FirebaseError } from '@angular/fire/app';
+import { NgClass, AsyncPipe } from '@angular/common';
+import { ProcessingSpinnerComponent } from '../../../../../../shared/components/processing-spinner/processing-spinner.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-edit-email-dialogue',
-  templateUrl: './edit-email-dialogue.component.html',
-  styleUrls: ['./edit-email-dialogue.component.scss']
+    selector: 'app-edit-email-dialogue',
+    templateUrl: './edit-email-dialogue.component.html',
+    styleUrls: ['./edit-email-dialogue.component.scss'],
+    standalone: true,
+    imports: [MatStepperModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, NgClass, AsyncPipe]
 })
 export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
