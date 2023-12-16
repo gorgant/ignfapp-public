@@ -119,10 +119,20 @@
         "deploy": {
           "builder": "@angular/fire:deploy",
           "options": {
-            "version": 2,
-            "browserTarget": "ignfapp-public:build:production"
+              "browserTarget": "ignfapp-public:build:development",
+              "firebaseProject": "development"
+          },
+          "configurations": {
+              "development": {
+                  "browserTarget": "ignfapp-public:build:development",
+                  "firebaseProject": "development"
+              },
+              "production": {
+                "browserTarget": "ignfapp-public:build:production",
+                "firebaseProject": "production"
+              }
           }
-        }
+      }
       }
     }
   }
