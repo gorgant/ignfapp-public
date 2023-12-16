@@ -1,33 +1,41 @@
 <div class="content-container">
-  
+
   <div class="dialogue-title">{{ EDIT_NAME_TITLE_VALUE }}</div>
 
   <div class="dialogue-form">
     <form [formGroup]="nameForm">
-  
-        <!-- First Name -->
-        <mat-form-field>
-          <input formControlName="firstName" matInput type="text" placeholder="First Name">
-          <mat-error *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)">{{ firstNameErrorMessage }}</mat-error>
-        </mat-form-field>
-        
-        <!-- Last Name -->
-        <mat-form-field>
-          <input formControlName="lastName" matInput type="text" placeholder="Last Name">
-        </mat-form-field>
-        
-        <!-- Display Name -->
-        <mat-form-field>
-          <input formControlName="displayName" matInput type="text" placeholder="Display Name">
-        </mat-form-field>
-      
-      </form>
-    </div>
-    
-    <div class="actions-container">
-      <button *ngIf="!(userUpdateProcessing$ | async)" [disabled]="nameForm.invalid && (nameForm.dirty || nameForm.touched)" mat-raised-button color="primary" type="submit" (click)="onSubmit()">{{ SAVE_BUTTON_VALUE }}</button>
-      <button *ngIf="!(userUpdateProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
-      <app-processing-spinner *ngIf="(userUpdateProcessing$ | async)"></app-processing-spinner>
+
+      <!-- First Name -->
+      <mat-form-field>
+        <input formControlName="firstName" matInput type="text" placeholder="First Name">
+        @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
+          <mat-error>{{ firstNameErrorMessage }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Last Name -->
+      <mat-form-field>
+        <input formControlName="lastName" matInput type="text" placeholder="Last Name">
+      </mat-form-field>
+
+      <!-- Display Name -->
+      <mat-form-field>
+        <input formControlName="displayName" matInput type="text" placeholder="Display Name">
+      </mat-form-field>
+
+    </form>
+  </div>
+
+  <div class="actions-container">
+    @if (!(userUpdateProcessing$ | async)) {
+      <button [disabled]="nameForm.invalid && (nameForm.dirty || nameForm.touched)" mat-raised-button color="primary" type="submit" (click)="onSubmit()">{{ SAVE_BUTTON_VALUE }}</button>
+    }
+    @if (!(userUpdateProcessing$ | async)) {
+      <button mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    }
+    @if ((userUpdateProcessing$ | async)) {
+      <app-processing-spinner></app-processing-spinner>
+    }
   </div>
 
 </div>

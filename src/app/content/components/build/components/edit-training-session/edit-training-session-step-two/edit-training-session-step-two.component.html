@@ -1,5 +1,5 @@
 <form class="form-container" [formGroup]="trainingSessionForm">
-  
+
   <div class="slide-toggle-container">
     <div class="form-field-label">{{ EQUIPMENT_FIELD_VALUE }}</div>
     <mat-slide-toggle formControlName="equipment"></mat-slide-toggle>
@@ -10,7 +10,9 @@
     <mat-slider [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" discrete="thumbLabel" showTickMarks="true">
       <input matSliderThumb [formControl]="complexityDefault">
     </mat-slider>
-    <mat-error *ngIf="complexityDefault.invalid && (complexityDefault.dirty || complexityDefault.touched)">{{ complexityDefaultErrorMessage }}</mat-error>
+    @if (complexityDefault.invalid && (complexityDefault.dirty || complexityDefault.touched)) {
+      <mat-error>{{ complexityDefaultErrorMessage }}</mat-error>
+    }
   </div>
 
   <div class="slider-container">
@@ -18,29 +20,34 @@
     <mat-slider [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" discrete="thumbLabel" showTickMarks="true">
       <input matSliderThumb [formControl]="intensityDefault">
     </mat-slider>
-    <mat-error *ngIf="intensityDefault.invalid && (intensityDefault.dirty || intensityDefault.touched)">{{ intensityDefaultErrorMessage }}</mat-error>
+    @if (intensityDefault.invalid && (intensityDefault.dirty || intensityDefault.touched)) {
+      <mat-error>{{ intensityDefaultErrorMessage }}</mat-error>
+    }
   </div>
 
   <div class="radio-group-container">
     <div class="form-field-label">{{ MUSCLE_GROUP_FIELD_VALUE }}</div>
     <mat-radio-group [formControl]="muscleGroup">
-      <mat-radio-button *ngFor="let muscleGroup of trainingSessionMuscleGroupMasterList" [value]="muscleGroup.dbValue">
-        {{muscleGroup.uiValue}}
-      </mat-radio-button>
+      @for (muscleGroup of trainingSessionMuscleGroupMasterList; track muscleGroup) {
+        <mat-radio-button [value]="muscleGroup.dbValue">
+          {{muscleGroup.uiValue}}
+        </mat-radio-button>
+      }
     </mat-radio-group>
   </div>
 
   <mat-form-field class="activity-category-container">
     <mat-label>{{ ACTIVITY_CATEGORY_FIELD_VALUE }}</mat-label>
     <mat-chip-grid #activityCategoryChipGrid>
-      <mat-chip-row
-          *ngFor="let activityCategory of activityCategoryList.value"  
+      @for (activityCategory of activityCategoryList.value; track activityCategory) {
+        <mat-chip-row
           (removed)="removeActivityCategoryChip(activityCategory)">
-              {{ activityCategory | activityCategoryDbToUi }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-      </mat-chip-row>
+          {{ activityCategory | activityCategoryDbToUi }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      }
       <input
         [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
         #trainingSessionActivityCategoryInput
@@ -51,28 +58,35 @@
         (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
     </mat-chip-grid>
     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addActivityCategoryChipFromAutoComplete($event)">
-      <mat-option *ngFor="let activityCategory of filteredtrainingSessionActivityCategoryList | async" [value]="activityCategory.dbValue">
-      {{ activityCategory.uiValue }}
-      </mat-option>
+      @for (activityCategory of filteredtrainingSessionActivityCategoryList | async; track activityCategory) {
+        <mat-option [value]="activityCategory.dbValue">
+          {{ activityCategory.uiValue }}
+        </mat-option>
+      }
     </mat-autocomplete>
-    <mat-error *ngIf="activityCategoryList.invalid && (activityCategoryList.dirty || activityCategoryList.touched)">{{ activityCategoryListErrorMessage }}</mat-error>
+    @if (activityCategoryList.invalid && (activityCategoryList.dirty || activityCategoryList.touched)) {
+      <mat-error>{{ activityCategoryListErrorMessage }}</mat-error>
+    }
   </mat-form-field>
 
-  <button class="add-keywords-button" *ngIf="!$showKeywordsForm()" color="primary" mat-button (click)="onShowKeywordsForm()">Add Other Keywords</button>
+  @if (!$showKeywordsForm()) {
+    <button class="add-keywords-button" color="primary" mat-button (click)="onShowKeywordsForm()">Add Other Keywords</button>
+  }
 
   <mat-form-field class="keywords-container" [ngClass]="$showKeywordsForm() ? '' : 'hide'">
     <mat-label>{{ KEYWORD_FIELD_VALUE }} (optional)</mat-label>
     <mat-chip-grid #keywordChipGrid [formControl]="keywordList" >
-      <mat-chip-row 
-          *ngFor="let keyword of keywordList.value" 
+      @for (keyword of keywordList.value; track keyword) {
+        <mat-chip-row
           (removed)="removeKeywordChip(keyword)">
-              {{keyword}}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-      </mat-chip-row>
+          {{keyword}}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      }
     </mat-chip-grid>
-    <input 
+    <input
       [placeholder]="KEYWORD_PLACEHOLDER"
       [matChipInputFor]="keywordChipGrid"
       [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"

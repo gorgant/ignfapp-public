@@ -1,19 +1,25 @@
 <form class="form-container" [formGroup]="youtubeVideoDataForm">
 
-  <div class="radio-group-container" *ngIf="(userData$ | async)?.isAdmin">
-    <div class="form-field-label" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
-    <mat-radio-group [formControl]="visibilityCategory" [disabled]="!$localTrainingSession()">
-      <mat-radio-button *ngFor="let visibilityCat of visibilityCategoryMasterList" [value]="visibilityCat.dbValue">
-        {{visibilityCat.uiValue}}
-      </mat-radio-button>
-    </mat-radio-group>
-  </div>
+  @if ((userData$ | async)?.isAdmin) {
+    <div class="radio-group-container">
+      <div class="form-field-label" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
+      <mat-radio-group [formControl]="visibilityCategory" [disabled]="!$localTrainingSession()">
+        @for (visibilityCat of visibilityCategoryMasterList; track visibilityCat) {
+          <mat-radio-button [value]="visibilityCat.dbValue">
+            {{visibilityCat.uiValue}}
+          </mat-radio-button>
+        }
+      </mat-radio-group>
+    </div>
+  }
 
   <mat-form-field>
     <input formControlName="videoUrl" matInput type="videoUrl">
     <mat-label>{{ INPUT_YOUTUBE_VIDEO_URL_FIELD_VALUE }}</mat-label>
     <mat-hint>{{ INPUT_YOUTUBE_VIDEO_URL_HINT }}</mat-hint>
-    <mat-error *ngIf="videoUrl.invalid && (videoUrl.dirty || videoUrl.touched)">{{ videoUrlErrorMessage }}</mat-error>
+    @if (videoUrl.invalid && (videoUrl.dirty || videoUrl.touched)) {
+      <mat-error>{{ videoUrlErrorMessage }}</mat-error>
+    }
   </mat-form-field>
 
 </form>

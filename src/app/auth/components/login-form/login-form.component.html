@@ -4,23 +4,29 @@
       <input class="email-input" color="accent" matInput formControlName="email" type="email">
       <mat-icon class="input-icon" matPrefix>email</mat-icon>
       <mat-label class="input-placeholder">{{ EMAIL_FIELD_VALUE }}</mat-label>
-      <mat-error *ngIf="email.invalid && (email.dirty || email.touched)">{{ emailErrorMessage }}</mat-error>
+      @if (email.invalid && (email.dirty || email.touched)) {
+        <mat-error>{{ emailErrorMessage }}</mat-error>
+      }
     </mat-form-field>
     <mat-form-field color="accent">
       <input formControlName="password" matInput type="password">
       <mat-icon class="input-icon" matPrefix>lock</mat-icon>
       <mat-label class="input-placeholder">{{ PASSWORD_FIELD_VALUE }}</mat-label>
-      <mat-error *ngIf="password.invalid && (password.dirty || password.touched)">{{ passwordErrorMessage }}</mat-error>
+      @if (password.invalid && (password.dirty || password.touched)) {
+        <mat-error>{{ passwordErrorMessage }}</mat-error>
+      }
     </mat-form-field>
     <div class="forgot-password-container">
       <button class="reset-password-button" mat-button color="primary" type="button" (click)="onResetPassword()">{{ FORGOT_PASSWORD_BLURB }}</button>
     </div>
     <button class="submit-button" [disabled]="(email.invalid && (email.dirty || email.touched))" type="submit" mat-raised-button color="primary">{{ LOG_IN_BUTTON_VALUE }}</button>
   </form>
-  <div class="check-inbox-container" *ngIf="$showResetMessage()">
-    <h2 class="check-inbox-message">
-      {{ CHECK_INBOX_BLURB }}
-    </h2>
-    <button class="post-reset-button" mat-raised-button color="primary" (click)="onRestoreLoginScreen()">{{ LOG_IN_BUTTON_VALUE }}</button>
-  </div>
+  @if ($showResetMessage()) {
+    <div class="check-inbox-container">
+      <h2 class="check-inbox-message">
+        {{ CHECK_INBOX_BLURB }}
+      </h2>
+      <button class="post-reset-button" mat-raised-button color="primary" (click)="onRestoreLoginScreen()">{{ LOG_IN_BUTTON_VALUE }}</button>
+    </div>
+  }
 </div>

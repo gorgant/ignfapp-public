@@ -5,9 +5,15 @@
   </div>
   <div class="actions-container">
     <input #imageInput style="display: none" type="file" accept="image/*" id="file" (change)="onSubmit($event)">
-    <button *ngIf="!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()" mat-raised-button color="primary" (click)="imageInput.click()">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
-    <button *ngIf="!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    @if (!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()) {
+      <button mat-raised-button color="primary" (click)="imageInput.click()">{{ UPLOAD_IMAGE_BUTTON_VALUE }}</button>
+    }
+    @if (!(combinedUploadAvatarProcessing$ | async) && !$resizeAvatarCycleInit()) {
+      <button mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    }
   </div>
-  <app-processing-spinner *ngIf="(combinedUploadAvatarProcessing$ | async) || $resizeAvatarCycleInit()"></app-processing-spinner>
+  @if ((combinedUploadAvatarProcessing$ | async) || $resizeAvatarCycleInit()) {
+    <app-processing-spinner></app-processing-spinner>
+  }
 
 </div>

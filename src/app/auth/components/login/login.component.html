@@ -3,21 +3,31 @@
   <div class="login-options" [ngClass]="!(authOrUserUpdateProcessing$ | async) && !(userData$ | async) ? '' : 'hide'">
     <app-login-with-third-party></app-login-with-third-party>
     <div class="or-divider">{{ OR_BLURB }}</div>
-    <button class="email-button" *ngIf="!useEmailLogin()" type="button" mat-raised-button (click)="onUseEmail()">
-      <mat-icon class="email-button-icon">email</mat-icon>
-      {{ SIGN_IN_WITH_EMAIL_BUTTON_VALUE }}
-    </button>
-    <app-login-form *ngIf="useEmailLogin()"></app-login-form>
-    <div class="toggle-login-signup" *ngIf="useEmailLogin()">
-      <a [routerLink]="SIGNUP_PATH">{{ CREATE_ACCOUNT_BUTTON_VALUE }}</a>
-    </div>
+    @if (!useEmailLogin()) {
+      <button class="email-button" type="button" mat-raised-button (click)="onUseEmail()">
+        <mat-icon class="email-button-icon">email</mat-icon>
+        {{ SIGN_IN_WITH_EMAIL_BUTTON_VALUE }}
+      </button>
+    }
+    @if (useEmailLogin()) {
+      <app-login-form></app-login-form>
+    }
+    @if (useEmailLogin()) {
+      <div class="toggle-login-signup">
+        <a [routerLink]="SIGNUP_PATH">{{ CREATE_ACCOUNT_BUTTON_VALUE }}</a>
+      </div>
+    }
   </div>
-  <app-processing-spinner *ngIf="authOrUserUpdateProcessing$ | async" [spinnerMessage]="AUTH_PROCESSING_BLURB"></app-processing-spinner>
-  <div class="verify-email" *ngIf="(userData$ | async) && 
-      (!(userData$ | async)?.emailVerified || !(authData$ | async)?.emailVerified) && 
-      !(authOrUserUpdateProcessing$ | async)" 
+  @if (authOrUserUpdateProcessing$ | async) {
+    <app-processing-spinner [spinnerMessage]="AUTH_PROCESSING_BLURB"></app-processing-spinner>
+  }
+  @if ((userData$ | async) &&
+    (!(userData$ | async)?.emailVerified || !(authData$ | async)?.emailVerified) &&
+    !(authOrUserUpdateProcessing$ | async)) {
+    <div class="verify-email"
       >
-    <p>{{ CHECK_INBOX_BLURB_1 }}, {{(userData$ | async)?.firstName}}. {{ CHECK_INBOX_BLURB_2 }} <span class="verify-text">{{ CHECK_INBOX_BLURB_3 }}</span>.</p>
-    <p>{{ CHECK_SPAM_BLURB_1 }} <span class="trusted-sender-text">{{ TRUSTED_EMAIL_SENDER }}</span> {{ CHECK_SPAM_BLURB_2 }}.</p>
-  </div>
+      <p>{{ CHECK_INBOX_BLURB_1 }}, {{(userData$ | async)?.firstName}}. {{ CHECK_INBOX_BLURB_2 }} <span class="verify-text">{{ CHECK_INBOX_BLURB_3 }}</span>.</p>
+      <p>{{ CHECK_SPAM_BLURB_1 }} <span class="trusted-sender-text">{{ TRUSTED_EMAIL_SENDER }}</span> {{ CHECK_SPAM_BLURB_2 }}.</p>
+    </div>
+  }
 </div>

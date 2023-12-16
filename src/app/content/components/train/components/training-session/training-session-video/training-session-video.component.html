@@ -1,6 +1,8 @@
 <div class="component-container">
   <youtube-player [videoId]="trainingSessionData.videoData.id" [width]="$videoPlayerWidth()" [height]="$videoPlayerHeight()" [playerVars]="$videoPlayerOptions()" #ytVideoPlayerApi></youtube-player>
   <!-- <button class="open-in-youtube-app" *ngIf="$screenIsMobile()" mat-button>Open in YouTube App</button> -->
-  <a class="youtube-deeplink-uri" *ngIf="$screenIsMobile()" mat-button color="primary" [href]="$youtubeDeeplinkUri()" target="_blank">Open in YouTube App</a>
+  @if ($screenIsMobile()) {
+    <a class="youtube-deeplink-uri" mat-button color="primary" [href]="$youtubeDeeplinkUri()" target="_blank">Open in YouTube App</a>
+  }
   <!-- <div>Device type: {{ $deviceOS() }}</div> -->
 </div>

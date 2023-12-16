@@ -1,15 +1,15 @@
 <!-- This *ngIf logic ensures the button always shows for buttons that aren't being interacted with, whereas if it is button being clicked, it only shows if a server request isn't processing -->
-<ng-container *ngIf="!$isActiveButton() || ($isActiveButton() && !(combinedAddTrainingSessionToQueueProcessing$ | async))">
-
+@if (!$isActiveButton() || ($isActiveButton() && !(combinedAddTrainingSessionToQueueProcessing$ | async))) {
   <!-- Use the standard button unless miniFabButton is indicated -->
-  <button class="standard-button" *ngIf="!useMiniFabButton; else miniFabButton" [disabled]="(combinedAddTrainingSessionToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToQueue()">+ {{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>  
-
-  <ng-template #miniFabButton>
+  @if (!useMiniFabButton) {
+    <button class="standard-button" [disabled]="(combinedAddTrainingSessionToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onAddTrainingSessionToQueue()">+ {{ ADD_TO_MY_QUEUE_BUTTON_VALUE }}</button>
+  } @else {
     <button class="fab-button"  [disabled]="(combinedAddTrainingSessionToQueueProcessing$ | async)" mat-mini-fab color="primary" (click)="onAddTrainingSessionToQueue()">
       <mat-icon>add</mat-icon>
     </button>
-  </ng-template>
+  }
+}
 
-</ng-container>
-
-<app-processing-spinner *ngIf="$isActiveButton() && (combinedAddTrainingSessionToQueueProcessing$ | async)" [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>
+@if ($isActiveButton() && (combinedAddTrainingSessionToQueueProcessing$ | async)) {
+  <app-processing-spinner [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>
+}

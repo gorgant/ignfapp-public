@@ -1,18 +1,23 @@
-<div class="training-session-card-container" *ngIf="!useCompressedDisplay; else compressedDisplay">
-  <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" (click)="onSelectTrainingSession()" >
-  <div class="training-session-sub-image-content">
-    <app-add-training-session-to-plan-button *ngIf="trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-plan-button>
-    <app-add-training-session-to-personal-queue-button *ngIf="$isViewTrainingSessions() && !trainingPlanBuilderRequest && $localCanonicalTrainingSession()" [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-personal-queue-button>
-    <div class="training-session-details-container" (click)="onSelectTrainingSession()">
-      <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
-      <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
+@if (!useCompressedDisplay) {
+  <div class="training-session-card-container">
+    <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" (click)="onSelectTrainingSession()" >
+    <div class="training-session-sub-image-content">
+      @if (trainingPlanBuilderRequest && $localCanonicalTrainingSession()) {
+        <app-add-training-session-to-plan-button [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-plan-button>
+      }
+      @if ($isViewTrainingSessions() && !trainingPlanBuilderRequest && $localCanonicalTrainingSession()) {
+        <app-add-training-session-to-personal-queue-button [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-personal-queue-button>
+      }
+      <div class="training-session-details-container" (click)="onSelectTrainingSession()">
+        <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
+        <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
+      </div>
     </div>
   </div>
-</div>
-
-<ng-template #compressedDisplay>
+} @else {
   <div class="training-session-details-container">
     <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
     <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
   </div>
-</ng-template>
+}
+

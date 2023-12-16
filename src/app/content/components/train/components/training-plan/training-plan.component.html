@@ -2,24 +2,34 @@
   <button mat-icon-button class="back-button" (click)="onNavigateUserToBrowse()">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <div class="plan-details-container" *ngIf="$localTrainingPlan() as trainingPlan">
-    <div class="plan-title-container">
-      <div class="plan-title">{{ trainingPlan.title }}</div>
-      <div class="edit-plan-button-container" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id)">
-        <mat-icon (click)="onEditTrainingPlan()">edit</mat-icon>
+  @if ($localTrainingPlan(); as trainingPlan) {
+    <div class="plan-details-container">
+      <div class="plan-title-container">
+        <div class="plan-title">{{ trainingPlan.title }}</div>
+        @if (((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id)) {
+          <div class="edit-plan-button-container">
+            <mat-icon (click)="onEditTrainingPlan()">edit</mat-icon>
+          </div>
+        }
       </div>
+      <div class="session-count">{{ trainingPlan.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
     </div>
-    <div class="session-count">{{ trainingPlan.trainingSessionCount }} {{ TRAINING_SESSIONS_TEXT }}</div>
-  </div>
-  <ng-container *ngIf="$localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0">
+  }
+  @if ($localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0) {
     <app-add-training-plan-to-personal-queue [planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
-  </ng-container>
-  <div class="no-training-sessions-container" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0">
-    <div>{{ NO_TRAINING_SESSIONS_FOUND_BLURB }}</div>
-    <button class="add-training-session-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingSession()">
-      {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
-    </button>
-  </div>
+  }
+  @if (((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0) {
+    <div class="no-training-sessions-container">
+      <div>{{ NO_TRAINING_SESSIONS_FOUND_BLURB }}</div>
+      <button class="add-training-session-button" mat-raised-button color="primary" type="button" (click)="onAddTrainingSession()">
+        {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
+      </button>
+    </div>
+  }
 </div>
-<app-training-session-card *ngFor="let planSessionFragment of $localPlanSessionFragments()" [trainingSesssionData]="planSessionFragment"></app-training-session-card>
-<app-processing-spinner *ngIf="(fetchCombinedTrainingDataProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+@for (planSessionFragment of $localPlanSessionFragments(); track planSessionFragment) {
+  <app-training-session-card [trainingSesssionData]="planSessionFragment"></app-training-session-card>
+}
+@if ((fetchCombinedTrainingDataProcessing$ | async)) {
+  <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+}

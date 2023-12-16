@@ -1,9 +1,13 @@
 <div class="app-content">
   <router-outlet></router-outlet>
 </div>
-<app-processing-spinner *ngIf="uiService.$routeGuardProcessing()" [spinnerMessage]="VERIFYING_CREDENTIALS_SPINNER_MESSAGE"></app-processing-spinner>
+@if (uiService.$routeGuardProcessing()) {
+  <app-processing-spinner [spinnerMessage]="VERIFYING_CREDENTIALS_SPINNER_MESSAGE"></app-processing-spinner>
+}
 
-<app-nav-bar *ngIf="!uiService.$hideNavBar()"></app-nav-bar>
+@if (!uiService.$hideNavBar()) {
+  <app-nav-bar></app-nav-bar>
+}
 
 
 

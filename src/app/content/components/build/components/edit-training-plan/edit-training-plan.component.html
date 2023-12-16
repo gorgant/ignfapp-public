@@ -4,69 +4,88 @@
   </button>
 
   <div class="plan-details-container">
-    <div class="plan-title-container" *ngIf="$localTrainingPlan() as trainingPlanData" [ngClass]="$editTrainingPlanDetails() ? 'hide' : ''">
-      <div class="plan-title">{{ trainingPlanData.title }}</div>
-      <div class="edit-title-button-container" (click)="onEditTrainingPlanDetails()">
-        <mat-icon (click)="onEditTrainingPlanDetails()">edit</mat-icon>
+    @if ($localTrainingPlan(); as trainingPlanData) {
+      <div class="plan-title-container" [ngClass]="$editTrainingPlanDetails() ? 'hide' : ''">
+        <div class="plan-title">{{ trainingPlanData.title }}</div>
+        <div class="edit-title-button-container" (click)="onEditTrainingPlanDetails()">
+          <mat-icon (click)="onEditTrainingPlanDetails()">edit</mat-icon>
+        </div>
       </div>
-    </div>
+    }
 
     <form class="training-plan-form" [formGroup]="trainingPlanForm" [ngClass]="$editTrainingPlanDetails() ? '' : 'hide'">
-      
+
       <div class="form-title"> {{ $isNewPlan() ? CREATE_TRAINING_PLAN_TITLE_VALUE : EDIT_TRAINING_PLAN_TITLE_VALUE  }}</div>
-      
-      <div class="radio-group-container" *ngIf="$isNewPlan() && (userData$ | async)?.isAdmin">
-        <div class="visibility-category-title" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
-        <mat-radio-group [formControl]="visibilityCategory" >
-          
-          <mat-radio-button *ngFor="let visibilityCat of visibilityCategoryMasterList" [value]="visibilityCat.dbValue">
-            {{visibilityCat.uiValue}}
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-      
+
+      @if ($isNewPlan() && (userData$ | async)?.isAdmin) {
+        <div class="radio-group-container">
+          <div class="visibility-category-title" [matTooltip]="VISIBILITY_FIELD_TOOLTIP">{{ VISIBILITY_FIELD_VALUE }}</div>
+          <mat-radio-group [formControl]="visibilityCategory" >
+            @for (visibilityCat of visibilityCategoryMasterList; track visibilityCat) {
+              <mat-radio-button [value]="visibilityCat.dbValue">
+                {{visibilityCat.uiValue}}
+              </mat-radio-button>
+            }
+          </mat-radio-group>
+        </div>
+      }
+
       <mat-form-field class="edit-title-field">
         <mat-label>{{ TITLE_FIELD_VALUE }}</mat-label>
         <input class="edit-title-input" [formControl]="title" matInput type="text">
         <mat-hint>{{ title.value.length }}/{{ TITLE_MAX_LENGTH }}</mat-hint>
-        <mat-error *ngIf="title.invalid && (title.dirty || title.touched)">{{ titleErrorMessage }}</mat-error>
+        @if (title.invalid && (title.dirty || title.touched)) {
+          <mat-error>{{ titleErrorMessage }}</mat-error>
+        }
       </mat-form-field>
-    
+
       <div class="form-actions">
-        <button class="action-button" *ngIf="!(createTrainingPlanProcessing$ | async)" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
-          {{ $isNewPlan() ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
-        </button>
-        <button class="action-button" *ngIf="!(createTrainingPlanProcessing$ | async)" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
-          {{ CANCEL_BUTTON_VALUE }}
-        </button>
+        @if (!(createTrainingPlanProcessing$ | async)) {
+          <button class="action-button" [disabled]="!trainingPlanForm.valid" mat-raised-button color="primary" type="button" (click)="onSubmitTrainingPlanForm()">
+            {{ $isNewPlan() ? CREATE_TRAINING_PLAN_BUTTON_VALUE : SUBMIT_BUTTON_VALUE }}
+          </button>
+        }
+        @if (!(createTrainingPlanProcessing$ | async)) {
+          <button class="action-button" mat-stroked-button color="primary" type="button" (click)="onCancelTitleUpdate()">
+            {{ CANCEL_BUTTON_VALUE }}
+          </button>
+        }
       </div>
     </form>
   </div>
 
-  <div class="plan-sessions-container" *ngIf="!$deletePlanSessionFragmentCycleInit() && !$editTrainingPlanDetails() && $localTrainingPlan() && $localPlanSessionFragments()">
-    <div class="plan-actions-button-container">
-      <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onAddTrainingSession()">
-        {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
-      </button>
-      <button class="action-button" mat-stroked-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onDeleteTrainingPlan()">
-        {{ DELETE_TRAINING_PLAN_BUTTON_VALUE }}
-      </button>
-    </div>
-    <div class="no-training-sessions-message" *ngIf="((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0">
-      {{ NO_TRAINING_SESSIONS_FOUND_BLURB }}
-    </div>
-    <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
-      <div class="training-session-card-container drag-drop-item" cdkDrag *ngFor="let fragment of $localPlanSessionFragments()" [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
-        <div class="training-session-card-details">
-          <div class="drag-drop-icon-container" cdkDragHandle>
-            <mat-icon class="drag-drop-icon" (click)="onDragIconClick($event)">drag_indicator</mat-icon>
-          </div>
-          <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPlanSessionFragment(fragment)"></app-training-session-card>
-          <mat-icon class="delete-icon" (click)="onDeletePlanSessionFragment(fragment)">delete</mat-icon>
+  @if (!$deletePlanSessionFragmentCycleInit() && !$editTrainingPlanDetails() && $localTrainingPlan() && $localPlanSessionFragments()) {
+    <div class="plan-sessions-container">
+      <div class="plan-actions-button-container">
+        <button class="action-button" mat-raised-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onAddTrainingSession()">
+          {{ ADD_A_TRAINING_SESSION_BUTTON_VALUE }}
+        </button>
+        <button class="action-button" mat-stroked-button color="primary" type="button" [disabled]="(serverRequestProcessing$ | async) || $debounceActionPending()" (click)="onDeleteTrainingPlan()">
+          {{ DELETE_TRAINING_PLAN_BUTTON_VALUE }}
+        </button>
+      </div>
+      @if (((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0) {
+        <div class="no-training-sessions-message">
+          {{ NO_TRAINING_SESSIONS_FOUND_BLURB }}
         </div>
-        <div class="drop-placeholder" *cdkDragPlaceholder></div>
+      }
+      <div class="drag-drop-list" cdkDropList (cdkDropListDropped)="onListItemDrop($event)">
+        @for (fragment of $localPlanSessionFragments(); track fragment) {
+          <div class="training-session-card-container drag-drop-item" cdkDrag [cdkDragDisabled]="(serverRequestProcessing$ | async)" >
+            <div class="training-session-card-details">
+              <div class="drag-drop-icon-container" cdkDragHandle>
+                <mat-icon class="drag-drop-icon" (click)="onDragIconClick($event)">drag_indicator</mat-icon>
+              </div>
+              <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPlanSessionFragment(fragment)"></app-training-session-card>
+              <mat-icon class="delete-icon" (click)="onDeletePlanSessionFragment(fragment)">delete</mat-icon>
+            </div>
+            <div class="drop-placeholder" *cdkDragPlaceholder></div>
+          </div>
+        }
       </div>
     </div>
-  </div>
-  <app-processing-spinner *ngIf="(serverRequestProcessing$ | async)"></app-processing-spinner>
+  }
+  @if ((serverRequestProcessing$ | async)) {
+    <app-processing-spinner></app-processing-spinner>
+  }
 </div>

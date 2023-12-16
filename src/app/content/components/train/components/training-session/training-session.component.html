@@ -1,32 +1,62 @@
-<div class="component-container" *ngIf="!$deleteTrainingSessionCycleInit() && $combinedLocalTrainingSessionData() as sessionData">
-  
-  <div class="header-container" [ngClass]="videoInitialized() ? 'hide' : ''">
-    <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
+@if (!$deleteTrainingSessionCycleInit() && $combinedLocalTrainingSessionData(); as sessionData) {
+  <div class="component-container">
+    <div class="header-container" [ngClass]="videoInitialized() ? 'hide' : ''">
+      <img class="session-thumbnail" [src]="sessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
+    </div>
+    @if (!$trainingPlanBuilderRequest()) {
+      <app-training-session-video [ngClass]="videoInitialized() ? '' : 'hide'" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>
+    }
+    <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
+    @if (!$trainingPlanBuilderRequest()) {
+      <div class="actions-container">
+        @if (!videoInitialized() && (userData$ | async); as userData) {
+          <button class="action-button" mat-raised-button color="primary" (click)="onBeginTrainingSession(userData)">{{ START_NOW_BUTTON_VALUE }}</button>
+        }
+        @if (videoInitialized() && (userData$ | async); as userData) {
+          <button class="action-button" mat-raised-button color="primary" (click)="onCompleteTrainingSession(userData)">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
+        }
+        @if (!videoInitialized() && ($localCanonicalTrainingSession() || $localPlanSessionFragment())) {
+          <app-add-training-session-to-personal-queue-button class="action-button" [trainingSessionData]="$localCanonicalTrainingSession() || $localPlanSessionFragment()!" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
+        }
+        @if (!videoInitialized()) {
+          <button class="action-button" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
+        }
+        @if (videoInitialized() && !sessionPaused()) {
+          <button class="action-button" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
+        }
+        @if (videoInitialized() && sessionPaused()) {
+          <button class="action-button" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
+        }
+        @if (videoInitialized()) {
+          <button class="action-button" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
+        }
+        @if (!videoInitialized() && $localCanonicalTrainingSession() && ((userData$ | async)?.isAdmin || $localCanonicalTrainingSession()?.creatorId === (userData$ | async)?.id)) {
+          <button class="action-button" mat-stroked-button color="accent" (click)="onEditTrainingSession()">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
+        }
+        @if (!videoInitialized() && $localCanonicalTrainingSession() && ((userData$ | async)?.isAdmin || $localCanonicalTrainingSession()?.creatorId === (userData$ | async)?.id)) {
+          <button class="action-button" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ DELETE_TRAINING_SESSION_BUTTON_VALUE }}</button>
+        }
+        @if (!videoInitialized() && $localPlanSessionFragment() && ((userData$ | async)?.isAdmin || $localPlanSessionFragment()?.creatorId === (userData$ | async)?.id)) {
+          <button class="action-button" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_TRAINING_PLAN_BUTTON_VALUE }}</button>
+        }
+        @if (!videoInitialized() && $localPersonalSessionFragment()) {
+          <button class="action-button" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
+        }
+      </div>
+    }
+    @if ($trainingPlanBuilderRequest() && $localCanonicalTrainingSession()) {
+      <div class="actions-container">
+        <app-add-training-session-to-plan-button class="action-button" [trainingSessionData]="$localCanonicalTrainingSession()!" #addTrainingSessionToPlanButton></app-add-training-session-to-plan-button>
+        @if (!(addTrainingSessionToPlanButton.serverRequestProcessing$ | async)) {
+          <button class="action-button" mat-stroked-button color="primary" (click)="onNavigateToBrowseTrainingSessions()">{{ GO_BACK_BUTTON_VALUE }}</button>
+        }
+      </div>
+    }
   </div>
-
-  <app-training-session-video *ngIf="!$trainingPlanBuilderRequest()" [ngClass]="videoInitialized() ? '' : 'hide'" [trainingSessionData]="sessionData" #videoComponent></app-training-session-video>
-
-  <app-training-session-details [trainingSessionData]="sessionData" #detailsComponent></app-training-session-details>
-
-  <div class="actions-container" *ngIf="!$trainingPlanBuilderRequest()">
-    <button class="action-button" *ngIf="!videoInitialized() && (userData$ | async) as userData" mat-raised-button color="primary" (click)="onBeginTrainingSession(userData)">{{ START_NOW_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="videoInitialized() && (userData$ | async) as userData" mat-raised-button color="primary" (click)="onCompleteTrainingSession(userData)">{{ COMPLETE_TRAINING_BUTTON_VALUE }}</button>
-    <app-add-training-session-to-personal-queue-button class="action-button" *ngIf="!videoInitialized() && ($localCanonicalTrainingSession() || $localPlanSessionFragment())" [trainingSessionData]="$localCanonicalTrainingSession() || $localPlanSessionFragment()!" #addTrainingSessionToPersonalQueueButton></app-add-training-session-to-personal-queue-button>
-    <button class="action-button" *ngIf="!videoInitialized()" mat-button color="primary" backButton>{{ GO_BACK_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="videoInitialized() && !sessionPaused()" mat-stroked-button color="primary" (click)="onPauseTrainingSession()">{{ PAUSE_TRAINING_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="videoInitialized() && sessionPaused()" mat-stroked-button color="primary" (click)="onResumeTrainingSession()">{{ RESUME_TRAINING_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="videoInitialized()" mat-button color="primary" (click)="onCancelTrainingSession()">{{ CANCEL_TRAINING_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="!videoInitialized() && $localCanonicalTrainingSession() && ((userData$ | async)?.isAdmin || $localCanonicalTrainingSession()?.creatorId === (userData$ | async)?.id)" mat-stroked-button color="accent" (click)="onEditTrainingSession()">{{ EDIT_TRAINING_SESSION_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="!videoInitialized() && $localCanonicalTrainingSession() && ((userData$ | async)?.isAdmin || $localCanonicalTrainingSession()?.creatorId === (userData$ | async)?.id)" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ DELETE_TRAINING_SESSION_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="!videoInitialized() && $localPlanSessionFragment() && ((userData$ | async)?.isAdmin || $localPlanSessionFragment()?.creatorId === (userData$ | async)?.id)" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_TRAINING_PLAN_BUTTON_VALUE }}</button>
-    <button class="action-button" *ngIf="!videoInitialized() && $localPersonalSessionFragment()" mat-stroked-button color="warn" (click)="onDeleteTrainingSession()">{{ REMOVE_FROM_PERSONAL_QUEUE_BUTTON_VALUE }}</button>
-  </div>
-
-  <div *ngIf="$trainingPlanBuilderRequest() && $localCanonicalTrainingSession()" class="actions-container">
-    <app-add-training-session-to-plan-button class="action-button" [trainingSessionData]="$localCanonicalTrainingSession()!" #addTrainingSessionToPlanButton></app-add-training-session-to-plan-button>
-    <button class="action-button" *ngIf="!(addTrainingSessionToPlanButton.serverRequestProcessing$ | async)" mat-stroked-button color="primary" (click)="onNavigateToBrowseTrainingSessions()">{{ GO_BACK_BUTTON_VALUE }}</button>
-  </div>
-
-</div>
-<app-processing-spinner *ngIf="(combinedFetchTrainingSessionDataProcessing$ | async)" [spinnerMessage]="'Loading data...'" [spinnerMargin]="'64px 0 0 0'"></app-processing-spinner>
-<app-processing-spinner *ngIf="$deleteTrainingSessionCycleInit()" [spinnerMessage]=""></app-processing-spinner>
+}
+@if ((combinedFetchTrainingSessionDataProcessing$ | async)) {
+  <app-processing-spinner [spinnerMessage]="'Loading data...'" [spinnerMargin]="'64px 0 0 0'"></app-processing-spinner>
+}
+@if ($deleteTrainingSessionCycleInit()) {
+  <app-processing-spinner [spinnerMessage]=""></app-processing-spinner>
+}

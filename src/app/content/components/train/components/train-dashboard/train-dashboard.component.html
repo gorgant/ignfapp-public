@@ -1,5 +1,5 @@
 <div class="component-container">
-  
+
   <div class="queue-details-container" >
     <div class="queue-title-container">
       <div class="queue-title">{{ TRAINING_QUEUE_TITLE }}</div>
@@ -9,59 +9,60 @@
     </div>
     <div class="session-count">{{ (personalSessionFragments$ | async) ? (personalSessionFragments$ | async)!.length : 0 }} {{ TRAINING_SESSIONS_TEXT }}</div>
   </div>
-  
-  <div class="empty-message-container" *ngIf="(personalSessionFragments$ | async)?.length === 0">
-    <div class="empty-message">{{ QUEUE_IS_EMPTY_BLURB }}</div>
-    <button class="browse-button" button mat-stroked-button color="primary" (click)="onNavigateToBrowse()">{{ BROWSE_TRAINING_PLANS_BUTTON_VALUE }}</button>
-  </div>
+
+  @if ((personalSessionFragments$ | async)?.length === 0) {
+    <div class="empty-message-container">
+      <div class="empty-message">{{ QUEUE_IS_EMPTY_BLURB }}</div>
+      <button class="browse-button" button mat-stroked-button color="primary" (click)="onNavigateToBrowse()">{{ BROWSE_TRAINING_PLANS_BUTTON_VALUE }}</button>
+    </div>
+  }
 
 </div>
 
-<div class="queue-container" *ngIf="(personalSessionFragments$ | async) as personalSessionFragments">
-  <ng-container *ngIf="personalSessionFragments.length > 0">
-    
-    
-    <div class="up-next-overall-container mat-elevation-z5">
-      <div class="queue-header up-next">{{ UP_NEXT_HEADER_VALUE }}</div>
-      <!-- <div class="queue-header up-next">Next Session...</div> -->
-
-      <div class="up-next-content-container" *ngIf="(personalSessionFragments$ | async) as personalSessionFragments">
-        
-        <div class="up-next-image-and-title-container">
-          <img class="up-next-image" [src]="personalSessionFragments[0].videoData.thumbnailUrlLarge">
-          <div class="up-next-item-title">{{ personalSessionFragments[0].videoData.title }}</div>
-        </div>
-        
-        <div class="up-next-session-details-container">
-          <div class="up-next-details-item">
-            <mat-icon>accessibility_new</mat-icon>
-            <div class="muscle-group">{{ personalSessionFragments[0].muscleGroup | muscleGroupDbToUi }}</div>
+@if ((personalSessionFragments$ | async); as personalSessionFragments) {
+  <div class="queue-container">
+    @if (personalSessionFragments.length > 0) {
+      <div class="up-next-overall-container mat-elevation-z5">
+        <div class="queue-header up-next">{{ UP_NEXT_HEADER_VALUE }}</div>
+        <!-- <div class="queue-header up-next">Next Session...</div> -->
+        @if ((personalSessionFragments$ | async); as personalSessionFragments) {
+          <div class="up-next-content-container">
+            <div class="up-next-image-and-title-container">
+              <img class="up-next-image" [src]="personalSessionFragments[0].videoData.thumbnailUrlLarge">
+              <div class="up-next-item-title">{{ personalSessionFragments[0].videoData.title }}</div>
+            </div>
+            <div class="up-next-session-details-container">
+              <div class="up-next-details-item">
+                <mat-icon>accessibility_new</mat-icon>
+                <div class="muscle-group">{{ personalSessionFragments[0].muscleGroup | muscleGroupDbToUi }}</div>
+              </div>
+              <div class="up-next-details-item">
+                <mat-icon>schema</mat-icon>
+                <div class="complexity">{{ personalSessionFragments[0].complexityDefault | complexityDbToUi }}</div>
+              </div>
+              <div class="up-next-details-item">
+                <mat-icon>network_check</mat-icon>
+                <div class="intensity">{{ personalSessionFragments[0].intensityDefault | intensityDbToUi }}</div>
+              </div>
+              <div class="up-next-details-item">
+                <mat-icon>timer</mat-icon>
+                <div class="duration">{{ personalSessionFragments[0].videoData.durationIso | durationIsoToMmSs }}</div>
+              </div>
+            </div>
           </div>
-          <div class="up-next-details-item">
-            <mat-icon>schema</mat-icon>
-            <div class="complexity">{{ personalSessionFragments[0].complexityDefault | complexityDbToUi }}</div>
-          </div>
-          <div class="up-next-details-item">
-            <mat-icon>network_check</mat-icon>
-            <div class="intensity">{{ personalSessionFragments[0].intensityDefault | intensityDbToUi }}</div>
-          </div>
-          <div class="up-next-details-item">
-            <mat-icon>timer</mat-icon>
-            <div class="duration">{{ personalSessionFragments[0].videoData.durationIso | durationIsoToMmSs }}</div>
-          </div>
-        </div>
-
+        }
+        <button class="start-now-button" color="primary" mat-raised-button (click)="onSelectFirstTrainingSession(personalSessionFragments[0])">{{ START_NOW_BUTTON_VALUE }}</button>
       </div>
-      <button class="start-now-button" color="primary" mat-raised-button (click)="onSelectFirstTrainingSession(personalSessionFragments[0])">{{ START_NOW_BUTTON_VALUE }}</button>
-    </div>
+      <div class="training-session-card-container">
+        <div class="queue-header after-that">{{ AFTER_THAT_HEADER_VALUE }}</div>
+        @for (personalSessionFragment of personalSessionFragments; track personalSessionFragment; let isFirst = $first) {
+          <app-training-session-card [class.first-training-session-card]="isFirst" [trainingSesssionData]="personalSessionFragment"></app-training-session-card>
+        }
+      </div>
+    }
+  </div>
+}
 
-    
-    <div class="training-session-card-container">
-      <div class="queue-header after-that">{{ AFTER_THAT_HEADER_VALUE }}</div>
-      <app-training-session-card *ngFor="let personalSessionFragment of personalSessionFragments; let isFirst = first" [class.first-training-session-card]="isFirst" [trainingSesssionData]="personalSessionFragment"></app-training-session-card>
-    </div>
-  </ng-container>
-  
-</div>
-
-<app-processing-spinner *ngIf="(fetchAllPersonalSessionFragmentsProcessing$ | async)" [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+@if ((fetchAllPersonalSessionFragmentsProcessing$ | async)) {
+  <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+}

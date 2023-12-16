@@ -26,12 +26,14 @@
         <div class="session-details-item activity-categories-item">
           <div class="tags-title">{{ TAGS_TITLE_VALUE }}: </div>
           <div class="activity-categories">
-            <ng-container *ngFor="let activityCategory of trainingSessionData.activityCategoryList; last as lastCategory">
-              {{ activityCategory | activityCategoryDbToUi }}<span *ngIf="!lastCategory">,</span>
-            </ng-container>
-          </div>
+            @for (activityCategory of trainingSessionData.activityCategoryList; track activityCategory; let lastCategory = $last) {
+              {{ activityCategory | activityCategoryDbToUi }}@if (!lastCategory) {
+              <span>,</span>
+            }
+          }
         </div>
       </div>
-    </mat-expansion-panel>
-  </mat-accordion>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
 </div>

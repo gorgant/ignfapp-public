@@ -1,28 +1,24 @@
-<div class="component-container" *ngIf="(userData$ | async) as user">
-  
-  <div class="avatar-container">
-    <img class="avatar" [src]="user.avatarUrl ? user.avatarUrl : DEFAULT_PROFILE_IMAGE" >
-    <div class="display-name-text">
-      {{ user.displayName ? user.displayName : user.firstName }}
+@if ((userData$ | async); as user) {
+  <div class="component-container">
+    <div class="avatar-container">
+      <img class="avatar" [src]="user.avatarUrl ? user.avatarUrl : DEFAULT_PROFILE_IMAGE" >
+      <div class="display-name-text">
+        {{ user.displayName ? user.displayName : user.firstName }}
+      </div>
+    </div>
+    <div class="actions-container">
+      <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_STATS)">
+        <mat-icon class="item-icon">insights</mat-icon>
+        <span class="item-text">{{ STATS_BUTTON_VALUE }}</span>
+      </div>
+      <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_PROFILE)">
+        <mat-icon class="item-icon">badge</mat-icon>
+        <span class="item-text">{{ PROFILE_BUTTON_VALUE }}</span>
+      </div>
+      <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_SETTINGS)">
+        <mat-icon class="item-icon">settings</mat-icon>
+        <span class="item-text">{{ SETTINGS_BUTTON_VALUE }}</span>
+      </div>
     </div>
   </div>
-
-  <div class="actions-container">
-    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_STATS)">
-      <mat-icon class="item-icon">insights</mat-icon>
-      <span class="item-text">{{ STATS_BUTTON_VALUE }}</span>
-    </div>
-  
-    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_PROFILE)">
-      <mat-icon class="item-icon">badge</mat-icon>
-      <span class="item-text">{{ PROFILE_BUTTON_VALUE }}</span>
-    </div>
-  
-    <div class="action-item menu-item" (click)="onNavigateToAccountItem(PUBLIC_APP_ROUTES.ACCOUNT_SETTINGS)">
-      <mat-icon class="item-icon">settings</mat-icon>
-      <span class="item-text">{{ SETTINGS_BUTTON_VALUE }}</span>
-    </div>
-
-  </div>
-
-</div>
+}

@@ -1,21 +1,27 @@
 <div class="content-container">
-  <div class="processing-container" *ngIf="verificationOrUpdateProcessing$ | async">
-    <mat-spinner class="processing-spinner"></mat-spinner>
-    <p class="processing-message">
-      {{ CONFIRMING_EMAIL_BLURB }}
-    </p>
-  </div>
-  <div class="failure-container" *ngIf="verificationOrUpdateError$ | async">
-    <mat-icon class="failure-icon">cancel</mat-icon>
-    <p class="failure-message">
-      {{ VERIFICATION_FAILED_BLURB }}<span class="support-text">{{ SUPPORT_EMAIL }}</span>.
-    </p>
-  </div>
-  <div class="success-container" *ngIf="verificationOrUpdateSucceeded$ | async">
-    <mat-icon class="success-icon">check_circle_outline</mat-icon>
-    <p class="success-message">
-      {{ EMAIL_CONFIRMED_BLURB }}
-    </p>
-    <button mat-raised-button color="primary" (click)="onEnterApp()">Enter App</button>
-  </div>
+  @if (verificationOrUpdateProcessing$ | async) {
+    <div class="processing-container">
+      <mat-spinner class="processing-spinner"></mat-spinner>
+      <p class="processing-message">
+        {{ CONFIRMING_EMAIL_BLURB }}
+      </p>
+    </div>
+  }
+  @if (verificationOrUpdateError$ | async) {
+    <div class="failure-container">
+      <mat-icon class="failure-icon">cancel</mat-icon>
+      <p class="failure-message">
+        {{ VERIFICATION_FAILED_BLURB }}<span class="support-text">{{ SUPPORT_EMAIL }}</span>.
+      </p>
+    </div>
+  }
+  @if (verificationOrUpdateSucceeded$ | async) {
+    <div class="success-container">
+      <mat-icon class="success-icon">check_circle_outline</mat-icon>
+      <p class="success-message">
+        {{ EMAIL_CONFIRMED_BLURB }}
+      </p>
+      <button mat-raised-button color="primary" (click)="onEnterApp()">Enter App</button>
+    </div>
+  }
 </div>

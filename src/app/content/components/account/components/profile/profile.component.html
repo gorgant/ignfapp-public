@@ -1,35 +1,36 @@
-<div class="component-container" *ngIf="(userData$ | async) as user">
-  
-  <div class="actions-container">
-    <div class="action-item menu-item">
-      <div class="icon-container">
-        <img [src]="user.avatarUrl ? user.avatarUrl : defaultProfileImage" class="avatar">
+@if ((userData$ | async); as user) {
+  <div class="component-container">
+    <div class="actions-container">
+      <div class="action-item menu-item">
+        <div class="icon-container">
+          <img [src]="user.avatarUrl ? user.avatarUrl : defaultProfileImage" class="avatar">
+        </div>
+        <button class="edit-button" mat-button color="primary" (click)="onEditAvatar()">{{ EDIT_BUTTON_VALUE }}</button>
       </div>
-      <button class="edit-button" mat-button color="primary" (click)="onEditAvatar()">{{ EDIT_BUTTON_VALUE }}</button>
-    </div>
-    <div class="action-item menu-item" >
-      <div class="icon-container">
-        <mat-icon class="item-icon">face</mat-icon>
-        <span class="item-text">{{ user.firstName }} {{ user.lastName }}</span>
+      <div class="action-item menu-item" >
+        <div class="icon-container">
+          <mat-icon class="item-icon">face</mat-icon>
+          <span class="item-text">{{ user.firstName }} {{ user.lastName }}</span>
+        </div>
+        <button class="edit-button" mat-button color="primary" (click)="onEditName()">{{ EDIT_BUTTON_VALUE }}</button>
       </div>
-      <button class="edit-button" mat-button color="primary" (click)="onEditName()">{{ EDIT_BUTTON_VALUE }}</button>
-    </div>
-    <div class="action-item menu-item">
-      <div class="icon-container">
-        <mat-icon class="item-icon">mail</mat-icon>
-        <span class="item-text">{{ user.email }}</span>
+      <div class="action-item menu-item">
+        <div class="icon-container">
+          <mat-icon class="item-icon">mail</mat-icon>
+          <span class="item-text">{{ user.email }}</span>
+        </div>
+        <button class="edit-button" mat-button color="primary" (click)="onEditEmail()">{{ EDIT_BUTTON_VALUE }}</button>
       </div>
-      <button class="edit-button" mat-button color="primary" (click)="onEditEmail()">{{ EDIT_BUTTON_VALUE }}</button>
-    </div>
-    <div class="action-item menu-item">
-      <div class="icon-container">
-        <mat-icon class="item-icon">lock</mat-icon>
-        <span class="item-text"> ********* </span>
+      <div class="action-item menu-item">
+        <div class="icon-container">
+          <mat-icon class="item-icon">lock</mat-icon>
+          <span class="item-text"> ********* </span>
+        </div>
+        <button class="edit-button" mat-button color="primary" (click)="onEditPassword()">{{ EDIT_BUTTON_VALUE }}</button>
       </div>
-      <button class="edit-button" mat-button color="primary" (click)="onEditPassword()">{{ EDIT_BUTTON_VALUE }}</button>
-    </div>
-    <div class="action-item menu-item delete-account-container">
-      <button mat-stroked-button color="primary" class="delete-public-user-button" (click)="onDeletePublicUser()">{{ DELETE_PUBLIC_USER_BUTTON_VALUE }}</button>
+      <div class="action-item menu-item delete-account-container">
+        <button mat-stroked-button color="primary" class="delete-public-user-button" (click)="onDeletePublicUser()">{{ DELETE_PUBLIC_USER_BUTTON_VALUE }}</button>
+      </div>
     </div>
   </div>
-</div>
+}

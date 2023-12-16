@@ -1,16 +1,20 @@
 <div class="content-container">
-  
+
   <div class="dialogue-title">{{ SAVE_TRAINING_SESSION_TITLE_VALUE }}</div>
 
   <div class="training-session-summary-container">
     <div class="duration-container">
       <div class="form-field-label">{{ DURATION_TITLE_VALUE }}: </div>
-      <div class="duration-value" *ngIf="!editDuration()">
-        <div >{{ sessionCompletionData.sessionDuration | durationMsToMmSs }}</div>
-        <button *ngIf="!editDuration()" mat-button color="primary" (click)="onEditDuration()"> {{ EDIT_BUTTON_VALUE }}</button>
-      </div>
+      @if (!editDuration()) {
+        <div class="duration-value">
+          <div >{{ sessionCompletionData.sessionDuration | durationMsToMmSs }}</div>
+          @if (!editDuration()) {
+            <button mat-button color="primary" (click)="onEditDuration()"> {{ EDIT_BUTTON_VALUE }}</button>
+          }
+        </div>
+      }
       <form class="edit-duration-form" [ngClass]="!editDuration() ? 'hide' : ''" [formGroup]="trainingRecordForm">
-        
+
         <mat-form-field class="edit-duration-field">
           <mat-label>{{ HOURS_FIELD_VALUE }}</mat-label>
           <input class="edit-duration-input" [formControl]="hours" matInput type="number">
@@ -23,17 +27,21 @@
           <mat-label>{{ SECONDS_FIELD_VALUE }}</mat-label>
           <input class="edit-duration-input" [formControl]="seconds" matInput type="number">
         </mat-form-field>
-        <mat-error *ngIf="trainingRecordForm.invalid && (trainingRecordForm.dirty || trainingRecordForm.touched)">{{ trainingRecordFormErrorMessage }}</mat-error>
+        @if (trainingRecordForm.invalid && (trainingRecordForm.dirty || trainingRecordForm.touched)) {
+          <mat-error>{{ trainingRecordFormErrorMessage }}</mat-error>
+        }
 
       </form>
     </div>
-    
+
     <div class="slider-container">
       <div class="form-field-label">{{ COMPLEXITY_FIELD_VALUE }}</div>
       <mat-slider [min]="complexityMin" [max]="complexityMax" step="1" tickInterval="1" discrete="thumbLabel" showTickMarks="true">
         <input matSliderThumb [formControl]="complexityRating">
       </mat-slider>
-      <mat-error *ngIf="complexityRating.invalid && (complexityRating.dirty || complexityRating.touched)">{{ complexityRatingErrorMessage }}</mat-error>
+      @if (complexityRating.invalid && (complexityRating.dirty || complexityRating.touched)) {
+        <mat-error>{{ complexityRatingErrorMessage }}</mat-error>
+      }
     </div>
 
     <div class="slider-container">
@@ -41,15 +49,23 @@
       <mat-slider [min]="intensityMin" [max]="intensityMax" step="1" tickInterval="1" discrete="thumbLabel" showTickMarks="true">
         <input matSliderThumb [formControl]="intensityRating">
       </mat-slider>
-      <mat-error *ngIf="intensityRating.invalid && (intensityRating.dirty || intensityRating.touched)">{{ intensityRatingErrorMessage }}</mat-error>
+      @if (intensityRating.invalid && (intensityRating.dirty || intensityRating.touched)) {
+        <mat-error>{{ intensityRatingErrorMessage }}</mat-error>
+      }
     </div>
 
   </div>
 
   <div class="actions-container">
-    <button *ngIf="!(combinedCreateTrainingRecordProcessing$ | async)" [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
-    <button *ngIf="!(combinedCreateTrainingRecordProcessing$ | async)" mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    @if (!(combinedCreateTrainingRecordProcessing$ | async)) {
+      <button [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
+    }
+    @if (!(combinedCreateTrainingRecordProcessing$ | async)) {
+      <button mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
+    }
   </div>
-  <app-processing-spinner *ngIf="(combinedCreateTrainingRecordProcessing$ | async)"></app-processing-spinner>
+  @if ((combinedCreateTrainingRecordProcessing$ | async)) {
+    <app-processing-spinner></app-processing-spinner>
+  }
 
 </div>

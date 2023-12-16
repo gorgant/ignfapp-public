@@ -1,3 +1,7 @@
 <!-- This *ngIf logic ensures the button always shows for buttons that aren't being interacted with, whereas if it is button being clicked, it only shows if a server request isn't processing -->
-<button *ngIf="!$isActiveButton() || ($isActiveButton() && !(combinedAddTrainingPlanToQueueProcessing$ | async))" [disabled]="(combinedAddTrainingPlanToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onBatchAddTrainingSessionsToQueue()">+ {{ ADD_PLAN_TO_MY_QUEUE_BUTTON_VALUE }}</button>
-<app-processing-spinner *ngIf="$isActiveButton() && (combinedAddTrainingPlanToQueueProcessing$ | async)" [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>
+@if (!$isActiveButton() || ($isActiveButton() && !(combinedAddTrainingPlanToQueueProcessing$ | async))) {
+  <button [disabled]="(combinedAddTrainingPlanToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onBatchAddTrainingSessionsToQueue()">+ {{ ADD_PLAN_TO_MY_QUEUE_BUTTON_VALUE }}</button>
+}
+@if ($isActiveButton() && (combinedAddTrainingPlanToQueueProcessing$ | async)) {
+  <app-processing-spinner [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>
+}
