@@ -80,13 +80,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "ignfapp-public:build:production"
+              "buildTarget": "ignfapp-public:build:production"
             },
             "development": {
-              "browserTarget": "ignfapp-public:build:development"
+              "buildTarget": "ignfapp-public:build:development"
             },
             "local": {
-              "browserTarget": "ignfapp-public:build:local"
+              "buildTarget": "ignfapp-public:build:local"
             }
           },
           "defaultConfiguration": "local"
@@ -94,7 +94,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ignfapp-public:build"
+            "buildTarget": "ignfapp-public:build"
           }
         },
         "test": {
