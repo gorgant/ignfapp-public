@@ -210,7 +210,7 @@ export class TrainingSessionService {
 
   fetchSingleTrainingSession(trainingSessionId: string, userId: string, visibilityCategory: TrainingSessionVisibilityCategoryDbOption): Observable<CanonicalTrainingSession> {
     const isPublicTrainingSession = visibilityCategory === TrainingSessionVisibilityCategoryDbOption.PUBLIC;
-    let trainingSession: Observable<CanonicalTrainingSession>;
+    let trainingSession: Observable<CanonicalTrainingSession | undefined>;
 
     if (isPublicTrainingSession) {
       trainingSession = docData(this.getPublicTrainingSessionDoc(trainingSessionId));

@@ -292,7 +292,7 @@ export class PlanSessionFragmentService {
 
   fetchSinglePlanSessionFragment(trainingPlanId: string, planSessionFragmentId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<PlanSessionFragment> {
     const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
-    let planSessionFragment: Observable<PlanSessionFragment>;
+    let planSessionFragment: Observable<PlanSessionFragment | undefined>;
 
     if (isPublicTrainingPlan) {
       planSessionFragment = docData(this.getPublicPlanSessionFragmentDoc(trainingPlanId, planSessionFragmentId));

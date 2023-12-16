@@ -206,7 +206,7 @@ export class TrainingPlanService {
 
   fetchSingleTrainingPlan(trainingPlanId: string, userId: string, visibilityCategory: TrainingPlanVisibilityCategoryDbOption): Observable<TrainingPlan> {
     const isPublicTrainingPlan = visibilityCategory === TrainingPlanVisibilityCategoryDbOption.PUBLIC;
-    let trainingPlan: Observable<TrainingPlan>;
+    let trainingPlan: Observable<TrainingPlan | undefined>;
 
     if (isPublicTrainingPlan) {
       trainingPlan = docData(this.getPublicTrainingPlanDoc(trainingPlanId));
