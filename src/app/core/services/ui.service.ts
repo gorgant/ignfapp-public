@@ -11,6 +11,7 @@ import { AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVi
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { DeviceOSType } from 'shared-models/user-interface/device-os-types.model';
+import { SwUpdate } from '@angular/service-worker';
 
 
 @Injectable({
@@ -25,8 +26,6 @@ export class UiService {
   private $privateDeviceOS = signal('' as  DeviceOSType)
   private window: Window;
 
-  // private $snackBarData = signal(undefined as ViewTrainingPlanUrlParams | undefined);
-
   private snackbar = inject(MatSnackBar);
   private breakpointObserver = inject(BreakpointObserver);
   private router = inject(Router);
@@ -34,6 +33,7 @@ export class UiService {
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private deviceDetector = inject(DeviceDetectorService);
+  private swUpdate = inject(SwUpdate)
 
   constructor() {
     this.monitorScreenSize();
@@ -41,6 +41,22 @@ export class UiService {
     this.monitorNavigationHistory();
     this.monitorDeviceOS();
     this.window = this.document.defaultView as Window;
+  }
+
+  checkForAppUpdates() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(
+          tap((event) => {
+            console.log('Service worker version event detected', event);
+            if (event.type === 'VERSION_READY') {
+              if (confirm("A new version of IgnyteFit is available. Load New Version?")) {
+                this.window.location.reload();
+              }
+            }
+          })
+        )
+    }
   }
 
   showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS) {

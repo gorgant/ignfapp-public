@@ -29,40 +29,56 @@ import { TrainingRecordStoreEffects } from './app/root-store/training-record-sto
 import { TrainingSessionStoreEffects } from './app/root-store/training-session-store/effects';
 import { provideServiceWorker } from '@angular/service-worker';
 
-// TODO: Check if angularfire modules can be provided outside the importProvidersFrom
 bootstrapApplication(AppComponent, {
     providers: [
-    provideRouter(APP_ROUTES),
-    importProvidersFrom(provideFirebaseApp(() => initializeApp(environment.firebase)), provideAppCheck(() => initializeAppCheck(getApp(), {
-        provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
-        isTokenAutoRefreshEnabled: true
-    })), provideFirestore(() => getFirestore()), provideAnalytics(() => getAnalytics()), provideAuth(() => getAuth()), provideFunctions(() => getFunctions()), providePerformance(() => getPerformance()), provideRemoteConfig(() => getRemoteConfig()), provideStorage(() => getStorage())),
-    provideStore(reducers, {
-        metaReducers,
-        runtimeChecks: {
-            strictStateSerializability: true,
-            strictActionSerializability: false,
-            strictActionTypeUniqueness: true,
-        }
-    }),
-    provideEffects([
-        AuthStoreEffects,
-        PersonalSessionFragmentStoreEffects,
-        PlanSessionFragmentStoreEffects,
-        TrainingPlanStoreEffects,
-        TrainingRecordStoreEffects,
-        TrainingSessionStoreEffects,
-        UserStoreEffects,
-    ]),
-    provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }),
-    provideRouterStore(),
-    ScreenTrackingService,
-    UserTrackingService,
-    provideAnimations(),
-    provideServiceWorker('ngsw-worker.js', {
-        enabled: !isDevMode(),
-        registrationStrategy: 'registerWhenStable:30000'
-    })
-]
+        provideRouter(APP_ROUTES),
+        importProvidersFrom(
+            // Firestore providers
+            provideFirebaseApp(() => initializeApp(environment.firebase)), 
+            provideAppCheck(() => initializeAppCheck(
+                getApp(), 
+                {
+                    provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
+                    isTokenAutoRefreshEnabled: true
+                }
+            )), 
+            provideFirestore(() => getFirestore()), 
+            provideAnalytics(() => getAnalytics()), 
+            provideAuth(() => getAuth()), 
+            provideFunctions(() => getFunctions()), 
+            providePerformance(() => getPerformance()), 
+            provideRemoteConfig(() => getRemoteConfig()), 
+            provideStorage(() => getStorage())
+        ),
+        
+        // NgRx providers
+        provideStore(reducers, {
+            metaReducers,
+            runtimeChecks: {
+                strictStateSerializability: true,
+                strictActionSerializability: false,
+                strictActionTypeUniqueness: true,
+            }
+        }),
+        provideEffects([
+            AuthStoreEffects,
+            PersonalSessionFragmentStoreEffects,
+            PlanSessionFragmentStoreEffects,
+            TrainingPlanStoreEffects,
+            TrainingRecordStoreEffects,
+            TrainingSessionStoreEffects,
+            UserStoreEffects,
+        ]),
+        provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }),
+        provideRouterStore(),
+
+        ScreenTrackingService,
+        UserTrackingService,
+        provideAnimations(),
+        provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+        })
+    ]
 })
   .catch(err => console.error(err));

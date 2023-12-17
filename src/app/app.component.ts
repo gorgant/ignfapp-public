@@ -22,6 +22,7 @@ export class AppComponent implements OnInit {
   
   ngOnInit(): void {
     this.configureAppCheck();
+    this.uiService.checkForAppUpdates();
   }
 
   private configureAppCheck() {
