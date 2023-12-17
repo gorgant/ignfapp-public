@@ -19,7 +19,7 @@ import { SwUpdate } from '@angular/service-worker';
 })
 export class UiService {
 
-  private APP_VERSION = '0.2.5';
+  private APP_VERSION = '0.2.6';
 
   private history: string[] = [];
   private $privateHideNavBar = signal(true);
