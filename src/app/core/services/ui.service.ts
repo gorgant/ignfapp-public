@@ -19,6 +19,8 @@ import { SwUpdate } from '@angular/service-worker';
 })
 export class UiService {
 
+  private APP_VERSION = '0.2.5';
+
   private history: string[] = [];
   private $privateHideNavBar = signal(true);
   private $privateRouteGuardProcessing = signal(false); // Accessed by route guards to update UI loading symbol
@@ -57,6 +59,10 @@ export class UiService {
           })
         )
     }
+  }
+
+  get appVersion() {
+    return this.APP_VERSION;
   }
 
   showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS) {

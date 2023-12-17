@@ -10,6 +10,7 @@ export enum GlobalFieldValues {
   ADD_TO_PLAN = `Add to Plan`,
   ADD_TO_MY_QUEUE = `Add to My Queue`,
   AFTER_THAT = `After That...`,
+  APP_VERSION = `App Version`,
   AUTH_PERSONALIZED_WORKOUTS = `Personalized Workout Plans`,
   BACK_TO_DASHBOARD = `Back to Dashboard`,
   BEGIN_TRAINING = `Begin Training`,
