@@ -1,4 +1,4 @@
-import { importProvidersFrom } from '@angular/core';
+import { importProvidersFrom, isDevMode } from '@angular/core';
 import { AppComponent } from './app/app.component';
 import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideRemoteConfig, getRemoteConfig } from '@angular/fire/remote-config';
@@ -27,52 +27,42 @@ import { PlanSessionFragmentStoreEffects } from './app/root-store/plan-session-f
 import { TrainingPlanStoreEffects } from './app/root-store/training-plan-store/effects';
 import { TrainingRecordStoreEffects } from './app/root-store/training-record-store/effects';
 import { TrainingSessionStoreEffects } from './app/root-store/training-session-store/effects';
+import { provideServiceWorker } from '@angular/service-worker';
 
 // TODO: Check if angularfire modules can be provided outside the importProvidersFrom
 bootstrapApplication(AppComponent, {
     providers: [
-        provideRouter(APP_ROUTES),
-        importProvidersFrom(
-            provideFirebaseApp(() => initializeApp(environment.firebase)), 
-            provideAppCheck(() => initializeAppCheck(
-                getApp(), {
-                    provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
-                    isTokenAutoRefreshEnabled: true
-                }
-            )), 
-            provideFirestore(() => getFirestore()), 
-            provideAnalytics(() => getAnalytics()), 
-            provideAuth(() => getAuth()), 
-            provideFunctions(() => getFunctions()), 
-            providePerformance(() => getPerformance()), 
-            provideRemoteConfig(() => getRemoteConfig()), 
-            provideStorage(() => getStorage()), 
-        ),
-        provideStore(
-            reducers,
-            { 
-                metaReducers,
-                runtimeChecks: {
-                    strictStateSerializability: true,
-                    strictActionSerializability: false, // Disabled bc need to move files like avatar image through store
-                    strictActionTypeUniqueness: true,
-                }
-            }
-        ),
-        provideEffects([
-            AuthStoreEffects,
-            PersonalSessionFragmentStoreEffects,
-            PlanSessionFragmentStoreEffects,
-            TrainingPlanStoreEffects,
-            TrainingRecordStoreEffects,
-            TrainingSessionStoreEffects,
-            UserStoreEffects,
-        ]),
-        provideStoreDevtools({ maxAge: 25, logOnly: !environment.production}),
-        provideRouterStore(),
-        ScreenTrackingService, 
-        UserTrackingService,
-        provideAnimations(),
-    ]
+    provideRouter(APP_ROUTES),
+    importProvidersFrom(provideFirebaseApp(() => initializeApp(environment.firebase)), provideAppCheck(() => initializeAppCheck(getApp(), {
+        provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
+        isTokenAutoRefreshEnabled: true
+    })), provideFirestore(() => getFirestore()), provideAnalytics(() => getAnalytics()), provideAuth(() => getAuth()), provideFunctions(() => getFunctions()), providePerformance(() => getPerformance()), provideRemoteConfig(() => getRemoteConfig()), provideStorage(() => getStorage())),
+    provideStore(reducers, {
+        metaReducers,
+        runtimeChecks: {
+            strictStateSerializability: true,
+            strictActionSerializability: false,
+            strictActionTypeUniqueness: true,
+        }
+    }),
+    provideEffects([
+        AuthStoreEffects,
+        PersonalSessionFragmentStoreEffects,
+        PlanSessionFragmentStoreEffects,
+        TrainingPlanStoreEffects,
+        TrainingRecordStoreEffects,
+        TrainingSessionStoreEffects,
+        UserStoreEffects,
+    ]),
+    provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }),
+    provideRouterStore(),
+    ScreenTrackingService,
+    UserTrackingService,
+    provideAnimations(),
+    provideServiceWorker('ngsw-worker.js', {
+        enabled: !isDevMode(),
+        registrationStrategy: 'registerWhenStable:30000'
+    })
+]
 })
   .catch(err => console.error(err));
