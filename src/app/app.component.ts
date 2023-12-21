@@ -14,7 +14,6 @@ import { NavBarComponent } from "./navigation/components/nav-bar/nav-bar.compone
 })
 export class AppComponent implements OnInit {
   TITLE = 'ignfapp-public';
-  APP_VERSION = '0.2.5'
 
   VERIFYING_CREDENTIALS_SPINNER_MESSAGE = GlobalFieldValues.VERIFYING_CREDENTIALS;
 

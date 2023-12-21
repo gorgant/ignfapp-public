@@ -1,0 +1,32 @@
+@import "../../variables";
+
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+}
+
+.auth-user-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.input-icon {
+  vertical-align: bottom;
+  padding-right: 8px;
+}
+
+.submit-button {
+  margin-top: 24px;
+  width: $mobile-button-width;
+}

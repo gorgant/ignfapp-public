@@ -1,0 +1,10 @@
+@import '../../variables';
+
+mat-tab-group {
+  width: 100%;
+  padding-bottom: 16px;
+}
+
+app-browse-training-sessions, app-browse-training-plans {
+  width: 100%;
+}

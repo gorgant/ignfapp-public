@@ -1,0 +1,86 @@
+@import '../../../variables';
+@include edit-training-plan-drag-drop();
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: $desktop-screen-width;
+}
+
+.back-button {
+  margin-top: 32px;
+  margin-left: 16px;
+  display: flex;
+  align-self: flex-start;
+}
+
+.drag-drop-list {
+  margin-top: 32px;
+  width: 100%;
+  max-width: $desktop-button-width;
+}
+
+.training-session-card-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.training-session-card-container {
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.drag-drop-icon-container {
+  flex: 15;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-drop-icon {
+  @include md-icon-size($size: 28px);
+}
+
+.delete-icon {
+  flex: 10;
+  
+  opacity: 0.3;
+  @include md-icon-size($size: 26px);
+  text-align: center;
+}
+
+app-training-session-card {
+  display: flex;
+  flex-direction: column;
+  flex: 75;
+}
+
+.queue-empty-message {
+  @include default-text-style();
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  gap: 16px;
+}
+
+.clear-queue-button, .browse-button {
+  width: $mobile-button-width;
+}
+
+.progress-spinner-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

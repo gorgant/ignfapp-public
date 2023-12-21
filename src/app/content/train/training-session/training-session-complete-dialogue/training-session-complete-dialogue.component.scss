@@ -1,0 +1,102 @@
+@import '../../../../variables';
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0 32px;
+  
+  margin-top: 32px;
+}
+
+.dialogue-title {
+  @include default-header-style($font-weight-regular);
+}
+
+.training-session-summary-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 40px;
+
+  width: 100%;
+  margin-top: 64px;
+}
+
+.duration-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+}
+
+.form-field-label {
+  font-weight: $font-weight-medium;
+  font-size: 1.2em;
+}
+
+.duration-value {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  font-size: 1.2em;
+  font-weight: $font-weight-light;
+}
+
+.edit-duration-form {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.edit-duration-field {
+  width: 64px;
+}
+
+.edit-duration-input {
+  text-align: center;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+
+  width: 100%;
+}
+
+mat-slider {
+  width: 90%;
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  
+  margin-top: 24px;
+  width: 100%;
+}
+
+button {
+  width: 100%;
+  max-width: $desktop-button-width;
+}
+
+.hide {
+  display: none;
+}

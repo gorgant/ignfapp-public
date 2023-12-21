@@ -1,0 +1,44 @@
+@import '../../../variables';
+
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-container {
+  width: 100%;
+}
+
+.session-thumbnail {
+  width: 100%;
+}
+
+app-training-session-details {
+  width: 100%;
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+}
+
+.action-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}
+
+app-processing-spinner {
+  margin-top: 32px;
+}
+
+.hide {
+  display: none;
+}

@@ -1,0 +1,54 @@
+@import '../../../../variables';
+
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.accordion {
+  width: 100%;
+}
+
+.session-details {
+  width: 100%;
+}
+
+mat-expansion-panel {
+  margin: 0 8px;
+  padding: 16px 0;
+}
+
+.session-title {
+  @include default-header-style($font-weight-light);
+}
+
+.session-details-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.session-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  margin-top: 16px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.activity-categories-item {
+  margin-top: 32px;
+}
+
+.tags-title {
+  font-weight: $font-weight-medium;
+}

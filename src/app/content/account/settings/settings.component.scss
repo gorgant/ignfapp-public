@@ -1,0 +1,20 @@
+@import '../../../variables';
+
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 32px;
+
+  margin-top: 32px;
+}
+
+.settings-title {
+  @include default-header-style();
+  margin-bottom: 32px;
+}
+
+.logout-button {
+  width: $mobile-button-width;
+}

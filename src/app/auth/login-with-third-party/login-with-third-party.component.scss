@@ -1,0 +1,29 @@
+@import "../../variables";
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.google-button, .facebook-button {
+  margin-top: 16px;
+  width: $mobile-button-width;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.facebook-button {
+  background-color: #4267B2;
+  color: white;
+  // These are required to override the default button theme colors
+  --mdc-protected-button-container-color: #4267B2 !important;
+  --mdc-protected-button-label-text-color: white;
+}
+
+.mat-icon {
+  margin-right: 8px;
+}
+
