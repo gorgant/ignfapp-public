@@ -20,7 +20,7 @@ const getFetchSingleTrainingRecordProcessing = (state: TrainingRecordState) => s
 const getUpdateTrainingRecordError = (state: TrainingRecordState) => state.updateTrainingRecordError;
 const getUpdateTrainingRecordProcessing = (state: TrainingRecordState) => state.updateTrainingRecordProcessing;
 
-export const selectAllRecordsInStore: (state: object) => TrainingRecord[] = createSelector(
+export const selectAllTrainingRecordsInStore: (state: object) => TrainingRecord[] = createSelector(
   selectTrainingRecordState,
   fromTrainingRecords.selectAll
 );

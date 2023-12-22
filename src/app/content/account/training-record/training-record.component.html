@@ -1,0 +1,35 @@
+<div class="component-container">
+  @if ($localTrainingRecord() && !$deleteTrainingRecordCycleInit()) {
+    <img class="session-thumbnail" [src]="$localTrainingRecord()!.trainingSessionData.videoData.thumbnailUrlLarge" alt="Session thumbnail image">
+    <div class="session-details-container">
+      <div class="session-title"> {{ $localTrainingRecord()!.trainingSessionData.videoData.title }}</div>
+      <div class="session-details-item">
+        <mat-icon>schema</mat-icon>
+        <div class="complexity">{{ $localTrainingRecord()!.complexityRating | complexityDbToUi }}</div>
+      </div>
+      <div class="session-details-item">
+        <mat-icon>network_check</mat-icon>
+        <div class="intensity">{{ $localTrainingRecord()!.intensityRating | intensityDbToUi }}</div>
+      </div>
+      <div class="session-details-item">
+        <mat-icon>timer</mat-icon>
+        <div class="duration">{{ $localTrainingRecord()!.duration | durationMsToMmSs }}</div>
+      </div>
+      <div class="session-details-item">
+        <mat-icon>calendar_month</mat-icon>
+        <div class="duration">{{ $localTrainingRecord()!.createdTimestamp | date: 'mediumDate' }}</div>
+      </div>
+    </div>
+    <div class="actions-container">
+      <button class="action-button" mat-raised-button color="primary" (click)="onEditTrainingRecord()">{{ EDIT_TRAINING_RECORD_BUTTON_VALUE }}</button>
+      <app-add-training-session-to-personal-queue-button class="action-button" [trainingSessionData]="$localTrainingRecord()!.trainingSessionData"></app-add-training-session-to-personal-queue-button>
+      <button class="action-button" mat-button color="primary" (click)="onDeleteTrainingRecord()">{{ DELETE_TRAINING_RECORD_BUTTON_VALUE }}</button>
+    </div>
+  } @else {
+    <app-processing-spinner [spinnerMessage]="'Loading data...'" [spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
+  }
+
+  @if ($deleteTrainingRecordCycleInit()) {
+    <app-processing-spinner [spinnerMessage]="'Deleting record...'" [spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
+  }
+</div>

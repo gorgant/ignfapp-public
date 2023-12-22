@@ -3,6 +3,8 @@ export enum PublicAppRoutes {
   ACCOUNT_PROFILE = '/account/profile',
   ACCOUNT_SETTINGS = '/account/settings',
   ACCOUNT_STATS = '/account/stats',
+  ACCOUNT_TRAINING_HISTORY = '/account/training-history',
+  ACCOUNT_TRAINING_RECORD = '/account/training-record',
   AUTH_EMAIL_VERIFICATION = '/auth/email-verification',
   AUTH_LOGIN = '/auth/login',
   AUTH_SIGNUP = '/auth/signup',

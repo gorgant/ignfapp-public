@@ -1,0 +1,55 @@
+@import '../../../variables';
+
+.component-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.session-thumbnail {
+  width: 100%;
+}
+
+
+.session-details-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+
+  padding: 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.session-title {
+  @include default-header-style($font-weight-light);
+  margin-bottom: 16px;
+}
+
+.session-details-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+}
+
+.action-button {
+  width: $mobile-button-width;
+  max-width: $desktop-button-width;
+}

@@ -1,0 +1,38 @@
+<div class="component-container">
+
+  @if (trainingRecords$ | async; as trainingRecordList) {
+    <div class="training-history-details-container">
+      <div class="training-history-title">{{ TRAINING_HISTORY_TITLE }}</div>
+      <div class="record-count">{{ trainingRecordList.length || 0 }} {{ TRAINING_RECORDS_TEXT }}</div>
+    </div>
+  
+    @if (trainingRecordList.length === 0) {
+      <div class="empty-message-container">
+        <div class="empty-message">{{ NO_TRAINING_RECORDS_BLURB }}</div>
+        <button class="train-button" button mat-stroked-button color="primary" (click)="onNavigateToTrain()">{{ VIEW_MY_QUEUE_BUTTON_VALUE }}</button>
+      </div>
+    } @else {
+      <div class="training-record-list-container">
+        @for (trainingRecord of trainingRecordList; track trainingRecord) {
+          <div class="training-record-item" (click)="onSelectTrainingRecord(trainingRecord.id)">
+            <div class="training-record-thumbnail-container">
+              <img class="training-record-thumbnail" [src]="trainingRecord.trainingSessionData.videoData.thumbnailUrlLarge" alt="">
+            </div>
+            <div class="training-record-details-container">
+              <div class="training-record-title">{{ trainingRecord.trainingSessionData.videoData.title }}</div>
+              <div class="date-and-duration-container">
+                <div class="date training-record-subtext">{{ trainingRecord.createdTimestamp | date: 'mediumDate' }}</div>
+                <div> &#8226;</div>
+                <div class="duration training-record-subtext">{{ trainingRecord.duration | durationMsToMmSs }}</div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+    
+  } @else { 
+    <app-processing-spinner [spinnerMessage]="'Fetching data...'" [spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
+  }
+
+</div>

@@ -3,7 +3,6 @@ import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angu
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingRecordFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSessionCompletionData, TrainingRecordKeys, TrainingRecordNoIdOrTimestamp } from 'shared-models/train/training-record.model';
 import { PersonalSessionFragmentStoreActions, PersonalSessionFragmentStoreSelectors, TrainingRecordStoreActions, TrainingRecordStoreSelectors, TrainingSessionStoreActions, TrainingSessionStoreSelectors } from 'src/app/root-store';
 import { Duration, DurationLikeObject } from 'luxon';
@@ -46,10 +45,10 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   SAVE_TRAINING_SESSION_TITLE_VALUE = GlobalFieldValues.SAVE_TRAINING_SESSION_TITLE;
   SECONDS_FIELD_VALUE = GlobalFieldValues.SECONDS_SHORT;
 
-  intensityMin = TrainingSessionFormVars.complexityMin;
-  intensityMax = TrainingSessionFormVars.complexityMax;
-  complexityMin = TrainingSessionFormVars.complexityMin;
-  complexityMax = TrainingSessionFormVars.complexityMax;
+  readonly intensityMin = TrainingSessionFormVars.complexityMin;
+  readonly intensityMax = TrainingSessionFormVars.complexityMax;
+  readonly complexityMin = TrainingSessionFormVars.complexityMin;
+  readonly complexityMax = TrainingSessionFormVars.complexityMax;
 
   private trainingRecordFormStatusSubscription!: Subscription;
 
@@ -90,7 +89,7 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
   editDuration = signal(false);
 
   private dialogRef = inject(MatDialogRef<TrainingSessionCompleteDialogueComponent>);
-  public sessionCompletionData: TrainingSessionCompletionData = inject(MAT_DIALOG_DATA);
+  sessionCompletionData: TrainingSessionCompletionData = inject(MAT_DIALOG_DATA);
   private store$ = inject(Store);
   private uiService = inject(UiService);
   private fb = inject(FormBuilder);
@@ -457,13 +456,13 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
     const updatedDuration = Duration.fromObject(hmsObject).toMillis();
 
     const trainingRecordNoId: TrainingRecordNoIdOrTimestamp = {
-      complexityRating: this.complexityRating.value,
-      duration: updatedDuration,
-      intensityRating: this.intensityRating.value,
-      trainingSessionData: this.sessionCompletionData.trainingSession,
-      creatorId: userId,
+      [TrainingRecordKeys.COMPLEXITY_RATING]: this.complexityRating.value,
+      [TrainingRecordKeys.DURATION]: updatedDuration,
+      [TrainingRecordKeys.INTENSITY_RATING]: this.intensityRating.value,
+      [TrainingRecordKeys.TRAINING_SESSION_DATA]: this.sessionCompletionData.trainingSession,
+      [TrainingRecordKeys.CREATOR_ID]: userId,
     };
-    console.log('Training session record data', trainingRecordNoId);
+    console.log('New trainingRecord', trainingRecordNoId);
 
     const sessionRating: TrainingSessionRatingNoIdOrTimestamp = {
       complexityRating: this.complexityRating.value,
@@ -473,7 +472,7 @@ export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestr
       trainingSessionVisibilityCategory: this.sessionCompletionData.trainingSession[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
       userId: this.sessionCompletionData.userId,
     };
-    console.log('sessionRating generated', sessionRating);
+    console.log('New sessionRating', sessionRating);
 
     return [trainingRecordNoId, sessionRating];
   }

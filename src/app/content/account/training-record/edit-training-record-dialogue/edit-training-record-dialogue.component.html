@@ -1,13 +1,13 @@
 <div class="content-container">
 
-  <div class="dialogue-title">{{ SAVE_TRAINING_SESSION_TITLE_VALUE }}</div>
+  <div class="dialogue-title">{{ UPDATE_TRAINING_RECORD_TITLE_VALUE }}</div>
 
-  <div class="training-session-summary-container">
+  <div class="training-record-summary-container">
     <div class="duration-container">
       <div class="form-field-label">{{ DURATION_TITLE_VALUE }}: </div>
       @if (!editDuration()) {
         <div class="duration-value">
-          <div >{{ sessionCompletionData.sessionDuration | durationMsToMmSs }}</div>
+          <div >{{ trainingRecordData.duration | durationMsToMmSs }}</div>
           <button mat-button color="primary" (click)="onEditDuration()"> {{ EDIT_BUTTON_VALUE }}</button>
         </div>
       } @else {
@@ -54,8 +54,8 @@
   </div>
 
   <div class="actions-container">
-    @if (!(combinedCreateTrainingRecordProcessing$ | async)) {
-      <button [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onSubmitTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
+    @if (!(updateTrainingRecordProcessing$ | async)) {
+      <button [disabled]="trainingRecordForm.invalid" mat-raised-button color="primary" (click)="onUpdateTrainingRecord()">{{ SAVE_BUTTON_VALUE }}</button>
       <button mat-stroked-button color="primary" [mat-dialog-close] type="button">{{ CANCEL_BUTTON_VALUE }}</button>
     } @else {
       <app-processing-spinner></app-processing-spinner>

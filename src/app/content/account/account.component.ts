@@ -19,13 +19,12 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class AccountComponent implements OnInit {
 
-  // TODO: Add a Training History component with the ability to add a training record to queue
-
   PUBLIC_APP_ROUTES = PublicAppRoutes;
 
-  STATS_BUTTON_VALUE = GlobalFieldValues.STATS;
   PROFILE_BUTTON_VALUE = GlobalFieldValues.PROFILE;
   SETTINGS_BUTTON_VALUE = GlobalFieldValues.SETTINGS;
+  STATS_BUTTON_VALUE = GlobalFieldValues.STATS;
+  TRAINING_HISTORY_BUTTON_VALUE = GlobalFieldValues.TRAINING_HISTORY;
 
   PROFILE_URL = PublicAppRoutes.ACCOUNT_PROFILE;
   SETTINGS_URL = PublicAppRoutes.ACCOUNT_SETTINGS;

@@ -4,9 +4,13 @@ import { Timestamp } from '@angular/fire/firestore';
 import { PersonalSessionFragment } from "./personal-session-fragment.model";
 import { PlanSessionFragment } from "./plan-session-fragment.model";
 
+export interface UiTrainingRecord extends TrainingRecord {
+  [TrainingRecordKeys.CREATED_TIMESTAMP]: number
+};
+
 export interface TrainingRecord extends TrainingRecordNoIdOrTimestamp {
   [TrainingRecordKeys.CREATED_TIMESTAMP]: number | Timestamp,
-  id: string,
+  [TrainingRecordKeys.ID]: string,
   lastModifiedTimestamp: number | Timestamp
 };
 
@@ -25,6 +29,7 @@ export enum TrainingRecordKeys {
   COMPLEXITY_RATING = 'complexityRating',
   DURATION = 'duration',
   HOURS = 'hours',
+  ID = 'id',
   INTENSITY_RATING = 'intensityRating',
   MINUTES = 'minutes',
   SECONDS = 'seconds',

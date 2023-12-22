@@ -103,7 +103,6 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
   }
 
   onAddTrainingSessionToQueue() {
-    console.log('onAddTrainingSessionToQueue click registered');
     this.$isActiveButton.set(true);
     const incompleteTrainingSessionNoId = this.buildTrainingSessionNoId();
 
@@ -111,7 +110,6 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
     this.combinedAddTrainingSessionToQueueSubscription = this.combinedAddTrainingSessionToQueueError$
       .pipe(
         map(processingError => {
-          console.log('Add onAddTrainingSessionToQueue subscription triggered');
           if (processingError) {
             console.log('processingError detected, terminating pipe', processingError);
             this.resetComponentState();
@@ -212,6 +210,15 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
         });
         incompleteTrainingSessionNoId = clone;
         break;
+      case TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT:
+          Object.keys(PersonalSessionFragmentKeys).forEach(key => {
+            const propertyToDelete = clone[key];
+            if (propertyToDelete) {
+              delete clone[key];
+            }
+          });
+          incompleteTrainingSessionNoId = clone;
+          break;
       default:
         throw new Error('No databaseCategory found. Cannot buildTrainingSessionNoId.');
     }

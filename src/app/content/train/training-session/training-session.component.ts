@@ -40,8 +40,6 @@ import { BackButtonDirective } from 'src/app/shared/directives/back-button.direc
 })
 export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate, OnDestroy {
 
-  userData$!: Observable<PublicUser | null>;
-
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
   ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
   CANCEL_TRAINING_BUTTON_VALUE = GlobalFieldValues.CANCEL_TRAINING;
@@ -59,6 +57,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   RESUME_TRAINING_BUTTON_VALUE = GlobalFieldValues.RESUME_TRAINING;
   START_NOW_BUTTON_VALUE = GlobalFieldValues.START_NOW;
 
+  userData$!: Observable<PublicUser>;
+
   private $localTrainingPlanId = signal(undefined as string | undefined);
   private $localPlanSessionFragmentId = signal(undefined as string | undefined);
   private $localPersonalSessionFragmentId = signal(undefined as string | undefined);
@@ -74,7 +74,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   private fetchTrainingSessionProcessing$!: Observable<boolean>;
   private fetchTrainingSessionError$!: Observable<{} | null>;
   private $fetchSingleTrainingSessionSubmitted = signal(false);
-  private localTrainingSessionSubscription!: Subscription;
+  private fetchTrainingSessionSubscription!: Subscription;
 
   private deleteTrainingSessionSubscription!: Subscription;
   private deleteTrainingSessionProcessing$!: Observable<boolean>;
@@ -128,7 +128,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   private monitorProcesses() {
-    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData);
+    this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
     
     this.fetchTrainingSessionProcessing$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionProcessing);
     this.fetchTrainingSessionError$ = this.store$.select(TrainingSessionStoreSelectors.selectFetchSingleTrainingSessionError);
@@ -253,7 +253,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     let singleTrainingSession$: Observable<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
     let trainingSessionStoreFetchQuery: {} & TypedAction<any>;
 
-    this.localTrainingSessionSubscription = this.combinedFetchTrainingSessionDataError$
+    this.fetchTrainingSessionSubscription = this.combinedFetchTrainingSessionDataError$
       .pipe(
         withLatestFrom(this.userData$),
         switchMap(([processingError, userData]) => {
@@ -264,7 +264,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
           }
           // Build the storeFetchQuery based on the databaseCategoryType
           if (!this.$trainingSessionFetchDataConfigured()) {
-            [singleTrainingSession$, trainingSessionStoreFetchQuery] = this.configureTrainingSessionFetchData(userData!);
+            [singleTrainingSession$, trainingSessionStoreFetchQuery] = this.configureTrainingSessionFetchData(userData);
           }
           return singleTrainingSession$;
         }),
@@ -304,7 +304,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   private resetSetTrainingSessionComponentState() {
-    this.localTrainingSessionSubscription?.unsubscribe();
+    this.fetchTrainingSessionSubscription?.unsubscribe();
     this.$fetchSingleTrainingSessionSubmitted.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
     this.store$.dispatch(PlanSessionFragmentStoreActions.purgePlanSessionFragmentErrors());
@@ -424,7 +424,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     const sessionCompletionData: TrainingSessionCompletionData = {
       trainingSession: trainingSession!,
       sessionDuration: this.sessionDuration()!,
-      userId: userData!.id,
+      userId: userData.id,
     }
 
     const dialogConfig = {...DialogueBoxDefaultConfig};   
@@ -453,7 +453,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         take(1),
         tap(deletePersonalSessionFragmentDetected => {
           if (deletePersonalSessionFragmentDetected) {
-            this.localTrainingSessionSubscription?.unsubscribe();
+            this.fetchTrainingSessionSubscription?.unsubscribe();
           }
         })
       ).subscribe();
@@ -554,7 +554,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
             this.$deleteTrainingSessionSubmitted.set(true);
             this.store$.dispatch(TrainingSessionStoreActions.deleteTrainingSessionRequested({
               trainingSession: this.$localCanonicalTrainingSession()!,
-              userId: userData!.id
+              userId: userData.id
             }));
           }
           return this.deleteTrainingSessionProcessing$;
@@ -634,7 +634,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   ngOnDestroy(): void {
-    this.localTrainingSessionSubscription?.unsubscribe();
+    this.fetchTrainingSessionSubscription?.unsubscribe();
     this.videoStateSubscription?.unsubscribe();
     this.deleteTrainingSessionSubscription?.unsubscribe();
 
