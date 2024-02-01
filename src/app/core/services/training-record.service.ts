@@ -91,8 +91,10 @@ export class TrainingRecordService {
 
   fetchAllTrainingRecords(userId: string): Observable<TrainingRecord[]> {
 
+    
     const trainingRecordCollectionDataRequest = collectionData(this.getTrainingRecordCollectionByDate(userId));
 
+    // TODO: See if we can remove this from since this is already an observable? If so, update all other services
     return from(trainingRecordCollectionDataRequest)
       .pipe(
         // If logged out, this triggers unsub of this observable

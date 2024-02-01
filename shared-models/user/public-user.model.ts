@@ -1,11 +1,8 @@
 import { EmailSubSource } from "../email/email-sub-source.model";
 import { SendgridContactListId } from "../email/email-vars.model";
-import { BillingDetails } from "../billing/billing-details.model";
-import { OrderHistory } from "../orders/order-history.model";
 import { UnsubscribeRecordList, UnsubscribeRecord } from "../email/unsubscribe-record.model";
 import { Timestamp } from '@angular/fire/firestore';
-
-
+import { GoogleCloudFunctionsTimestamp } from "../firestore/google-cloud-functions-timestamp.model";
 
 export enum PublicUserKeys {
   AVATAR_URL = 'avatarUrl',
@@ -23,15 +20,11 @@ export enum PublicUserKeys {
   EMAIL_VERIFIED = 'emailVerified',
   FIRST_NAME = 'firstName',
   ID = 'id',
+  IS_ADMIN = 'isAdmin',
   LAST_NAME = 'lastName',
   LAST_AUTHENTICATED_TIMESTAMP = 'lastAuthenticatedTimestamp',
   LAST_MODIFIED_TIMESTAMP = 'lastModifiedTimestamp',
   ONBOARDING_WELCOME_EMAIL_SENT = 'onboardingWelcomeEmailSent',
-}
-
-export interface GoogleCloudFunctionsTimestamp {
-  _seconds: number;
-  _nanoseconds: number;
 }
 
 export interface GoogleCloudFunctionsPublicUser extends PublicUser {
@@ -44,7 +37,6 @@ export interface GoogleCloudFunctionsPublicUser extends PublicUser {
 
 export interface PublicUser {
   [PublicUserKeys.AVATAR_URL]?: string;
-  billingDetails?: BillingDetails | Partial<BillingDetails>;
   [PublicUserKeys.CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.DISPLAY_NAME]: string | undefined;
   [PublicUserKeys.EMAIL]: string;
@@ -58,13 +50,10 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: SendgridContactListId[] | undefined;
   [PublicUserKeys.EMAIL_VERIFIED]: boolean | undefined;
   [PublicUserKeys.FIRST_NAME]: string | undefined;
-  gender?: 'male' | 'female' | 'nonbinary'
   [PublicUserKeys.ID]: string;
   [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.LAST_NAME]: string | undefined;
-  isAdmin?: boolean,
+  [PublicUserKeys.IS_ADMIN]?: boolean,
   [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]: boolean | undefined;
-  orderHistory?: OrderHistory;
-  stripeCustomerId?: string;
 }

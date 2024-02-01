@@ -4,7 +4,6 @@ import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { combineLatest, map, Observable, Subscription, withLatestFrom, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingPlanFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { AddTrainingSessionToPlanQueryParams, TrainingPlan, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanVisibilityCategoryDbOption, TrainingPlanVisibilityTypeList, TrainingPlanVisibilityCategoryObject, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -12,9 +11,9 @@ import { Update } from '@ngrx/entity';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { DeletePlanSessionFragmentQueryParamsKeys, PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentQueryParams, ViewPlanSessionFragmentQueryParamsKeys } from 'shared-models/train/plan-session-fragment.model';
-import { TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
+import { TrainingSessionDatabaseCategoryTypes } from 'shared-models/train/training-session.model';
 import { CdkDragDrop, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
@@ -57,8 +56,6 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   TITLE_MIN_LENGTH = TrainingPlanFormVars.titleMinLength;
   TITLE_MAX_LENGTH = TrainingPlanFormVars.titleMaxLength;
-
-  FORM_VALIDATION_MESSAGES = TrainingPlanFormValidationMessages;
 
   userData$!: Observable<PublicUser>;
 

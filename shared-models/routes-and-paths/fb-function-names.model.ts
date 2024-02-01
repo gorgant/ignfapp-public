@@ -31,5 +31,4 @@ export enum PublicTopicNames {
   DISPATCH_EMAIL_TOPIC = 'dispatch-email-topic',
   REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC = 'remove-user-from-sg-contact-list-topic',
   RESIZE_AVATAR_TOPIC = 'resize-avatar-topic',
-  SAVE_WEBPAGE_TO_CACHE_TOPIC = 'save-webpage-to-cache-topic',
 }

@@ -134,22 +134,22 @@ export const fetchAuthUserById = async (userId: string): Promise<UserRecord> => 
 
 export const convertPublicUserDataToEmailUserData = (userData: PublicUser): EmailUserData => {
   const emailUserData: EmailUserData = {
-    createdTimestamp: userData[PublicUserKeys.CREATED_TIMESTAMP],
-    email: userData[PublicUserKeys.EMAIL], 
-    emailGroupUnsubscribes: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
-    emailGlobalUnsubscribe: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-    emailLastSubSource: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
-    emailOptInConfirmed: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
-    emailOptInTimestamp: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
-    emailSendgridContactId: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
-    emailSendgridContactListArray: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
-    emailSendgridContactCreatedTimestamp: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
-    emailVerified: userData[PublicUserKeys.EMAIL_VERIFIED],
-    firstName: userData[PublicUserKeys.FIRST_NAME],
-    id: userData[PublicUserKeys.ID],
-    lastModifiedTimestamp: userData[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP],
-    lastName: userData[PublicUserKeys.LAST_NAME],
-    onboardingWelcomeEmailSent: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
+    [PublicUserKeys.CREATED_TIMESTAMP]: userData[PublicUserKeys.CREATED_TIMESTAMP],
+    [PublicUserKeys.EMAIL]: userData[PublicUserKeys.EMAIL], 
+    [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
+    [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
+    [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
+    [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
+    [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID],
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY],
+    [PublicUserKeys.EMAIL_VERIFIED]: userData[PublicUserKeys.EMAIL_VERIFIED],
+    [PublicUserKeys.FIRST_NAME]: userData[PublicUserKeys.FIRST_NAME],
+    [PublicUserKeys.ID]: userData[PublicUserKeys.ID],
+    [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: userData[PublicUserKeys.LAST_MODIFIED_TIMESTAMP],
+    [PublicUserKeys.LAST_NAME]: userData[PublicUserKeys.LAST_NAME],
+    [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]: userData[PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT],
   };
   return emailUserData;
 }

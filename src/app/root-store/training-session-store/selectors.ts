@@ -11,12 +11,12 @@ const getCreateTrainingSessionError = (state: TrainingSessionState) => state.cre
 const getCreateTrainingSessionProcessing = (state: TrainingSessionState) => state.createTrainingSessionProcessing;
 const getDeleteTrainingSessionError = (state: TrainingSessionState) => state.deleteTrainingSessionError;
 const getDeleteTrainingSessionProcessing = (state: TrainingSessionState) => state.deleteTrainingSessionProcessing;
-const getFetchSingleTrainingSessionError = (state: TrainingSessionState) => state.fetchSingleTrainingSessionError;
-const getFetchSingleTrainingSessionProcessing = (state: TrainingSessionState) => state.fetchSingleTrainingSessionProcessing;
 const getFetchAllTrainingSessionsError = (state: TrainingSessionState) => state.fetchAllTrainingSessionsError;
 const getFetchAllTrainingSessionsProcessing = (state: TrainingSessionState) => state.fetchAllTrainingSessionsProcessing;
 const getFetchMultipleTrainingSessionsError = (state: TrainingSessionState) => state.fetchMultipleTrainingSessionsError;
 const getFetchMultipleTrainingSessionsProcessing = (state: TrainingSessionState) => state.fetchMultipleTrainingSessionsProcessing;
+const getFetchSingleTrainingSessionError = (state: TrainingSessionState) => state.fetchSingleTrainingSessionError;
+const getFetchSingleTrainingSessionProcessing = (state: TrainingSessionState) => state.fetchSingleTrainingSessionProcessing;
 const getFetchYoutubeVideoDataError = (state: TrainingSessionState) => state.fetchYoutubeVideoDataError;
 const getFetchYoutubeVideoDataProcessing = (state: TrainingSessionState) => state.fetchYoutubeVideoDataProcessing;
 const getUpdateSessionRatingError = (state: TrainingSessionState) => state.updateSessionRatingError;

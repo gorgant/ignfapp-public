@@ -8,7 +8,6 @@ import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/f
 import { sendOnboardingWelcomeEmail } from './email-templates/onboarding-welcome-email';
 import { sendEmailVerificationEmail } from './email-templates/email-verification-email';
 import { sendContactFormConfirmationEmail } from './email-templates/contact-form-email';
-import { sendWebpageDataLoadFailureEmail } from './email-templates/webpage-data-load-failure-email';
 import { sendNewUserDetectedEmail } from './email-templates/new-user-detected-email';
 import { publicFirestore } from '../config/db-config';
 import { Timestamp } from '@google-cloud/firestore';
@@ -25,13 +24,13 @@ const addEmailLogEntry = async (emailData: EmailPubMessage) => {
   }
 
   const autoNoticeString = 'auto-notice';
-  if (emailData.emailCategory.includes(autoNoticeString)) {
+  if (emailData.emailIdentifier.includes(autoNoticeString)) {
     logger.log(`"${autoNoticeString}" detected in email category, skipping email log entry`);
     return;
   }
 
   const emailLogEntry: EmailLogEntry = {
-    emailCategory: emailData.emailCategory,
+    emailCategory: emailData.emailIdentifier,
     recipientEmail: emailData.userData.email,
     recipientId: emailData.userData.id,
     sentTimestamp: Timestamp.now() as any,
@@ -42,15 +41,15 @@ const addEmailLogEntry = async (emailData: EmailPubMessage) => {
 
 const executeActions = async (emailData: EmailPubMessage) => {
 
-  if (!emailData.emailCategory) {
+  if (!emailData.emailIdentifier) {
     const errMsg: string = `No email category found in pubsub message`;
     logger.log(errMsg);
     throw new HttpsError('internal', errMsg);
   }
 
-  const emailCategory = emailData.emailCategory;
+  const emailIdentifier = emailData.emailIdentifier;
 
-  switch(emailCategory) {
+  switch(emailIdentifier) {
     
     case EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP:
         if (!emailData.userData) {
@@ -59,14 +58,6 @@ const executeActions = async (emailData: EmailPubMessage) => {
           throw new HttpsError('internal', errMsg);
         }
         return sendNewUserDetectedEmail(emailData.userData);
-    
-    case EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE:
-      if (!emailData.webpageLoadFailureData) {
-        const errMsg: string = `No webpage load failiure data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE} email`;
-        logger.log(errMsg);
-        throw new HttpsError('internal', errMsg);
-      }
-      return sendWebpageDataLoadFailureEmail(emailData.webpageLoadFailureData);
     
     case EmailIdentifiers.CONTACT_FORM_CONFIRMATION:
       if (!emailData.contactForm) {
@@ -101,7 +92,7 @@ const executeActions = async (emailData: EmailPubMessage) => {
       return sendUpdateEmailConfirmationEmail(emailData.userData);
     
     default:
-      const defaultErrorMsg: string = `No matching email category for ${emailCategory}`;
+      const defaultErrorMsg: string = `No matching email category for ${emailIdentifier}`;
       logger.log(defaultErrorMsg);
       throw new HttpsError('internal', defaultErrorMsg);
   }

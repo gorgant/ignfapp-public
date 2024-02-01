@@ -15,9 +15,6 @@ export interface AuthState {
   facebookAuthProcessing: boolean;
   googleAuthError: FirebaseError | Error | null;
   googleAuthProcessing: boolean;
-  verifyEmailError: FirebaseError | Error | null,
-  verifyEmailProcessing: boolean,
-  verifyEmailSucceeded: boolean,
   reloadAuthDataError: FirebaseError | Error | null, 
   reloadAuthDataProcessing: boolean,
   resetPasswordError: FirebaseError | Error | null,
@@ -25,6 +22,9 @@ export interface AuthState {
   updateEmailError: FirebaseError | Error | null,
   updateEmailProcessing: boolean,
   updateEmailSucceeded: boolean,
+  verifyEmailError: FirebaseError | Error | null,
+  verifyEmailProcessing: boolean,
+  verifyEmailSucceeded: boolean,
   authResultsData: AuthResultsData | null,
 }
 
@@ -42,9 +42,6 @@ export const initialAuthState: AuthState = {
   facebookAuthProcessing: false,
   googleAuthError: null,
   googleAuthProcessing: false,
-  verifyEmailError: null,
-  verifyEmailProcessing: false,
-  verifyEmailSucceeded: false,
   reloadAuthDataError: null, 
   reloadAuthDataProcessing: false,
   resetPasswordError: null,
@@ -52,5 +49,8 @@ export const initialAuthState: AuthState = {
   updateEmailError: null,
   updateEmailProcessing: false,
   updateEmailSucceeded: false,
+  verifyEmailError: null,
+  verifyEmailProcessing: false,
+  verifyEmailSucceeded: false,
   authResultsData: null,
 }

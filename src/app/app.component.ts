@@ -3,7 +3,7 @@ import { UiService } from './core/services/ui.service';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { RouterOutlet } from '@angular/router';
 import { ProcessingSpinnerComponent } from "./shared/components/processing-spinner/processing-spinner.component";
-import { NavBarComponent } from "./navigation/components/nav-bar/nav-bar.component";
+import { NavBarComponent } from "./navigation/nav-bar/nav-bar.component";
 
 @Component({
     selector: 'app-root',

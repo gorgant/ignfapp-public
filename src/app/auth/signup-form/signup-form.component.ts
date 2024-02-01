@@ -9,7 +9,6 @@ import { PASSWORD_MIN_LENGTH } from 'shared-models/auth/password-vars.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
-import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -28,8 +27,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 })
 export class SignupFormComponent implements OnInit, OnDestroy {
 
-  FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
-  
   FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
   PASSWORD_FIELD_VALUE = GlobalFieldValues.CREATE_PASSWORD;

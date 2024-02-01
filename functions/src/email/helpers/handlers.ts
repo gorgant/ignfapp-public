@@ -124,12 +124,6 @@ const executeActions = async (emailEvents: EmailEvent[]) => {
   
   let userData = await fetchUserByEmail(userEmail, userCollection); 
 
-  // If no public user, check prelaunch user
-  if (!userData) {
-    userCollection = publicFirestore.collection(PublicCollectionPaths.PRELAUNCH_USERS);
-    userData = await fetchUserByEmail(userEmail, userCollection); 
-  }
-
   if (!userData) {
     logger.error(`Error updating email record, user with email ${userEmail} not found`);
     throw new HttpsError('internal', `Error updating email record, user with email ${userEmail} not found`);

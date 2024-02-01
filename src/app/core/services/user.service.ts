@@ -8,12 +8,13 @@ import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-re
 import { UnsubscribeRecord, UnsubscribeRecordList } from 'shared-models/email/unsubscribe-record.model';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { GoogleCloudFunctionsPublicUser, GoogleCloudFunctionsTimestamp, PublicUser } from 'shared-models/user/public-user.model';
+import { GoogleCloudFunctionsPublicUser, PublicUser } from 'shared-models/user/public-user.model';
 import { UserUpdateData } from 'shared-models/user/user-update.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
 import { Timestamp } from '@angular/fire/firestore';
 import { HelperService } from './helpers.service';
+import { GoogleCloudFunctionsTimestamp } from 'shared-models/firestore/google-cloud-functions-timestamp.model';
 
 @Injectable({
   providedIn: 'root'

@@ -1,5 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { GoogleCloudFunctionsTimestamp } from '../../shared-models/user/public-user.model';
+import { GoogleCloudFunctionsTimestamp } from 'shared-models/firestore/google-cloud-functions-timestamp.model';
 
 
 // The base pair

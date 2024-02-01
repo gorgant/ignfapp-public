@@ -4,8 +4,8 @@ import { sendgridMarketingContactsApiUrl } from '../config';
 
 import { SendgridGetContactCountResponse } from '../../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../../config/global-helpers';
-import * as Axios from 'axios';
 import { sendgridApiSecret } from '../../config/api-key-config';
+import { AxiosRequestConfig } from 'axios';
 
 /**
  * Query sendgrid API for total contact count
@@ -13,7 +13,7 @@ import { sendgridApiSecret } from '../../config/api-key-config';
 export const getSgContactCount = async (): Promise<number> => {
 
   const requestUrl = `${sendgridMarketingContactsApiUrl}/count`;
-  const requestOptions: Axios.AxiosRequestConfig = {
+  const requestOptions: AxiosRequestConfig = {
     method: 'GET',
     url: requestUrl,
     headers: 

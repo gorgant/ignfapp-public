@@ -8,7 +8,6 @@ import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/op
 import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
-import { UserRegistrationFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
@@ -31,8 +30,6 @@ import { NgClass } from '@angular/common';
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 
-  FORM_VALIDATION_MESSAGES = UserRegistrationFormValidationMessages;
-  
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
   PASSWORD_FIELD_VALUE = GlobalFieldValues.PASSWORD;
   FORGOT_PASSWORD_BLURB = GlobalFieldValues.RP_FORGOT_PASSWORD;

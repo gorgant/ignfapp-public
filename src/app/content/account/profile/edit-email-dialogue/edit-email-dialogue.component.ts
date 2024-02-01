@@ -7,7 +7,6 @@ import { catchError, combineLatest, filter, map, Observable, Subscription, switc
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { UserRegistrationFormFieldKeys } from 'shared-models/forms/user-registration-form-vals.model';
-import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { UserStoreSelectors, UserStoreActions, AuthStoreSelectors, AuthStoreActions } from 'src/app/root-store';
@@ -33,7 +32,6 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   CONFIRM_NEW_EMAIL_BLURB = GlobalFieldValues.CONFIRM_NEW_EMAIL;
   EMAIL_FIELD_VALUE = GlobalFieldValues.EMAIL;
-  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
   INPUT_NEW_EMAIL_STEP_LABLE = GlobalFieldValues.INPUT_NEW_EMAIL;
   IVE_CONFIRMED_MY_EMAIL_BUTTON_VALUE = GlobalFieldValues.IVE_CONFIRMED_MY_EMAIL;
   SEND_UPDATE_EMAIL_CONFIRMATION = GlobalFieldValues.SEND_UPDATE_EMAIL_CONFIRMATION;

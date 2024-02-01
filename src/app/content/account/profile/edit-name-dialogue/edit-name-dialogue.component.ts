@@ -1,10 +1,9 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
-import { select, Store } from '@ngrx/store';
-import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { Observable, Subscription, catchError, filter, map, switchMap, tap, throwError } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { UserProfileFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData, UserUpdateType } from 'shared-models/user/user-update.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -23,9 +22,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditNameDialogueComponent implements OnInit, OnDestroy {
-
-
-  FORM_VALIDATION_MESSAGES = UserProfileFormValidationMessages;
 
   EDIT_NAME_TITLE_VALUE = GlobalFieldValues.EDIT_NAME;
   FIRST_NAME_FIELD_VALUE = GlobalFieldValues.FIRST_NAME;

@@ -11,11 +11,6 @@
 }
 
 app-nav-bar {
-  overflow: hidden;
-  position: fixed;
-  bottom: 0;
   width: 100%;
-  z-index: 1;
-
   max-width: $desktop-screen-width;
 }

@@ -6,7 +6,6 @@ import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
 import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
@@ -46,8 +45,6 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   MUSCLE_GROUP_FIELD_VALUE = GlobalFieldValues.MUSCLE_GROUP;
   VISIBILITY_FIELD_TOOLTIP = GlobalFieldValues.VISIBILITY_TOOLTIP;
   VISIBILITY_FIELD_VALUE = GlobalFieldValues.VISIBILITY;
-
-  FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
   intensityMin = TrainingSessionFormVars.complexityMin;
   intensityMax = TrainingSessionFormVars.complexityMax;

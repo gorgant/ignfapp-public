@@ -1,11 +1,10 @@
-import { AfterContentInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
+import { AfterContentInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, throwError } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { TrainingSessionFormValidationMessages } from 'shared-models/forms/validation-messages.model';
 import { SocialUrlPrefixes } from 'shared-models/meta/social-urls.model';
 import { CanonicalTrainingSession, TrainingSessionKeys, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -32,8 +31,6 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
   @Input() editTrainingSessionStepper!: MatStepper;
   @Input() $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
   @Output() stepOneCompleted: EventEmitter<boolean> = new EventEmitter(); // This emits a value to the parent component which then proceeds to the next step
-
-  FORM_VALIDATION_MESSAGES = TrainingSessionFormValidationMessages;
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   INPUT_YOUTUBE_VIDEO_URL_HINT = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_HINT

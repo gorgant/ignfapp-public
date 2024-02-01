@@ -14,7 +14,7 @@ export const dispatchEmail = async(userData: EmailUserData, emailIdentifier: Ema
   const projectId = publicAppProjectId;
   const topic = pubSub.topic(`projects/${projectId}/topics/${topicName}`);
   const pubsubMsg: EmailPubMessage = {
-    emailCategory: emailIdentifier,
+    emailIdentifier: emailIdentifier,
     userData
   };
   const bufferedMsg = Buffer.from(JSON.stringify(pubsubMsg));
