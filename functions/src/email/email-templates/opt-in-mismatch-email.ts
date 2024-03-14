@@ -6,27 +6,28 @@ import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 
-import { SubCountMatchData } from "../../../../shared-models/email/sub-count-match-data";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
+import { OptInCountComparisonData } from '../../../../shared-models/email/opt-in-count-comparison-data';
 
 
-export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchData ) => {
+export const sendOptInMismatchEmail = async (optInComparisonData: OptInCountComparisonData ) => {
   
-  logger.log('Sending Subscriber Count Mismatch Email to admin');
+  logger.log('Sending Opt In Count Mismatch Email to admin');
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
   const fromName: string = EmailSenderNames.IGNFAPP_ADMIN;
   let recipientData: EmailData | EmailData[];
-  const subject: string = '[Automated Error Service] Subscriber Count Mismatch';
+  const subject: string = '[Automated Error Service] Opt In Count Mismatch';
   let categories: string[];
-  const emailString: string = `Administrators, There is a mismatch between contacts on Sendgrid and subscribed users in the app database. Sendgrid Count: ${countMatchData.sendGridSubCount}. Database Count: ${countMatchData.databaseSubCount}. Database OptOut Count: ${countMatchData.databaseUnsubCount}. To fix the issue, consider exporting both databases and reconciling the difference.`
+  const emailString: string = `Administrators, There is a mismatch between contacts on Sendgrid and opt-in users in the app database. Sendgrid Opt In Count: ${optInComparisonData.sgOptInCount}, Sendgrid Opt Out Count: ${optInComparisonData.sgOptOutCount}, Database Opt In Count: ${optInComparisonData.databaseOptInCount}, Database Opt Out Count: ${optInComparisonData.databaseOptOutCount}. To fix the issue, consider exporting both databases and reconciling the difference.`
   const emailHtml: string = `<p>Administrators,</p>\
-    <p>There is a mismatch between contacts on Sendgrid and subscribed users in the app database:</p>\
+    <p>There is a mismatch between contacts on Sendgrid and opt-in users in the app database:</p>\
     <ul>\
-      <li>Sendgrid Count: ${countMatchData.sendGridSubCount}</li>\
-      <li>Database Count: ${countMatchData.databaseSubCount}</li>\
-      <li>Database OptOut Count: ${countMatchData.databaseUnsubCount}</li>\
+      <li>Sendgrid Opt In Count: ${optInComparisonData.sgOptInCount}</li>\
+      <li>Sendgrid Opt Out Count: ${optInComparisonData.sgOptOutCount}</li>\
+      <li>Database Opt In Count: ${optInComparisonData.databaseOptInCount}</li>\
+      <li>Database Opt Out Count: ${optInComparisonData.databaseOptOutCount}</li>\
     </ul>\
     <p>To fix the issue, consider exporting both databases and reconciling the difference.</p>\
     <p>Good luck!</p>\
@@ -36,15 +37,15 @@ export const sendSubCountMismatchEmail = async (countMatchData: SubCountMatchDat
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH];
+      categories = [EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH];
       break;
     case EnvironmentTypes.SANDBOX:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailIdentifiers.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH, EmailIdentifiers.TEST_SEND];
       break;
     default:
       recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
-      categories = [EmailIdentifiers.AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH, EmailIdentifiers.TEST_SEND];
+      categories = [EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH, EmailIdentifiers.TEST_SEND];
       break;
   }
 

@@ -9,8 +9,6 @@ export interface AuthState {
   emailSignupProcessing: boolean;
   confirmPasswordError: FirebaseError | Error | null;
   confirmPasswordProcessing: boolean;
-  deleteAuthUserError: FirebaseError | Error | null;
-  deleteAuthUserProcessing: boolean;
   facebookAuthError: FirebaseError | Error | null;
   facebookAuthProcessing: boolean;
   googleAuthError: FirebaseError | Error | null;
@@ -32,8 +30,6 @@ export const initialAuthState: AuthState = {
   authGuardError: null,
   confirmPasswordError: null,
   confirmPasswordProcessing: false,
-  deleteAuthUserError: null,
-  deleteAuthUserProcessing: false,
   emailAuthError: null,
   emailAuthProcessing: false,
   emailSignupError: null,

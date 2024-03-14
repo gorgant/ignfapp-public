@@ -5,7 +5,7 @@ import { EmailUserData } from '../../../shared-models/email/email-user-data.mode
 import { SendgridContact, SendgridContactUploadData, SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { sendgridMarketingContactsApiUrl } from './config';
-import { submitHttpRequest } from '../config/global-helpers';
+import { convertFirebaseTimestampToGoogleCloudTimestamp, submitHttpRequest } from '../config/global-helpers';
 import { publicFirestore } from '../config/db-config';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { getSgContactId } from './helpers/get-sg-contact-id';
@@ -48,20 +48,25 @@ const createOrUpdateSendgridContact = async (sgCreateOrUpdateContactData: SgCrea
   const userData = sgCreateOrUpdateContactData.emailUserData;
   
   const firstName = userData.firstName;
-  const lastName = userData.lastName;
   const email = userData.email;
   const requestUrl = sendgridMarketingContactsApiUrl;
+  
+  // Without this conversion, manipulations on Timestamps retrieved using the firebase-admin SDK will throw an error.
+  const createdTimestamp = userData[PublicUserKeys.CREATED_TIMESTAMP] as Timestamp;
+  const optInTimestamp = userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP] as Timestamp;
+  const convertedCreatedTimestamp = convertFirebaseTimestampToGoogleCloudTimestamp(createdTimestamp);
+  const convertedOptInTimestamp = convertFirebaseTimestampToGoogleCloudTimestamp(optInTimestamp);
+
   const customData: SgContactCustomFieldData = {
+    [SgContactCustomFieldIds.APP_CREATED_TIMESTAMP]: convertedCreatedTimestamp.toDate().toISOString(),
+    [SgContactCustomFieldIds.APP_OPT_IN_TIMESTAMP]: convertedOptInTimestamp.toDate().toISOString(),
     [SgContactCustomFieldIds.APP_UID]: userData.id,
-    [SgContactCustomFieldIds.CREATED_TIMESTAMP]: (userData[PublicUserKeys.CREATED_TIMESTAMP] as Timestamp).toDate().toUTCString(),
-    [SgContactCustomFieldIds.OPT_IN_TIMESTAMP]: (userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP] as Timestamp).toDate().toUTCString(),
   };
 
-  const listIds = userData.emailSendgridContactListArray as SendgridContactListId[];
+  const listIds = userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY] as SendgridContactListId[];
   const contactUpdateData: SendgridContact = {
     email,
     first_name: firstName,
-    last_name: lastName,
     custom_fields: customData
   };
 
@@ -108,9 +113,9 @@ export const onPubCreateOrUpdateSgContact = onMessagePublished(pubSubOptions, as
 
   await createOrUpdateSendgridContact(sgCreateOrUpdateContactData);
 
-  const sgContactCreatedRecently = userData.emailSendgridContactCreatedTimestamp ? (userData.emailSendgridContactCreatedTimestamp as Timestamp).toMillis() > (Timestamp.now().toMillis() - (5*60*1000)) : false; // Check if opt in happend in last five minutes
+  const sgContactCreatedRecently = userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] ? convertFirebaseTimestampToGoogleCloudTimestamp(userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] as Timestamp).toMillis() > (Timestamp.now().toMillis() - (5*60*1000)) : false; // Check if opt in happend in last five minutes
 
-  if (!userData.emailSendgridContactId && !sgContactCreatedRecently && !isNewContact) {
+  if (!userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID] && !sgContactCreatedRecently && !isNewContact) {
     await addSgContactIdToSubscriber(userData);
   }
 

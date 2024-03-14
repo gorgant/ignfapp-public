@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
@@ -9,10 +9,10 @@ import * as TrainingPlanStoreActions from './actions';
 @Injectable()
 export class TrainingPlanStoreEffects {
 
-  constructor(
-    private actions$: Actions,
-    private trainingPlanService: TrainingPlanService,
-  ) { }
+  private actions$ = inject(Actions);
+  private trainingPlanService = inject(TrainingPlanService);
+
+  constructor() { }
 
   createTrainingPlanEffect$ = createEffect(() => this.actions$
     .pipe(

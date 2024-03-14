@@ -93,7 +93,7 @@ export class HelperService {
       [PublicUserKeys.EMAIL]: userData[PublicUserKeys.EMAIL], 
       [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
       [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-      [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
+      [PublicUserKeys.EMAIL_OPT_IN_SOURCE]: userData[PublicUserKeys.EMAIL_OPT_IN_SOURCE],
       [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
       [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
       [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],

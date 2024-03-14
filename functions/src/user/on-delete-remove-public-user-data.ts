@@ -59,7 +59,6 @@ const executeActions = async(deletedUser: PublicUser) => {
 
 /////// DEPLOYABLE FUNCTIONS ///////
 
-// Note: When user is deleted from db, a separate function automatically removes user image files and deletes the auth account
 const watchedDocumentPath = `${PublicCollectionPaths.PUBLIC_USERS}/{wildcardUserId}`;
 export const onDeleteRemovePublicUserData = onDocumentDeleted(watchedDocumentPath, async (event) => {
   const deletedUser = event.data?.data() as PublicUser;

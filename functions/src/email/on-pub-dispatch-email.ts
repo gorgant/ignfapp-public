@@ -14,11 +14,12 @@ import { Timestamp } from '@google-cloud/firestore';
 import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
 import { sendgridApiSecret } from '../config/api-key-config';
 import { sendUpdateEmailConfirmationEmail } from './email-templates/update-email-confirmation-email';
+import { sendOptInMismatchEmail } from './email-templates/opt-in-mismatch-email';
 
 // Store the email record in the database
 const addEmailLogEntry = async (emailData: EmailPubMessage) => {
   
-  if (!emailData.userData) {
+  if (!emailData.emailUserData) {
     logger.log(`No user data provided, skipping email log entry`);
     return;
   }
@@ -31,8 +32,8 @@ const addEmailLogEntry = async (emailData: EmailPubMessage) => {
 
   const emailLogEntry: EmailLogEntry = {
     emailCategory: emailData.emailIdentifier,
-    recipientEmail: emailData.userData.email,
-    recipientId: emailData.userData.id,
+    recipientEmail: emailData.emailUserData.email,
+    recipientId: emailData.emailUserData.id,
     sentTimestamp: Timestamp.now() as any,
   }
 
@@ -52,12 +53,20 @@ const executeActions = async (emailData: EmailPubMessage) => {
   switch(emailIdentifier) {
     
     case EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP:
-        if (!emailData.userData) {
+        if (!emailData.emailUserData) {
           const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP} email`;
           logger.log(errMsg);
           throw new HttpsError('internal', errMsg);
         }
-        return sendNewUserDetectedEmail(emailData.userData);
+        return sendNewUserDetectedEmail(emailData.emailUserData);
+    
+    case EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH:
+        if (!emailData.optInCountComparisonData) {
+          const errMsg: string = `No optInCountComparisonData provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH} email`;
+          logger.log(errMsg);
+          throw new HttpsError('internal', errMsg);
+        }
+        return sendOptInMismatchEmail(emailData.optInCountComparisonData);
     
     case EmailIdentifiers.CONTACT_FORM_CONFIRMATION:
       if (!emailData.contactForm) {
@@ -68,28 +77,28 @@ const executeActions = async (emailData: EmailPubMessage) => {
       return sendContactFormConfirmationEmail(emailData.contactForm);
 
     case EmailIdentifiers.EMAIL_VERIFICATION:
-      if (!emailData.userData) {
+      if (!emailData.emailUserData) {
         const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.EMAIL_VERIFICATION} email`;
         logger.log(errMsg);
         throw new HttpsError('internal', errMsg);
       }
-      return sendEmailVerificationEmail(emailData.userData);
+      return sendEmailVerificationEmail(emailData.emailUserData);
     
     case EmailIdentifiers.ONBOARDING_WELCOME:
-      if (!emailData.userData) {
+      if (!emailData.emailUserData) {
         const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.ONBOARDING_WELCOME} email`;
         logger.log(errMsg);
         throw new HttpsError('internal', errMsg);
       }
-      return sendOnboardingWelcomeEmail(emailData.userData);
+      return sendOnboardingWelcomeEmail(emailData.emailUserData);
 
     case EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION:
-      if (!emailData.userData) {
+      if (!emailData.emailUserData) {
         const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION} email`;
         logger.log(errMsg);
         throw new HttpsError('internal', errMsg);
       }
-      return sendUpdateEmailConfirmationEmail(emailData.userData);
+      return sendUpdateEmailConfirmationEmail(emailData.emailUserData);
     
     default:
       const defaultErrorMsg: string = `No matching email category for ${emailIdentifier}`;

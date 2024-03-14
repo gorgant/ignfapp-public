@@ -8,7 +8,12 @@ import { publicAppFirebaseInstance } from './app-config';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { publicFirestore } from './db-config';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
-
+import { Timestamp } from '@google-cloud/firestore';
+import { Timestamp as FirebaseTimestamp } from 'firebase-admin/firestore';
+import { EmailSenderAddresses } from '../../../shared-models/email/email-vars.model';
+import { EmailOptInSource } from '../../../shared-models/email/email-opt-in-source.model';
+import { Request, Response } from 'express';
+import { OAuth2Client } from 'google-auth-library';
 
 
 // Firebase can't handle back slashes
@@ -138,7 +143,7 @@ export const convertPublicUserDataToEmailUserData = (userData: PublicUser): Emai
     [PublicUserKeys.EMAIL]: userData[PublicUserKeys.EMAIL], 
     [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: userData[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES],
     [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: userData[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
-    [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]: userData[PublicUserKeys.EMAIL_LAST_SUB_SOURCE],
+    [PublicUserKeys.EMAIL_OPT_IN_SOURCE]: userData[PublicUserKeys.EMAIL_OPT_IN_SOURCE],
     [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: userData[PublicUserKeys.EMAIL_OPT_IN_CONFIRMED],
     [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: userData[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP], 
     [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: userData[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP],
@@ -178,3 +183,122 @@ export const verifyAuthUidMatchesDocumentUserIdOrIsAdmin = async (request: Calla
 
   throw new HttpsError('permission-denied', 'Caller does not have permission to modify this document');
 }
+
+export const ADMIN_EMAIL_USER_DATA: EmailUserData = {
+  [PublicUserKeys.CREATED_TIMESTAMP]: Timestamp.fromDate(new Date('2024-02-07T10:00:00Z')) as any,
+  [PublicUserKeys.EMAIL]: EmailSenderAddresses.IGNFAPP_ADMIN, 
+  [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: undefined,
+  [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: undefined,
+  [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: true,
+  [PublicUserKeys.EMAIL_OPT_IN_SOURCE]: EmailOptInSource.ONBOARDING,
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: Timestamp.fromDate(new Date('2024-02-07T10:00:00Z')) as any, 
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: Timestamp.fromDate(new Date('2024-02-07T10:00:00Z')) as any,
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]: undefined,
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: undefined,
+  [PublicUserKeys.EMAIL_VERIFIED]: true,
+  [PublicUserKeys.FIRST_NAME]: 'ADMIN',
+  [PublicUserKeys.ID]: 'ADMIN',
+  [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: Timestamp.fromDate(new Date('2024-02-07T10:00:00Z')) as any,
+  [PublicUserKeys.LAST_NAME]: undefined,
+  [PublicUserKeys.ONBOARDING_WELCOME_EMAIL_SENT]: true,
+}
+
+// Sourced from here: https://chat.openai.com/share/e/5348be84-2a32-4887-9f3e-a4571615d1da
+
+/**
+ * Validates the authenticity of a request based on an OIDC token.
+ * 
+ * This function extracts the OIDC token from the Authorization header of the request,
+ * verifies it against Google's OAuth2 client, and checks if the token's audience
+ * matches the expected audience. This is used to ensure that the request is 
+ * authenticated and authorized to access the respective Cloud Function.
+ * 
+ * If function originates from Cloud Scheduler, be sure to create a Service Account with 
+ * the Cloud Functions Invoker role and assign it to the cloud scheduler function, including
+ * the email of the service account for the audience. Store the email in the secret manager
+ * and configure the function it calls to retrieve the secret.
+ *
+ * @param {Request} req - The HTTP request object from Express.
+ * @param {Response} res - The HTTP response object from Express.
+ * @param {string} expectedAudience - The expected audience string (aud) that the OIDC token should contain.
+ *                                    This is generally the service account email though it can be any unique id.
+ * 
+ * @returns {Promise<boolean | void>} - Returns `true` if the request is authenticated and authorized,
+ *                                      otherwise, it sends a 401 Unauthorized response and does not return.
+ */
+export const validateRequestToken = async (req: Request, res: Response, expectedAudience: string): Promise<boolean | void> => {
+  const token = req.get('Authorization')?.split(' ')[1];
+  if (!token) {
+      res.status(401).send('Unauthorized: No token provided');
+      return;
+  }
+
+  const client = new OAuth2Client();
+
+  try {
+      const ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: expectedAudience, // Specify the expected audience value
+      });
+      const payload = ticket.getPayload();
+
+      // Check the audience field
+      if (payload && payload.aud === expectedAudience) {
+          // Request is verified, proceed with the function logic
+          logger.log('Request verification succeeded.');
+          return true;
+      } else {
+          res.status(401).send('Unauthorized: Invalid audience');
+          return;
+      }
+  } catch (error: any) {
+      res.status(401).send(`Unauthorized: Invalid token - ${error.message}`);
+  }
+};
+
+export const convertMillisToTimestamp = (millis: number): Timestamp => {
+  const seconds = Math.floor(millis / 1000);
+  const nanoseconds = (millis % 1000) * 1000000;
+  return new Timestamp(seconds, nanoseconds);
+}
+
+/**
+ * Converts a time string in the format "HH:MM:SS" to milliseconds.
+ * 
+ * @param {string} timeString - The time string to be converted. It must be in the format "HH:MM:SS".
+ * @returns {number} The time in milliseconds.
+ * @throws {Error} Throws an error if the input string is not in the correct format.
+ * 
+ * This function first splits the input time string into its constituent parts: hours, minutes, and seconds.
+ * It then converts each part into an integer. After that, it calculates the total time in milliseconds
+ * by converting hours and minutes to seconds, summing all up, and finally multiplying by 1000 to convert 
+ * seconds to milliseconds.
+ */
+export const convertHHMMSSToMillis = (timeString: string): number => {
+  const parts = timeString.split(':');
+  if (parts.length !== 3) {
+    throw new Error('Invalid time format');
+  }
+
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  const seconds = parseInt(parts[2], 10);
+
+  return (hours * 3600 + minutes * 60 + seconds) * 1000;
+}
+
+/**
+ * Converts a Timestamp object sourced from the Firebase Firestore database using the firebase-admin SDK into 
+ * a Google Cloud Timestamp using the \@google-cloud/firestore SDK so that it can be manipulated as needed.
+ * 
+ * Without this conversion, manipulations on Timestamps retrieved using the firebase-admin SDK will throw an error.
+ * 
+ * * @param {FirebaseTimestamp} firebaseTimestamp - The Timestamp from Firestore database to be converted.
+ * * @returns {Timestamp} The same timestamp in the Google Cloud Timestamp format 
+ * 
+ */
+export const convertFirebaseTimestampToGoogleCloudTimestamp = (firebaseTimestamp: FirebaseTimestamp): Timestamp => {
+  const seconds = (firebaseTimestamp as any)['_seconds'];
+  const nanoseconds = (firebaseTimestamp as any)['_nanoseconds'];
+  return new Timestamp(seconds, nanoseconds);
+};

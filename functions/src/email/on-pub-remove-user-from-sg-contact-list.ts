@@ -8,7 +8,6 @@ import { SendgridContactListId } from '../../../shared-models/email/email-vars.m
 import { sendgridMarketingListsApiUrl } from './config';
 import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
 import { submitHttpRequest } from '../config/global-helpers';
-import { getSgContactId } from './helpers/get-sg-contact-id';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { publicFirestore } from '../config/db-config';
@@ -16,6 +15,7 @@ import { Timestamp } from '@google-cloud/firestore';
 import { sendgridApiSecret } from '../config/api-key-config';
 import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
 import { FieldValue } from 'firebase-admin/firestore';
+import { getSgContactId } from './helpers/get-sg-contact-id';
 ;
 
 // Courtesy of https://sendgrid.api-docs.io/v3.0/contacts-api-lists/delete-a-single-recipient-from-a-single-list

@@ -56,14 +56,14 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private createTrainingSessionProcessing$!: Observable<boolean>;
   private createTrainingSessionSubscription!: Subscription;
   private createTrainingSessionError$!: Observable<{} | null>;
-  private createTrainingSessionSubmitted = signal(false);
+  private $createTrainingSessionSubmitted = signal(false);
   private $createTrainingSessionCycleInit = signal(false);
   private $createTrainingSessionCycleComplete = signal(false);
   
   private updateTrainingSessionProcessing$!: Observable<boolean>;
   private updateTrainingSessionSubscription!: Subscription;
   private updateTrainingSessionError$!: Observable<{} | null>;
-  private updateTrainingSessionSubmitted = signal(false);
+  private $updateTrainingSessionSubmitted = signal(false);
   private $updateTrainingSessionCycleInit = signal(false);
   private $updateTrainingSessionCycleComplete = signal(false);
 
@@ -238,8 +238,8 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         withLatestFrom(this.youtubeVideoData$, this.createTrainingSessionError$),
         filter(([userData, videoData, processingError]) => !processingError && !!videoData),
         switchMap(([userData, videoData, processingError]) => {
-          if (!this.createTrainingSessionSubmitted()) {
-            this.createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
+          if (!this.$createTrainingSessionSubmitted()) {
+            this.$createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
             const trainingSessionNoId: CanonicalTrainingSessionNoIdOrTimestamps = {
               [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (this.stepTwo.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
               [TrainingSessionKeys.COMPLEXITY_AVERAGE]: this.stepTwo.complexityDefault.value,
@@ -291,7 +291,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   private resetCreateTrainingSessionComponentState() {
     this.createTrainingSessionSubscription?.unsubscribe();
-    this.createTrainingSessionSubmitted.set(false);
+    this.$createTrainingSessionSubmitted.set(false);
     this.$createTrainingSessionCycleInit.set(false);
     this.$createTrainingSessionCycleComplete.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
@@ -313,8 +313,8 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         withLatestFrom(this.youtubeVideoData$, this.updateTrainingSessionError$, this.userData$),
         filter(([currentTrainingSessionData, videoData, processingError, userData]) => !processingError && !!videoData),
         switchMap(([currentTrainingSessionData, videoData, processingError, userData]) => {
-          if (!this.updateTrainingSessionSubmitted()) {
-            this.updateTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
+          if (!this.$updateTrainingSessionSubmitted()) {
+            this.$updateTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
             const updatedTrainingSession: Update<CanonicalTrainingSession> = {
               id: currentTrainingSessionData.id,
               changes: {
@@ -364,7 +364,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   private resetUpdateTrainingSessionComponentState() {
     this.updateTrainingSessionSubscription?.unsubscribe();
-    this.updateTrainingSessionSubmitted.set(false);
+    this.$updateTrainingSessionSubmitted.set(false);
     this.$updateTrainingSessionCycleInit.set(false);
     this.$updateTrainingSessionCycleComplete.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
@@ -398,7 +398,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
                         !this.stepOne?.youtubeVideoDataForm?.dirty && 
                         !this.stepTwo?.trainingSessionForm?.touched && 
                         !this.stepTwo?.trainingSessionForm?.dirty;
-    const createdOrUpdatedTrainingSession = this.updateTrainingSessionSubmitted() || this.createTrainingSessionSubmitted();
+    const createdOrUpdatedTrainingSession = this.$updateTrainingSessionSubmitted() || this.$createTrainingSessionSubmitted();
 
     const canDeactivateData: CanDeactivateData = {
       deactivationPermitted: formIsClean || createdOrUpdatedTrainingSession,
@@ -417,7 +417,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.updateTrainingSessionSubscription?.unsubscribe();
 
     // Purge if canceled operation
-    if (!this.createTrainingSessionSubmitted() || !this.updateTrainingSessionSubmitted()) {
+    if (!this.$createTrainingSessionSubmitted() || !this.$updateTrainingSessionSubmitted()) {
       this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
     }
 

@@ -2,16 +2,16 @@ import { CloudEvent, logger } from 'firebase-functions/v2';
 import { AxiosRequestConfig } from 'axios';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
 import { SendgridStandardJobResponse } from '../../../shared-models/email/sendgrid-objects.model';
-import { getSgContactId } from './helpers/get-sg-contact-id';
 import { sendgridMarketingContactsApiUrl } from './config';
 import { submitHttpRequest } from '../config/global-helpers';
 import { PublicTopicNames } from '../../../shared-models/routes-and-paths/fb-function-names.model';
 import { sendgridApiSecret } from '../config/api-key-config';
 import { MessagePublishedData, PubSubOptions, onMessagePublished } from 'firebase-functions/v2/pubsub';
+import { getSgContactId } from './helpers/get-sg-contact-id';
 
 const deleteSendgridContact = async (userData: EmailUserData): Promise<SendgridStandardJobResponse | null> => {
 
-  const contactId = getSgContactId(userData);
+  const contactId = await getSgContactId(userData);
 
   if (!contactId) {
     logger.log('No contact id available, aborting deleteSendgridContact with null value');

@@ -3,7 +3,7 @@ import { WebDomains } from "../meta/web-urls.model";
 
 export enum EmailIdentifiers {
   AUTO_NOTICE_NEW_USER_SIGNUP = 'auto-notice-new-user-signup',
-  AUTO_NOTICE_SUBSCRIBER_COUNT_MISMATCH = 'auto-notice-subscriber-count-mismatch',
+  AUTO_NOTICE_OPT_IN_MISMATCH = 'auto-notice-opt-in-mismatch',
   AUTO_NOTICE_WEBPAGE_DATA_LOAD_FAILURE = 'auto-notice-webpage-data-load-failure',
   CONTACT_FORM_CONFIRMATION = 'contact-form-confirmation',
   EMAIL_VERIFICATION = 'email-verification',
@@ -66,7 +66,8 @@ export const AdminEmailAddresses = {
   IGNFAPP_GREG: `greg@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_MD: `md@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_DEFAULT: `hello@${WebDomains.IGNFAPP_EMAIL}`,
-  IGNFAPP_ADMIN: `greg@${WebDomains.IGNFAPP_EMAIL}`
+  IGNFAPP_ADMIN: `greg@${WebDomains.IGNFAPP_EMAIL}`,
+  IGNFAPP_TEST_1: `greg+test1${WebDomains.IGNFAPP_EMAIL}`
 };
 
 export type SgContactCustomFieldData = {
@@ -76,9 +77,9 @@ export type SgContactCustomFieldData = {
 // Sendgrid uses these custom IDs for the custom fields
 // To get these ids use postman GET https://api.sendgrid.com/v3/marketing/field_definitions
 export enum SgContactCustomFieldIds {
-  APP_UID = 'e2_T',
-  CREATED_TIMESTAMP = 'e3_D',
-  OPT_IN_TIMESTAMP = 'e4_D'
+  APP_CREATED_TIMESTAMP = 'e6_D',
+  APP_OPT_IN_TIMESTAMP = 'e7_D',
+  APP_UID = 'e5_T',
 }
 
 export enum SgWebhookSignatureVerificationKeys {

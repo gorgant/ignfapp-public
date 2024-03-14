@@ -40,7 +40,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private deletePublicUserProcessing$!: Observable<boolean>;
   private deletePublicUserSubscription!: Subscription;
   private deletePublicUserError$!: Observable<{} | null>;
-  private deletePublicUserSubmitted = signal(false);
+  private $deletePublicUserSubmitted = signal(false);
   private $deletePublicUserCycleInit = signal(false);
   private $deletePublicUserCycleComplete = signal(false);
 
@@ -124,8 +124,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         withLatestFrom(this.userData$),
         filter(([userActionConfirmed, userData]) => userActionConfirmed),
         switchMap(([userActionConfirmed, userData]) => {
-          if (!this.deletePublicUserSubmitted()) {
-            this.deletePublicUserSubmitted.set(true);
+          if (!this.$deletePublicUserSubmitted()) {
+            this.$deletePublicUserSubmitted.set(true);
             console.log('User action confirmed', userActionConfirmed);
             this.store$.dispatch(UserStoreActions.deletePublicUserRequested({userId: userData.id}));
           }
@@ -160,7 +160,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private resetComponentState() {
     this.deletePublicUserSubscription?.unsubscribe();
-    this.deletePublicUserSubmitted.set(false);
+    this.$deletePublicUserSubmitted.set(false);
     this.$deletePublicUserCycleInit.set(false);
     this.$deletePublicUserCycleComplete.set(false);
     this.store$.dispatch(AuthStoreActions.purgeAuthErrors());

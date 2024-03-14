@@ -81,7 +81,7 @@ const getAuthGuardResult = (returnUrl: string, guardType: 'canActivate' | 'canLo
       map(([userData, authData, fetchProcessing]) => {
         loopProtectionCount++;
 
-        if (loopProtectionCount > 10) {
+        if (loopProtectionCount > 50) {
           console.log('Loop protection triggered');
           resetComponentState();
           throw Error('Loop protection triggered, halting function');

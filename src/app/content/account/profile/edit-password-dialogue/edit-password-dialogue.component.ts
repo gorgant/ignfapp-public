@@ -25,7 +25,7 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
 
   resetPasswordProcessing$!: Observable<boolean>;
-  private resetPasswordSubmitted = signal(false);
+  private $resetPasswordSubmitted = signal(false);
   private resetPasswordError$!: Observable<{} | null>;
   private resetPasswordSubscription!: Subscription;
   private $resetPasswordCycleInit = signal(false);
@@ -66,7 +66,7 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
         switchMap(([processingError, userData]) => {
           const email = userData.email;
           this.store$.dispatch(AuthStoreActions.resetPasswordRequested({email}));
-          this.resetPasswordSubmitted.set(true);
+          this.$resetPasswordSubmitted.set(true);
           return this.resetPasswordProcessing$;
         }),
         // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
@@ -98,7 +98,7 @@ export class EditPasswordDialogueComponent implements OnInit, OnDestroy {
 
   private resetComponentState() {
     this.resetPasswordSubscription?.unsubscribe();
-    this.resetPasswordSubmitted.set(false);
+    this.$resetPasswordSubmitted.set(false);
     this.$resetPasswordCycleInit.set(false);
     this.$resetPasswordCycleComplete.set(false);
     this.store$.dispatch(AuthStoreActions.purgeAuthErrors());

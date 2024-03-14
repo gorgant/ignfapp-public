@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, User, reload, deleteUser } from '@angular/fire/auth';
+import { Auth, authState, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, User, reload, deleteUser, FacebookAuthProvider, getAdditionalUserInfo, createUserWithEmailAndPassword, AuthCredential } from '@angular/fire/auth';
 import { Functions, httpsCallableData }  from '@angular/fire/functions';
 import { UiService } from './ui.service';
 import { from, Observable, Subject, throwError } from 'rxjs';
@@ -9,7 +9,6 @@ import { AuthFormData, AuthResultsData } from 'shared-models/auth/auth-data.mode
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { EmailVerificationData } from 'shared-models/email/email-verification-data';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { AuthCredential, createUserWithEmailAndPassword, FacebookAuthProvider, getAdditionalUserInfo } from 'firebase/auth';
 import { PasswordConfirmationData } from 'shared-models/auth/password-confirmation-data.model';
 import { Store } from '@ngrx/store';
 import { PersonalSessionFragmentStoreActions, PlanSessionFragmentStoreActions, TrainingPlanStoreActions, TrainingRecordStoreActions, TrainingSessionStoreActions, UserStoreActions } from 'src/app/root-store';
@@ -27,7 +26,7 @@ export class AuthService {
   private uiService = inject(UiService);
   private auth = inject(Auth);
   private store$ = inject(Store);
-  private authCheckInitialized = false;
+  private authCheckInitialized = signal(false);
 
   constructor() {
 
@@ -35,12 +34,12 @@ export class AuthService {
     authState(this.auth)
       .subscribe(authState => {
         // Disable this for email verification route
-        if (!authState && !this.router.url.includes(PublicAppRoutes.AUTH_EMAIL_VERIFICATION) && this.authCheckInitialized) {
+        if (!authState && !this.router.url.includes(PublicAppRoutes.AUTH_EMAIL_VERIFICATION) && this.authCheckInitialized()) {
           console.log('Auth state auto logout initialized')
           this.router.navigate([PublicAppRoutes.AUTH_LOGIN]);
           this.logout();
         }
-        this.authCheckInitialized = true; // prevents this logout from triggering on the initial load, which was canceling out the returnUrl param from the Authguard
+        this.authCheckInitialized.set(true); // prevents this logout from triggering on the initial load, which was canceling out the returnUrl param from the Authguard
       });
   }
 
@@ -71,29 +70,6 @@ export class AuthService {
           }
           this.uiService.showSnackBar(errorMessage, 10000);
           console.log('Error confirming password in auth', error);
-          return throwError(() => new Error(error));
-        })
-      )
-    );
-
-    return authResponse;
-  }
-
-  deleteAuthUser(): Observable<boolean> {
-    const authResponse = from(
-      authState(this.auth).pipe(
-        take(1),
-        switchMap(authUser => {
-          const deleteResults = deleteUser(authUser as User);
-          return deleteResults;
-        }),
-        map(empty => {
-          console.log('User deleted');
-          return true;
-        }),
-        catchError(error => {
-          this.uiService.showSnackBar(error.message, 10000);
-          console.log('Error deleting user in auth', error);
           return throwError(() => new Error(error));
         })
       )

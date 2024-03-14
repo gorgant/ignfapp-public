@@ -1,4 +1,4 @@
-import { EmailSubSource } from "../email/email-sub-source.model";
+import { EmailOptInSource } from "../email/email-opt-in-source.model";
 import { SendgridContactListId } from "../email/email-vars.model";
 import { UnsubscribeRecordList, UnsubscribeRecord } from "../email/unsubscribe-record.model";
 import { Timestamp } from '@angular/fire/firestore';
@@ -11,9 +11,10 @@ export enum PublicUserKeys {
   EMAIL = 'email',
   EMAIL_GROUP_UNSUBSCRIBES = 'emailGroupUnsubscribes',
   EMAIL_GLOBAL_UNSUBSCRIBE = 'emailGlobalUnsubscribe',
-  EMAIL_LAST_SUB_SOURCE = 'emailLastSubSource',
-  EMAIL_OPT_IN_TIMESTAMP = 'emailOptInTimestamp',
   EMAIL_OPT_IN_CONFIRMED = 'emailOptInConfirmed',
+  EMAIL_OPT_IN_SOURCE = 'emailOptInSource',
+  EMAIL_OPT_IN_TIMESTAMP = 'emailOptInTimestamp',
+  EMAIL_OPT_OUT_TIMESTAMP = 'emailOptOutTimestamp',
   EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP = 'emailSendgridContactCreatedTimestamp',
   EMAIL_SENDGRID_CONTACT_ID = 'emailSendgridContactId',
   EMAIL_SENDGRID_CONTACT_LIST_ARRAY = 'emailSendgridContactListArray',
@@ -42,9 +43,10 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL]: string;
   [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: UnsubscribeRecordList | undefined;
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: UnsubscribeRecord | undefined;
-  [PublicUserKeys.EMAIL_LAST_SUB_SOURCE]: EmailSubSource | undefined,
   [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: boolean | undefined;
+  [PublicUserKeys.EMAIL_OPT_IN_SOURCE]: EmailOptInSource | undefined,
   [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined | null;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]: string | undefined;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: SendgridContactListId[] | undefined;

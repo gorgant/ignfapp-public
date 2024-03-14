@@ -33,22 +33,6 @@ export const confirmPasswordFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Delete Auth User
-
-export const deleteAuthUserRequested = createAction(
-  '[Signup Form Component] Delete Auth User Requested'
-);
-
-export const deleteAuthUserCompleted = createAction(
-  '[Auth Service] Delete Auth User Complete',
-  props<{userDeleted: boolean}>()
-);
-
-export const deleteAuthUserFailed = createAction(
-  '[Auth Service] Delete Auth User Failed',
-  props<{error: FirebaseError}>()
-);
-
 // Detect Cached User
 
 export const detectCachedUserRequested = createAction(

@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
@@ -9,10 +9,10 @@ import * as PlanSessionFragmentStoreActions from './actions';
 @Injectable()
 export class PlanSessionFragmentStoreEffects {
 
-  constructor(
-    private actions$: Actions,
-    private planSessionFragmentService: PlanSessionFragmentService,
-  ) { }
+  private actions$ = inject(Actions);
+  private planSessionFragmentService = inject(PlanSessionFragmentService);
+
+  constructor() { }
 
   batchDeletePlanSessionFragmentsEffect$ = createEffect(() => this.actions$
     .pipe(

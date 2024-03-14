@@ -6,6 +6,8 @@ import { TrainDashboardComponent } from "../train/train-dashboard/train-dashboar
 import { EditTrainingPlanComponent } from "./edit-training-plan/edit-training-plan.component";
 import { EditTrainingSessionComponent } from "./edit-training-session/edit-training-session.component";
 
+// TODO: Should we add UnsavedChangesGuard to the training plan routes similar to the training session routes?
+
 export const BUILD_ROUTES: Routes = [
   {
     path: '',

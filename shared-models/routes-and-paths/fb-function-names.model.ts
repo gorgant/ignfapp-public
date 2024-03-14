@@ -30,5 +30,6 @@ export enum PublicTopicNames {
   DELETE_SG_CONTACT_TOPIC = 'delete-sg-contact-topic',
   DISPATCH_EMAIL_TOPIC = 'dispatch-email-topic',
   REMOVE_USER_FROM_SG_CONTACT_LIST_TOPIC = 'remove-user-from-sg-contact-list-topic',
+  RESET_SG_CONTACT_OPT_IN_STATUS = 'reset-sg-contact-opt-in-status',
   RESIZE_AVATAR_TOPIC = 'resize-avatar-topic',
 }

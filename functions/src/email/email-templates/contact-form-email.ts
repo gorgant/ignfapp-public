@@ -5,36 +5,40 @@ import { EmailSenderAddresses, EmailSenderNames, SendgridEmailTemplateIds, Email
 import { currentEnvironmentType } from "../../config/environments-config";
 import { EnvironmentTypes } from "../../../../shared-models/environments/env-vars.model";
 import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
-import { ContactForm } from "../../../../shared-models/user/contact-form.model";
+import { ContactForm, ContactFormKeys } from "../../../../shared-models/user/contact-form.model";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
+import { PublicUserKeys } from '../../../../shared-models/user/public-user.model';
 
 
 export const sendContactFormConfirmationEmail = async (contactForm: ContactForm) => {
 
-  logger.log('Sending Contact Form Confirmation Email to this user', contactForm.userData.email);
-
   const sgMail = getSgMail();
   const fromEmail = EmailSenderAddresses.IGNFAPP_DEFAULT;
   const fromName = EmailSenderNames.IGNFAPP_DEFAULT;
+  const toFirstName = contactForm[ContactFormKeys.SUBSCRIBER_DATA][PublicUserKeys.FIRST_NAME];
+  const toEmail = contactForm[ContactFormKeys.SUBSCRIBER_DATA][PublicUserKeys.EMAIL];
+  const contactFormMessage = contactForm[ContactFormKeys.MESSAGE];
   let recipientData: EmailData | EmailData[];
   let bccData: EmailData | EmailData[];
   const templateId = SendgridEmailTemplateIds.IGNFAPP_CONTACT_FORM_CONFIRMATION;
   let categories: string[];
+
+  logger.log('Sending Contact Form Confirmation Email to:', toEmail);
 
   // Prevents test emails from going to the actual address used
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = [
         {
-          email: contactForm.userData.email,
-          name: contactForm.userData.firstName
+          email: toEmail,
+          name: toFirstName
         }
       ];
       categories = [EmailIdentifiers.CONTACT_FORM_CONFIRMATION];
       bccData = AdminEmailAddresses.IGNFAPP_ADMIN;
       break;
     case EnvironmentTypes.SANDBOX:
-      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_TEST_1;
       categories = [EmailIdentifiers.CONTACT_FORM_CONFIRMATION, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;
@@ -54,8 +58,8 @@ export const sendContactFormConfirmationEmail = async (contactForm: ContactForm)
     bcc: bccData,
     templateId,
     dynamicTemplateData: {
-      firstName: contactForm.userData.firstName, // Will populate first name greeting if name exists
-      contactFormMessage: contactForm.message, // Message sent by the user,
+      firstName: toFirstName, // Will populate first name greeting if name exists
+      contactFormMessage: contactFormMessage, // Message sent by the user,
       replyEmailAddress: fromEmail
     },
     categories

@@ -5,8 +5,6 @@ import { AuthState } from "./state";
 const getAuthResultsData = (state: AuthState) => state.authResultsData;
 const getConfirmPasswordError = (state: AuthState) => state.confirmPasswordError;
 const getConfirmPasswordProcessing = (state: AuthState) => state.confirmPasswordProcessing;
-const getDeleteAuthUserError = (state: AuthState) => state.deleteAuthUserError;
-const getDeleteAuthUserProcessing = (state: AuthState) => state.deleteAuthUserProcessing;
 const getEmailAuthError = (state: AuthState) => state.emailAuthError;
 const getEmailAuthProcessing = (state: AuthState) => state.emailAuthProcessing;
 const getEmailSignupError = (state: AuthState) => state.emailSignupError;
@@ -43,16 +41,6 @@ export const selectConfirmPasswordError = createSelector(
 export const selectConfirmPasswordProcessing = createSelector(
   selectAuthState,
   getConfirmPasswordProcessing
-);
-
-export const selectDeleteAuthUserError = createSelector(
-  selectAuthState,
-  getDeleteAuthUserError
-);
-
-export const selectDeleteAuthUserProcessing = createSelector(
-  selectAuthState,
-  getDeleteAuthUserProcessing
 );
 
 export const selectEmailAuthError = createSelector(

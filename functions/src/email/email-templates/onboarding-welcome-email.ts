@@ -10,8 +10,7 @@ import { EmailUserData } from "../../../../shared-models/email/email-user-data.m
 import { PublicCollectionPaths } from "../../../../shared-models/routes-and-paths/fb-collection-paths.model";
 import { publicFirestore } from "../../config/db-config";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
-
-const db = publicFirestore;
+import { PublicUserKeys } from '../../../../shared-models/user/public-user.model';
 
 const markIntroEmailSent = async (userData: EmailUserData) => {
 
@@ -19,7 +18,7 @@ const markIntroEmailSent = async (userData: EmailUserData) => {
     onboardingWelcomeEmailSent: true
   }
 
-  const fbRes = await db.collection(PublicCollectionPaths.PUBLIC_USERS).doc(userData.id).update(onboardingWelcomeEmailSent)
+  const fbRes = await publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS).doc(userData.id).update(onboardingWelcomeEmailSent)
     .catch(err => {logger.log(`Failed to update subscriber data in public database`, err); return err;});
 
   logger.log('Marked onboardingWelcomeEmailSent true', fbRes);
@@ -27,31 +26,33 @@ const markIntroEmailSent = async (userData: EmailUserData) => {
 }
 
 export const sendOnboardingWelcomeEmail = async (userData: EmailUserData) => {
-  logger.log('Sending Onboarding Welcome Email', userData.id);
-
+  
   const sgMail = getSgMail();
-  const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
-  const fromName: string = EmailSenderNames.IGNFAPP_DEFAULT;
-  const toFirstName: string = userData.firstName as string;
+  const fromEmail = EmailSenderAddresses.IGNFAPP_DEFAULT;
+  const fromName = EmailSenderNames.IGNFAPP_DEFAULT;
+  const toFirstName = userData[PublicUserKeys.FIRST_NAME];
+  const toEmail = userData[PublicUserKeys.EMAIL];
   let recipientData: EmailData | EmailData[];
   let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_ONBOARDING_WELCOME;
   const unsubscribeGroupId: number = SendgridEmailUnsubscribeGroupIds.IGNFAPP_FEATURES_AND_NEWS;
   let categories: string[];
 
+  logger.log('Sending Onboarding Welcome Email to:', toEmail);
+
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = [
         {
-          email: userData.email,
-          name: userData.firstName
+          email: toEmail,
+          name: toFirstName
         }
       ];
       categories = [EmailIdentifiers.ONBOARDING_WELCOME];
       bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
-      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_TEST_1;
       categories = [EmailIdentifiers.ONBOARDING_WELCOME, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;

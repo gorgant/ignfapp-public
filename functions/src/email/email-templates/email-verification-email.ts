@@ -12,37 +12,39 @@ import { PublicUserKeys } from '../../../../shared-models/user/public-user.model
 
 
 export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
-  
-  logger.log('Sending Email Verification Email to this user', userData.email);
-  
   const sgMail = getSgMail();
-  const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
-  const fromName: string = EmailSenderNames.IGNFAPP_DEFAULT;
+  const fromEmail = EmailSenderAddresses.IGNFAPP_DEFAULT;
+  const fromName = EmailSenderNames.IGNFAPP_DEFAULT;
+  const toFirstName = userData[PublicUserKeys.FIRST_NAME];
+  const toEmail = userData[PublicUserKeys.EMAIL];
   let recipientData: EmailData | EmailData[];
   let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_EMAIL_VERIFICATION;
   let categories: string[];
+  
+  logger.log('Sending Email Verification Email to this user', toEmail);
+  
   // Add email, user ID, and other params for verification purposes
   const urlBuilder = new URL(EmailWebsiteLinks.EMAIL_VERIFICATION_URL_NO_PARAMS);
   urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.USER_ID, userData[PublicUserKeys.ID]);
   urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.EMAIL, userData[PublicUserKeys.EMAIL]);
   const optInConfirmationUrl = urlBuilder.href;
 
-  console.log('Producing this verification url', optInConfirmationUrl);
+  logger.log('Producing this verification url', optInConfirmationUrl);
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:
       recipientData = [
         {
-          email: userData.email,
-          name: userData.firstName
+          email: toEmail,
+          name: toFirstName
         }
       ];
       categories = [EmailIdentifiers.EMAIL_VERIFICATION];
       bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
-      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_TEST_1;
       categories = [EmailIdentifiers.EMAIL_VERIFICATION, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;
@@ -62,7 +64,7 @@ export const sendEmailVerificationEmail = async (userData: EmailUserData) => {
     bcc: bccData,
     templateId,
     dynamicTemplateData: {
-      firstName: userData.firstName, // Will populate first name greeting if name exists
+      firstName: toFirstName, // Will populate first name greeting if name exists
       optInConfirmationUrl // Unique to subscriber
     },
     categories

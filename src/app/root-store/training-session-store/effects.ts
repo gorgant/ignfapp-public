@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
@@ -9,9 +9,11 @@ import * as TrainingSessionStoreActions from './actions';
 @Injectable()
 export class TrainingSessionStoreEffects {
 
+  private actions$ = inject(Actions);
+  private trainingSessionService = inject(TrainingSessionService);
+
   constructor(
-    private actions$: Actions,
-    private trainingSessionService: TrainingSessionService,
+    
   ) { }
 
   createTrainingSessionEffect$ = createEffect(() => this.actions$

@@ -40,11 +40,11 @@ export class TrainDashboardComponent implements OnInit, OnDestroy {
 
   private userData$!: Observable<PublicUser>;
 
-  private allPersonalSessionFragmentsFetched$!: Observable<boolean>;
-  personalSessionFragments$!: Observable<PersonalSessionFragment[]>;
-  fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
-  private fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
   private $fetchPersonalSessionFragmentsSubmitted = signal(false);
+  private allPersonalSessionFragmentsFetched$!: Observable<boolean>;
+  private fetchAllPersonalSessionFragmentsError$!: Observable<{} | null>;
+  fetchAllPersonalSessionFragmentsProcessing$!: Observable<boolean>;
+  personalSessionFragments$!: Observable<PersonalSessionFragment[]>;
 
   private store$ = inject(Store);
   private uiService = inject(UiService);

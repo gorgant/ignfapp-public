@@ -1,7 +1,7 @@
 import { logger } from 'firebase-functions/v2';
 import { CallableOptions, CallableRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
 import { publicFirestore } from '../config/db-config';
-import { PublicUser } from '../../../shared-models/user/public-user.model';
+import { PublicUser, PublicUserKeys } from '../../../shared-models/user/public-user.model';
 import { EmailVerificationData } from '../../../shared-models/email/email-verification-data';
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { EmailUserData } from '../../../shared-models/email/email-user-data.model';
@@ -10,18 +10,23 @@ import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model'
 import { createOrUpdateSgContact } from '../email/helpers/create-or-update-sg-contact';
 import { EnvironmentTypes } from '../../../shared-models/environments/env-vars.model';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
-import { UserRecord } from 'firebase-functions/v1/auth';
-import { convertPublicUserDataToEmailUserData, fetchAuthUserById } from '../config/global-helpers';
+import { convertPublicUserDataToEmailUserData } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
-import { getAuth } from 'firebase-admin/auth';
-import { publicAppFirebaseInstance } from '../config/app-config';
 import { SgCreateOrUpdateContactData } from '../../../shared-models/email/sg-create-or-update-contact-data.model';
+import { EmailPubMessage } from '../../../shared-models/email/email-pub-message.model';
 
 // Trigger email send
 const dispatchWelcomeEmail = async(userData: EmailUserData) => {
-  const emailCategory = EmailIdentifiers.ONBOARDING_WELCOME;
-  await dispatchEmail(userData, emailCategory); // Dispatch the welcome email to the user
-  await dispatchEmail(userData, EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP); // Alert the team that a user has signed up!
+  const welcomEmailPubMessage: EmailPubMessage = {
+    emailUserData: userData,
+    emailIdentifier: EmailIdentifiers.ONBOARDING_WELCOME
+  };
+  const newUserAutoNoticePubMessage: EmailPubMessage = {
+    emailUserData: userData,
+    emailIdentifier: EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP
+  };
+  await dispatchEmail(welcomEmailPubMessage); // Dispatch the welcome email to the user
+  await dispatchEmail(newUserAutoNoticePubMessage); // Alert the team that a user has signed up!
 }
 
 const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerificationData): Promise<boolean> => {
@@ -43,30 +48,17 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
     return false;
   }
 
-  // Verify user exists in Auth
-  const userDataInAuth: UserRecord = await fetchAuthUserById(emailVerificationData.userId);
-  if (!userDataInAuth) {
-    logger.log('User id in payload does not match id in auth');
-    return false;
-  }
-
-  if (userDataInAuth.emailVerified && userDataInDb.emailVerified) {
+  if (userDataInDb.emailVerified) {
     logger.log('User email already verified, no action taken')
     return true;
   }
 
-  // Mark email verified in Firebase auth
-  await getAuth(publicAppFirebaseInstance).updateUser(userDataInDb.id, {emailVerified: true})
-    .catch(err => {logger.log(`Error updating user emailVerified in auth:`, err); throw new HttpsError('internal', err);});
-
-  logger.log(`Email marked verified in auth`);
-
   const updatedUserData: Partial<PublicUser> = {
-    emailVerified: true, // Adding to user record triggers user subscription on client, which provides easy trigger for user auth check
-    emailOptInConfirmed: true,
-    emailOptInTimestamp: Timestamp.now() as any,
-    lastModifiedTimestamp: Timestamp.now() as any,
-    emailSendgridContactCreatedTimestamp: userDataInDb.emailSendgridContactCreatedTimestamp ? userDataInDb.emailSendgridContactCreatedTimestamp : Timestamp.now() as any,
+    [PublicUserKeys.EMAIL_VERIFIED]: true, // Adding to user record triggers user subscription on client, which provides easy trigger for user auth check
+    [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: true,
+    [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: Timestamp.now() as any,
+    [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: Timestamp.now() as any,
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] ? userDataInDb[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] : Timestamp.now() as any,
   };
 
   // Mark sub opted in on public database
@@ -94,7 +86,6 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
   }
 
   return true;
-
 }
 
 /////// DEPLOYABLE FUNCTIONS ///////

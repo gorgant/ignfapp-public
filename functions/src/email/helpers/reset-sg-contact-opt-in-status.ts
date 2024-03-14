@@ -6,9 +6,9 @@ import { PubSub } from '@google-cloud/pubsub';
 import { publicAppProjectId } from '../../config/app-config';
 const pubSub = new PubSub();
 
-// Publish SG Contact Delete
-export const deleteSgContact = async(emailUserData: EmailUserData) => {
-  const topicName = PublicTopicNames.DELETE_SG_CONTACT_TOPIC;
+// Publish SG Contact Update
+export const resetSgContactOptInStatus = async(emailUserData: EmailUserData) => {
+  const topicName = PublicTopicNames.RESET_SG_CONTACT_OPT_IN_STATUS;
   const projectId = publicAppProjectId;
   const topic = pubSub.topic(`projects/${projectId}/topics/${topicName}`);
   const pubsubMsg: EmailUserData = {

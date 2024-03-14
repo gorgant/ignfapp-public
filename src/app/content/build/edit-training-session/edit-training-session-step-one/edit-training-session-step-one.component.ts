@@ -44,7 +44,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
   private fetchYoutubeVideoDataProcessing$!: Observable<boolean>;
   private fetchYoutubeVideoDataSubscription!: Subscription;
   private fetchYoutubeVideoDataError$!: Observable<Error | null>;
-  private fetchYoutubeVideoDataSubmitted = signal(false);
+  private $fetchYoutubeVideoDataSubmitted = signal(false);
   private youtubeVideoData$!: Observable<YoutubeVideoDataCompact>;
   private videoUrlSubscription!: Subscription;
 
@@ -128,13 +128,13 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
         }),
         filter(processingError => !processingError),
         switchMap(processingError => {
-          if (!this.fetchYoutubeVideoDataSubmitted()) {
+          if (!this.$fetchYoutubeVideoDataSubmitted()) {
             const fetchYoutubeVideoData: FetchYoutubeVideoData = {
               videoId,
               visibilityCategory: this.visibilityCategory.value
             }
             this.store$.dispatch(TrainingSessionStoreActions.fetchYoutubeVideoDataRequested({fetchYoutubeVideoData}));
-            this.fetchYoutubeVideoDataSubmitted.set(true);
+            this.$fetchYoutubeVideoDataSubmitted.set(true);
           }
           return this.youtubeVideoData$;
         }),
@@ -163,7 +163,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
     this.youtubeVideoDataForm.reset(); // Prevents user from proceeding manually to next step by clicking in stepper
     this.visibilityCategory.enable();
     this.visibilityCategory.setValue(TrainingSessionVisibilityCategoryDbOption.PRIVATE);
-    this.fetchYoutubeVideoDataSubmitted.set(false);
+    this.$fetchYoutubeVideoDataSubmitted.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
     this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
   }

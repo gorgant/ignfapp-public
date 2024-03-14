@@ -15,10 +15,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 let eventKey: EmailEventType | string;
 
 // Update email record with clicks
-const handleClickEvent = async (emailRecordDocRef: FirebaseFirestore.DocumentReference): Promise<Partial<EmailRecordWithClicks>> => {
-
-  logger.log(`Adding new click data`)
-  
+const handleClickEvent = (): Partial<EmailRecordWithClicks> => {
   const updateClickCount: any = {
     [EmailRecordKeys.CLICK_COUNT]: FieldValue.increment(1)
   }
@@ -34,9 +31,7 @@ const handleClickEvent = async (emailRecordDocRef: FirebaseFirestore.DocumentRef
 }
 
 // If group unsubscribe, add that to subscriber data
-const handleGroupUnsubscribe = async (rawEventData: EmailEvent, subDocRef: FirebaseFirestore.DocumentReference) => {
-  logger.log('Group unsubscribe detected');
-  
+const handleGroupUnsubscribe = (rawEventData: EmailEvent): Partial<PublicUser> => {
   const unsubGroupId: number = rawEventData.asm_group_id as number;
 
   const groupUnsubscribeObject: UnsubscribeRecord = {
@@ -55,21 +50,20 @@ const handleGroupUnsubscribe = async (rawEventData: EmailEvent, subDocRef: Fireb
   }
 
   // Add group unsub and remove contact list id
-  const userUpdate: Partial<PublicUser> = {
-    emailGlobalUnsubscribe: FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
-    emailGroupUnsubscribes: groupUnsub, // Since this is an update operation, this will add to existing array of objects
-    emailSendgridContactListArray: FieldValue.arrayRemove(unsubGroupContactListPairing.contactListId) as any,
-    lastModifiedTimestamp: Timestamp.now() as any,
+  const userUpdates: Partial<PublicUser> = {
+    [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
+    [PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]: groupUnsub, // Since this is an update operation, this will add to existing array of objects
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: FieldValue.arrayRemove(unsubGroupContactListPairing.contactListId) as any,
+    [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: Timestamp.now() as any,
   }
 
-  logger.log('Updating user with group unsubscribe and removing contact list id', userUpdate);
-  await subDocRef.update(userUpdate)
-    .catch(err => {logger.log(`Failed to update subscriber in public database:`, err); throw new HttpsError('internal', err);});
+  logger.log('Updating user with group unsubscribe and removing contact list id', userUpdates);
+  return userUpdates;
 }
 
 // If group resubscribe, remove that from subscriber data
 // FYI at the moment no way to detect global resubscribe :(
-const handleGroupResubscribe = async (rawEventData: EmailEvent, userDocRef: FirebaseFirestore.DocumentReference) => {
+const handleGroupResubscribe = (rawEventData: EmailEvent): Partial<PublicUser> => {
   const unsubGroupId: number = rawEventData.asm_group_id as number;
   logger.log(`Group resubscribe type detected with this group id ${unsubGroupId}`);
 
@@ -80,48 +74,43 @@ const handleGroupResubscribe = async (rawEventData: EmailEvent, userDocRef: Fire
   }
 
   const userUpdates: Partial<PublicUser> = {
-    emailGlobalUnsubscribe: FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
+    [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: FieldValue.delete() as any, // reset the globalUnsubscribe object if it exists
     [`${PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES}.${unsubGroupId}`]: FieldValue.delete() as any, // remove specific unsub record from list
-    emailOptInConfirmed: true, // mark user optedIn
-    emailOptInTimestamp: Timestamp.now() as any,
-    emailSendgridContactListArray: FieldValue.arrayUnion(unsubGroupContactListPairing.contactListId) as any,
-    lastModifiedTimestamp: Timestamp.now() as any,
+    [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: true, // mark user optedIn
+    [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: Timestamp.now() as any,
+    [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: FieldValue.arrayUnion(unsubGroupContactListPairing.contactListId) as any,
+    [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: Timestamp.now() as any,
   }
 
   logger.log('Updating user with these updates', userUpdates);
-  await userDocRef.update(userUpdates)
-    .catch(err => {logger.error(`Failed to update subscriber in public database:`, err); throw new HttpsError('internal', err);});
+  return userUpdates;
 }
 
 // If global unsubscribe, add that to subscriber data and remove optIn designation
 // FYI at the moment no way to detect global resubscribe :(
-const handleGlobalUnsubscribe = async (subDocRef: FirebaseFirestore.DocumentReference) => {
-  logger.log('Global unsubscribe detected');
-  
+const handleGlobalUnsubscribe = () => {
   const globalUnsubscribeObject: UnsubscribeRecord = {
     unsubscribeTimestamp: Timestamp.now() as any,
   }
-  const subscriberUpdates: Partial<PublicUser> = {
-    emailGlobalUnsubscribe: globalUnsubscribeObject,
-    emailGroupUnsubscribes: FieldValue.delete() as any,
-    emailOptInConfirmed: false,
-    emailOptInTimestamp: FieldValue.delete() as any,
-    emailSendgridContactListArray: FieldValue.delete() as any,
-    lastModifiedTimestamp: Timestamp.now() as any,
+  const userUpdates: Partial<PublicUser> = {
+    [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: globalUnsubscribeObject,
+    [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: false,
+    [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: FieldValue.delete() as any,
+    [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: Timestamp.now() as any,
+    [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: Timestamp.now() as any,
   };
   
-  logger.log('Updating subscriber with global unsubscribe', subscriberUpdates);
-  await subDocRef.update(subscriberUpdates)
-    .catch(err => {logger.error(`Failed to update subscriber in public database:`, err); throw new HttpsError('internal', err);});
+  logger.log('Updating subscriber with global unsubscribe', userUpdates);
+  return userUpdates;
 }
 
+// This will cycle through all email events and batch commit the various events to the database
 const executeActions = async (emailEvents: EmailEvent[]) => {
 
   const userEmail = emailEvents[0].email;
   const recordId = emailEvents[0].sg_message_id;
 
   let userCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
-  
   let userData = await fetchUserByEmail(userEmail, userCollection); 
 
   if (!userData) {
@@ -129,59 +118,81 @@ const executeActions = async (emailEvents: EmailEvent[]) => {
     throw new HttpsError('internal', `Error updating email record, user with email ${userEmail} not found`);
   }
 
-  const userDocRef: FirebaseFirestore.DocumentReference = userCollection.doc(userData?.id);
+  const userDocRef: FirebaseFirestore.DocumentReference = userCollection.doc(userData.id);
   const emailRecordDocRef: FirebaseFirestore.DocumentReference = userDocRef.collection(PublicCollectionPaths.EMAIL_RECORDS).doc(recordId);
 
-  // Log all events provided by webhook
-  const logEvents = emailEvents.map( async rawEventData => {
-    let emailRecordUpdates: Partial<EmailRecordWithClicks> = {};
-    eventKey = rawEventData.event as EmailEventType;
+  let writeBatch = publicFirestore.batch();
+  let operationCount = 0;
 
+  for (const rawEventData of emailEvents) {
+    let emailRecordUpdates: Partial<EmailRecordWithClicks> = {};
+    let isEmailRecordUpdate = false;
+    let userUpdates: Partial<PublicUser> = {};
+    let isUserUpdate = false;
+
+    eventKey = rawEventData.event as EmailEventType;
     // Handle event-specific actions
     switch (eventKey) {
       case EmailEventType.CLICK:
-        emailRecordUpdates = await handleClickEvent(emailRecordDocRef);
+        logger.log(`Click event detected`);
+        emailRecordUpdates = handleClickEvent();
+        isEmailRecordUpdate = true;
         break;
       case EmailEventType.GROUP_UNSUBSCRIBE:
-        await handleGroupUnsubscribe(rawEventData, userDocRef);
+        logger.log('Group unsubscribe detected');
+        userUpdates = handleGroupUnsubscribe(rawEventData);
+        isUserUpdate = true;
         break;
       case EmailEventType.GROUP_RESUBSCRIBE:
-        await handleGroupResubscribe(rawEventData, userDocRef);
+        userUpdates = handleGroupResubscribe(rawEventData);
+        isUserUpdate = true;
         break;
       case EmailEventType.UNSUBSCRIBE:
-        await handleGlobalUnsubscribe(userDocRef);
+        logger.log('Global unsubscribe detected');
+        userUpdates = handleGlobalUnsubscribe();
+        isUserUpdate = true;
+        break;
+      case EmailEventType.SPAM_REPORT:
+        logger.log('Spam report detected');
+        userUpdates = handleGlobalUnsubscribe();
+        isUserUpdate = true;
         break;
       default:
+        logger.log('No matching event to handle.');
         break;
     }
-    
-    // Add the event to the updated email record
-    logger.log('Updating record using this event key', eventKey);
-    emailRecordUpdates[eventKey as EmailEventType] = rawEventData;
 
-    // Update the email record in database
-    logger.log('Updating email record with this event object', emailRecordUpdates);
-    
-    return emailRecordDocRef.set(emailRecordUpdates, {merge: true})
-      .catch(err => {logger.error(`Error updating email record with this event object ${emailRecordUpdates}:`, err); throw new HttpsError('internal', err);});
-  });
+    if (isEmailRecordUpdate) {
+      writeBatch.set(emailRecordDocRef, emailRecordUpdates, {merge: true});
+      operationCount++;
+    }
 
-  const res = await Promise.all(logEvents);
-  logger.log('All events logged in email record', res);
+    if (isUserUpdate) {
+      writeBatch.update(userDocRef, userUpdates);
+      operationCount++;
+    }
 
-  return res;
+    // Firestore batch limit is 500 operations per batch
+    // Commit the existing batch and create a new batch instance (the loop will continue with that new batch instance)
+    if (operationCount === 490) {
+      await writeBatch.commit()
+        .catch(err => {logger.log(`Error writing batch to backupPostsCollectionRef:`, err); throw new HttpsError('internal', err);});
+      writeBatch = publicFirestore.batch();
+      operationCount = 0;
+    }
+  }
+
+  if (operationCount > 0) {
+    await writeBatch.commit()
+      .catch(err => {logger.log(`Error writing batch to backupPostsCollectionRef:`, err); throw new HttpsError('internal', err);});
+  }
 }
-
 
 
 
 /////// CORE FUNCTION ///////
 
-export const updateEmailRecord = async (emailEvents: EmailEvent[]) => {
-
-  if (emailEvents.length < 1) {
-    return 'No events in email record';
-  }
+export const handleSgWebhookEvents = async (emailEvents: EmailEvent[]) => {
 
   return executeActions(emailEvents);
 }

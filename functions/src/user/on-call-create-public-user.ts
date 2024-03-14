@@ -6,8 +6,9 @@ import { EmailIdentifiers } from '../../../shared-models/email/email-vars.model'
 import { PublicCollectionPaths } from '../../../shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicUser } from '../../../shared-models/user/public-user.model';
 import { publicFirestore } from '../config/db-config';
-import { fetchDbUserById, verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
+import { convertPublicUserDataToEmailUserData, fetchDbUserById, verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from '../config/global-helpers';
 import { dispatchEmail } from '../email/helpers/dispatch-email';
+import { EmailPubMessage } from '../../../shared-models/email/email-pub-message.model';
 
 const publicUsersCollection = publicFirestore.collection(PublicCollectionPaths.PUBLIC_USERS);
 
@@ -27,9 +28,14 @@ const createPublicUser = async (userData: Partial<PublicUser>) => {
   return publicUser;
 }
 
-const dispatchEmailVerificationEmail = async(userData: EmailUserData) => {
-  const emailCategory = EmailIdentifiers.EMAIL_VERIFICATION;
-  await dispatchEmail(userData, emailCategory);
+const dispatchEmailVerificationEmail = async(publicUser: PublicUser) => {
+  const emailUserData: EmailUserData = convertPublicUserDataToEmailUserData(publicUser);
+  const emailIdentifier = EmailIdentifiers.EMAIL_VERIFICATION;
+  const emailPubMessage: EmailPubMessage = {
+    emailIdentifier,
+    emailUserData
+  };
+  await dispatchEmail(emailPubMessage);
 }
 
 const executeActions = async (userData: Partial<PublicUser>): Promise<PublicUser> => {

@@ -4,6 +4,7 @@ import { logger } from "firebase-functions/v2";
 import { dispatchEmail } from "../email/helpers/dispatch-email";
 import { EmailIdentifiers } from "../../../shared-models/email/email-vars.model";
 import { verifyAuthUidMatchesDocumentUserIdOrIsAdmin } from "../config/global-helpers";
+import { EmailPubMessage } from "../../../shared-models/email/email-pub-message.model";
 
 
 
@@ -13,13 +14,19 @@ const callableOptions: CallableOptions = {
 };
 
 export const onCallSendUpdateEmailConfirmation = onCall(callableOptions, async (request: CallableRequest<EmailUserData>): Promise<string> => {
-  const userData = request.data;
-  logger.log('onCallSendUpdateEmailConfirmation requested with this data', userData);
+  const emailUserData = request.data;
+  logger.log('onCallSendUpdateEmailConfirmation requested with this data', emailUserData);
 
-  const documentUserId = userData.id;
+  const documentUserId = emailUserData.id;
   await verifyAuthUidMatchesDocumentUserIdOrIsAdmin(request, documentUserId);
 
-  const publishedMsgId = await dispatchEmail(userData, EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION);
+  const emailIdentifier = EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION;
+  const emailPubMessage: EmailPubMessage = {
+    emailIdentifier,
+    emailUserData
+  };
+
+  const publishedMsgId = await dispatchEmail(emailPubMessage);
  
   return publishedMsgId;
 });

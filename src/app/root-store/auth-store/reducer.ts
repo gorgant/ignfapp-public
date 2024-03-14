@@ -51,29 +51,6 @@ export const authStoreReducer = createReducer(
     }
   }),
 
-  // Delete Auth User
-
-  on(AuthStoreActions.deleteAuthUserRequested, (state, action) => {
-    return {
-      ...state,
-      deleteAuthUserProcessing: true,
-      deleteAuthUserError: null
-    }
-  }),
-  on(AuthStoreActions.deleteAuthUserCompleted, (state, action) => {
-    return {
-      ...state,
-      deleteAuthUserProcessing: false,
-    }
-  }),
-  on(AuthStoreActions.deleteAuthUserFailed, (state, action) => {
-    return {
-      ...state,
-      deleteAuthUserProcessing: false,
-      deleteAuthUserError: action.error
-    }
-  }),
-
   // Detect Cached User
 
   on(AuthStoreActions.detectCachedUserRequested, (state, action) => {
@@ -202,8 +179,6 @@ export const authStoreReducer = createReducer(
     authGuardError: null,
     confirmPasswordError: null,
     confirmPasswordProcessing: false,
-    deleteAuthUserError: null,
-    deleteAuthUserProcessing: false,
     emailAuthError: null,
     emailAuthProcessing: false,
     emailSignupError: null,
@@ -212,9 +187,6 @@ export const authStoreReducer = createReducer(
     facebookAuthProcessing: false,
     googleAuthError: null,
     googleAuthProcessing: false,
-    verifyEmailError: null,
-    verifyEmailProcessing: false,
-    verifyEmailSucceeded: false,
     reloadAuthDataError: null, 
     reloadAuthDataProcessing: false,
     resetPasswordError: null,
@@ -222,6 +194,9 @@ export const authStoreReducer = createReducer(
     updateEmailError: null,
     updateEmailProcessing: false,
     updateEmailSucceeded: false,
+    verifyEmailError: null,
+    verifyEmailProcessing: false,
+    verifyEmailSucceeded: false,
     authResultsData: null,
     }
   }),
@@ -233,15 +208,14 @@ export const authStoreReducer = createReducer(
       ...state,
       authGuardError: null,
       confirmPasswordError: null,
-      deleteAuthUserError: null,
       emailAuthError: null,
       emailSignupError: null,
       facebookAuthError: null,
       googleAuthError: null,
-      verifyEmailError: null,
       reloadAuthDataError: null, 
       resetPasswordError: null,
       updateEmailError: null,
+      verifyEmailError: null,
     }
   }),
   

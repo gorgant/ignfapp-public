@@ -11,21 +11,23 @@ import { EmailVerificationUrlParamKeys } from '../../../../shared-models/email/e
 import { PublicUserKeys } from '../../../../shared-models/user/public-user.model';
 
 
-export const sendUpdateEmailConfirmationEmail = async (emailUserData: EmailUserData) => {
-  
-  logger.log('Sending Update Email Confirmation Email to this user', emailUserData.email);
-  
+export const sendUpdateEmailConfirmationEmail = async (userData: EmailUserData) => {
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_DEFAULT;
   const fromName: string = EmailSenderNames.IGNFAPP_DEFAULT;
+  const toFirstName = userData[PublicUserKeys.FIRST_NAME];
+  const toEmail = userData[PublicUserKeys.EMAIL];
   let recipientData: EmailData | EmailData[];
   let bccData: EmailData | EmailData[];
   const templateId: string = SendgridEmailTemplateIds.IGNFAPP_UPDATE_EMAIL_CONFIRMATION;
   let categories: string[];
+  
+  logger.log('Sending Update Email Confirmation Email to this user', userData.email);
+
   // Add email, user ID, and other params for verification purposes
   const urlBuilder = new URL(EmailWebsiteLinks.EMAIL_VERIFICATION_URL_NO_PARAMS);
-  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.USER_ID, emailUserData[PublicUserKeys.ID]);
-  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.EMAIL, emailUserData[PublicUserKeys.EMAIL]);
+  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.USER_ID, userData[PublicUserKeys.ID]);
+  urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.EMAIL, userData[PublicUserKeys.EMAIL]);
   urlBuilder.searchParams.append(EmailVerificationUrlParamKeys.IS_EMAIL_UPDATE, 'true');
   const updateEmailConfirmationUrl = urlBuilder.href;
 
@@ -35,15 +37,15 @@ export const sendUpdateEmailConfirmationEmail = async (emailUserData: EmailUserD
     case EnvironmentTypes.PRODUCTION:
       recipientData = [
         {
-          email: emailUserData.email,
-          name: emailUserData.firstName
+          email: toEmail,
+          name: toFirstName
         }
       ];
       categories = [EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION];
       bccData = '';
       break;
     case EnvironmentTypes.SANDBOX:
-      recipientData = AdminEmailAddresses.IGNFAPP_ADMIN;
+      recipientData = AdminEmailAddresses.IGNFAPP_TEST_1;
       categories = [EmailIdentifiers.UPDATE_EMAIL_CONFIRMATION, EmailIdentifiers.TEST_SEND];
       bccData = '';
       break;
@@ -63,7 +65,7 @@ export const sendUpdateEmailConfirmationEmail = async (emailUserData: EmailUserD
     bcc: bccData,
     templateId,
     dynamicTemplateData: {
-      firstName: emailUserData.firstName, // Will populate first name greeting if name exists
+      firstName: fromName, // Will populate first name greeting if name exists
       updateEmailConfirmationUrl // Unique to subscriber
     },
     categories

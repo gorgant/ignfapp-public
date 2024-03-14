@@ -8,11 +8,12 @@ import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
 
 import { EmailUserData } from "../../../../shared-models/email/email-user-data.model";
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
+import { PublicUserKeys } from '../../../../shared-models/user/public-user.model';
 
 
 export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
   
-  logger.log('Sending Prelaunch Signup Detected Email to admin');
+  
   
   const sgMail = getSgMail();
   const fromEmail: string = EmailSenderAddresses.IGNFAPP_ADMIN;
@@ -20,17 +21,18 @@ export const sendNewUserDetectedEmail = async (newUserData: EmailUserData ) => {
   let recipientData: EmailData | EmailData[];
   const subject: string = 'We Got a New User!';
   let categories: string[];
-  const emailString: string = `Hey Team, Guess what? A new user just signed up! First Name: ${newUserData.firstName}. Email: ${newUserData.email}. Uid: ${newUserData.id}. Keep up the good work! Automated Notification Service`
+  const emailString: string = `Hey Team, Guess what? A new user just signed up! First Name: ${newUserData[PublicUserKeys.FIRST_NAME]}. Email: ${newUserData[PublicUserKeys.EMAIL]}. Uid: ${newUserData[PublicUserKeys.ID]}. Keep up the good work! Automated Notification Service`
   const emailHtml: string = `<p>Hey Team,</p>\
     <p>Guess what? A new user just signed up!</p>\
     <ul>\
-      <li>Name: ${newUserData.firstName}</li>\
-      <li>Email: ${newUserData.email}</li>\
-      <li>Uid: ${newUserData.id}</li>\
+      <li>Name: ${newUserData[PublicUserKeys.FIRST_NAME]}</li>\
+      <li>Email: ${newUserData[PublicUserKeys.EMAIL]}</li>\
+      <li>Uid: ${newUserData[PublicUserKeys.ID]}</li>\
     </ul>\
     <p>Keep up the good work!</p>\
     <p>Automated Notification Service</p>\
     `
+  logger.log(`Sending Prelaunch Signup Detected Email for ${newUserData[PublicUserKeys.EMAIL]} to admin`);
   
   switch (currentEnvironmentType) {
     case EnvironmentTypes.PRODUCTION:

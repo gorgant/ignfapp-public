@@ -7,8 +7,8 @@ export type EmailUserData = Required<Pick<
   PublicUserKeys.EMAIL | 
   PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES |
   PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE |
-  PublicUserKeys.EMAIL_LAST_SUB_SOURCE |
   PublicUserKeys.EMAIL_OPT_IN_CONFIRMED |
+  PublicUserKeys.EMAIL_OPT_IN_SOURCE |
   PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP | 
   PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP |
   PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID |

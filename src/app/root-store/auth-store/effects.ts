@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { FirebaseError } from "@angular/fire/app";
 import { catchError, concatMap, map, switchMap, tap } from "rxjs/operators";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
@@ -9,10 +9,10 @@ import * as AuthStoreActions from "./actions";
 @Injectable()
 export class AuthStoreEffects {
 
-  constructor(
-    private actions$: Actions,
-    private authService: AuthService,
-  ) { }
+  private actions$ = inject(Actions);
+  private authService = inject(AuthService);
+
+  constructor() { }
 
   confirmPasswordEffect$ = createEffect(() => this.actions$
     .pipe(
@@ -29,27 +29,6 @@ export class AuthStoreEffects {
               name: error.name
             };
             return of(AuthStoreActions.confirmPasswordFailed({error: fbError}));
-          })
-        )
-      ),
-    ),
-  );
-
-  deleteAuthUserEffect$ = createEffect(() => this.actions$
-    .pipe(
-      ofType(AuthStoreActions.deleteAuthUserRequested),
-      concatMap(action => 
-        this.authService.deleteAuthUser().pipe(
-          map(userDeleted => {
-            return AuthStoreActions.deleteAuthUserCompleted({userDeleted});
-          }),
-          catchError(error => {
-            const fbError: FirebaseError = {
-              code: error.code,
-              message: error.message,
-              name: error.name
-            };
-            return of(AuthStoreActions.deleteAuthUserFailed({error: fbError}));
           })
         )
       ),

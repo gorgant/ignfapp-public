@@ -32,3 +32,7 @@ export const EmailWebsiteLinks = {
 const sendgridBaseApiUrl = 'https://api.sendgrid.com/v3';
 export const sendgridMarketingContactsApiUrl = `${sendgridBaseApiUrl}/marketing/contacts`;
 export const sendgridMarketingListsApiUrl = `${sendgridBaseApiUrl}/marketing/lists`;
+export const sendgridContactsApiUrl = `${sendgridBaseApiUrl}/marketing/contacts`;
+export const sendgridGlobalSuppressionsAsmApiUrl = `${sendgridBaseApiUrl}/asm/suppressions/global`;
+export const sendgridGlobalSuppressionsQueryApiUrl = `${sendgridBaseApiUrl}/suppression/unsubscribes`;
+export const sendgridGroupSuppressionsApiUrl = `${sendgridBaseApiUrl}/asm/groups`;
