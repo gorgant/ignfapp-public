@@ -30,25 +30,22 @@ import { provideServiceWorker } from '@angular/service-worker';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(APP_ROUTES),
-    importProvidersFrom(
-        // Firestore providers
-        provideFirebaseApp(() => initializeApp(environment.firebase)), 
-        provideAppCheck(() => initializeAppCheck(
-            getApp(), 
-            {
-                provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
-                isTokenAutoRefreshEnabled: true
-            }
-        )), 
-        provideFirestore(() => getFirestore()), 
-        provideAnalytics(() => getAnalytics()), 
-        provideAuth(() => getAuth()), 
-        provideFunctions(() => getFunctions()), 
-        providePerformance(() => getPerformance()), 
-        provideRemoteConfig(() => getRemoteConfig()), 
-        provideStorage(() => getStorage())
-    ),
-    
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    // Firestore providers
+    provideAppCheck(() => initializeAppCheck(
+        getApp(), 
+        {
+            provider: new ReCaptchaEnterpriseProvider(environment.reCaptchaEnterpriseProviderKey),
+            isTokenAutoRefreshEnabled: true
+        }
+    )), 
+    provideFirestore(() => getFirestore()), 
+    provideAnalytics(() => getAnalytics()), 
+    provideAuth(() => getAuth()), 
+    provideFunctions(() => getFunctions()), 
+    providePerformance(() => getPerformance()), 
+    provideRemoteConfig(() => getRemoteConfig()), 
+    provideStorage(() => getStorage()),
     // NgRx providers
     provideStore(reducers, {
         metaReducers,
