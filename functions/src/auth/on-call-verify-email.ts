@@ -14,6 +14,8 @@ import { convertPublicUserDataToEmailUserData } from '../config/global-helpers';
 import { Timestamp } from '@google-cloud/firestore';
 import { SgCreateOrUpdateContactData } from '../../../shared-models/email/sg-create-or-update-contact-data.model';
 import { EmailPubMessage } from '../../../shared-models/email/email-pub-message.model';
+import { getAuth } from 'firebase-admin/auth';
+import { publicAppFirebaseInstance } from '../config/app-config';
 
 // Trigger email send
 const dispatchWelcomeEmail = async(userData: EmailUserData) => {
@@ -66,6 +68,10 @@ const verifyEmailAndUpdateUser = async (emailVerificationData: EmailVerification
     .catch(err => {logger.log(`Error updating user on public database:`, err); throw new HttpsError('internal', err);});
   
   logger.log(`Marked user "${emailVerificationData.userId}" as opted in and email verified`);
+
+  // Mark email verified in auth (required for email sign ups)
+  await getAuth(publicAppFirebaseInstance).updateUser(userDataInDb.id, {emailVerified: true})
+    .catch(err => {logger.log(`Error updating emailVerified in auth:`, err); throw new HttpsError('internal', err);});
   
   // Provide complete user data to the email
   const emailUserData = {

@@ -67,7 +67,7 @@ export const AdminEmailAddresses = {
   IGNFAPP_MD: `md@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_DEFAULT: `hello@${WebDomains.IGNFAPP_EMAIL}`,
   IGNFAPP_ADMIN: `greg@${WebDomains.IGNFAPP_EMAIL}`,
-  IGNFAPP_TEST_1: `greg+test1${WebDomains.IGNFAPP_EMAIL}`
+  IGNFAPP_TEST_1: `greg+test1@${WebDomains.IGNFAPP_EMAIL}`
 };
 
 export type SgContactCustomFieldData = {
