@@ -30,8 +30,9 @@ export enum PublicUserKeys {
 
 export interface GoogleCloudFunctionsPublicUser extends PublicUser {
   [PublicUserKeys.CREATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
-  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined;
-  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined | null;
+  [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined | null;
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp | undefined | null;
   [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
   [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: GoogleCloudFunctionsTimestamp;
 }
@@ -45,9 +46,9 @@ export interface PublicUser {
   [PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]: UnsubscribeRecord | undefined;
   [PublicUserKeys.EMAIL_OPT_IN_CONFIRMED]: boolean | undefined;
   [PublicUserKeys.EMAIL_OPT_IN_SOURCE]: EmailOptInSource | undefined,
-  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined | null;
   [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined | null;
-  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined;
+  [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: number | Timestamp | GoogleCloudFunctionsTimestamp | undefined | null;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_ID]: string | undefined;
   [PublicUserKeys.EMAIL_SENDGRID_CONTACT_LIST_ARRAY]: SendgridContactListId[] | undefined;
   [PublicUserKeys.EMAIL_VERIFIED]: boolean | undefined;

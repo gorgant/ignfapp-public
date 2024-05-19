@@ -53,20 +53,20 @@ const executeActions = async (emailData: EmailPubMessage) => {
   switch(emailIdentifier) {
     
     case EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP:
-        if (!emailData.emailUserData) {
-          const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP} email`;
-          logger.log(errMsg);
-          throw new HttpsError('internal', errMsg);
-        }
-        return sendNewUserDetectedEmail(emailData.emailUserData);
+      if (!emailData.emailUserData) {
+        const errMsg: string = `No user data provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_NEW_USER_SIGNUP} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
+      }
+      return sendNewUserDetectedEmail(emailData.emailUserData);
     
     case EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH:
-        if (!emailData.optInCountComparisonData) {
-          const errMsg: string = `No optInCountComparisonData provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH} email`;
-          logger.log(errMsg);
-          throw new HttpsError('internal', errMsg);
-        }
-        return sendOptInMismatchEmail(emailData.optInCountComparisonData);
+      if (!emailData.optInCountComparisonData) {
+        const errMsg: string = `No optInCountComparisonData provided, failed to send ${EmailIdentifiers.AUTO_NOTICE_OPT_IN_MISMATCH} email`;
+        logger.log(errMsg);
+        throw new HttpsError('internal', errMsg);
+      }
+      return sendOptInMismatchEmail(emailData.optInCountComparisonData);
     
     case EmailIdentifiers.CONTACT_FORM_CONFIRMATION:
       if (!emailData.contactForm) {

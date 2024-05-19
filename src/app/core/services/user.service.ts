@@ -8,7 +8,7 @@ import { SgContactListRemovalData } from 'shared-models/email/sg-contact-list-re
 import { UnsubscribeRecord, UnsubscribeRecordList } from 'shared-models/email/unsubscribe-record.model';
 import { PublicCollectionPaths } from 'shared-models/routes-and-paths/fb-collection-paths.model';
 import { PublicFunctionNames } from 'shared-models/routes-and-paths/fb-function-names.model';
-import { GoogleCloudFunctionsPublicUser, PublicUser } from 'shared-models/user/public-user.model';
+import { GoogleCloudFunctionsPublicUser, PublicUser, PublicUserKeys } from 'shared-models/user/public-user.model';
 import { UserUpdateData } from 'shared-models/user/user-update.model';
 import { AuthService } from './auth.service';
 import { UiService } from './ui.service';
@@ -80,33 +80,30 @@ export class UserService {
           }
           const formattedUser: PublicUser = {
             ...publicUser,
-            createdTimestamp: (publicUser.createdTimestamp as Timestamp).toMillis(),
-            lastAuthenticatedTimestamp: (publicUser.lastAuthenticatedTimestamp as Timestamp).toMillis(),
-            lastModifiedTimestamp: (publicUser.lastModifiedTimestamp as Timestamp).toMillis(),
+            [PublicUserKeys.CREATED_TIMESTAMP]: (publicUser[PublicUserKeys.CREATED_TIMESTAMP] as Timestamp).toMillis(),
+            [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: publicUser[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP] ? (publicUser[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP] as Timestamp).toMillis() : null,
+            [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: publicUser[PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP] ? (publicUser[PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP] as Timestamp).toMillis() : null,
+            [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: publicUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] ? (publicUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] as Timestamp).toMillis() : null,
+            [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: (publicUser[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP] as Timestamp).toMillis(),
+            [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: (publicUser[PublicUserKeys.LAST_MODIFIED_TIMESTAMP] as Timestamp).toMillis(),
           };
-          if (publicUser.emailGlobalUnsubscribe) {
+          if (publicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]) {
             const formattedGlobalUnsubscribe: UnsubscribeRecord = {
-              ...publicUser.emailGlobalUnsubscribe,
-              unsubscribeTimestamp: (publicUser.emailGlobalUnsubscribe.unsubscribeTimestamp as Timestamp).toMillis()
+              ...publicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
+              unsubscribeTimestamp: (publicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE].unsubscribeTimestamp as Timestamp).toMillis()
             }
-            formattedUser.emailGlobalUnsubscribe = formattedGlobalUnsubscribe
+            formattedUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE] = formattedGlobalUnsubscribe
           }
-          if (publicUser.emailGroupUnsubscribes) {
+          if (publicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]) {
             const formattedGroupUnsubscribeRecordList: UnsubscribeRecordList = {
-              ...publicUser.emailGroupUnsubscribes
+              ...publicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]
             };
-            const groupUnsubscribeObjectList: UnsubscribeRecordList = publicUser.emailGroupUnsubscribes;
+            const groupUnsubscribeObjectList: UnsubscribeRecordList = publicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES];
             Object.keys(groupUnsubscribeObjectList).forEach(key => {
               const formattedTimestampValue = (groupUnsubscribeObjectList[+key].unsubscribeTimestamp as Timestamp).toMillis(); // Convert key to number since this object has numeric keys
               groupUnsubscribeObjectList[+key].unsubscribeTimestamp = formattedTimestampValue;
             });
-            formattedUser.emailGroupUnsubscribes = formattedGroupUnsubscribeRecordList;
-          }
-          if (publicUser.emailOptInTimestamp) {
-            formattedUser.emailOptInTimestamp = (formattedUser.emailOptInTimestamp as Timestamp).toMillis();
-          }
-          if (publicUser.emailSendgridContactCreatedTimestamp) {
-            formattedUser.emailSendgridContactCreatedTimestamp = (formattedUser.emailSendgridContactCreatedTimestamp as Timestamp).toMillis();
+            formattedUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES] = formattedGroupUnsubscribeRecordList;
           }
 
           console.log(`Fetched single publicUser`, formattedUser);
@@ -183,33 +180,30 @@ export class UserService {
           // Timestamps from Google Cloud Functions are a static object, so they need to be converted differently
           const formattedUser: PublicUser = {
             ...updatedPublicUser,
-            createdTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.createdTimestamp),
-            lastAuthenticatedTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.lastAuthenticatedTimestamp),
-            lastModifiedTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.lastModifiedTimestamp),
+            [PublicUserKeys.CREATED_TIMESTAMP]: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.CREATED_TIMESTAMP]),
+            [PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]: updatedPublicUser[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP] ? this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.EMAIL_OPT_IN_TIMESTAMP]) : null,
+            [PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]: updatedPublicUser[PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP] ? this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.EMAIL_OPT_OUT_TIMESTAMP]) : null,
+            [PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]: updatedPublicUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP] ? this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.EMAIL_SENDGRID_CONTACT_CREATED_TIMESTAMP]) : null,
+            [PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.LAST_AUTHENTICATED_TIMESTAMP]),
+            [PublicUserKeys.LAST_MODIFIED_TIMESTAMP]: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.LAST_MODIFIED_TIMESTAMP]),
           };
-          if (updatedPublicUser.emailGlobalUnsubscribe) {
+          if (updatedPublicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE]) {
             const formattedGlobalUnsubscribe: UnsubscribeRecord = {
-              ...updatedPublicUser.emailGlobalUnsubscribe,
-              unsubscribeTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser.emailGlobalUnsubscribe.unsubscribeTimestamp as GoogleCloudFunctionsTimestamp)
+              ...updatedPublicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE],
+              unsubscribeTimestamp: this.helperService.convertGoogleCloudTimestampToMs(updatedPublicUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE].unsubscribeTimestamp as GoogleCloudFunctionsTimestamp)
             }
-            formattedUser.emailGlobalUnsubscribe = formattedGlobalUnsubscribe
+            formattedUser[PublicUserKeys.EMAIL_GLOBAL_UNSUBSCRIBE] = formattedGlobalUnsubscribe
           }
-          if (updatedPublicUser.emailGroupUnsubscribes) {
+          if (updatedPublicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]) {
             const formattedGroupUnsubscribeRecordList: UnsubscribeRecordList = {
-              ...updatedPublicUser.emailGroupUnsubscribes
+              ...updatedPublicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES]
             };
-            const groupUnsubscribeObjectList: UnsubscribeRecordList = updatedPublicUser.emailGroupUnsubscribes;
+            const groupUnsubscribeObjectList: UnsubscribeRecordList = updatedPublicUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES];
             Object.keys(groupUnsubscribeObjectList).forEach(key => {
               const formattedTimestampValue = this.helperService.convertGoogleCloudTimestampToMs(groupUnsubscribeObjectList[+key].unsubscribeTimestamp as GoogleCloudFunctionsTimestamp); // Convert key to number since this object has numeric keys
               groupUnsubscribeObjectList[+key].unsubscribeTimestamp = formattedTimestampValue;
             });
-            formattedUser.emailGroupUnsubscribes = formattedGroupUnsubscribeRecordList;
-          }
-          if (updatedPublicUser.emailOptInTimestamp) {
-            formattedUser.emailOptInTimestamp = this.helperService.convertGoogleCloudTimestampToMs(formattedUser.emailOptInTimestamp as GoogleCloudFunctionsTimestamp);
-          }
-          if (updatedPublicUser.emailSendgridContactCreatedTimestamp) {
-            formattedUser.emailSendgridContactCreatedTimestamp = this.helperService.convertGoogleCloudTimestampToMs(formattedUser.emailSendgridContactCreatedTimestamp as GoogleCloudFunctionsTimestamp);
+            formattedUser[PublicUserKeys.EMAIL_GROUP_UNSUBSCRIBES] = formattedGroupUnsubscribeRecordList;
           }
 
           console.log(`Updated single publicUser`, formattedUser);
