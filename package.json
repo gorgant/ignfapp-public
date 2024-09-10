@@ -28,14 +28,14 @@
     "@ngrx/router-store": "^18.0.2",
     "@ngrx/store": "^18.0.2",
     "@ngrx/store-devtools": "^18.0.2",
-    "firebase": "^10.12.0",
-    "luxon": "^3.4.4",
-    "ngx-device-detector": "^7.0.0",
+    "firebase": "^10.13.1",
+    "luxon": "^3.5.0",
+    "ngx-device-detector": "^8.0.0",
     "rxfire": "^6.0.5",
     "rxjs": "~7.8.1",
     "tslib": "^2.6.2",
     "zone.js": "~0.14.10",
-    "@ngrx/operators": "^18.0.0"
+    "@ngrx/operators": "^18.0.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.3",
