@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { Store, Action } from '@ngrx/store';
 import { Observable, Subscription, combineLatest, take, throwError } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -22,7 +22,6 @@ import { DeletePlanSessionFragmentQueryParams, DeletePlanSessionFragmentQueryPar
 import { Timestamp } from '@angular/fire/firestore';
 import { DeletePersonalSessionFragmentUrlParams, DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentQueryParams } from 'shared-models/train/personal-session-fragment.model';
 import { UiService } from 'src/app/core/services/ui.service';
-import { TypedAction } from '@ngrx/store/src/models';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { MatButtonModule } from '@angular/material/button';
 import { NgClass, AsyncPipe } from '@angular/common';
@@ -251,7 +250,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
     this.setTrainingSessionId();
 
     let singleTrainingSession$: Observable<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
-    let trainingSessionStoreFetchQuery: {} & TypedAction<any>;
+    let trainingSessionStoreFetchQuery: {} & Action<any>;
 
     this.fetchTrainingSessionSubscription = this.combinedFetchTrainingSessionDataError$
       .pipe(
@@ -312,7 +311,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   // This will fetch the data from the matching databaseCategoryType, ensuring, for example, that a personalSessionFragment whose canonical trainingPlan was deleted will still load properly
-  private configureTrainingSessionFetchData(userData: PublicUser): [Observable<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>, {} & TypedAction<any>] {
+  private configureTrainingSessionFetchData(userData: PublicUser): [Observable<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>, {} & Action<any>] {
     this.$trainingSessionFetchDataConfigured.set(true);
     
     let singleTrainingSession$: Observable<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment | undefined>;
