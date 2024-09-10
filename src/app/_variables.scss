@@ -103,14 +103,14 @@ $ignflp-public-warn: (
   )
 );
 
-$theme-primary: mat.define-palette($ignflp-public-primary);
-$theme-accent:  mat.define-palette($ignflp-public-accent);
-$theme-warn:    mat.define-palette(mat.$red-palette);
+$theme-primary: mat.m2-define-palette($ignflp-public-primary);
+$theme-accent:  mat.m2-define-palette($ignflp-public-accent);
+$theme-warn:    mat.m2-define-palette(mat.$m2-red-palette);
 
 // Create your Sass color vars (will be available in all the project)
-$primary: mat.get-color-from-palette($theme-primary);
-$accent: mat.get-color-from-palette($theme-accent);
-$warn: mat.get-color-from-palette($theme-warn);
+$primary: mat.m2-get-color-from-palette($theme-primary);
+$accent: mat.m2-get-color-from-palette($theme-accent);
+$warn: mat.m2-get-color-from-palette($theme-warn);
 
 $font-weight-light: 300;
 $font-weight-regular: 400;
