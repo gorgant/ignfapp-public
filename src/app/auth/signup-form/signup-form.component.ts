@@ -22,7 +22,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     selector: 'app-signup-form',
     templateUrl: './signup-form.component.html',
     styleUrls: ['./signup-form.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule]
 })
 export class SignupFormComponent implements OnInit, OnDestroy {

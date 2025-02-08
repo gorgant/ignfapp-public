@@ -15,7 +15,6 @@ import { MatButtonModule } from '@angular/material/button';
 
 @Component({
     selector: 'app-training-history',
-    standalone: true,
     templateUrl: './training-history.component.html',
     styleUrl: './training-history.component.scss',
     imports: [AsyncPipe, DurationMsToMmSsPipe, DatePipe, ProcessingSpinnerComponent, MatButtonModule]

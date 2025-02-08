@@ -14,7 +14,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-edit-password-dialogue',
     templateUrl: './edit-password-dialogue.component.html',
     styleUrls: ['./edit-password-dialogue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditPasswordDialogueComponent implements OnInit, OnDestroy {

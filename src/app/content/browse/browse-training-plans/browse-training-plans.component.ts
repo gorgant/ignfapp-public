@@ -22,7 +22,6 @@ import { TrainingPlanSearchFilterPipe } from 'src/app/shared/pipes/training-plan
     selector: 'app-browse-training-plans',
     templateUrl: './browse-training-plans.component.html',
     styleUrls: ['./browse-training-plans.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, FormsModule, ProcessingSpinnerComponent, TrainingPlanCardComponent, AsyncPipe, TrainingPlanSearchFilterPipe]
 })
 export class BrowseTrainingPlansComponent implements OnInit, OnDestroy {

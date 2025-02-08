@@ -23,7 +23,6 @@ import { TrainingSessionSearchFilterPipe } from 'src/app/shared/pipes/training-s
     selector: 'app-browse-training-sessions',
     templateUrl: './browse-training-sessions.component.html',
     styleUrls: ['./browse-training-sessions.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, FormsModule, NgClass, TrainingSessionFiltersComponent, ProcessingSpinnerComponent, TrainingSessionCardComponent, AsyncPipe, TrainingSessionSearchFilterPipe]
 })
 export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {

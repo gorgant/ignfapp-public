@@ -21,7 +21,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-signup',
     templateUrl: './signup.component.html',
     styleUrls: ['./signup.component.scss'],
-    standalone: true,
     imports: [AuthHeaderComponent, NgClass, LoginWithThirdPartyComponent, MatButtonModule, MatIconModule, SignupFormComponent, RouterLink, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class SignupComponent implements OnInit {

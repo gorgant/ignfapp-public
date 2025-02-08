@@ -13,7 +13,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-training-session-video',
     templateUrl: './training-session-video.component.html',
     styleUrls: ['./training-session-video.component.scss'],
-    standalone: true,
     imports: [YouTubePlayerModule, MatButtonModule]
 })
 export class TrainingSessionVideoComponent implements OnInit {

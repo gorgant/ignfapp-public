@@ -19,7 +19,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-add-training-session-to-personal-queue-button',
     templateUrl: './add-training-session-to-personal-queue-button.component.html',
     styleUrls: ['./add-training-session-to-personal-queue-button.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit, OnDestroy {

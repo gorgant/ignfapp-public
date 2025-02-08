@@ -14,7 +14,6 @@ import { MatIconModule } from '@angular/material/icon';
     selector: 'app-account',
     templateUrl: './account.component.html',
     styleUrls: ['./account.component.scss'],
-    standalone: true,
     imports: [MatIconModule, AsyncPipe]
 })
 export class AccountComponent implements OnInit {

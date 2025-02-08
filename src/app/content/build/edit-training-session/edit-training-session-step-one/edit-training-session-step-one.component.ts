@@ -23,7 +23,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     selector: 'app-edit-training-session-step-one',
     templateUrl: './edit-training-session-step-one.component.html',
     styleUrls: ['./edit-training-session-step-one.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatTooltipModule, MatRadioModule, MatFormFieldModule, MatInputModule, AsyncPipe]
 })
 export class EditTrainingSessionStepOneComponent implements OnInit, AfterContentInit, OnDestroy {

@@ -15,7 +15,6 @@ import { MuscleGroupDbToUiPipe } from 'src/app/shared/pipes/muscle-group-db-to-u
     selector: 'app-training-session-details',
     templateUrl: './training-session-details.component.html',
     styleUrls: ['./training-session-details.component.scss'],
-    standalone: true,
     imports: [MatExpansionModule, MatIconModule, DurationIsoToMmSsPipe, ActivityCategoryDbToUiPipe, MuscleGroupDbToUiPipe, ComplexityDbToUiPipe, IntensityDbToUiPipe]
 })
 export class TrainingSessionDetailsComponent implements OnInit {

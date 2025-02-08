@@ -31,7 +31,6 @@ import { TrainingSessionCardComponent } from 'src/app/shared/components/training
     selector: 'app-edit-training-plan',
     templateUrl: './edit-training-plan.component.html',
     styleUrls: ['./edit-training-plan.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, NgClass, ReactiveFormsModule, MatTooltipModule, MatRadioModule, MatFormFieldModule, MatInputModule, CdkDropList, CdkDrag, CdkDragHandle, TrainingSessionCardComponent, CdkDragPlaceholder, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditTrainingPlanComponent implements OnInit, OnDestroy {

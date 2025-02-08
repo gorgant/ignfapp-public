@@ -18,7 +18,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-login-with-third-party',
     templateUrl: './login-with-third-party.component.html',
     styleUrls: ['./login-with-third-party.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule]
 })
 export class LoginWithThirdPartyComponent implements OnInit {

@@ -18,7 +18,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-edit-name-dialogue',
     templateUrl: './edit-name-dialogue.component.html',
     styleUrls: ['./edit-name-dialogue.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditNameDialogueComponent implements OnInit, OnDestroy {

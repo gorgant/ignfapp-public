@@ -27,7 +27,6 @@ import { AddTrainingSessionToPersonalQueueButtonComponent } from "../../../share
 
 @Component({
     selector: 'app-training-record',
-    standalone: true,
     templateUrl: './training-record.component.html',
     styleUrl: './training-record.component.scss',
     imports: [ProcessingSpinnerComponent, DurationMsToMmSsPipe, MatButtonModule, DatePipe, TrainingSessionDetailsComponent, MatIconModule, ActivityCategoryDbToUiPipe, MuscleGroupDbToUiPipe, ComplexityDbToUiPipe, IntensityDbToUiPipe, AddTrainingSessionToPersonalQueueButtonComponent]

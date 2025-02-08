@@ -12,7 +12,6 @@ import { BrowseTrainingPlansComponent } from './browse-training-plans/browse-tra
     selector: 'app-browse',
     templateUrl: './browse.component.html',
     styleUrls: ['./browse.component.scss'],
-    standalone: true,
     imports: [MatTabsModule, BrowseTrainingPlansComponent, BrowseTrainingSessionsComponent]
 })
 export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {

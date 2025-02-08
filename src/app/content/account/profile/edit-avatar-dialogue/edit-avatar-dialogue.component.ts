@@ -23,7 +23,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-edit-avatar-dialogue',
     templateUrl: './edit-avatar-dialogue.component.html',
     styleUrls: ['./edit-avatar-dialogue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditAvatarDialogueComponent implements OnInit, OnDestroy {

@@ -18,7 +18,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-add-training-plan-to-personal-queue',
     templateUrl: './add-training-plan-to-personal-queue.component.html',
     styleUrls: ['./add-training-plan-to-personal-queue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class AddTrainingPlanToPersonalQueueComponent implements OnInit {

@@ -25,7 +25,6 @@ import { DurationMsToMmSsPipe } from 'src/app/shared/pipes/duration-ms-to-mm-ss.
     selector: 'app-training-session-complete-dialogue',
     templateUrl: './training-session-complete-dialogue.component.html',
     styleUrls: ['./training-session-complete-dialogue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, ReactiveFormsModule, NgClass, MatFormFieldModule, MatInputModule, MatSliderModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe, DurationMsToMmSsPipe]
 })
 export class TrainingSessionCompleteDialogueComponent implements OnInit, OnDestroy {

@@ -7,7 +7,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     selector: 'app-processing-spinner',
     templateUrl: './processing-spinner.component.html',
     styleUrls: ['./processing-spinner.component.scss'],
-    standalone: true,
     imports: [MatProgressSpinnerModule]
 })
 export class ProcessingSpinnerComponent {

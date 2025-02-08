@@ -20,7 +20,6 @@ import { TrainingSessionCardComponent } from 'src/app/shared/components/training
     selector: 'app-training-plan',
     templateUrl: './training-plan.component.html',
     styleUrls: ['./training-plan.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, AddTrainingPlanToPersonalQueueComponent, TrainingSessionCardComponent, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class TrainingPlanComponent implements OnInit, OnDestroy {

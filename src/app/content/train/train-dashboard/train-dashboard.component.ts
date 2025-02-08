@@ -23,7 +23,6 @@ import { MuscleGroupDbToUiPipe } from 'src/app/shared/pipes/muscle-group-db-to-u
     selector: 'app-train-dashboard',
     templateUrl: './train-dashboard.component.html',
     styleUrls: ['./train-dashboard.component.scss'],
-    standalone: true,
     imports: [MatIconModule, MatButtonModule, TrainingSessionCardComponent, ProcessingSpinnerComponent, AsyncPipe, DurationIsoToMmSsPipe, MuscleGroupDbToUiPipe, ComplexityDbToUiPipe, IntensityDbToUiPipe]
 })
 export class TrainDashboardComponent implements OnInit, OnDestroy {

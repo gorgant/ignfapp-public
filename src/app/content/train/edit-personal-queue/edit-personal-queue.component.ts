@@ -25,7 +25,6 @@ import { TrainingSessionCardComponent } from 'src/app/shared/components/training
     selector: 'app-edit-personal-queue',
     templateUrl: './edit-personal-queue.component.html',
     styleUrls: ['./edit-personal-queue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, CdkDropList, CdkDrag, CdkDragHandle, TrainingSessionCardComponent, CdkDragPlaceholder, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class EditPersonalQueueComponent implements OnInit, OnDestroy {

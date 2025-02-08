@@ -8,7 +8,6 @@ import { UiService } from 'src/app/core/services/ui.service';
     selector: 'app-settings',
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.scss'],
-    standalone: true,
     imports: [MatButtonModule]
 })
 export class SettingsComponent implements OnInit {

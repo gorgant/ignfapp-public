@@ -17,7 +17,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-reset-password-dialogue',
     templateUrl: './reset-password-dialogue.component.html',
     styleUrls: ['./reset-password-dialogue.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class ResetPasswordDialogueComponent implements OnInit {

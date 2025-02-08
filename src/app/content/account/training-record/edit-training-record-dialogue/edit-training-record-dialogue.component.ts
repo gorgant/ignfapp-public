@@ -19,11 +19,10 @@ import { TrainingRecordStoreActions, TrainingRecordStoreSelectors } from 'src/ap
 import { Update } from '@ngrx/entity';
 
 @Component({
-  selector: 'app-edit-training-record-dialogue',
-  standalone: true,
-  imports: [MatButtonModule, ReactiveFormsModule, NgClass, MatFormFieldModule, MatInputModule, MatSliderModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe, DurationMsToMmSsPipe],
-  templateUrl: './edit-training-record-dialogue.component.html',
-  styleUrl: './edit-training-record-dialogue.component.scss'
+    selector: 'app-edit-training-record-dialogue',
+    imports: [MatButtonModule, ReactiveFormsModule, NgClass, MatFormFieldModule, MatInputModule, MatSliderModule, MatDialogClose, ProcessingSpinnerComponent, AsyncPipe, DurationMsToMmSsPipe],
+    templateUrl: './edit-training-record-dialogue.component.html',
+    styleUrl: './edit-training-record-dialogue.component.scss'
 })
 export class EditTrainingRecordDialogueComponent implements OnInit {
 

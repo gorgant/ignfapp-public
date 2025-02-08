@@ -14,7 +14,6 @@ import { AddTrainingSessionToPlanButtonComponent } from '../add-training-session
     selector: 'app-training-session-card',
     templateUrl: './training-session-card.component.html',
     styleUrls: ['./training-session-card.component.scss'],
-    standalone: true,
     imports: [AddTrainingSessionToPlanButtonComponent, AddTrainingSessionToPersonalQueueButtonComponent, DurationMsToMmSsPipe]
 })
 export class TrainingSessionCardComponent implements OnInit {

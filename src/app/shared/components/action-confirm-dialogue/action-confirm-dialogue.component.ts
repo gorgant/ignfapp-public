@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-action-confirm-dialogue',
     templateUrl: './action-confirm-dialogue.component.html',
     styleUrls: ['./action-confirm-dialogue.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatDialogClose]
 })
 export class ActionConfirmDialogueComponent implements OnInit {

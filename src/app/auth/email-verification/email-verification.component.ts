@@ -18,7 +18,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     selector: 'app-email-verification',
     templateUrl: './email-verification.component.html',
     styleUrls: ['./email-verification.component.scss'],
-    standalone: true,
     imports: [MatProgressSpinnerModule, MatIconModule, MatButtonModule, AsyncPipe]
 })
 export class EmailVerificationComponent implements OnInit {

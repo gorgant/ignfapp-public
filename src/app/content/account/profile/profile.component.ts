@@ -22,7 +22,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-profile',
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, AsyncPipe]
 })
 export class ProfileComponent implements OnInit, OnDestroy {

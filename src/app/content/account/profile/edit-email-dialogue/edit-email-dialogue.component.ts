@@ -22,7 +22,6 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
     selector: 'app-edit-email-dialogue',
     templateUrl: './edit-email-dialogue.component.html',
     styleUrls: ['./edit-email-dialogue.component.scss'],
-    standalone: true,
     imports: [MatStepperModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogClose, ProcessingSpinnerComponent, NgClass, AsyncPipe]
 })
 export class EditEmailDialogueComponent implements OnInit, OnDestroy {

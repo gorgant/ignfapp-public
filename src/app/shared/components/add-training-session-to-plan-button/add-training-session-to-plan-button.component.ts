@@ -22,7 +22,6 @@ import { MatButtonModule } from '@angular/material/button';
     selector: 'app-add-training-session-to-plan-button',
     templateUrl: './add-training-session-to-plan-button.component.html',
     styleUrls: ['./add-training-session-to-plan-button.component.scss'],
-    standalone: true,
     imports: [MatButtonModule, MatIconModule, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestroy {

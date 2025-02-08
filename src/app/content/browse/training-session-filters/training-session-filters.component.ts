@@ -20,7 +20,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     selector: 'app-training-session-filters',
     templateUrl: './training-session-filters.component.html',
     styleUrls: ['./training-session-filters.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatButtonToggleModule, MatFormFieldModule, MatSelectModule, MatOptionModule]
 })
 export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {

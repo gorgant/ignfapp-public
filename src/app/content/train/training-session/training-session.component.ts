@@ -34,7 +34,6 @@ import { BackButtonDirective } from 'src/app/shared/directives/back-button.direc
     selector: 'app-training-session',
     templateUrl: './training-session.component.html',
     styleUrls: ['./training-session.component.scss'],
-    standalone: true,
     imports: [NgClass, TrainingSessionVideoComponent, TrainingSessionDetailsComponent, MatButtonModule, AddTrainingSessionToPersonalQueueButtonComponent, BackButtonDirective, AddTrainingSessionToPlanButtonComponent, ProcessingSpinnerComponent, AsyncPipe]
 })
 export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate, OnDestroy {

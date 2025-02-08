@@ -31,7 +31,6 @@ import { DurationIsoToMmSsPipe } from 'src/app/shared/pipes/duration-iso-to-mm-s
     providers: [{
             provide: STEPPER_GLOBAL_OPTIONS, useValue: { showError: true } // Required for stepper error to show
         }],
-    standalone: true,
     imports: [MatStepperModule, EditTrainingSessionStepOneComponent, MatButtonModule, ProcessingSpinnerComponent, BackButtonDirective, EditTrainingSessionStepTwoComponent, AsyncPipe, DurationIsoToMmSsPipe]
 })
 export class EditTrainingSessionComponent implements OnInit, OnDestroy, ComponentCanDeactivate {

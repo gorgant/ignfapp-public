@@ -24,7 +24,6 @@ import { ActivityCategoryDbToUiPipe } from 'src/app/shared/pipes/activity-catego
     selector: 'app-edit-training-session-step-two',
     templateUrl: './edit-training-session-step-two.component.html',
     styleUrls: ['./edit-training-session-step-two.component.scss'],
-    standalone: true,
     imports: [ReactiveFormsModule, MatSlideToggleModule, MatSliderModule, MatFormFieldModule, MatRadioModule, MatChipsModule, MatIconModule, MatAutocompleteModule, MatOptionModule, MatButtonModule, NgClass, AsyncPipe, ActivityCategoryDbToUiPipe]
 })
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {

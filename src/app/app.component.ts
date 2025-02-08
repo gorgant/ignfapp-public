@@ -9,7 +9,6 @@ import { NavBarComponent } from "./navigation/nav-bar/nav-bar.component";
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
-    standalone: true,
     imports: [RouterOutlet, ProcessingSpinnerComponent, NavBarComponent]
 })
 export class AppComponent implements OnInit {
