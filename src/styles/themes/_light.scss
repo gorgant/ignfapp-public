@@ -1,9 +1,9 @@
 @use "sass:map";
 @use "@angular/material" as mat;
 
-@use "../pallets/primary";
-@use "../pallets/accent";
-@use "../pallets/warn";
+@use "../pallets/primary" as primary;
+@use "../pallets/accent" as accent;
+@use "../pallets/warn" as warn;
 
 @use "../typography/config" as typography;
 

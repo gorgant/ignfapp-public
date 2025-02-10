@@ -1,4 +1,4 @@
-@import '../../../variables';
+@use '../../../variables' as *;
 @include edit-training-plan-drag-drop();
 
 .content-container {

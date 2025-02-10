@@ -6,7 +6,7 @@ import { Observable, Subscription, catchError, filter, map, switchMap, tap, thro
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { TrainingRecord, TrainingRecordKeys, UiTrainingRecord } from 'shared-models/train/training-record.model';
+import { TrainingRecordKeys, UiTrainingRecord } from 'shared-models/train/training-record.model';
 import { DialogueBoxDefaultConfig } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
@@ -14,12 +14,9 @@ import { UserStoreSelectors, TrainingRecordStoreSelectors, TrainingRecordStoreAc
 import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action-confirm-dialogue/action-confirm-dialogue.component';
 import { EditTrainingRecordDialogueComponent } from './edit-training-record-dialogue/edit-training-record-dialogue.component';
 import { ProcessingSpinnerComponent } from "../../../shared/components/processing-spinner/processing-spinner.component";
-import { TrainingSessionDetailsComponent } from "../../train/training-session/training-session-details/training-session-details.component";
 import { MatIconModule } from '@angular/material/icon';
-import { ActivityCategoryDbToUiPipe } from 'src/app/shared/pipes/activity-category-db-to-ui.pipe';
 import { ComplexityDbToUiPipe } from 'src/app/shared/pipes/complexity-db-to-ui.pipe';
 import { IntensityDbToUiPipe } from 'src/app/shared/pipes/intensity-db-to-ui.pipe';
-import { MuscleGroupDbToUiPipe } from 'src/app/shared/pipes/muscle-group-db-to-ui.pipe';
 import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { DurationMsToMmSsPipe } from 'src/app/shared/pipes/duration-ms-to-mm-ss.pipe';
@@ -29,7 +26,7 @@ import { AddTrainingSessionToPersonalQueueButtonComponent } from "../../../share
     selector: 'app-training-record',
     templateUrl: './training-record.component.html',
     styleUrl: './training-record.component.scss',
-    imports: [ProcessingSpinnerComponent, DurationMsToMmSsPipe, MatButtonModule, DatePipe, TrainingSessionDetailsComponent, MatIconModule, ActivityCategoryDbToUiPipe, MuscleGroupDbToUiPipe, ComplexityDbToUiPipe, IntensityDbToUiPipe, AddTrainingSessionToPersonalQueueButtonComponent]
+    imports: [ProcessingSpinnerComponent, DurationMsToMmSsPipe, MatButtonModule, DatePipe, MatIconModule, ComplexityDbToUiPipe, IntensityDbToUiPipe, AddTrainingSessionToPersonalQueueButtonComponent]
 })
 export class TrainingRecordComponent implements OnInit {
 
