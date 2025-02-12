@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal, viewChild } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store, Action } from '@ngrx/store';
@@ -83,8 +83,8 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   videoInitialized = signal(false);
 
-  @ViewChild('videoComponent') private videoComponent!: TrainingSessionVideoComponent;
-  @ViewChild('detailsComponent') private detailsComponent!: TrainingSessionDetailsComponent;
+  private $videoComponent = viewChild.required<TrainingSessionVideoComponent>('videoComponent');
+  private $detailsComponent = viewChild.required<TrainingSessionDetailsComponent>('detailsComponent');
 
   private sessionDuration = signal(undefined as number | undefined);
   private sessionStartTime = signal(undefined as number | undefined);
@@ -351,7 +351,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   // Update training status if user interacts with video widget directly
   private monitorVideoState(userData: PublicUser) {
-    this.videoStateSubscription = this.videoComponent.ytVideoPlayerApi.stateChange
+    this.videoStateSubscription = this.$videoComponent().$ytVideoPlayerApi().stateChange
       .pipe(
         distinctUntilChanged(),
         tap(event => {
@@ -385,15 +385,15 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   onBeginTrainingSession(userData: PublicUser) {
     this.videoInitialized.set(true);
-    this.detailsComponent.expansionPanel.close();
-    this.videoComponent.ytVideoPlayerApi.playVideo();
+    this.$detailsComponent().$expansionPanel().close();
+    this.$videoComponent().$ytVideoPlayerApi().playVideo();
     this.sessionStartTime.set(Timestamp.now().toMillis());
     this.monitorVideoState(userData);
   }
 
   onPauseTrainingSession() {
     console.log('Pausing training session');
-    this.videoComponent.ytVideoPlayerApi.pauseVideo();
+    this.$videoComponent().$ytVideoPlayerApi().pauseVideo();
     this.sessionEndTime.set(Timestamp.now().toMillis());
     this.sessionDuration.update(existingDuration => {
       if (existingDuration) {
@@ -408,7 +408,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
 
   onResumeTrainingSession() {
     console.log('Resuming training session');
-    this.videoComponent.ytVideoPlayerApi.playVideo();
+    this.$videoComponent().$ytVideoPlayerApi().playVideo();
     this.sessionStartTime.set(Timestamp.now().toMillis());
     this.sessionPaused.set(false);
   }
@@ -436,7 +436,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
         take(1),
         tap(userConfirmedSubmission => {
           if (userConfirmedSubmission) {
-            this.videoComponent.ytVideoPlayerApi.stopVideo();
+            this.$videoComponent().$ytVideoPlayerApi().stopVideo();
             this.videoInitialized.set(false);
             this.sessionCompleted.set(true);
             this.router.navigate([PublicAppRoutes.TRAIN_DASHBOARD]);
@@ -478,7 +478,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
             this.sessionStartTime.set(undefined);
             this.sessionEndTime.set(undefined);
             this.sessionDuration.set(undefined);
-            this.videoComponent.ytVideoPlayerApi.stopVideo();
+            this.$videoComponent().$ytVideoPlayerApi().stopVideo();
             this.videoInitialized.set(false);
     
           } else {

@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { FormControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonToggle, MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { Store } from '@ngrx/store';
 import { catchError, distinctUntilChanged, filter, map, Observable, Subscription, switchMap, take, tap, throwError, withLatestFrom } from 'rxjs';
@@ -8,7 +8,7 @@ import { TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryL
 import { TrainingSessionMuscleGroupObject, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupDbOption } from 'shared-models/train/muscle-group.model';
 import { TrainingSessionComplexityObject, TrainingSessionComplexityList, TrainingSessionComplexityDbOption } from 'shared-models/train/training-complexity.model';
 import { TrainingSessionIntensityObject, TrainingSessionIntensityList, TrainingSessionIntensityDbOption } from 'shared-models/train/training-intensity.model';
-import { CanonicalTrainingSession, TrainingSessionFilterForm, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -24,7 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 })
 export class TrainingSessionFiltersComponent implements OnInit, OnDestroy {
 
-  @ViewChild(MatButtonToggleGroup) equipmentToggleGroup!: MatButtonToggleGroup;
+  $equipmentToggleGroup = viewChild.required(MatButtonToggleGroup); // Accessed by parent Browse Training Sessions Component
 
   ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
   BODYWEIGHT_FIELD_VALUE = GlobalFieldValues.BODYWEIGHT;

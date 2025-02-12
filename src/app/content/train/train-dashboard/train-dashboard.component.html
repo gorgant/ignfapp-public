@@ -56,7 +56,7 @@
       <div class="training-session-card-container">
         <div class="queue-header after-that">{{ AFTER_THAT_HEADER_VALUE }}</div>
         @for (personalSessionFragment of personalSessionFragments; track personalSessionFragment; let isFirst = $first) {
-          <app-training-session-card [class.first-training-session-card]="isFirst" [trainingSesssionData]="personalSessionFragment"></app-training-session-card>
+          <app-training-session-card [class.first-training-session-card]="isFirst" [$trainingSesssionData]="personalSessionFragment" [$useCompressedDisplay]="false" [$trainingPlanBuilderRequest]="false"></app-training-session-card>
         }
       </div>
     }
@@ -64,5 +64,5 @@
 }
 
 @if ((fetchAllPersonalSessionFragmentsProcessing$ | async)) {
-  <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+  <app-processing-spinner [$spinnerMessage]="'Loading data...'"></app-processing-spinner>
 }

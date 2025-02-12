@@ -3,5 +3,5 @@
   <button [disabled]="(combinedAddTrainingPlanToQueueProcessing$ | async)" mat-stroked-button color="primary" (click)="onBatchAddTrainingSessionsToQueue()">+ {{ ADD_PLAN_TO_MY_QUEUE_BUTTON_VALUE }}</button>
 }
 @if ($isActiveButton() && (combinedAddTrainingPlanToQueueProcessing$ | async)) {
-  <app-processing-spinner [spinnerMessage]="EMPTY_MESSAGE" [spinnerDiameter]="40"></app-processing-spinner>
+  <app-processing-spinner [$spinnerMessage]="EMPTY_MESSAGE" [$spinnerDiameter]="40"></app-processing-spinner>
 }

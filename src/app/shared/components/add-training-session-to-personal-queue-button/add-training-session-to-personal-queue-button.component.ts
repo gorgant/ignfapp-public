@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, withLatestFrom, map, catchError, combineLatest, filter, switchMap, tap, throwError } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
@@ -23,8 +23,8 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit, OnDestroy {
 
-  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment;
-  @Input() useMiniFabButton!: boolean;
+  $trainingSessionData = input.required<CanonicalTrainingSession | PlanSessionFragment>();
+  $useMiniFabButton = input.required<boolean>();
 
   ADD_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_TO_MY_QUEUE;
   EMPTY_MESSAGE = EMPTY_SPINNER_MESSAGE;
@@ -130,7 +130,7 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
         switchMap(([personalSessionFragments, userData, allFetched]) => {
           const indexOfNewItem = personalSessionFragments.length;
           const dataToAdd: NewDataForPersonalSessionFragmentNoIdOrTimestamp = {
-            [PersonalSessionFragmentKeys.CANONICAL_ID]: this.trainingSessionData.id,
+            [PersonalSessionFragmentKeys.CANONICAL_ID]: this.$trainingSessionData().id,
             [PersonalSessionFragmentKeys.COMPLETE]: false,
             [PersonalSessionFragmentKeys.CREATOR_ID]: userData.id,
             [PersonalSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PERSONAL_SESSION_FRAGMENT,
@@ -185,7 +185,7 @@ export class AddTrainingSessionToPersonalQueueButtonComponent implements OnInit,
 
   // Convert current trainingSession into a no-id version to serve as the base for the personalSessionFragment
   private buildTrainingSessionNoId(): TrainingSessionNoIdOrTimestamps {
-    const trainingSession = this.trainingSessionData;
+    const trainingSession = this.$trainingSessionData();
     const clone: any = {...trainingSession};
     let incompleteTrainingSessionNoId: TrainingSessionNoIdOrTimestamps;
 

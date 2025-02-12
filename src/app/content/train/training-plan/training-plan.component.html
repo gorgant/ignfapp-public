@@ -16,7 +16,7 @@
     </div>
   }
   @if ($localPlanSessionFragments() && $localPlanSessionFragments()!.length > 0) {
-    <app-add-training-plan-to-personal-queue [planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
+    <app-add-training-plan-to-personal-queue [$planSessionFragments]="$localPlanSessionFragments()!"></app-add-training-plan-to-personal-queue>
   }
   @if (((userData$ | async)?.isAdmin || $localTrainingPlan()?.creatorId === (userData$ | async)?.id) && $localPlanSessionFragments() && $localPlanSessionFragments()!.length === 0) {
     <div class="no-training-sessions-container">
@@ -28,8 +28,8 @@
   }
 </div>
 @for (planSessionFragment of $localPlanSessionFragments(); track planSessionFragment) {
-  <app-training-session-card [trainingSesssionData]="planSessionFragment"></app-training-session-card>
+  <app-training-session-card [$trainingSesssionData]="planSessionFragment" [$useCompressedDisplay]="false" [$trainingPlanBuilderRequest]="false"></app-training-session-card>
 }
 @if ((fetchCombinedTrainingDataProcessing$ | async)) {
-  <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+  <app-processing-spinner [$spinnerMessage]="'Loading data...'"></app-processing-spinner>
 }

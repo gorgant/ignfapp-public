@@ -3,13 +3,13 @@
     <mat-expansion-panel hideToggle="false" #expansionPanel [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <div class="session-title">{{ trainingSessionData.videoData.title }}</div>
+          <div class="session-title">{{ $trainingSessionData().videoData.title }}</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div class="session-details-container">
         <div class="session-details-item">
           <mat-icon>accessibility_new</mat-icon>
-          <div class="muscle-group">{{ trainingSessionData.muscleGroup | muscleGroupDbToUi }}</div>
+          <div class="muscle-group">{{ $trainingSessionData().muscleGroup | muscleGroupDbToUi }}</div>
         </div>
         <div class="session-details-item">
           <mat-icon>schema</mat-icon>
@@ -21,12 +21,12 @@
         </div>
         <div class="session-details-item">
           <mat-icon>timer</mat-icon>
-          <div class="duration">{{ trainingSessionData.videoData.durationIso | durationIsoToMmSs }}</div>
+          <div class="duration">{{ $trainingSessionData().videoData.durationIso | durationIsoToMmSs }}</div>
         </div>
         <div class="session-details-item activity-categories-item">
           <div class="tags-title">{{ TAGS_TITLE_VALUE }}: </div>
           <div class="activity-categories">
-            @for (activityCategory of trainingSessionData.activityCategoryList; track activityCategory; let lastCategory = $last) {
+            @for (activityCategory of $trainingSessionData().activityCategoryList; track activityCategory; let lastCategory = $last) {
               {{ activityCategory | activityCategoryDbToUi }}@if (!lastCategory) {
               <span>,</span>
             }

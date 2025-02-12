@@ -1,23 +1,23 @@
-@if (!useCompressedDisplay) {
+@if (!$useCompressedDisplay()) {
   <div class="training-session-card-container">
-    <img class="training-session-thumbnail" [src]="trainingSesssionData.videoData.thumbnailUrlLarge" alt="training session thumbnail" (click)="onSelectTrainingSession()" >
+    <img class="training-session-thumbnail" [src]="$trainingSesssionData().videoData.thumbnailUrlLarge" alt="training session thumbnail" (click)="onSelectTrainingSession()" >
     <div class="training-session-sub-image-content">
-      @if (trainingPlanBuilderRequest && $localCanonicalTrainingSession()) {
-        <app-add-training-session-to-plan-button [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-plan-button>
+      @if ($trainingPlanBuilderRequest() && $localCanonicalTrainingSession()) {
+        <app-add-training-session-to-plan-button [$trainingSessionData]="$localCanonicalTrainingSession()!" [$useMiniFabButton]="true"></app-add-training-session-to-plan-button>
       }
-      @if ($isViewTrainingSessions() && !trainingPlanBuilderRequest && $localCanonicalTrainingSession()) {
-        <app-add-training-session-to-personal-queue-button [trainingSessionData]="$localCanonicalTrainingSession()!" [useMiniFabButton]="true"></app-add-training-session-to-personal-queue-button>
+      @if ($isViewTrainingSessions() && !$trainingPlanBuilderRequest() && $localCanonicalTrainingSession()) {
+        <app-add-training-session-to-personal-queue-button [$trainingSessionData]="$localCanonicalTrainingSession()!" [$useMiniFabButton]="true"></app-add-training-session-to-personal-queue-button>
       }
       <div class="training-session-details-container" (click)="onSelectTrainingSession()">
-        <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
-        <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
+        <div class="training-session-title">{{ $trainingSesssionData().videoData.title }}</div>
+        <div class="training-session-subtext">{{ $trainingSesssionData().videoData.channelTitle }} &#8226; {{ $trainingSesssionData().videoData.durationMs | durationMsToMmSs }}</div>
       </div>
     </div>
   </div>
 } @else {
   <div class="training-session-details-container">
-    <div class="training-session-title">{{ trainingSesssionData.videoData.title }}</div>
-    <div class="training-session-subtext">{{ trainingSesssionData.videoData.channelTitle }} &#8226; {{ trainingSesssionData.videoData.durationMs | durationMsToMmSs }}</div>
+    <div class="training-session-title">{{ $trainingSesssionData().videoData.title }}</div>
+    <div class="training-session-subtext">{{ $trainingSesssionData().videoData.channelTitle }} &#8226; {{ $trainingSesssionData().videoData.durationMs | durationMsToMmSs }}</div>
   </div>
 }
 

@@ -22,14 +22,14 @@
     </div>
     <div class="actions-container">
       <button class="action-button" mat-raised-button color="primary" (click)="onEditTrainingRecord()">{{ EDIT_TRAINING_RECORD_BUTTON_VALUE }}</button>
-      <app-add-training-session-to-personal-queue-button class="action-button" [trainingSessionData]="$localTrainingRecord()!.trainingSessionData"></app-add-training-session-to-personal-queue-button>
+      <app-add-training-session-to-personal-queue-button class="action-button" [$trainingSessionData]="$localTrainingRecord()!.trainingSessionData" [$useMiniFabButton]="false"></app-add-training-session-to-personal-queue-button>
       <button class="action-button" mat-button color="primary" (click)="onDeleteTrainingRecord()">{{ DELETE_TRAINING_RECORD_BUTTON_VALUE }}</button>
     </div>
   } @else {
-    <app-processing-spinner [spinnerMessage]="'Loading data...'" [spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
+    <app-processing-spinner [$spinnerMessage]="'Loading data...'" [$spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
   }
 
   @if ($deleteTrainingRecordCycleInit()) {
-    <app-processing-spinner [spinnerMessage]="'Deleting record...'" [spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
+    <app-processing-spinner [$spinnerMessage]="'Deleting record...'" [$spinnerMargin]="'32px 0 0 0'"></app-processing-spinner>
   }
 </div>

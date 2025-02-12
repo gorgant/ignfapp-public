@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Validators, AbstractControl, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
@@ -26,7 +26,7 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
 })
 export class EditEmailDialogueComponent implements OnInit, OnDestroy {
 
-  @ViewChild('updateEmailStepper') private updateEmailStepper!: MatStepper;
+  private $updateEmailStepper = viewChild.required<MatStepper>('updateEmailStepper');
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   CONFIRM_NEW_EMAIL_BLURB = GlobalFieldValues.CONFIRM_NEW_EMAIL;
@@ -166,11 +166,11 @@ export class EditEmailDialogueComponent implements OnInit, OnDestroy {
         tap(confirmPasswordProcessing => {
           // If password confirmation succeeds, proceed to next step
           this.confirmPasswordSubscription?.unsubscribe(); // Clear subscription no longer needed
-          const stepOne = this.updateEmailStepper.steps.get(0); 
+          const stepOne = this.$updateEmailStepper().steps.get(0); 
           if (stepOne) {
             stepOne.completed = true;
             this.confirmPasswordSubscription?.unsubscribe();        
-            this.updateEmailStepper.next() // Programatically trigger the stepper to move to the next step
+            this.$updateEmailStepper().next() // Programatically trigger the stepper to move to the next step
           }
         }),
         // Catch any local errors

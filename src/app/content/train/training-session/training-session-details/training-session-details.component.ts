@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, input, signal, viewChild } from '@angular/core';
 import { MatExpansionPanel, MatExpansionModule } from '@angular/material/expansion';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
@@ -19,8 +19,8 @@ import { MuscleGroupDbToUiPipe } from 'src/app/shared/pipes/muscle-group-db-to-u
 })
 export class TrainingSessionDetailsComponent implements OnInit {
 
-  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment;
-  @ViewChild('expansionPanel') expansionPanel!: MatExpansionPanel;
+  $trainingSessionData = input.required<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment>();
+  $expansionPanel = viewChild.required<MatExpansionPanel>('expansionPanel'); // Accessed in parent Training Session Component
 
   intensityValue!: number;
   complexityValue!: number;
@@ -36,16 +36,16 @@ export class TrainingSessionDetailsComponent implements OnInit {
 
   // Only use average values if sufficient ratings to produce a meaningful average
   private setIntensityAndComplexityValues() {
-    if(this.trainingSessionData[TrainingSessionKeys.INTENSITY_RATING_COUNT] > 20) {
-      this.intensityValue = this.trainingSessionData[TrainingSessionKeys.INTENSITY_AVERAGE]
+    if(this.$trainingSessionData()[TrainingSessionKeys.INTENSITY_RATING_COUNT] > 20) {
+      this.intensityValue = this.$trainingSessionData()[TrainingSessionKeys.INTENSITY_AVERAGE]
     } else {
-      this.intensityValue = this.trainingSessionData[TrainingSessionKeys.INTENSITY_DEFAULT]
+      this.intensityValue = this.$trainingSessionData()[TrainingSessionKeys.INTENSITY_DEFAULT]
     }
 
-    if(this.trainingSessionData[TrainingSessionKeys.COMPLEXITY_RATING_COUNT] > 20) {
-      this.complexityValue = this.trainingSessionData[TrainingSessionKeys.COMPLEXITY_AVERAGE]
+    if(this.$trainingSessionData()[TrainingSessionKeys.COMPLEXITY_RATING_COUNT] > 20) {
+      this.complexityValue = this.$trainingSessionData()[TrainingSessionKeys.COMPLEXITY_AVERAGE]
     } else {
-      this.complexityValue = this.trainingSessionData[TrainingSessionKeys.COMPLEXITY_DEFAULT]
+      this.complexityValue = this.$trainingSessionData()[TrainingSessionKeys.COMPLEXITY_DEFAULT]
     }
   }
  

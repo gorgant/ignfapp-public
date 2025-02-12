@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
@@ -26,8 +26,8 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestroy {
 
-  @Input() trainingSessionData!: CanonicalTrainingSession;
-  @Input() useMiniFabButton!: boolean;
+  $trainingSessionData = input.required<CanonicalTrainingSession>();
+  $useMiniFabButton = input.required<boolean>();
 
   ADD_TRAINING_SESSION_TO_PLAN_BUTTON_VALUE = GlobalFieldValues.ADD_TO_PLAN;
   EMPTY_MESSAGE = EMPTY_SPINNER_MESSAGE;
@@ -168,7 +168,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
         switchMap(([trainingPlan, userData]) => {
           const indexOfFinalItem = trainingPlan!.trainingSessionCount - 1;
           const dataToAdd: NewDataForPlanSessionFragmentNoIdOrTimestamp = {
-            [PlanSessionFragmentKeys.CANONICAL_ID]: this.trainingSessionData.id,
+            [PlanSessionFragmentKeys.CANONICAL_ID]: this.$trainingSessionData().id,
             [PlanSessionFragmentKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.PLAN_SESSION_FRAGMENT,
             [PlanSessionFragmentKeys.TRAINING_PLAN_ID]: trainingPlanId,
             [PlanSessionFragmentKeys.TRAINING_PLAN_INDEX]: indexOfFinalItem + 1,
@@ -264,7 +264,7 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
 
   // Convert current trainingSession into a no-id version to serve as the base for the planSessionFragment
   private buildTrainingSessionNoId(): TrainingSessionNoIdOrTimestamps {
-    const trainingSession = this.trainingSessionData;
+    const trainingSession = this.$trainingSessionData();
     const clone: any = {...trainingSession};
     let incompleteTrainingSessionNoId: TrainingSessionNoIdOrTimestamps;
     switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {

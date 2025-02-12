@@ -33,7 +33,7 @@
     </div>
   </div>
   @if ((fetchAllTrainingSessionsProcessing$ | async)) {
-    <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+    <app-processing-spinner [$spinnerMessage]="'Loading data...'"></app-processing-spinner>
   }
   @if (!(fetchAllTrainingSessionsProcessing$ | async) && !(fetchAllTrainingSessionsError$ | async) && trainingSessionFilters.$filteredTrainingSessions().length === 0) {
     <div class="empty-message" [ngClass]="$showFilters() ? 'hide' : ''">
@@ -43,6 +43,6 @@
 </div>
 <div class="training-session-card-container" [ngClass]="$showFilters() ? 'hide' : ''">
   @for (session of trainingSessionFilters.$filteredTrainingSessions() | trainingSessionSearchFilter: searchText; track session) {
-    <app-training-session-card [trainingSesssionData]="session" [trainingPlanBuilderRequest]="$trainingPlanBuilderRequest()"></app-training-session-card>
+    <app-training-session-card [$trainingSesssionData]="session" [$useCompressedDisplay]="false" [$trainingPlanBuilderRequest]="$trainingPlanBuilderRequest()"></app-training-session-card>
   }
 </div>

@@ -1,10 +1,10 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, input, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, catchError, combineLatest, filter, map, switchMap, tap, throwError, withLatestFrom } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { NewDataForPersonalSessionFragmentNoIdOrTimestamp, PersonalSessionFragment, PersonalSessionFragmentKeys, PersonalSessionFragmentNoIdOrTimestamp } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys } from 'shared-models/train/plan-session-fragment.model';
-import { TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
+import { TrainingSessionDatabaseCategoryTypes, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { EMPTY_SPINNER_MESSAGE } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
@@ -22,7 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
   
-  @Input() planSessionFragments!: PlanSessionFragment[];
+  $planSessionFragments = input.required<PlanSessionFragment[]>();
 
   ADD_PLAN_TO_MY_QUEUE_BUTTON_VALUE = GlobalFieldValues.ADD_PLAN_TO_MY_QUEUE;
   EMPTY_MESSAGE = EMPTY_SPINNER_MESSAGE;
@@ -164,7 +164,7 @@ export class AddTrainingPlanToPersonalQueueComponent implements OnInit {
   private generatePersonalSessionFragmentQueue(personalSessionFragments: PersonalSessionFragment[], userData: PublicUser): PersonalSessionFragmentNoIdOrTimestamp[] {
     let indexOfNewItem = personalSessionFragments.length;
     // Generate array of personalSessionFragments to upload to database
-    const personalSessionFragmentsQueue = this.planSessionFragments.map(planSessionFragment => {
+    const personalSessionFragmentsQueue = this.$planSessionFragments().map(planSessionFragment => {
       // Convert current planSessionFragment into a no-id TrainingSession to serve as the base for the planSessionFragment
       const clone: any = {...planSessionFragment};
       // Delete all the planSessionFragment-specific data

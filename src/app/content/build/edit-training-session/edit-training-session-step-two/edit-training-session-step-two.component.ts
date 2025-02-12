@@ -1,5 +1,5 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ElementRef, Input, OnDestroy, OnInit, Signal, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, Signal, inject, input, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteSelectedEvent, MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
@@ -8,7 +8,7 @@ import { map, startWith } from 'rxjs/operators';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { TrainingSessionActivityCategoryDbOption, TrainingSessionActivityCategoryObject, TrainingSessionActivityCategoryList, TrainingSessionActivityCategoryUiOption } from 'shared-models/train/activity-category.model';
 import { TrainingSessionMuscleGroupDbOption, TrainingSessionMuscleGroupList, TrainingSessionMuscleGroupObject } from 'shared-models/train/muscle-group.model';
-import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryDbOption, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
+import { CanonicalTrainingSession, TrainingSessionFormVars, TrainingSessionKeys, TrainingSessionVideoPlatform, TrainingSessionVisibilityCategoryObject, TrainingSessionVisibilityTypeList } from 'shared-models/train/training-session.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { NgClass, AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,8 +28,8 @@ import { ActivityCategoryDbToUiPipe } from 'src/app/shared/pipes/activity-catego
 })
 export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
-  @Input() $localTrainingSession!: Signal<CanonicalTrainingSession | undefined>;
-  @Input() $isNewSession!: Signal<boolean>;
+  $localTrainingSession = input<CanonicalTrainingSession>();
+  $isNewSession = input<boolean>();
 
   ACTIVITY_CATEGORY_FIELD_VALUE = GlobalFieldValues.ACTIVITY_CATEGORY;
   ACTIVITY_CATEGORY_PLACEHOLDER = GlobalFieldValues.ADD_AN_ACTIVITY_CATEGORY;
@@ -58,7 +58,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
   private readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
   private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
-  @ViewChild('trainingSessionActivityCategoryInput') trainingSessionActivityCategoryInput!: ElementRef<HTMLInputElement>;
+  private $trainingSessionActivityCategoryInput = viewChild.required<ElementRef<HTMLInputElement>>('trainingSessionActivityCategoryInput');
   readonly visibilityCategoryMasterList: TrainingSessionVisibilityCategoryObject[] = Object.values(TrainingSessionVisibilityTypeList);
 
   $showKeywordsForm = signal(false);
@@ -220,7 +220,7 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   addActivityCategoryChipFromAutoComplete(event: MatAutocompleteSelectedEvent): void {
     const dbValue = event.option.value as TrainingSessionActivityCategoryDbOption;
     this.activityCategoryList.setValue([...this.activityCategoryList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection meaning formControl doesn't register input
-    this.trainingSessionActivityCategoryInput.nativeElement.value = '';
+    this.$trainingSessionActivityCategoryInput().nativeElement.value = '';
     this.trainingSessionActivityCategoryUserInputForm.setValue(null);
   }
 

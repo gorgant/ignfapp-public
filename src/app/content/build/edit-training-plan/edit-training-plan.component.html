@@ -76,7 +76,7 @@
               <div class="drag-drop-icon-container" cdkDragHandle>
                 <mat-icon class="drag-drop-icon" (click)="onDragIconClick($event)">drag_indicator</mat-icon>
               </div>
-              <app-training-session-card [trainingSesssionData]="fragment" [useCompressedDisplay]="true" (click)="onSelectPlanSessionFragment(fragment)"></app-training-session-card>
+              <app-training-session-card [$trainingSesssionData]="fragment" [$useCompressedDisplay]="true" [$trainingPlanBuilderRequest]="false" (click)="onSelectPlanSessionFragment(fragment)"></app-training-session-card>
               <mat-icon class="delete-icon" (click)="onDeletePlanSessionFragment(fragment)">delete</mat-icon>
             </div>
             <div class="drop-placeholder" *cdkDragPlaceholder></div>

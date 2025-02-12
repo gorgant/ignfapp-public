@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Subscription, map } from 'rxjs';
@@ -16,7 +16,7 @@ import { BrowseTrainingPlansComponent } from './browse-training-plans/browse-tra
 })
 export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('matTabGroup') matTabGroup!: MatTabGroup;
+  private $matTabGroup = viewChild.required<MatTabGroup>('matTabGroup');
 
   PLANS_TAB_VALUE = GlobalFieldValues.PLANS;
   SESSIONS_TAB_VALUE = GlobalFieldValues.SESSIONS;
@@ -68,7 +68,7 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
   // Ensures if the user views a session and then goes back it will load sessions rather than plan tab
   private addParamsIfViewingSessions() {
     
-    this.matTabGroup.focusChange.subscribe(changeEvent => {
+    this.$matTabGroup().focusChange.subscribe(changeEvent => {
       console.log('Change event tab index', changeEvent.index);
       const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
       const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);

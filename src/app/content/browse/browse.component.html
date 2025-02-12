@@ -7,7 +7,7 @@
       </mat-tab>
       <mat-tab [label]="SESSIONS_TAB_VALUE">
         <ng-template matTabContent>
-          <app-browse-training-sessions [$trainingPlanBuilderRequest]="$trainingPlanBuilderRequest.asReadonly()"></app-browse-training-sessions>
+          <app-browse-training-sessions [$trainingPlanBuilderRequest]="$trainingPlanBuilderRequest()"></app-browse-training-sessions>
         </ng-template>
       </mat-tab>
   </mat-tab-group>

@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { catchError, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -75,10 +75,9 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
 
   serverRequestProcessing$!: Observable<boolean>;
 
-  // @ViewChild('stepZero') private stepZero!: EditTrainingSessionStepZeroComponent;
-  @ViewChild('editTrainingSessionStepper') private editTrainingSessionStepper!: MatStepper;
-  @ViewChild('stepOne') private stepOne!: EditTrainingSessionStepOneComponent;
-  @ViewChild('stepTwo') private stepTwo!: EditTrainingSessionStepTwoComponent;
+  private $editTrainingSessionStepper = viewChild.required<MatStepper>('editTrainingSessionStepper');
+  private $stepOne = viewChild.required<EditTrainingSessionStepOneComponent>('stepOne');
+  private $stepTwo = viewChild.required<EditTrainingSessionStepTwoComponent>('stepTwo');
 
   $stepOneComplete = signal(false);
 
@@ -141,13 +140,13 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.cdr.detectChanges(); // This prevents a ExpressionChangedAfterItHasBeenCheckedError if loading an existing trainingSession
     if (isComplete) {
       console.log('Step one complete, proceeding to next step');
-      const stepOne = this.editTrainingSessionStepper?.steps.get(0); 
+      const stepOne = this.$editTrainingSessionStepper()?.steps.get(0); 
       if (stepOne) {
         stepOne.completed = true;
-        this.editTrainingSessionStepper.next() // Programatically trigger the stepper to move to the next step
+        this.$editTrainingSessionStepper().next() // Programatically trigger the stepper to move to the next step
       }
     } else {
-      const stepOne = this.editTrainingSessionStepper.steps.get(0); 
+      const stepOne = this.$editTrainingSessionStepper().steps.get(0); 
       if (stepOne) {
         stepOne.completed = false;
       }
@@ -240,21 +239,21 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
           if (!this.$createTrainingSessionSubmitted()) {
             this.$createTrainingSessionSubmitted.set(true); // This must come before the update code because in the time it takes to complete the below sort function this thing fires multiple times, causing weird behavior
             const trainingSessionNoId: CanonicalTrainingSessionNoIdOrTimestamps = {
-              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (this.stepTwo.activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
-              [TrainingSessionKeys.COMPLEXITY_AVERAGE]: this.stepTwo.complexityDefault.value,
-              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.stepTwo.complexityDefault.value,
+              [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: (this.$stepTwo().activityCategoryList.value).sort((a,b) => a.localeCompare(b)),
+              [TrainingSessionKeys.COMPLEXITY_AVERAGE]: this.$stepTwo().complexityDefault.value,
+              [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.$stepTwo().complexityDefault.value,
               [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: 1,
               [TrainingSessionKeys.CREATOR_ID]: userData.id,
               [TrainingSessionKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-              [TrainingSessionKeys.EQUIPMENT]: this.stepTwo.equipment.value,
-              [TrainingSessionKeys.INTENSITY_AVERAGE]: this.stepTwo.intensityDefault.value,
-              [TrainingSessionKeys.INTENSITY_DEFAULT]: this.stepTwo.intensityDefault.value,
+              [TrainingSessionKeys.EQUIPMENT]: this.$stepTwo().equipment.value,
+              [TrainingSessionKeys.INTENSITY_AVERAGE]: this.$stepTwo().intensityDefault.value,
+              [TrainingSessionKeys.INTENSITY_DEFAULT]: this.$stepTwo().intensityDefault.value,
               [TrainingSessionKeys.INTENSITY_RATING_COUNT]: 1,
-              [TrainingSessionKeys.KEYWORD_LIST]: this.stepTwo.keywordList.value,
-              [TrainingSessionKeys.MUSCLE_GROUP]: this.stepTwo.muscleGroup.value,
+              [TrainingSessionKeys.KEYWORD_LIST]: this.$stepTwo().keywordList.value,
+              [TrainingSessionKeys.MUSCLE_GROUP]: this.$stepTwo().muscleGroup.value,
               [TrainingSessionKeys.VIDEO_PLATFORM]: TrainingSessionVideoPlatform.YOUTUBE,
               [TrainingSessionKeys.VIDEO_DATA]: videoData!,
-              [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.stepOne.visibilityCategory.value
+              [TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value
             };
             console.log('Training Session Data', trainingSessionNoId);
             this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId, userId: userData.id}));
@@ -317,12 +316,12 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             const updatedTrainingSession: Update<CanonicalTrainingSession> = {
               id: currentTrainingSessionData.id,
               changes: {
-                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...this.stepTwo.activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
-                [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.stepTwo.complexityDefault.value,
-                [TrainingSessionKeys.EQUIPMENT]: this.stepTwo.equipment.value,
-                [TrainingSessionKeys.INTENSITY_DEFAULT]: this.stepTwo.intensityDefault.value,
-                [TrainingSessionKeys.KEYWORD_LIST]: this.stepTwo.keywordList.value,
-                [TrainingSessionKeys.MUSCLE_GROUP]: (this.stepTwo.muscleGroup.value),
+                [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: ([...this.$stepTwo().activityCategoryList.value]).sort((a,b) => a.localeCompare(b)),
+                [TrainingSessionKeys.COMPLEXITY_DEFAULT]: this.$stepTwo().complexityDefault.value,
+                [TrainingSessionKeys.EQUIPMENT]: this.$stepTwo().equipment.value,
+                [TrainingSessionKeys.INTENSITY_DEFAULT]: this.$stepTwo().intensityDefault.value,
+                [TrainingSessionKeys.KEYWORD_LIST]: this.$stepTwo().keywordList.value,
+                [TrainingSessionKeys.MUSCLE_GROUP]: (this.$stepTwo().muscleGroup.value),
               }            
             };
             console.log('Training Session Updates', updatedTrainingSession);
@@ -393,10 +392,10 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   // @HostListener allows us to also CanDeactivate Guard against browser refresh, close, etc.
   @HostListener('window:beforeunload') canDeactivate(): Observable<CanDeactivateData> | CanDeactivateData {
     // If form untouched, allow user to navigate freely
-    const formIsClean = !this.stepOne?.youtubeVideoDataForm?.touched && 
-                        !this.stepOne?.youtubeVideoDataForm?.dirty && 
-                        !this.stepTwo?.trainingSessionForm?.touched && 
-                        !this.stepTwo?.trainingSessionForm?.dirty;
+    const formIsClean = !this.$stepOne().youtubeVideoDataForm?.touched && 
+                        !this.$stepOne().youtubeVideoDataForm?.dirty && 
+                        !this.$stepTwo().trainingSessionForm?.touched && 
+                        !this.$stepTwo().trainingSessionForm?.dirty;
     const createdOrUpdatedTrainingSession = this.$updateTrainingSessionSubmitted() || this.$createTrainingSessionSubmitted();
 
     const canDeactivateData: CanDeactivateData = {

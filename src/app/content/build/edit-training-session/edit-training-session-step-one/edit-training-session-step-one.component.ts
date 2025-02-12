@@ -1,4 +1,4 @@
-import { AfterContentInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
+import { AfterContentInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
@@ -27,9 +27,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class EditTrainingSessionStepOneComponent implements OnInit, AfterContentInit, OnDestroy {
 
-  @Input() editTrainingSessionStepper!: MatStepper;
-  @Input() $localTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
-  @Output() stepOneCompleted: EventEmitter<boolean> = new EventEmitter(); // This emits a value to the parent component which then proceeds to the next step
+  $editTrainingSessionStepper = input.required<MatStepper>();
+  $localTrainingSession = input<CanonicalTrainingSession>();
+  stepOneCompleted = output<boolean>();
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
   INPUT_YOUTUBE_VIDEO_URL_HINT = GlobalFieldValues.INPUT_YOUTUBE_VIDEO_URL_HINT
@@ -144,7 +144,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
           this.visibilityCategory.disable();
           this.monitorYoutubeVideoUrlChange(); // Prevents user from proceeding if url edits are made after previous query
           this.$unfetchedUrlActive.set(false);
-          this.stepOneCompleted.emit(true); 
+          this.stepOneCompleted.emit(true);
         }),
         // Catch any local errors
         catchError(error => {

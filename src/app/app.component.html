@@ -2,7 +2,7 @@
   <router-outlet></router-outlet>
 </div>
 @if (uiService.$routeGuardProcessing()) {
-  <app-processing-spinner [spinnerMessage]="VERIFYING_CREDENTIALS_SPINNER_MESSAGE"></app-processing-spinner>
+  <app-processing-spinner [$spinnerMessage]="VERIFYING_CREDENTIALS_SPINNER_MESSAGE"></app-processing-spinner>
 }
 
 @if (!uiService.$hideNavBar()) {

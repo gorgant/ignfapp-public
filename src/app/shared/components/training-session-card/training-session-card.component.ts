@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, input, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
@@ -18,9 +18,9 @@ import { AddTrainingSessionToPlanButtonComponent } from '../add-training-session
 })
 export class TrainingSessionCardComponent implements OnInit {
 
-  @Input() trainingSesssionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment; 
-  @Input() useCompressedDisplay?: boolean; // Used for edit plan display
-  @Input() trainingPlanBuilderRequest?: boolean;
+  $trainingSesssionData = input.required<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment>(); 
+  $useCompressedDisplay = input.required<boolean>(); // Used for edit plan display
+  $trainingPlanBuilderRequest = input.required<boolean>();
 
   $localCanonicalTrainingSession = signal(undefined as CanonicalTrainingSession | undefined);
   $localPlanSessionFragment = signal(undefined as PlanSessionFragment | undefined);
@@ -52,7 +52,7 @@ export class TrainingSessionCardComponent implements OnInit {
   }
 
   private patchLocalValues() {
-    const trainingSession = this.trainingSesssionData;
+    const trainingSession = this.$trainingSesssionData();
     switch (trainingSession[TrainingSessionKeys.DATABASE_CATEGORY]) {
       case TrainingSessionDatabaseCategoryTypes.CANONICAL:
         this.$localCanonicalTrainingSession.set(trainingSession as CanonicalTrainingSession);
@@ -68,7 +68,7 @@ export class TrainingSessionCardComponent implements OnInit {
 
   onSelectTrainingSession() {
     let navigationExtras: NavigationExtras = {};
-    if (this.trainingPlanBuilderRequest && this.$localCanonicalTrainingSession()) {
+    if (this.$trainingPlanBuilderRequest() && this.$localCanonicalTrainingSession()) {
       const viewCanonicalTrainingSessionQueryParams: ViewCanonicalTrainingSessionQueryParams = {
         [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: this.$localCanonicalTrainingSession()![TrainingSessionKeys.DATABASE_CATEGORY],
         [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$localCanonicalTrainingSession()![TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]!

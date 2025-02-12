@@ -15,7 +15,7 @@
     </mat-form-field>
   </div>
   @if ((fetchAllTrainingPlansProcessing$ | async)) {
-    <app-processing-spinner [spinnerMessage]="'Loading data...'"></app-processing-spinner>
+    <app-processing-spinner [$spinnerMessage]="'Loading data...'"></app-processing-spinner>
   }
   @if (!(fetchAllTrainingPlansProcessing$ | async) && !(fetchAllTrainingPlansError$ | async) && $localTrainingPlans().length === 0) {
     <div class="empty-message">
@@ -25,6 +25,6 @@
 </div>
 <div class="training-plan-card-container">
   @for (plan of $localTrainingPlans() | trainingPlanSearchFilter: searchText; track plan) {
-    <app-training-plan-card [trainingPlanData]="plan" (click)="onSelectTrainingPlan(plan)"></app-training-plan-card>
+    <app-training-plan-card [$trainingPlanData]="plan" (click)="onSelectTrainingPlan(plan)"></app-training-plan-card>
   }
 </div>

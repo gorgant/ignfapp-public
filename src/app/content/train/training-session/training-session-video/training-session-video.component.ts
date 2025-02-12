@@ -1,11 +1,10 @@
-import { Component, Input, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { YouTubePlayer, YouTubePlayerModule } from '@angular/youtube-player';
 import { PersonalSessionFragment } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
 import { CanonicalTrainingSession, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { DeviceOSType, IOSDeviceTypes } from 'shared-models/user-interface/device-os-types.model';
 import { YoutubeVideoDataKeys } from 'shared-models/youtube/youtube-video-data.model';
-import { HelperService } from 'src/app/core/services/helpers.service';
 import { UiService } from 'src/app/core/services/ui.service';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -17,11 +16,11 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class TrainingSessionVideoComponent implements OnInit {
   
-  @Input() trainingSessionData!: CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment;
+  $trainingSessionData = input.required<CanonicalTrainingSession | PlanSessionFragment | PersonalSessionFragment>();
 
   private apiLoaded = signal(false);
   
-  @ViewChild('ytVideoPlayerApi') ytVideoPlayerApi!: YouTubePlayer; // Accessed by parent component
+  $ytVideoPlayerApi = viewChild.required<YouTubePlayer>('ytVideoPlayerApi'); // Accessed by parent Training Session Component
   $videoPlayerWidth = signal(undefined as number | undefined);
   $videoPlayerHeight = signal(undefined as number | undefined);
   $videoPlayerOptions = signal({});
@@ -92,7 +91,7 @@ export class TrainingSessionVideoComponent implements OnInit {
       deepLinkUri = androidYoutubeDeeplinkUriBase;
     }
 
-    const videoId = this.trainingSessionData[TrainingSessionKeys.VIDEO_DATA][YoutubeVideoDataKeys.ID];
+    const videoId = this.$trainingSessionData()[TrainingSessionKeys.VIDEO_DATA][YoutubeVideoDataKeys.ID];
 
     const fullUri = deepLinkUri + videoId;
     this.$youtubeDeeplinkUri.set(fullUri);
