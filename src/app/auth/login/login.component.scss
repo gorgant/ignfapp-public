@@ -68,3 +68,7 @@ app-login-form {
 .verify-text, .trusted-sender-text {
   font-weight: $font-weight-medium
 }
+
+.logout-button {
+  width: $mobile-button-width;
+}

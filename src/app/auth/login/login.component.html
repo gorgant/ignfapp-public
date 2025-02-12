@@ -28,6 +28,7 @@
       >
       <p>{{ CHECK_INBOX_BLURB_1 }}, {{(userData$ | async)?.firstName}}. {{ CHECK_INBOX_BLURB_2 }} <span class="verify-text">{{ CHECK_INBOX_BLURB_3 }}</span>.</p>
       <p>{{ CHECK_SPAM_BLURB_1 }} <span class="trusted-sender-text">{{ TRUSTED_EMAIL_SENDER }}</span> {{ CHECK_SPAM_BLURB_2 }}.</p>
+      <button class="logout-button" mat-stroked-button color="primary" (click)="onLogout()">{{ LOGOUT_BUTTON_VALUE }}</button>
     </div>
   }
 </div>

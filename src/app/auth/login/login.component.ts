@@ -7,7 +7,7 @@ import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { EmailSenderAddresses } from 'shared-models/email/email-vars.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AuthStoreSelectors, RootStoreState, UserStoreSelectors } from 'src/app/root-store';
+import { AuthStoreActions, AuthStoreSelectors, RootStoreState, UserStoreSelectors } from 'src/app/root-store';
 import { RouterLink } from '@angular/router';
 import { LoginFormComponent } from '../login-form/login-form.component';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +37,7 @@ export class LoginComponent implements OnInit {
   CHECK_INBOX_BLURB_3 = GlobalFieldValues.CHECK_INBOX_3;
   CHECK_SPAM_BLURB_1 = GlobalFieldValues.CHECK_SPAM_1;
   CHECK_SPAM_BLURB_2 = GlobalFieldValues.CHECK_SPAM_2;
+  LOGOUT_BUTTON_VALUE = GlobalFieldValues.LOGOUT;
 
   authOrUserUpdateProcessing$!: Observable<boolean>;
   userData$!: Observable<PublicUser>;
@@ -78,6 +79,11 @@ export class LoginComponent implements OnInit {
     
     this.userData$ = this.store$.select(UserStoreSelectors.selectPublicUserData) as Observable<PublicUser>;
     this.authData$ = this.store$.select(AuthStoreSelectors.selectAuthResultsData) as Observable<AuthResultsData>;
+  }
+
+  onLogout(): void {
+    console.log('Logging out user');
+    this.store$.dispatch(AuthStoreActions.logout());
   }
 
 
