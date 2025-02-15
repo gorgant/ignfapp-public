@@ -53,7 +53,7 @@ export const onReqVerifyDbSgOptInParity = onRequest(httpOptions, async (req, res
 
   if (currentEnvironmentType === EnvironmentTypes.SANDBOX) {
     logger.log(`Sandbox detected, terminating function`);
-    res.status(200).send('onReqPublishScheduledPosts succeeded!');
+    res.status(200).send('onReqVerifyDbSgOptInParity called and aborted in sandbox.');
     return;
   }
 
@@ -69,6 +69,6 @@ export const onReqVerifyDbSgOptInParity = onRequest(httpOptions, async (req, res
 
   await executeActions();
 
-  res.status(200).send('onReqPublishScheduledPosts succeeded!');
+  res.status(200).send('onReqVerifyDbSgOptInParity succeeded!');
 
 });

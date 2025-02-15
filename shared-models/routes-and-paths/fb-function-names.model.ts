@@ -21,7 +21,9 @@ export enum PublicFunctionNames {
   ON_PUB_REMOVE_USER_FROM_SG_CONTACT_LIST = 'onPubRemoveUserFromSgContactList',
   ON_PUB_RESIZE_AVATAR = 'onPubResizeAvatar',
   ON_PUB_UPDATE_SESSION_RATING = 'onPubUpdateSessionRating',
+  ON_REQ_PURGE_UNVERIFIED_PUBLIC_USERS = 'onReqPurgeUnverifiedPublicUsers',
   ON_REQ_SG_EMAIL_WEBHOOK_ENDPOINT = 'onReqSgEmailWebhookEndpoint',
+  ON_REQ_VERIFY_DB_SG_OPT_IN_PARITY = 'onReqVerifyDbSgOptInParity',
 }
 
 export enum PublicTopicNames {

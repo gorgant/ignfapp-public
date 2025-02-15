@@ -19,5 +19,6 @@ export { onPubDispatchEmail } from './email/on-pub-dispatch-email';
 export { onPubRemoveUserFromSgContactList } from './email/on-pub-remove-user-from-sg-contact-list';
 export { onPubResetSgContactOptInStatus } from './email/on-pub-reset-sg-contact-opt-in-status';
 export { onPubResizeAvatar } from './user/on-pub-resize-avatar';
+export { onReqPurgeUnverifiedPublicUsers } from './user/on-req-purge-unverified-public-users';
 export { onReqSgEmailWebhookEndpoint } from './email/on-req-sg-email-webhook-endpoint';
 export { onReqVerifyDbSgOptInParity } from './email/on-req-verify-db-sg-opt-in-parity';
