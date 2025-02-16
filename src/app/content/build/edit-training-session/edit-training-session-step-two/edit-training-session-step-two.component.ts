@@ -294,6 +294,16 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       this.uiService.showSnackBar(`Cannot add more than ${maxKeywordCount} keywords`, 10000);
       return;
     }
+
+    if (this.keywordList.value.length > maxKeywordCount - 1) {
+      this.uiService.showSnackBar(`Cannot add more than ${maxKeywordCount} keywords`, 10000);
+      return;
+    }
+
+    if (this.keywordList.value.includes(keyword)) {
+      this.uiService.showSnackBar(`Keyword "${keyword}" is already added`, 10000);
+      return;
+    }
     
     // Add item if it is valid
     if (keyword) {
