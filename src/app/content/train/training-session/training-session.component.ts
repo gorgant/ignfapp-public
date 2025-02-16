@@ -618,7 +618,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   @HostListener('window:beforeunload') canDeactivate(): Observable<CanDeactivateData> | CanDeactivateData {
     
     // Check if there is a session in progress, if so, warn user before deactivating
-    const trainingSessionInProgress = (!!this.sessionStartTime || !!this.sessionDuration) && !this.sessionCompleted;
+    const trainingSessionInProgress = (!!this.sessionStartTime() || !!this.sessionDuration()) && !this.sessionCompleted();
 
     const warningMessage: CanDeactivateData = {
       deactivationPermitted: !trainingSessionInProgress,

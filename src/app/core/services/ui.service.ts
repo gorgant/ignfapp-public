@@ -19,7 +19,7 @@ import { SwUpdate } from '@angular/service-worker';
 })
 export class UiService {
 
-  private APP_VERSION = '0.3.3';
+  private APP_VERSION = '0.3.4';
 
   private history: string[] = [];
   private $privateHideNavBar = signal(true);
@@ -184,7 +184,12 @@ export class UiService {
   routeUserToPreviousPage(): void {
     this.history.pop();
     if (this.history.length > 0) {
-      this.location.back();
+      const previousUrl = this.history[this.history.length - 1];
+      if (previousUrl.includes('edit-training-session')) {
+        this.router.navigateByUrl('/');
+      } else {
+        this.location.back();
+      }
     } else {
       this.router.navigateByUrl('/');
     }
