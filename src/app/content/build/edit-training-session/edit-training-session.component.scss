@@ -78,7 +78,10 @@ mat-stepper {
   align-items: flex-start;
   
   width: 100%;
+  
   padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
 }
 
 .video-details-prefix {
