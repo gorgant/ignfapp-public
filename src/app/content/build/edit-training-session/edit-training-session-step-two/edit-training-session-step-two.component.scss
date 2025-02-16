@@ -64,3 +64,10 @@ mat-slider {
 .hide {
   display: none;
 }
+
+// For some reason this form field doesn't display the error inside it so we need to display it manually
+.custom-activity-category-error {
+  margin-top: -40px;
+  margin-left: 16px;
+  font-size: 0.9em;
+}

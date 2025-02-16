@@ -48,15 +48,17 @@
           </button>
         </mat-chip-row>
       }
-      <input
-        [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
-        #trainingSessionActivityCategoryInput
-        [formControl]="trainingSessionActivityCategoryUserInputForm"
-        [matAutocomplete]="auto"
-        [matChipInputFor]="activityCategoryChipGrid"
-        [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
-        (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
     </mat-chip-grid>
+    <input
+      [placeholder]="ACTIVITY_CATEGORY_PLACEHOLDER"
+      #trainingSessionActivityCategoryInput
+      [formControl]="trainingSessionActivityCategoryUserInputForm"
+      [matAutocomplete]="auto"
+      [matChipInputFor]="activityCategoryChipGrid"
+      [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
+      (input)="onActivityCategoryInputChange($event)"
+      (matChipInputTokenEnd)="addActivityCategoryChipFromKeyboard($event)">
+
     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addActivityCategoryChipFromAutoComplete($event)">
       @for (activityCategory of filteredtrainingSessionActivityCategoryList | async; track activityCategory) {
         <mat-option [value]="activityCategory.dbValue">
@@ -64,10 +66,13 @@
         </mat-option>
       }
     </mat-autocomplete>
-    @if (activityCategoryList.invalid && (activityCategoryList.dirty || activityCategoryList.touched)) {
-      <mat-error>{{ activityCategoryListErrorMessage }}</mat-error>
-    }
+
   </mat-form-field>
+
+  <!-- For some reason the preceding form field doesn't display the error inside it so we need to display it manually outside it -->
+  @if (activityCategoryList.invalid && (trainingSessionActivityCategoryUserInputForm.dirty || trainingSessionActivityCategoryUserInputForm.touched)) {
+    <mat-error class="custom-activity-category-error">{{ activityCategoryListErrorMessage }}</mat-error>
+  }
 
   @if (!$showKeywordsForm()) {
     <button class="add-keywords-button" color="primary" mat-button (click)="onShowKeywordsForm()">Add Other Keywords</button>
@@ -90,6 +95,10 @@
       [placeholder]="KEYWORD_PLACEHOLDER"
       [matChipInputFor]="keywordChipGrid"
       [matChipInputSeparatorKeyCodes]="chipListSeparatorKeysCodes"
-      (matChipInputTokenEnd)="addKewordChipFromKeyboard($event)"/>
+      (input)="onKeywordInputChange($event)"
+      (matChipInputTokenEnd)="addKeywordChipFromKeyboard($event)"/>
+    @if (keywordList.invalid && (keywordList.dirty || keywordList.touched)) {
+      <mat-error>{{ keywordListErrorMessage }}</mat-error>
+    }
   </mat-form-field>
 </form>

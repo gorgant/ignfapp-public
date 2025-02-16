@@ -1,6 +1,6 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Component, ElementRef, Input, OnDestroy, OnInit, Signal, inject, input, signal, viewChild } from '@angular/core';
-import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatAutocompleteSelectedEvent, MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { Observable } from 'rxjs';
@@ -52,9 +52,11 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
 
   chipListSeparatorKeysCodes: number[] = [ENTER, COMMA];
   trainingSessionActivityCategoryUserInputForm = new FormControl('');
-  keywordListUserInputForm = new FormControl('');
   filteredtrainingSessionActivityCategoryList!: Observable<TrainingSessionActivityCategoryObject[]>;
-
+  
+  $activityCategoryInputFieldValue = signal('');
+  $keywordInputFieldValue = signal('');
+  
   readonly trainingSessionMuscleGroupMasterList: TrainingSessionMuscleGroupObject[] = Object.values(TrainingSessionMuscleGroupList);
   private readonly trainingSessionActivityCategoryMasterList: TrainingSessionActivityCategoryObject[] = Object.values(TrainingSessionActivityCategoryList);
   private readonly trainingSessionActivityCategoryUiValues = Object.values(TrainingSessionActivityCategoryList).map(activityCategoryOption => activityCategoryOption.uiValue);
@@ -68,11 +70,11 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   private uiService = inject(UiService);
 
   trainingSessionForm = this.fb.group({
-    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [[] as TrainingSessionActivityCategoryDbOption[], [Validators.required]],
+    [TrainingSessionKeys.ACTIVITY_CATEGORY_LIST]: [[] as TrainingSessionActivityCategoryDbOption[], [Validators.required, unsavedActivityCategoryValidator(() => this.$activityCategoryInputFieldValue())]],
     [TrainingSessionKeys.COMPLEXITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.complexityMin + 1), Validators.max(this.complexityMax)]],
     [TrainingSessionKeys.EQUIPMENT]: [false, [Validators.required]],
     [TrainingSessionKeys.INTENSITY_DEFAULT]: [0, [Validators.required, Validators.pattern(/^\d+$/), Validators.min(this.intensityMin + 1), Validators.max(this.intensityMax)]],
-    [TrainingSessionKeys.KEYWORD_LIST]: [[] as string[]],
+    [TrainingSessionKeys.KEYWORD_LIST]: [[] as string[], [unsavedKeywordValidator(() => this.$keywordInputFieldValue())]],
     [TrainingSessionKeys.MUSCLE_GROUP]: ['' as TrainingSessionMuscleGroupDbOption, [Validators.required]],
     [TrainingSessionKeys.VIDEO_PLATFORM]: [TrainingSessionVideoPlatform.YOUTUBE, [Validators.required]],
   });
@@ -122,7 +124,18 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   get activityCategoryListErrorMessage() {
     let errorMessage = '';
     if (this.activityCategoryList.hasError('required')) {
-      return errorMessage = 'You must enter a value';
+      return errorMessage = 'You must select a value';
+    }
+    if (this.activityCategoryList.hasError('unsavedActivityCategory')) {
+      return errorMessage = 'Invalid activity category.';
+    }
+    return errorMessage;
+  }
+
+  get keywordListErrorMessage() {
+    let errorMessage = '';
+    if (this.keywordList.hasError('unsavedKeyword')) {
+      return errorMessage = 'Press enter to save keyword';
     }
     return errorMessage;
   }
@@ -213,6 +226,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       event.chipInput!.clear();
   
       this.trainingSessionActivityCategoryUserInputForm.setValue(null);
+  
+      this.$activityCategoryInputFieldValue.set(''); // Clears the input value after the user presses enter
+      this.activityCategoryList.updateValueAndValidity(); // Clears the unsavedActivityCategory error if the field is empty
     }
 
   }
@@ -222,6 +238,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     this.activityCategoryList.setValue([...this.activityCategoryList.value, dbValue]); // Using setValue vs push because push doesn't trigger changeDetection meaning formControl doesn't register input
     this.$trainingSessionActivityCategoryInput().nativeElement.value = '';
     this.trainingSessionActivityCategoryUserInputForm.setValue(null);
+  
+    this.$activityCategoryInputFieldValue.set(''); // Clears the input value after the user presses enter
+    this.activityCategoryList.updateValueAndValidity(); // Clears the unsavedActivityCategory error if the field is empty
   }
 
   removeActivityCategoryChip(activityCategory: TrainingSessionActivityCategoryDbOption): void {
@@ -245,20 +264,21 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     }
   }
 
+  onActivityCategoryInputChange(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    this.$activityCategoryInputFieldValue.set(inputElement.value);
+    this.activityCategoryList.updateValueAndValidity();
+  }
+
   onShowKeywordsForm() {
     this.$showKeywordsForm.set(true);
   }
 
-  addKewordChipFromKeyboard(event: MatChipInputEvent): void {
+  addKeywordChipFromKeyboard(event: MatChipInputEvent): void {
     const keyword = (event.value || '')?.trim().toLocaleLowerCase();
     const minKeywordCharacterLength = 3;
     const maxKeywordCharacterLength = 30;
     const maxKeywordCount = 5;
-
-    // if (keyword.includes(' ')) {
-    //   this.uiService.showSnackBar(`Keywords cannot contain spaces`, 10000);
-    //   return;
-    // }
 
     if (keyword.length < minKeywordCharacterLength) {
       this.uiService.showSnackBar(`Keywords must be at least ${minKeywordCharacterLength} characters`, 10000);
@@ -280,8 +300,9 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
       this.keywordList.setValue([...this.keywordList.value, keyword]); // Using setValue vs push because push doesn't trigger changeDetection so formControl thinks empty
       // Clear the input value
       event.chipInput!.clear();
-  
-      this.keywordListUserInputForm.setValue(null);
+      
+      this.$keywordInputFieldValue.set(''); // Clears the input value after the user presses enter
+      this.keywordList.updateValueAndValidity(); // Clears the unsavedKeyword error if the field is empty
     }
 
     console.log('New keywordList', this.keywordList.value);
@@ -300,9 +321,14 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
     if (this.keywordList.value.length < 1) {
       this.keywordList.patchValue([]);
     }
-    // This invisible action ensures the valuechange observable fires in initializeFilteredActivityCategoryList, which triggers update to filterActivityCategoryListWithoutUserInput
-    this.keywordListUserInputForm.setValue(''); 
+
     console.log('New keywordList', this.keywordList.value);
+  }
+
+  onKeywordInputChange(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    this.$keywordInputFieldValue.set(inputElement.value);
+    this.keywordList.updateValueAndValidity();
   }
   
   ngOnDestroy(): void {
@@ -317,4 +343,25 @@ export class EditTrainingSessionStepTwoComponent implements OnInit, OnDestroy {
   get keywordList() { return this.trainingSessionForm.get(TrainingSessionKeys.KEYWORD_LIST) as FormControl<string[]>; }
   get muscleGroup() {return this.trainingSessionForm.get(TrainingSessionKeys.MUSCLE_GROUP) as FormControl<TrainingSessionMuscleGroupDbOption>;}
 
+}
+
+
+// Custom validator to ensure activity categories are not left unsaved
+export function unsavedActivityCategoryValidator(getActivityCategoryInputValue: () => string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (getActivityCategoryInputValue()) {
+      return { unsavedActivityCategory: true }; // Return error if input is not empty
+    }
+    return null; // No error if input is empty
+  };
+}
+
+// Custom validator to ensure keywords are not left unsaved
+export function unsavedKeywordValidator(getKeywordInputValue: () => string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (getKeywordInputValue()) {
+      return { unsavedKeyword: true }; // Return error if input is not empty
+    }
+    return null; // No error if input is empty
+  };
 }
