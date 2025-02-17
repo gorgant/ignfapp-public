@@ -140,7 +140,7 @@ export const trainingPlanStoreReducer = createReducer(
 
   // Purge New Training Plan Id
 
-  on(TrainingPlanStoreActions.purgeTrainingPlanData, (state, action) => {
+  on(TrainingPlanStoreActions.purgeNewTrainingPlanId, (state, action) => {
     return {
       ...state,
       newTrainingPlanId: null

@@ -3,4 +3,5 @@ export enum SnackbarActions {
   EDIT_PLAN = 'Edit Plan',
   VIEW_MY_QUEUE = 'View My Queue',
   VIEW_PLAN = 'View Plan',
+  VIEW_SESSION = 'View Session',
 }

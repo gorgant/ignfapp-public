@@ -109,7 +109,13 @@ export const fetchYoutubeVideoDataFailed = createAction(
   props<{error: FirebaseError}>()
 );
 
-// Purge Train Data
+// Purge New Training Session Id
+
+export const purgeNewTrainingSessionId = createAction(
+  '[Edit Training Session] Purge New Training Session Id'
+);
+
+// Purge Training Session Data
 
 export const purgeTrainingSessionData = createAction(
   '[AppWide] Purge Training Session Data'

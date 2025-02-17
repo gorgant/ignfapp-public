@@ -19,6 +19,7 @@ const getFetchSingleTrainingSessionError = (state: TrainingSessionState) => stat
 const getFetchSingleTrainingSessionProcessing = (state: TrainingSessionState) => state.fetchSingleTrainingSessionProcessing;
 const getFetchYoutubeVideoDataError = (state: TrainingSessionState) => state.fetchYoutubeVideoDataError;
 const getFetchYoutubeVideoDataProcessing = (state: TrainingSessionState) => state.fetchYoutubeVideoDataProcessing;
+const getNewTrainingSessionId = (state: TrainingSessionState) => state.newTrainingSessionId;
 const getUpdateSessionRatingError = (state: TrainingSessionState) => state.updateSessionRatingError;
 const getUpdateSessionRatingProcessing = (state: TrainingSessionState) => state.updateSessionRatingProcessing;
 const getUpdateTrainingSessionError = (state: TrainingSessionState) => state.updateTrainingSessionError;
@@ -93,6 +94,11 @@ export const selectFetchYoutubeVideoDataError = createSelector(
 export const selectFetchYoutubeVideoDataProcessing = createSelector(
   selectTrainingSessionState,
   getFetchYoutubeVideoDataProcessing
+);
+
+export const selectNewTrainingSessionId = createSelector(
+  selectTrainingSessionState,
+  getNewTrainingSessionId
 );
 
 export const selectTrainingSessionById: (sessionId: string) => MemoizedSelector<object, CanonicalTrainingSession | undefined> = (sessionId: string) => createSelector(

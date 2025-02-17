@@ -3,7 +3,7 @@ import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
+import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys, NewTrainingSessionSnackbarData } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable, throwError } from 'rxjs';
@@ -23,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing-spinner/processing-spinner.component';
 import { BackButtonDirective } from 'src/app/shared/directives/back-button.directive';
 import { DurationIsoToMmSsPipe } from 'src/app/shared/pipes/duration-iso-to-mm-ss.pipe';
+import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 
 @Component({
     selector: 'app-edit-training-session',
@@ -258,23 +259,24 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
             console.log('Training Session Data', trainingSessionNoId);
             this.store$.dispatch(TrainingSessionStoreActions.createTrainingSessionRequested({trainingSessionNoId, userId: userData.id}));
           }
-          return this.createTrainingSessionProcessing$;
+          const newTrainingSessionId = this.store$.select(TrainingSessionStoreSelectors.selectNewTrainingSessionId);
+          return newTrainingSessionId
         }),
-        // This tap/filter pattern ensures an async action has completed before proceeding with the pipe
-        tap(createProcessing => {
-          if (createProcessing) {
-            this.$createTrainingSessionCycleInit.set(true);
-          }
-          if (!createProcessing && this.$createTrainingSessionCycleInit()) {
-            console.log('createTrainingSession successful, proceeding with pipe.');
-            this.$createTrainingSessionCycleInit.set(false);
-            this.$createTrainingSessionCycleComplete.set(true);
-          }
-        }),
-        filter(creationProcessing => !creationProcessing && this.$createTrainingSessionCycleComplete()),
-        tap(creationProcessing => {
-          this.uiService.showSnackBar(`Training session created!`, 5000);
-          this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData());
+        withLatestFrom(this.createTrainingSessionProcessing$),
+        filter(([newTrainingSessionId, createTrainingSessionProcessing]) => !!newTrainingSessionId && !createTrainingSessionProcessing),
+        tap(([newTrainingSessionId, createTrainingSessionProcessing]) => {
+          const queryParams: ViewCanonicalTrainingSessionQueryParams = {
+            [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+            [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value,
+          };
+          const newTrainingSessionSnackbarData: NewTrainingSessionSnackbarData = {
+            trainingSessionId: newTrainingSessionId!,
+            queryParams
+          };
+          this.uiService.showSnackBar(`Training session created!`, 5000, SnackbarActions.VIEW_SESSION, newTrainingSessionSnackbarData); // Display snackbar with option to view new session
+          this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clears this out of working memory since it isn't needed anymore
+          this.store$.dispatch(TrainingSessionStoreActions.purgeNewTrainingSessionId()); // Clears this out of working memory since it isn't needed anymore
+          this.resetCreateTrainingSessionComponentState();
           this.navigateToBrowseWithTrainingSessionSelection();
         }),
         // Catch any local errors
@@ -293,6 +295,15 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.$createTrainingSessionCycleInit.set(false);
     this.$createTrainingSessionCycleComplete.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
+  }
+
+  private navigateToNewTrainingSession(newTrainingSessionId: string): void {
+    const queryParams: ViewCanonicalTrainingSessionQueryParams = {
+      [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+      [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value,
+    };
+    const navigationExtras: NavigationExtras = {queryParams};
+    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, newTrainingSessionId], navigationExtras);
   }
 
   private updateExistingSession() {
@@ -399,7 +410,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     const createdOrUpdatedTrainingSession = this.$updateTrainingSessionSubmitted() || this.$createTrainingSessionSubmitted();
 
     const canDeactivateData: CanDeactivateData = {
-      deactivationPermitted: formIsClean || createdOrUpdatedTrainingSession,
+      deactivationPermitted: this.$isNewSession() || formIsClean || createdOrUpdatedTrainingSession,
       warningMessage: {
         title: this.DISCARD_EDITS_TITLE_VALUE,
         body: this.DISCARD_EDITS_BODY_VALUE

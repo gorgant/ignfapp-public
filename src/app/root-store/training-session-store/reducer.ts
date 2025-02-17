@@ -24,6 +24,7 @@ export const trainingSessionStoreReducer = createReducer(
       action.trainingSession, {
         ...state,
         createTrainingSessionProcessing: false,
+        newTrainingSessionId: action.trainingSession.id
       }
     );
   }),
@@ -162,6 +163,15 @@ export const trainingSessionStoreReducer = createReducer(
     }
   }),
 
+  // Purge New Training Session Id
+
+  on(TrainingSessionStoreActions.purgeNewTrainingSessionId, (state, action) => {
+    return {
+      ...state,
+      newTrainingSessionId: null
+    }
+  }),
+
   // Purge Training Session Data
 
   on(TrainingSessionStoreActions.purgeTrainingSessionData, (state, action) => {
@@ -181,6 +191,7 @@ export const trainingSessionStoreReducer = createReducer(
         fetchSingleTrainingSessionProcessing: false,
         fetchYoutubeVideoDataError: null,
         fetchYoutubeVideoDataProcessing: false,
+        newTrainingSessionId: null,
         updateSessionRatingError: null,
         updateSessionRatingProcessing: false,
         updateTrainingSessionError: null,

@@ -12,6 +12,7 @@ import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { DeviceOSType } from 'shared-models/user-interface/device-os-types.model';
 import { SwUpdate } from '@angular/service-worker';
+import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, NewTrainingSessionSnackbarData, TrainingSessionDatabaseCategoryTypes, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
 
 
 @Injectable({
@@ -19,7 +20,7 @@ import { SwUpdate } from '@angular/service-worker';
 })
 export class UiService {
 
-  private APP_VERSION = '0.3.4';
+  private APP_VERSION = '0.3.5';
 
   private history: string[] = [];
   private $privateHideNavBar = signal(true);
@@ -65,7 +66,7 @@ export class UiService {
     return this.APP_VERSION;
   }
 
-  showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS) {
+  showSnackBar(message: string, duration: number, action: SnackbarActions = SnackbarActions.DISMISS, data?: any) {
     const config = new MatSnackBarConfig();
     config.duration = duration;
     config.panelClass = ['custom-snack-bar']; // CSS managed in global styles.css
@@ -74,7 +75,6 @@ export class UiService {
 
     const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string | undefined;
     const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
-
 
     // Perform an action based on the action input
     snackBarRef.onAction().subscribe(() => {
@@ -106,6 +106,27 @@ export class UiService {
             this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_PLAN, trainingPlanId], navigationExtras);
           } else {
             this.router.navigate([PublicAppRoutes.BROWSE]);
+          }
+          break;
+        case SnackbarActions.VIEW_SESSION:
+          const trainingSessionId = (data as NewTrainingSessionSnackbarData).trainingSessionId;
+          const databaseCategory = (data as NewTrainingSessionSnackbarData).queryParams[ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY];
+          const trainingSessionVisibilityCategory = (data as NewTrainingSessionSnackbarData).queryParams[ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY];
+          if (trainingSessionId && databaseCategory && trainingSessionVisibilityCategory) {
+            const queryParams: ViewCanonicalTrainingSessionQueryParams = {
+              [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: databaseCategory,
+              [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: trainingSessionVisibilityCategory,
+            };
+            
+            const navigationExtras: NavigationExtras = { queryParams };
+            this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, trainingSessionId], navigationExtras);
+          } else {
+            // If data is missing, navigate to browse with sessions view
+            const queryParams: BrowseTrainingSessionsQueryParams = {
+              [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+            };
+            const navigationExtras: NavigationExtras = { queryParams };
+            this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
           }
           break;
         default:
@@ -185,7 +206,7 @@ export class UiService {
     this.history.pop();
     if (this.history.length > 0) {
       const previousUrl = this.history[this.history.length - 1];
-      if (previousUrl.includes('edit-training-session')) {
+      if (previousUrl.includes('edit-training-session') || previousUrl.includes('new-training-session')) {
         this.router.navigateByUrl('/');
       } else {
         this.location.back();

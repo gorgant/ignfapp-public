@@ -145,3 +145,8 @@ export const TrainingSessionVisibilityTypeList: TrainingSessionVisibilityCategor
     dbValue: TrainingSessionVisibilityCategoryDbOption.PRIVATE
   },
 }
+
+export interface NewTrainingSessionSnackbarData {
+  trainingSessionId: string,
+  queryParams: ViewCanonicalTrainingSessionQueryParams
+};
