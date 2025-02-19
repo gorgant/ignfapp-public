@@ -5,7 +5,7 @@ import { catchError, combineLatest, filter, map, Observable, of, Subscription, s
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PlanSessionFragment } from 'shared-models/train/plan-session-fragment.model';
-import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { UiService } from 'src/app/core/services/ui.service';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, RootStoreState, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -215,10 +215,10 @@ export class TrainingPlanComponent implements OnInit, OnDestroy {
 
   onAddTrainingSession() {
     const queryParams: AddTrainingSessionToPlanQueryParams = {
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
-      [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
+      [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
     };
     const navigationExtras: NavigationExtras = {
       queryParams

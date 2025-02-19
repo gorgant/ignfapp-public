@@ -1,10 +1,10 @@
-import { Component, Input, OnDestroy, OnInit, Signal, inject, input, signal, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { distinctUntilChanged, Observable, Subscription, tap } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
-import { AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { TrainingSessionFilterFormKeys, TrainingSessionKeys } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
@@ -68,6 +68,25 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   onCreateTrainingSession() {
+    // If this is a trainingPlanBuilderRequest, route to the new training session with the appropriate query params
+    if (this.$trainingPlanBuilderRequest()) {
+      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string | undefined;
+      const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
+      const addTrainingSessionToPlanQueryParams: AddTrainingSessionToPlanQueryParams = {
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId!,
+        [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: false,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory!,
+      };
+      const queryParams = {
+        ...addTrainingSessionToPlanQueryParams
+      };
+      const navigationExtras = {queryParams};
+      this.router.navigate([`${PublicAppRoutes.BUILD_NEW_TRAINING_SESSION}`], navigationExtras);
+      return;
+    }
+
+    // Otherwise just route to the new training session
     this.router.navigate([PublicAppRoutes.BUILD_NEW_TRAINING_SESSION]);
   }
 
@@ -100,7 +119,7 @@ export class BrowseTrainingSessionsComponent implements OnInit, OnDestroy {
   }
 
   onReturnToEditPlan() {
-    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string;
     const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
 
     if (trainingPlanId && visibilityCategory) {

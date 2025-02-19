@@ -1,10 +1,10 @@
-import { Component, Input, OnInit, computed, input, signal } from '@angular/core';
+import { Component, OnInit, computed, input, signal } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PersonalSessionFragment, ViewPersonalSessionFragmentQueryParams, ViewPersonalSessionFragmentQueryParamsKeys } from 'shared-models/train/personal-session-fragment.model';
 import { PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentQueryParams, ViewPlanSessionFragmentQueryParamsKeys } from 'shared-models/train/plan-session-fragment.model';
-import { AddTrainingSessionUrlToPlanParamsKeys, AddTrainingSessionToPlanQueryParams, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParamsKeys, AddTrainingSessionToPlanQueryParams, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, BrowseTrainingSessionsQueryParamsKeys, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { DurationMsToMmSsPipe } from '../../pipes/duration-ms-to-mm-ss.pipe';
 import { AddTrainingSessionToPersonalQueueButtonComponent } from '../add-training-session-to-personal-queue-button/add-training-session-to-personal-queue-button.component';
@@ -73,13 +73,13 @@ export class TrainingSessionCardComponent implements OnInit {
         [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: this.$localCanonicalTrainingSession()![TrainingSessionKeys.DATABASE_CATEGORY],
         [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$localCanonicalTrainingSession()![TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]!
       };
-      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string | undefined;
+      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string | undefined;
       const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
       const addTrainingSessionToPlanQueryParams: AddTrainingSessionToPlanQueryParams = {
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: trainingPlanId!,
-        [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: false,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory!,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId!,
+        [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: false,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory!,
       };
       const queryParams = {
         ...viewCanonicalTrainingSessionQueryParams,

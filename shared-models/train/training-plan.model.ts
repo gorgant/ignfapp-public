@@ -28,10 +28,10 @@ export const TrainingPlanFormVars = {
 }
 
 export interface AddTrainingSessionToPlanQueryParams {
-  [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: boolean,
-  [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: string,
-  [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: boolean,
-  [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption,
+  [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: boolean,
+  [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: string,
+  [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: boolean,
+  [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: TrainingPlanVisibilityCategoryDbOption,
 }
 
 // // If function deployment triggers an error, use the alternate version below
@@ -43,7 +43,7 @@ export interface AddTrainingSessionToPlanQueryParams {
 //   VIEW_TRAINING_SESSIONS = 'viewTrainingSessions'
 // }
 
-export enum AddTrainingSessionUrlToPlanParamsKeys {
+export enum AddTrainingSessionToPlanQueryParamsKeys {
   DATABASE_CATEGORY = 'databaseCategory',
   TRAINING_PLAN_BUILDER_REQUEST = 'trainingPlanBuilderRequest',
   TRAINING_PLAN_ID = 'trainingPlanId',

@@ -1,7 +1,5 @@
 <div class="component-container">
-  @if (!$trainingPlanBuilderRequest()) {
-    <button class="create-button" mat-raised-button color="primary" (click)="onCreateTrainingSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
-  }
+  <button class="create-button" mat-raised-button color="primary" (click)="onCreateTrainingSession()">{{ CREATE_SESSION_BUTTON_VALUE }}</button>
   @if ($trainingPlanBuilderRequest()) {
     <button class="back-button" mat-button color="primary" (click)="onReturnToEditPlan()">
       <mat-icon>arrow_back</mat-icon> {{ RETURN_TO_EDIT_PLAN_BUTTON_VALUE }}
@@ -23,7 +21,6 @@
     <button class="filters-icon-button" mat-icon-button (click)="onToggleFilters()">
       <mat-icon class="filters-icon" [ngClass]="$filtersActive() ? 'filters-icon-active' : ''">tune</mat-icon>
     </button>
-    <!-- <div>Bob is cool!</div> -->
   </div>
   <div class="filters-container" [ngClass]="$showFilters() ? '' : 'hide'">
     <app-training-session-filters #trainingSessionFilters></app-training-session-filters>

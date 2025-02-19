@@ -6,7 +6,7 @@ import { combineLatest, Observable, Subscription, withLatestFrom, map, catchErro
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { NewDataForPlanSessionFragmentNoIdOrTimestamp, PlanSessionFragmentKeys, PlanSessionFragmentNoIdOrTimestamp } from 'shared-models/train/plan-session-fragment.model';
-import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlan, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, TrainingSessionKeys, TrainingSessionNoIdOrTimestamps } from 'shared-models/train/training-session.model';
 import { EMPTY_SPINNER_MESSAGE } from 'shared-models/user-interface/dialogue-box-default-config.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
@@ -288,12 +288,12 @@ export class AddTrainingSessionToPlanButtonComponent implements OnInit, OnDestro
       console.log('navigateToBrowseTrainingSessionsWithPlanBuilder');
       this.addTrainingSessionToPlanSubscription?.unsubscribe();
       this.resetComponentState();
-      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
+      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string;
       const queryParams: AddTrainingSessionToPlanQueryParams = {
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
-        [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
+        [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
       }
       const navigationExtras: NavigationExtras = {queryParams};
       this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);

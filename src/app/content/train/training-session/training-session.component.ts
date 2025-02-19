@@ -17,7 +17,7 @@ import { ActionConfirmDialogueComponent } from 'src/app/shared/components/action
 import { ActionConfData } from 'shared-models/forms/action-conf-data.model';
 import { PublicAppRoutes } from 'shared-models/routes-and-paths/app-routes.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
-import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 import { DeletePlanSessionFragmentQueryParams, DeletePlanSessionFragmentQueryParamsKeys, PlanSessionFragment, PlanSessionFragmentKeys, ViewPlanSessionFragmentQueryParams } from 'shared-models/train/plan-session-fragment.model';
 import { Timestamp } from '@angular/fire/firestore';
 import { DeletePersonalSessionFragmentUrlParams, DeletePersonalSessionFragmentUrlParamsKeys, PersonalSessionFragment, PersonalSessionFragmentKeys, ViewPersonalSessionFragmentQueryParams } from 'shared-models/train/personal-session-fragment.model';
@@ -173,7 +173,7 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   }
 
   private checkForPlanBuilderRequest() {
-    const builderRequestParam = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+    const builderRequestParam = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
     if (builderRequestParam && JSON.parse(builderRequestParam)) {
       console.log('Plan builder request detected');
       this.$trainingPlanBuilderRequest.set(true);
@@ -594,13 +594,13 @@ export class TrainingSessionComponent implements OnInit, ComponentCanDeactivate,
   onNavigateToBrowseTrainingSessions() {
     if (this.$trainingPlanBuilderRequest() && this.$localCanonicalTrainingSession()) {
       console.log('trainingPlanBuilderRequest detected, constructing trainingPlanBuilder Browse url');
-      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID) as string;
+      const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string;
       const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
       const queryParams: AddTrainingSessionToPlanQueryParams = {
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
-        [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
-        [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: visibilityCategory!
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
+        [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+        [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: visibilityCategory!
       };
       const navigationExtras: NavigationExtras = {queryParams};
       this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);

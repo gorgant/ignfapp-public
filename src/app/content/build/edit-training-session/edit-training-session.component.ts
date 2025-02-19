@@ -3,7 +3,7 @@ import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys, NewTrainingSessionSnackbarData } from 'shared-models/train/training-session.model';
+import { TrainingSessionVideoPlatform, TrainingSessionKeys, CanonicalTrainingSession, TrainingSessionDatabaseCategoryTypes, BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys, CanonicalTrainingSessionNoIdOrTimestamps, TrainingSessionVisibilityCategoryDbOption, ViewCanonicalTrainingSessionQueryParams, ViewCanonicalTrainingSessionQueryParamsKeys, NewTrainingSessionSnackbarData, NewTrainingSessionSnackbarDataQueryParams } from 'shared-models/train/training-session.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { TrainingSessionStoreActions, TrainingSessionStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { combineLatest, Observable, throwError } from 'rxjs';
@@ -24,6 +24,7 @@ import { ProcessingSpinnerComponent } from 'src/app/shared/components/processing
 import { BackButtonDirective } from 'src/app/shared/directives/back-button.directive';
 import { DurationIsoToMmSsPipe } from 'src/app/shared/pipes/duration-iso-to-mm-ss.pipe';
 import { SnackbarActions } from 'shared-models/utils/snackbar-actions.model';
+import { AddTrainingSessionToPlanQueryParams, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlanKeys, TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 
 @Component({
     selector: 'app-edit-training-session',
@@ -57,8 +58,6 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private createTrainingSessionSubscription!: Subscription;
   private createTrainingSessionError$!: Observable<{} | null>;
   private $createTrainingSessionSubmitted = signal(false);
-  private $createTrainingSessionCycleInit = signal(false);
-  private $createTrainingSessionCycleComplete = signal(false);
   
   private updateTrainingSessionProcessing$!: Observable<boolean>;
   private updateTrainingSessionSubscription!: Subscription;
@@ -88,14 +87,14 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   getYoutubeVideoDataProcessing$!: Observable<boolean>;
   youtubeVideoData$!: Observable<YoutubeVideoDataCompact | null>;
 
+  $isTrainingPlanBuilderRequest = signal(false);
+  $trainingPlanVisibilityCategory = signal(undefined as TrainingPlanVisibilityCategoryDbOption | undefined);
+
   private store$ = inject(Store);
   private route = inject(ActivatedRoute);
   private uiService = inject(UiService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-
-  private combinedComponentErrors$!: Observable<{} | null>;
-  
 
   constructor() { }
 
@@ -155,6 +154,8 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   }
 
   private configureTrainingSessionInterface(): void {
+    this.checkForPlanBuilderRequest();
+    this.setTrainingPlantVisibilityCategory
     this.setTrainingSessionId();
     this.setTrainingSessionVisibilityCategory();
     const visibilityCategory = this.$trainingSessionVisibilityCategory();
@@ -163,14 +164,27 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     (trainingSessionId && visibilityCategory) ? this.setCurrentTrainingSessionData() : this.$isNewSession.set(true);
   }
 
+  private checkForPlanBuilderRequest() {
+    const planBuilderParam = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+    if (planBuilderParam && JSON.parse(planBuilderParam)) {
+      console.log('Plan builder request detected');
+      this.$isTrainingPlanBuilderRequest.set(true);
+    }
+  }
+
+  private setTrainingPlantVisibilityCategory(): void {
+    const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption | undefined;
+    this.$trainingPlanVisibilityCategory.set(trainingPlanVisibilityCategory);
+  }
+
   private setTrainingSessionId(): void {
     const sessionId = this.route.snapshot.params[TrainingSessionKeys.ID] as string | undefined;
     this.$currentTrainingSessionId.set(sessionId);
   }
 
   private setTrainingSessionVisibilityCategory(): void {
-    const visibilityCategory = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as TrainingSessionVisibilityCategoryDbOption | undefined;
-    this.$trainingSessionVisibilityCategory.set(visibilityCategory);
+    const trainingSessionVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY) as TrainingSessionVisibilityCategoryDbOption | undefined;
+    this.$trainingSessionVisibilityCategory.set(trainingSessionVisibilityCategory);
   }
 
   private setCurrentTrainingSessionData() {
@@ -265,19 +279,32 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
         withLatestFrom(this.createTrainingSessionProcessing$),
         filter(([newTrainingSessionId, createTrainingSessionProcessing]) => !!newTrainingSessionId && !createTrainingSessionProcessing),
         tap(([newTrainingSessionId, createTrainingSessionProcessing]) => {
-          const queryParams: ViewCanonicalTrainingSessionQueryParams = {
-            [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-            [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value,
+          
+          // Build the query params for the snackbar action
+          const addTrainingSessionToPlanQueryParams = this.generateAddTrainingSessionToPlanQueryParams();
+          const viewCanonicalTrainingSessionQueryParams = this.generateViewCanonicalTrainingSessionQueryParams();
+          const queryParams: NewTrainingSessionSnackbarDataQueryParams = {
+            ...viewCanonicalTrainingSessionQueryParams,
+            ...addTrainingSessionToPlanQueryParams
           };
           const newTrainingSessionSnackbarData: NewTrainingSessionSnackbarData = {
+            snackbarDataType: SnackbarActions.VIEW_SESSION,
             trainingSessionId: newTrainingSessionId!,
             queryParams
           };
           this.uiService.showSnackBar(`Training session created!`, 5000, SnackbarActions.VIEW_SESSION, newTrainingSessionSnackbarData); // Display snackbar with option to view new session
+          
+          // Purge the store data
           this.store$.dispatch(TrainingSessionStoreActions.purgeYoutubeVideoData()); // Clears this out of working memory since it isn't needed anymore
           this.store$.dispatch(TrainingSessionStoreActions.purgeNewTrainingSessionId()); // Clears this out of working memory since it isn't needed anymore
           this.resetCreateTrainingSessionComponentState();
-          this.navigateToBrowseWithTrainingSessionSelection();
+
+          // Navigate to browse with the appropriate query params
+          if (this.$isTrainingPlanBuilderRequest()) {
+            this.navigateToBrowseWithTrainingPlanBuilderParams(addTrainingSessionToPlanQueryParams);
+          } else {
+            this.navigateToBrowseWithTrainingSessionSelection();
+          }
         }),
         // Catch any local errors
         catchError(error => {
@@ -292,18 +319,7 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
   private resetCreateTrainingSessionComponentState() {
     this.createTrainingSessionSubscription?.unsubscribe();
     this.$createTrainingSessionSubmitted.set(false);
-    this.$createTrainingSessionCycleInit.set(false);
-    this.$createTrainingSessionCycleComplete.set(false);
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
-  }
-
-  private navigateToNewTrainingSession(newTrainingSessionId: string): void {
-    const queryParams: ViewCanonicalTrainingSessionQueryParams = {
-      [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-      [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value,
-    };
-    const navigationExtras: NavigationExtras = {queryParams};
-    this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, newTrainingSessionId], navigationExtras);
   }
 
   private updateExistingSession() {
@@ -379,25 +395,46 @@ export class EditTrainingSessionComponent implements OnInit, OnDestroy, Componen
     this.store$.dispatch(TrainingSessionStoreActions.purgeTrainingSessionErrors());
   }
 
+  // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
   private navigateToTrainingSessionWithParams(): void {
-    const canonicalTrainingSessionData = this.$localTrainingSession()!;
-    // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
-    const queryParams: ViewCanonicalTrainingSessionQueryParams = {
-      [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
-      [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: canonicalTrainingSessionData[TrainingSessionKeys.TRAINING_SESSION_VISIBILITY_CATEGORY],
-    };
+    const queryParams = this.generateViewCanonicalTrainingSessionQueryParams();
     const navigationExtras: NavigationExtras = {queryParams};
     this.router.navigate([PublicAppRoutes.TRAIN_TRAINING_SESSION, this.$currentTrainingSessionId()], navigationExtras);
   }
 
+  // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
   private navigateToBrowseWithTrainingSessionSelection(): void {
-    // Note that on navigation, the CanDeactivate guard will prompt user to confirm action if unsaved changes detected
     console.log('BrowseTrainingSessionsUlrParams property', BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
     const queryParams: BrowseTrainingSessionsQueryParams = {
       [BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true, // Ensures the user views training sessions vs plans
     };
     const navigationExtras: NavigationExtras = {queryParams};
     this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+  }
+
+  private navigateToBrowseWithTrainingPlanBuilderParams(queryParams: AddTrainingSessionToPlanQueryParams): void {
+    const navigationExtras: NavigationExtras = { queryParams };
+    this.router.navigate([PublicAppRoutes.BROWSE], navigationExtras);
+  }
+
+  private generateViewCanonicalTrainingSessionQueryParams(): ViewCanonicalTrainingSessionQueryParams {
+    const viewCanonicalTrainingSessionQueryParams: ViewCanonicalTrainingSessionQueryParams = {
+      [ViewCanonicalTrainingSessionQueryParamsKeys.DATABASE_CATEGORY]: TrainingSessionDatabaseCategoryTypes.CANONICAL,
+      [ViewCanonicalTrainingSessionQueryParamsKeys.TRAINING_SESSION_VISIBILITY_CATEGORY]: this.$stepOne().visibilityCategory.value,
+    };
+    return viewCanonicalTrainingSessionQueryParams;
+  }
+
+  private generateAddTrainingSessionToPlanQueryParams(): AddTrainingSessionToPlanQueryParams {
+    const trainingPlanId = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID) as string;
+    const trainingPlanVisibilityCategory = this.route.snapshot.queryParamMap.get(TrainingPlanKeys.TRAINING_PLAN_VISIBILITY_CATEGORY) as TrainingPlanVisibilityCategoryDbOption;
+    const addTrainingSessionToPlanQueryParams: AddTrainingSessionToPlanQueryParams = {
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: this.$isTrainingPlanBuilderRequest(),
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: trainingPlanId,
+      [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: trainingPlanVisibilityCategory,
+    };
+    return addTrainingSessionToPlanQueryParams;
   }
 
   // @HostListener allows us to also CanDeactivate Guard against browser refresh, close, etc.

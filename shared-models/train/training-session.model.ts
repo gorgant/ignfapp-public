@@ -5,6 +5,8 @@ import { TrainingSessionActivityCategoryDbOption } from "./activity-category.mod
 import { TrainingSessionMuscleGroupDbOption } from "./muscle-group.model";
 import { TrainingSessionComplexityDbOption } from "./training-complexity.model";
 import { TrainingSessionIntensityDbOption } from "./training-intensity.model";
+import { AddTrainingSessionToPlanQueryParams } from "./training-plan.model";
+import { SnackbarActions } from "shared-models/utils/snackbar-actions.model";
 
 export interface CanonicalTrainingSessionRatingUpdate extends Omit<CanonicalTrainingSession, TrainingSessionKeys.COMPLEXITY_RATING_COUNT | TrainingSessionKeys.INTENSITY_RATING_COUNT> {
   [TrainingSessionKeys.COMPLEXITY_RATING_COUNT]: FieldValue, // the number of ratings submitted
@@ -146,7 +148,9 @@ export const TrainingSessionVisibilityTypeList: TrainingSessionVisibilityCategor
   },
 }
 
+export type NewTrainingSessionSnackbarDataQueryParams = ViewCanonicalTrainingSessionQueryParams & AddTrainingSessionToPlanQueryParams;
 export interface NewTrainingSessionSnackbarData {
+  snackbarDataType: SnackbarActions.VIEW_SESSION,
   trainingSessionId: string,
-  queryParams: ViewCanonicalTrainingSessionQueryParams
+  queryParams: NewTrainingSessionSnackbarDataQueryParams,
 };

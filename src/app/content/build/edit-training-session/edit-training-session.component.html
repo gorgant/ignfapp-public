@@ -6,7 +6,13 @@
       <!-- Step 1 -->
       <mat-step  errorMessage="Error collecting video data." [completed]="$stepOneComplete()" [editable]="true" >
         <ng-template matStepLabel>{{ INPUT_YOUTUBE_VIDEO_URL_STEP_LABEL }}</ng-template>
-        <app-edit-training-session-step-one [$editTrainingSessionStepper]="editTrainingSessionStepper" [$localTrainingSession]="$localTrainingSession()" (stepOneCompleted)="handleStepOneCompletion($event)" #stepOne></app-edit-training-session-step-one>
+        <app-edit-training-session-step-one 
+          [$editTrainingSessionStepper]="editTrainingSessionStepper" 
+          [$localTrainingSession]="$localTrainingSession()" 
+          [$isTrainingPlanBuilderRequest]="$isTrainingPlanBuilderRequest()" 
+          [$trainingPlanVisibilityCategory]="$trainingPlanVisibilityCategory()"
+          (stepOneCompleted)="handleStepOneCompletion($event)" #stepOne>
+        </app-edit-training-session-step-one>
         <div class="stepper-buttons-container step-one-buttons">
           @if ($isNewSession() && !(getYoutubeVideoDataProcessing$ | async)) {
             <button class="action-button" [disabled]="stepOne.youtubeVideoDataForm.invalid" mat-raised-button color="primary" type="button" (click)="stepOne.onGetYoutubeVideoData()">

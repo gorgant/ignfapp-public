@@ -4,7 +4,7 @@ import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { combineLatest, map, Observable, Subscription, withLatestFrom, tap, switchMap, filter, of, catchError, throwError, Subject, debounceTime } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { AddTrainingSessionToPlanQueryParams, TrainingPlan, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingSessionUrlToPlanParamsKeys, TrainingPlanVisibilityCategoryDbOption, TrainingPlanVisibilityTypeList, TrainingPlanVisibilityCategoryObject, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParams, TrainingPlan, TrainingPlanFormVars, TrainingPlanKeys, TrainingPlanNoIdOrTimestamp, AddTrainingSessionToPlanQueryParamsKeys, TrainingPlanVisibilityCategoryDbOption, TrainingPlanVisibilityTypeList, TrainingPlanVisibilityCategoryObject, ViewTrainingPlanQueryParams, ViewTrainingPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { PublicUser } from 'shared-models/user/public-user.model';
 import { PlanSessionFragmentStoreActions, PlanSessionFragmentStoreSelectors, TrainingPlanStoreActions, TrainingPlanStoreSelectors, UserStoreSelectors } from 'src/app/root-store';
 import { Update } from '@ngrx/entity';
@@ -616,10 +616,10 @@ export class EditTrainingPlanComponent implements OnInit, OnDestroy {
 
   onAddTrainingSession() {
     const queryParams: AddTrainingSessionToPlanQueryParams = {
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
-      [AddTrainingSessionUrlToPlanParamsKeys.VIEW_TRAINING_SESSIONS]: true,
-      [AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST]: true,
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_ID]: this.$localTrainingPlanId()!,
+      [AddTrainingSessionToPlanQueryParamsKeys.VIEW_TRAINING_SESSIONS]: true,
+      [AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_VISIBILITY_CATEGORY]: this.$trainingPlanVisibilityCategory()!
     };
     const navigationExtras: NavigationExtras = {
       queryParams

@@ -1,4 +1,4 @@
-import { AfterContentInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, input, output, signal } from '@angular/core';
+import { AfterContentInit, Component, OnDestroy, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { Store } from '@ngrx/store';
@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TrainingPlanVisibilityCategoryDbOption } from 'shared-models/train/training-plan.model';
 
 @Component({
     selector: 'app-edit-training-session-step-one',
@@ -29,6 +30,10 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
 
   $editTrainingSessionStepper = input.required<MatStepper>();
   $localTrainingSession = input<CanonicalTrainingSession>();
+
+  $isTrainingPlanBuilderRequest = input.required<boolean>();
+  $trainingPlanVisibilityCategory = input.required<TrainingPlanVisibilityCategoryDbOption | undefined>();
+
   stepOneCompleted = output<boolean>();
 
   CANCEL_BUTTON_VALUE = GlobalFieldValues.CANCEL;
@@ -92,7 +97,7 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
     return errorMessage;
   }
 
-  // Note this signal is provided from the parent component
+  // Note these signals are provided from the parent component
   private checkForExistingData() {
     const trainingSessionData = this.$localTrainingSession();
     console.log('Found this trainingSessionData in step one', trainingSessionData);
@@ -102,6 +107,12 @@ export class EditTrainingSessionStepOneComponent implements OnInit, AfterContent
       this.videoUrl.setValue(trainingSessionData.videoData.videoUrl);
       this.videoUrl.disable();
       this.stepOneCompleted.emit(true);
+    }
+    if (this.$isTrainingPlanBuilderRequest()) {
+      const trainingSessionVisilbilityCategory = this.$trainingPlanVisibilityCategory() === TrainingPlanVisibilityCategoryDbOption.PRIVATE ? TrainingSessionVisibilityCategoryDbOption.PRIVATE : TrainingSessionVisibilityCategoryDbOption.PUBLIC;
+      console.log('Setting visibility category to:', trainingSessionVisilbilityCategory);
+      this.visibilityCategory.setValue(trainingSessionVisilbilityCategory);
+      this.visibilityCategory.disable();
     }
   }
 

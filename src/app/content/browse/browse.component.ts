@@ -3,7 +3,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { Subscription, map } from 'rxjs';
 import { GlobalFieldValues } from 'shared-models/content/string-vals.model';
-import { AddTrainingSessionUrlToPlanParamsKeys } from 'shared-models/train/training-plan.model';
+import { AddTrainingSessionToPlanQueryParamsKeys } from 'shared-models/train/training-plan.model';
 import { BrowseTrainingSessionsQueryParams, BrowseTrainingSessionsQueryParamsKeys } from 'shared-models/train/training-session.model';
 import { BrowseTrainingSessionsComponent } from './browse-training-sessions/browse-training-sessions.component';
 import { BrowseTrainingPlansComponent } from './browse-training-plans/browse-training-plans.component';
@@ -46,7 +46,7 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
     this.queryParamMapSubscription = this.route.queryParamMap
       .pipe(
         map((paramMap) => {
-          const planBuilderParam = paramMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+          const planBuilderParam = paramMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
           const viewTrainingSessionsValue = paramMap.get(BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
           if (planBuilderParam && JSON.parse(planBuilderParam)) {
             console.log('Plan builder request detected');
@@ -70,7 +70,7 @@ export class BrowseComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.$matTabGroup().focusChange.subscribe(changeEvent => {
       console.log('Change event tab index', changeEvent.index);
-      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionUrlToPlanParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
+      const addTrainingSessionString = this.route.snapshot.queryParamMap.get(AddTrainingSessionToPlanQueryParamsKeys.TRAINING_PLAN_BUILDER_REQUEST);
       const viewTrainingSessionsString = this.route.snapshot.queryParamMap.get(BrowseTrainingSessionsQueryParamsKeys.VIEW_TRAINING_SESSIONS);
       const newIndex = changeEvent.index;
       
